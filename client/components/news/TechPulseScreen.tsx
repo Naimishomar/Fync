@@ -3,7 +3,7 @@
  * discussed. Backed by /tech-news/trending, which reads the public Hacker News
  * index — no API key and no per-user cost.
  */
-import React, { useCallback, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
   RefreshControl, Linking, StatusBar,
@@ -13,6 +13,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
+import { AppBar } from '../ui/kit';
 import { C } from '../../constants/colors';
 
 type Feed = 'global' | 'india' | 'placement';
@@ -31,6 +32,7 @@ type Story = {
 
 /** "4h ago" — the whole point of the screen is that everything here is recent. */
 const ago = (iso: string) => {
+  if (!iso || isNaN(new Date(iso).getTime())) return '';
   const mins = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
   if (mins < 60) return `${mins}m ago`;
   return `${Math.round(mins / 60)}h ago`;
@@ -39,7 +41,7 @@ const ago = (iso: string) => {
 const open = (url: string) =>
   Linking.openURL(url).catch(() => Alert.alert('Could not open', 'That link would not open.'));
 
-const StoryRow = ({ item, index, ranked, onRead }: { item: Story; index: number; ranked: boolean; onRead: (s: Story) => void }) => (
+const StoryRow = memo(({ item, index, ranked, onRead }: { item: Story; index: number; ranked: boolean; onRead: (s: Story) => void }) => (
   <View style={{ position: 'relative', marginBottom: index === 0 ? 20 : 12 }}>
     {index === 0 && (
       <View
@@ -102,7 +104,7 @@ const StoryRow = ({ item, index, ranked, onRead }: { item: Story; index: number;
       </View>
     </TouchableOpacity>
   </View>
-);
+));
 
 export default function TechPulseScreen() {
   const navigation = useNavigation<any>();
@@ -117,18 +119,30 @@ export default function TechPulseScreen() {
     [navigation],
   );
 
+  // A feed switch while the previous feed is still loading must not let the
+  // slower, older response land last.
+  const requestId = useRef(0);
   const load = useCallback(async () => {
+    const id = ++requestId.current;
     try {
       setFailed(false);
       const res = await axios.get('/tech-news/trending', { params: { limit: 25, feed } });
-      setStories(res.data.stories ?? []);
+      if (id === requestId.current) setStories(res.data.stories ?? []);
     } catch {
-      setFailed(true);
+      if (id === requestId.current) setFailed(true);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (id === requestId.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, [feed]);
+
+  const ranked = feed === 'global';
+  const renderStory = useCallback(
+    ({ item, index }: { item: Story; index: number }) => <StoryRow item={item} index={index} ranked={ranked} onRead={read} />,
+    [ranked, read],
+  );
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
@@ -136,16 +150,8 @@ export default function TechPulseScreen() {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="px-gutter pt-3">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}
-          >
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter">
           <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>Tech</Text>
           <Text className="font-display text-accent-text uppercase text-display" style={{ letterSpacing: -1.2 }}>Pulse</Text>
           <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>
@@ -182,7 +188,7 @@ export default function TechPulseScreen() {
           <FlatList
             data={stories}
             keyExtractor={(s) => s.id}
-            renderItem={({ item, index }) => <StoryRow item={item} index={index} ranked={feed === 'global'} onRead={read} />}
+            renderItem={renderStory}
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60 }}
             showsVerticalScrollIndicator={false}
             refreshControl={

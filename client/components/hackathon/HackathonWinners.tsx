@@ -23,6 +23,7 @@ import Toast from 'react-native-toast-message';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 /**
  * Announcing winners.
@@ -113,7 +114,11 @@ const StudentPicker = ({
   useEffect(() => {
     const q = query.trim();
     if (q.length < 2) {
+      // Invalidate any in-flight search; its cleared timer would otherwise
+      // leave the spinner on for good.
+      reqId.current++;
       setResults([]);
+      setSearching(false);
       return;
     }
     const id = ++reqId.current;
@@ -171,7 +176,7 @@ const StudentPicker = ({
             data={results}
             keyExtractor={(u) => u._id}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 + bottomInset }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 + bottomInset }}
             renderItem={({ item }) => {
               const taken = alreadyTagged.includes(item._id);
               return (
@@ -233,7 +238,7 @@ const HackathonWinners = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const bottomInset = useBottomInset();
-  const { hackathonId, hackathonTitle } = route.params;
+  const { hackathonId, hackathonTitle } = route.params ?? {};
 
   const [rows, setRows] = useState<WinnerRow[]>([emptyRow(1)]);
   const [loading, setLoading] = useState(true);
@@ -349,34 +354,17 @@ const HackathonWinners = () => {
       <StatusBar style="dark" />
       <SafeAreaView className="flex-1" edges={['top']}>
         {/* Header */}
-        <View className="flex-row items-center px-3 pb-3 border-b border-line">
-          <TouchableOpacity
-            onPress={confirmLeave}
-            className="w-11 h-11 items-center justify-center"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <Ionicons name="arrow-back" size={22} color={C.ink} />
-          </TouchableOpacity>
-          <View className="flex-1 ml-1">
-            <Text className="text-ink text-base font-display">Announce winners</Text>
-            {hackathonTitle ? (
-              <Text className="text-ink-3 text-label font-semibold" numberOfLines={1}>
-                {hackathonTitle}
-              </Text>
-            ) : null}
-          </View>
-        </View>
+        <AppBar title="Announce winners" subtitle={hackathonTitle || undefined} onBack={confirmLeave} />
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior="padding"
           className="flex-1"
           keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
         >
           <ScrollView
             className="flex-1"
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ padding: 16, paddingBottom: 120 + bottomInset }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16, paddingBottom: 120 + bottomInset }}
             showsVerticalScrollIndicator={false}
           >
             <View className="flex-row items-start bg-card border border-line rounded-card p-3.5 mb-4">

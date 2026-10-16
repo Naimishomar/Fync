@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, Pressable, ScrollView, ActivityIndicator, Modal, Image, StatusBar, TouchableOpacity} from 'react-native'
+import {View, Text, ScrollView, ActivityIndicator, Modal, Image, StatusBar, TouchableOpacity} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,7 +10,7 @@ import { useAuth } from '../../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard } from '../ui/kit';
+import { AppBar, StampCard } from '../ui/kit';
 import { C } from '../../constants/colors';
 const SubscriptionScreen = ({ onSuccess }: any) => {
     const { user, logout } = useAuth();
@@ -60,9 +60,10 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                         image: "https://pub-f21d514d3e904051ac25997e6c3fef39.r2.dev/Fync.png",
                         order_id: "${currentOrder.id}",
                         prefill: {
-                            name: "${user?.name || ''}",
-                            email: "${user?.email || ''}",
-                            contact: "${user?.mobileNumber || ''}"
+                            // JSON-encoded: a quote in a name used to break the whole script.
+                            name: ${JSON.stringify(user?.name || '')},
+                            email: ${JSON.stringify(user?.email || '')},
+                            contact: ${JSON.stringify(String(user?.mobileNumber || ''))}
                         },
                         theme: {
                             color: "#F97316"
@@ -99,7 +100,8 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
     };
 
     const handleWebViewMessage = async (event: any) => {
-        const msg = JSON.parse(event.nativeEvent.data);
+        let msg: any;
+        try { msg = JSON.parse(event.nativeEvent.data); } catch { return; }
 
         if (msg.event === "SUCCESS") {
             setShowWebView(false);
@@ -156,18 +158,8 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
             <StatusBar barStyle="dark-content" />
 
             <SafeAreaView className="flex-1" edges={['top']}>
+                {navigation.canGoBack() && <AppBar onBack={() => navigation.goBack()} />}
                 <View className="px-5 pt-2">
-                    {navigation.canGoBack() && (
-                        <Pressable
-                            onPress={() => navigation.goBack()}
-                            className="w-11 h-11 items-center justify-center rounded-xl"
-                            style={{ marginLeft: -11 }}
-                            accessibilityRole="button"
-                            accessibilityLabel="Go back"
-                        >
-                            <Ionicons name="arrow-back" size={24} color={C.ink} />
-                        </Pressable>
-                    )}
 
                     {/* The two-line display headline every other screen uses. */}
                     <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Fync</Text>
@@ -276,7 +268,12 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
             </SafeAreaView>
 
             {/* Razorpay WebView Modal */}
-            <Modal visible={showWebView} animationType="slide" transparent={false}>
+            <Modal
+                visible={showWebView}
+                animationType="slide"
+                transparent={false}
+                onRequestClose={() => { setShowWebView(false); Alert.alert("Cancelled", "Payment was cancelled."); }}
+            >
                 <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
                     {html ? (
                         <WebView

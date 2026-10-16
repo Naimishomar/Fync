@@ -7,15 +7,17 @@
  */
 import React, { useCallback, useState } from 'react';
 import {
-  View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator,
+  View, Text, FlatList, TouchableOpacity, ActivityIndicator,
   RefreshControl, Share, StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 type ShareRow = {
   _id: string;
@@ -61,15 +63,8 @@ export default function MySharesScreen() {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="px-gutter pt-3">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}
-          >
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter">
           <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Your</Text>
           <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Shares</Text>
           <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>
@@ -97,7 +92,7 @@ export default function MySharesScreen() {
             renderItem={({ item }) => (
               <View className="flex-row items-center bg-card rounded-card p-4 border border-line mb-2">
                 {!!item.product?.image && (
-                  <Image source={{ uri: item.product.image }} style={{ width: 44, height: 44, borderRadius: 10 }} resizeMode="cover" />
+                  <Image source={{ uri: item.product.image }} style={{ width: 44, height: 44, borderRadius: 10 }} contentFit="cover" cachePolicy="memory-disk" />
                 )}
                 <View className="flex-1 mx-3">
                   <Text className="text-ink text-sm" numberOfLines={1}>{item.product?.name ?? 'Removed product'}</Text>

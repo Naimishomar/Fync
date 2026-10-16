@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {View, Text, TouchableOpacity, ActivityIndicator, Image, ScrollView} from 'react-native'
 import { Audio } from 'expo-av';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import * as Speech from 'expo-speech';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -8,16 +10,23 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 import socket from '../../utils/socket';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomInset } from '../../constants/layout';
 
 export default function ActiveInterview() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  const bottomInset = useBottomInset();
 
   // REFS
   const recordingRef = useRef<Audio.Recording | null>(null);
   const isProcessingRef = useRef(false); // Mutex lock to prevent race conditions
   const isEnded = useRef(false);
+  // Released before the recorder finished starting: stop as soon as it has.
+  const stopRequested = useRef(false);
 
   // PARAMS
   const { sessionId, firstQuestion = "Tell me about yourself.", duration = 5 } = route.params || {};
@@ -30,6 +39,7 @@ export default function ActiveInterview() {
   const [transcript, setTranscript] = useState('');
   const [timeLeft, setTimeLeft] = useState(duration * 60);
   const [report, setReport] = useState<any>(null);
+  const [downloading, setDownloading] = useState(false);
 
   // 1. INTERCEPT BACK BUTTON
   useEffect(() => {
@@ -46,7 +56,8 @@ export default function ActiveInterview() {
             text: "End Session",
             style: 'destructive',
             onPress: async () => {
-              await axios.post('/interview/cancel', { sessionId });
+              // A failed cancel must not trap the user on this screen.
+              await axios.post('/interview/cancel', { sessionId }).catch(() => {});
               isEnded.current = true;
               navigation.dispatch(e.data.action);
             }
@@ -117,14 +128,33 @@ export default function ActiveInterview() {
   };
 
   const downloadReport = async () => {
+    if (downloading || !report) return;
+    setDownloading(true);
     try {
-      Alert.alert("Download", "Your report is being generated...");
-      const res = await axios.post('/interview/generate-pdf', { report }, { responseType: 'blob' });
-      // In a real mobile app, you'd use FileSystem and Sharing to save the blob.
-      // For now, we'll simulate the success.
-      Alert.alert("Success", "Report downloaded to your device.");
-    } catch (err) {
-      Alert.alert("Error", "Failed to generate report.");
+      const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+      const list = (items: unknown) =>
+        (Array.isArray(items) ? items : []).map((i) => `<li>${esc(i)}</li>`).join('') || '<li>None</li>';
+      const html = `<html><head><meta charset="utf-8"/><style>
+        body{font-family:-apple-system,Helvetica,Arial,sans-serif;padding:32px;color:#12100E}
+        h1{margin:0 0 16px}h2{margin-top:24px;font-size:16px;text-transform:uppercase}
+        </style></head><body>
+        <h1>AI Interview Report</h1>
+        <p><b>Technical Score:</b> ${esc(report.technical_score)}/10<br/>
+        <b>Communication Score:</b> ${esc(report.communication_score)}/10<br/>
+        <b>Verdict:</b> ${esc(report.verdict)}</p>
+        <h2>Summary</h2><p>${esc(report.summary)}</p>
+        <h2>Strengths</h2><ul>${list(report.strengths)}</ul>
+        <h2>Improvements</h2><ul>${list(report.improvements)}</ul>
+        </body></html>`;
+      const { uri } = await Print.printToFileAsync({ html });
+      if (!(await Sharing.isAvailableAsync())) {
+        throw new Error('Sharing is not available on this device.');
+      }
+      await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: 'Save interview report' });
+    } catch (err: any) {
+      Alert.alert("Error", `Could not create the report PDF: ${err?.message ?? err}`);
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -186,12 +216,14 @@ export default function ActiveInterview() {
       // Whatever the last sentence break left over, plus the case where the
       // model produced no terminal punctuation at all.
       const tail = full.slice(spokenUpTo.current).trim();
-      if (tail) Speech.speak(tail, { language: 'en-US' });
 
       // onDone only fires for the final queued utterance, so IDLE is set here
-      // rather than per chunk.
-      Speech.speak('', {
+      // rather than per chunk. Hung on the real tail when there is one: an
+      // empty utterance is not guaranteed to call back on every TTS engine.
+      Speech.speak(tail, {
+        language: 'en-US',
         onDone: () => setAiState('IDLE'),
+        onStopped: () => setAiState('IDLE'),
         onError: () => setAiState('IDLE'),
       });
 
@@ -213,6 +245,7 @@ export default function ActiveInterview() {
   const startRecording = async () => {
     if (isProcessingRef.current || report) return;
     isProcessingRef.current = true;
+    stopRequested.current = false;
 
     try {
       if (recordingRef.current) {
@@ -243,12 +276,22 @@ export default function ActiveInterview() {
       setAiState('IDLE');
     } finally {
       isProcessingRef.current = false;
+      // A quick tap releases before createAsync resolves; without this the mic
+      // kept recording with nothing left to stop it.
+      if (stopRequested.current) {
+        stopRequested.current = false;
+        stopRecordingAndSend();
+      }
     }
   };
 
   // 4. STOP RECORDING (Safety Checks)
   const stopRecordingAndSend = async () => {
-    if (isProcessingRef.current || !recordingRef.current) return;
+    if (isProcessingRef.current) {
+      stopRequested.current = true;
+      return;
+    }
+    if (!recordingRef.current) return;
 
     isProcessingRef.current = true;
     setAiState('PROCESSING');
@@ -301,7 +344,7 @@ export default function ActiveInterview() {
 
   if (report) {
     return (
-      <View className="flex-1 bg-paper p-6 pt-16">
+      <View className="flex-1 bg-paper px-5" style={{ paddingTop: insets.top + 24, paddingBottom: bottomInset + 8 }}>
         <View className="items-center mb-8">
           <View className="bg-success/15 p-4 rounded-full mb-4">
             <Ionicons name="checkmark-circle" size={60} color={C.success} />
@@ -344,7 +387,7 @@ export default function ActiveInterview() {
               <Text className="text-ink font-semibold mb-3 flex-row items-center">
                 <Ionicons name="star" size={16} color={C.warning} /> Strengths
               </Text>
-              {report.strengths.map((s: string, i: number) => (
+              {(report.strengths ?? []).map((s: string, i: number) => (
                 <View key={i} className="flex-row items-start mb-2 bg-success/10 p-3 rounded-xl">
                   <Ionicons name="caret-forward" size={14} color={C.success} style={{ marginTop: 4, marginRight: 8 }} />
                   <Text className="text-ink-2 flex-1">{s}</Text>
@@ -356,7 +399,7 @@ export default function ActiveInterview() {
               <Text className="font-display text-label text-ink uppercase mb-3">
                 <Ionicons name="build" size={16} color={C.info} /> Areas of Improvement
               </Text>
-              {report.improvements.map((s: string, i: number) => (
+              {(report.improvements ?? []).map((s: string, i: number) => (
                 <View key={i} className="flex-row items-start mb-2 bg-fam-career/10 p-3 rounded-xl">
                   <Ionicons name="caret-forward" size={14} color={C.info} style={{ marginTop: 4, marginRight: 8 }} />
                   <Text className="text-ink-2 flex-1">{s}</Text>
@@ -369,19 +412,18 @@ export default function ActiveInterview() {
         <View className="gap-3">
           <TouchableOpacity
             onPress={downloadReport}
+            disabled={downloading}
             className="w-full bg-brand-600 py-5 rounded-card flex-row justify-center items-center shadow-hair"
           >
-            <Ionicons name="cloud-download-outline" size={24} color="white" className="mr-2" />
-            <Text className="text-white font-display text-lg ml-2 uppercase">Download Report PDF</Text>
+            {downloading ? <ActivityIndicator color="white" /> : <Ionicons name="cloud-download-outline" size={24} color="white" className="mr-2" />}
+            <Text className="text-white font-display text-lg ml-2 uppercase">{downloading ? 'Generating...' : 'Download Report PDF'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl w-full"
-          
+            className="h-12 items-center justify-center rounded-xl w-full"
             accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
+            accessibilityLabel="Go back">
             <Text className="text-ink-3 font-display text-lg uppercase">Close</Text>
           </TouchableOpacity>
         </View>
@@ -390,26 +432,21 @@ export default function ActiveInterview() {
   }
 
   return (
-    <View className="flex-1 bg-paper justify-between items-center p-6 py-12">
-
+    <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
       {/* Top Bar */}
-      <View className="w-full flex-row justify-between items-center mt-4">
-        <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-          <Ionicons name="chevron-back" size={28} color={C.ink2} />
-        </TouchableOpacity>
+      <AppBar
+        onBack={() => navigation.goBack()}
+        right={
+          <View className="bg-paper-2 px-4 py-2 rounded-full border border-line flex-row items-center gap-2" style={{ marginRight: 11 }}>
+            <Ionicons name="time-outline" size={20} color={timeLeft < 60 ? "#DC2626" : "#F97316"} />
+            <Text className={`text-xl font-display ${timeLeft < 60 ? 'text-danger' : 'text-accent-text'}`}>
+              {formatTime(timeLeft)}
+            </Text>
+          </View>
+        }
+      />
 
-        <View className="bg-paper-2 px-4 py-2 rounded-full border border-line flex-row items-center gap-2">
-          <Ionicons name="time-outline" size={20} color={timeLeft < 60 ? "#DC2626" : "#F97316"} />
-          <Text className={`text-xl font-display ${timeLeft < 60 ? 'text-danger' : 'text-accent-text'}`}>
-            {formatTime(timeLeft)}
-          </Text>
-        </View>
-        <View className="w-7" />
-      </View>
+      <View className="flex-1 justify-between items-center px-5" style={{ paddingBottom: bottomInset + 16 }}>
 
       {/* AI Visualizer */}
       <View className="items-center w-full flex-1 justify-center">
@@ -475,6 +512,7 @@ export default function ActiveInterview() {
 
           <View className="w-16 h-16" />
         </View>
+      </View>
       </View>
     </View>
   );

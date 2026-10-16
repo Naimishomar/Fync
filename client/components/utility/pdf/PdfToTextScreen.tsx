@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Share } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { AppBar } from '../../ui/kit';
 import * as Clipboard from 'expo-clipboard';
 import { Alert } from '../../ui/AlertModal';
 import { pickPdf, readBase64, type PickedPdf } from './pdfKit';
@@ -17,7 +18,8 @@ export default function PdfToTextScreen() {
   const [text, setText] = useState('');
 
   const choose = async () => {
-    const picked = await pickPdf(false);
+    let picked: PickedPdf[];
+    try { picked = await pickPdf(false); } catch { Alert.alert('Error', 'Could not open that file.'); return; }
     if (picked.length) { setFile(picked[0]); setText(''); prepare(); }
   };
 
@@ -41,13 +43,7 @@ export default function PdfToTextScreen() {
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
       <Host />
       <SafeAreaView style={{ flex: 1 }}>
-        <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <Text className="text-xl font-display text-ink flex-1">Extract Text</Text>
-        </View>
+        <AppBar title="Extract Text" onBack={() => navigation.goBack()} />
 
         <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
           <Text className="text-ink-2 text-sm mb-5">Pull the text out of a PDF so you can paste it into notes. Scanned pages will not work — they are images.</Text>

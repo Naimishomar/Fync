@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { AppBar } from '../../ui/kit';
 import * as Print from 'expo-print';
 import { Alert } from '../../ui/AlertModal';
 import { sharePdf, savePdfToDevice } from './pdfKit';
@@ -41,15 +42,9 @@ export default function UrlToPdfScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
       <SafeAreaView style={{ flex: 1 }}>
-        <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <Text className="text-xl font-display text-ink flex-1">Web Page to PDF</Text>
-        </View>
+        <AppBar title="Web Page to PDF" onBack={() => navigation.goBack()} />
 
-        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <Text className="text-ink-2 text-sm mb-5">Save a syllabus page, notice or article as a PDF you can read offline.</Text>
 
           <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-5">

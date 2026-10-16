@@ -53,12 +53,15 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
   const pickImages = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      selectionLimit: 5 - existingImages.length,
+      // selectionLimit is ignored unless multiple selection is on.
+      allowsMultipleSelection: true,
+      selectionLimit: 5 - existingImages.length - images.length,
       quality: 0.5,
     });
 
     if (!result.canceled) {
-      setImages([...images, ...result.assets]);
+      // Android may not enforce selectionLimit; the cap is 5 in total.
+      setImages(prev => [...prev, ...result.assets].slice(0, 5 - existingImages.length));
     }
   };
 
@@ -201,7 +204,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
                 {existingImages.map((img, i) => (
                   <View key={`ex-${i}`} className="w-[30%] aspect-square rounded-card overflow-hidden border border-line shadow-hair">
                     <Image source={{ uri: img }} className="w-full h-full" />
-                    <Pressable onPress={() => removeImage(i, true)} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 border border-white/20">
+                    <Pressable onPress={() => removeImage(i, true)} hitSlop={10} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 border border-white/20">
                       <Ionicons name="close" size={12} color="white" />
                     </Pressable>
                   </View>
@@ -209,7 +212,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
                 {images.map((img, i) => (
                   <View key={`new-${i}`} className="w-[30%] aspect-square rounded-card overflow-hidden border border-line shadow-hair">
                     <Image source={{ uri: img.uri }} className="w-full h-full" />
-                    <Pressable onPress={() => removeImage(i, false)} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 border border-white/20">
+                    <Pressable onPress={() => removeImage(i, false)} hitSlop={10} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 border border-white/20">
                       <Ionicons name="close" size={12} color="white" />
                     </Pressable>
                   </View>

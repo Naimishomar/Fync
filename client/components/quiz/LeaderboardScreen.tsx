@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {View, Text, FlatList, Image, Pressable, ActivityIndicator, TouchableOpacity, Animated, Easing, StatusBar} from 'react-native'
+import {View, Text, FlatList, Pressable, ActivityIndicator, TouchableOpacity, Animated, Easing, StatusBar} from 'react-native'
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
@@ -10,6 +11,7 @@ import { shareAsync } from 'expo-sharing';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 type ScreenRouteProp = RouteProp<RootStackParamList, 'LeaderboardScreen'>;
 
@@ -32,7 +34,6 @@ const LeaderboardScreen = () => {
     socket.emit("watch_leaderboard", { roomId });
 
     const onUpdate = () => {
-      console.log("🔔 New submission received! Refreshing...");
       fetchLeaderboard();
     };
 
@@ -46,7 +47,7 @@ const LeaderboardScreen = () => {
   const fetchLeaderboard = async () => {
     try {
       const res = await axios.get(`/quiz/leaderboard/${roomId}`);
-      setLeaders(res.data);
+      setLeaders(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.log("Error fetching leaderboard", err);
     } finally {
@@ -170,18 +171,18 @@ const LeaderboardScreen = () => {
         {/* Avatar */}
         <View className="w-14 h-14 bg-card rounded-card mr-4 border border-line justify-center items-center shadow-hair overflow-hidden p-1">
           {item.user?.avatar ? (
-            <Image source={{ uri: item.user.avatar }} className="w-full h-full rounded-xl" />
+            <Image source={{ uri: item.user.avatar }} style={{ width: '100%', height: '100%', borderRadius: 12 }} cachePolicy="memory-disk" />
           ) : (
             <Text className="font-display text-ink-4 text-xl">{item.user?.username?.[0]?.toUpperCase()}</Text>
           )}
         </View>
 
         {/* User Info */}
-        <View className="flex-1">
+        <View className="flex-1" style={{ minWidth: 0 }}>
           <Text className="font-display text-ink text-base uppercase" numberOfLines={1}>
             {item.user?.name || item.user?.username || "Global User"}
           </Text>
-          <Text className="text-label text-ink-3 font-semibold uppercase mt-0.5">@{item.user?.username || "unknown"}</Text>
+          <Text className="text-label text-ink-3 font-semibold uppercase mt-0.5" numberOfLines={1}>@{item.user?.username || "unknown"}</Text>
         </View>
 
         {/* Score Badge */}
@@ -199,21 +200,12 @@ const LeaderboardScreen = () => {
       <StatusBar barStyle="dark-content" />
 
       <SafeAreaView className="flex-1">
-        {/* HEADER */}
-        <View className="flex-row items-center justify-between px-gutter pt-8 mb-4">
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Tabs")}
-            className="w-12 h-12 bg-card rounded-card items-center justify-center border border-line shadow-hair"
-          >
-            <Ionicons name="home" size={20} color={C.ink} />
-          </TouchableOpacity>
-
-          <Text className="text-3xl font-display text-ink uppercase">
-            Leader<Text className="text-accent-text">Board</Text>
-          </Text>
-
-          {/* ACTION BUTTONS */}
-          <View className="flex-row items-center gap-3">
+        {/* HEADER — kit AppBar; there's no back here (reached via replace), so Home leads the actions. */}
+        <AppBar
+          title="Leaderboard"
+          right={
+          <View className="flex-row items-center gap-3" style={{ marginRight: 11 }}>
+            <IconBtn name="home" onPress={() => navigation.navigate("Tabs")} />
             {/* Animated Refresh Button */}
             <TouchableOpacity onPress={handleManualRefresh} className="w-12 h-12 bg-card rounded-card items-center justify-center border border-line shadow-hair">
               <Animated.View style={{ transform: [{ rotate: spin }] }}>
@@ -230,7 +222,8 @@ const LeaderboardScreen = () => {
               )}
             </TouchableOpacity>
           </View>
-        </View>
+          }
+        />
 
         {/* Room ID Badge */}
         <View className="items-center mb-8">
@@ -258,7 +251,7 @@ const LeaderboardScreen = () => {
         ) : (
           <FlatList
             data={leaders}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item, i) => item._id ?? String(i)}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 40 }}

@@ -25,14 +25,19 @@ const FlappyBird = () => {
   
   const gameLoopRef = useRef<any>(null);
   const scoreSubmitted = useRef(false);
+  // Read by the loop. As a dependency it tore down and rebuilt the interval on
+  // every 24ms tick, which is what made the bird stutter.
+  const velocityRef = useRef(0);
 
   // --- GAME LOOP ---
   useEffect(() => {
     if (isPlaying && !isGameOver) {
       gameLoopRef.current = setInterval(() => {
         // Physics
-        setBirdY((y) => y + velocity);
-        setVelocity((v) => v + GRAVITY);
+        const v = velocityRef.current;
+        velocityRef.current = v + GRAVITY;
+        setBirdY((y) => y + v);
+        setVelocity(velocityRef.current);
 
         // Pipes Movement
         setPipes((currentPipes) => {
@@ -56,7 +61,7 @@ const FlappyBird = () => {
     }
 
     return () => clearInterval(gameLoopRef.current);
-  }, [isPlaying, isGameOver, velocity]);
+  }, [isPlaying, isGameOver]);
 
   // --- COLLISION DETECTION ---
   useEffect(() => {
@@ -95,6 +100,7 @@ const FlappyBird = () => {
       resetGame();
       return;
     }
+    velocityRef.current = JUMP;
     setVelocity(JUMP);
   };
 
@@ -118,6 +124,7 @@ const FlappyBird = () => {
 
   const resetGame = () => {
     setBirdY(SCREEN_HEIGHT / 2);
+    velocityRef.current = 0;
     setVelocity(0);
     setPipes([]);
     setScore(0);

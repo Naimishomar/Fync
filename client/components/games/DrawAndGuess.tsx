@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, TouchableOpacity, TextInput, Dimensions, PanResponder, KeyboardAvoidingView, Platform} from 'react-native'
+import {View, Text, TouchableOpacity, TextInput, Dimensions, PanResponder, KeyboardAvoidingView, Platform, FlatList} from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Polyline } from 'react-native-svg';
@@ -10,12 +11,14 @@ import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const DrawAndGuess = () => {
   const navigation = useNavigation<any>();
   const bottomInset = useBottomInset();
+  const { top: topInset } = useSafeAreaInsets();
   const { user } = useAuth();
 
   const [isSearching, setIsSearching] = useState(false);
@@ -27,6 +30,7 @@ const DrawAndGuess = () => {
   const [messages, setMessages] = useState<{username: string, text: string, isCorrect: boolean}[]>([]);
   
   const batchedPoints = useRef<string[]>([]);
+  const messagesRef = useRef<FlatList<any>>(null);
   const batchTimer = useRef<any>(null);
 
   const matchDataRef = useRef(matchData);
@@ -81,13 +85,16 @@ const DrawAndGuess = () => {
   }, [matchData]);
 
   // Handle exiting the screen
+  // Keyed on the room, not the match object: any round/score update replaced
+  // matchData, and the cleanup then sent draw_leave mid-game.
+  const roomId = matchData?.roomId;
+  const userId = user?._id;
   useEffect(() => {
+    if (!roomId) return;
     return () => {
-      if (matchData?.roomId) {
-        socket.emit("draw_leave", { userId: user?._id, roomId: matchData.roomId });
-      }
+      socket.emit("draw_leave", { userId, roomId });
     };
-  }, [matchData]);
+  }, [roomId, userId]);
 
   const findMatch = () => {
     socket.emit("find_draw_match", { userId: user?._id, username: user?.username });
@@ -155,11 +162,13 @@ const DrawAndGuess = () => {
             socket.emit("send_draw_data", { roomId: matchDataRef.current.roomId, strokes: batchedPoints.current });
           }
           setPaths(prev => [...prev, batchedPoints.current]);
-          batchedPoints.current = [];
+          // Carry the last point over so consecutive batches join up instead of
+          // leaving a gap in the stroke every ten points.
+          batchedPoints.current = [point];
         }
       },
       onPanResponderRelease: () => {
-        if (batchedPoints.current.length > 0) {
+        if (batchedPoints.current.length > 1) {
           if (matchDataRef.current?.roomId) {
             socket.emit("send_draw_data", { roomId: matchDataRef.current.roomId, strokes: batchedPoints.current });
           }
@@ -172,19 +181,11 @@ const DrawAndGuess = () => {
   ).current;
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "#F5F2EC" }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: "#F5F2EC" }}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-5 pt-12 pb-4 bg-card shadow-hair z-10">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-          <Ionicons name="arrow-back" size={24} color={C.ink} />
-        </TouchableOpacity>
-        <Text className="text-xl font-display text-ink">Draw & Guess</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'DrawAndGuess' })}>
-          <Ionicons name="trophy" size={24} color={C.warning} />
-        </TouchableOpacity>
+      <View className="bg-card shadow-hair z-10" style={{ paddingTop: topInset }}>
+        <AppBar title="Draw & Guess" onBack={() => navigation.goBack()}
+          right={<IconBtn name="trophy" size={24} color={C.warning} onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'DrawAndGuess' })} />} />
       </View>
 
       {!matchData ? (
@@ -232,22 +233,29 @@ const DrawAndGuess = () => {
             </Svg>
 
             {matchData.role === "drawer" && (
-              <TouchableOpacity onPress={clearCanvas} className="absolute right-4 bg-paper-2 p-3 rounded-full shadow-hair" style={{ bottom: bottomInset + 16 }}>
+              <TouchableOpacity onPress={clearCanvas} className="absolute right-4 bottom-4 bg-paper-2 p-3 rounded-full shadow-hair" hitSlop={6}>
                 <Ionicons name="trash" size={20} color={C.danger} />
               </TouchableOpacity>
             )}
           </View>
 
           {/* Guesses / Chat */}
-          <View className="flex-1 bg-paper p-4">
-            <View className="flex-1 mb-4">
-              {messages.map((m, i) => (
-                <Text key={i} className="mb-2">
+          <View className="flex-1 bg-paper p-4" style={{ paddingBottom: bottomInset }}>
+            {/* Scrolls: as a plain stack, enough guesses pushed the input off-screen. */}
+            <FlatList
+              style={{ flex: 1, marginBottom: 16 }}
+              data={messages}
+              keyExtractor={(_, i) => String(i)}
+              keyboardShouldPersistTaps="handled"
+              onContentSizeChange={() => messagesRef.current?.scrollToEnd({ animated: true })}
+              ref={messagesRef}
+              renderItem={({ item: m }) => (
+                <Text className="mb-2">
                   <Text className="font-semibold text-ink-2">{m.username}: </Text>
                   <Text className="text-ink-2">{m.text}</Text>
                 </Text>
-              ))}
-            </View>
+              )}
+            />
             
             {matchData.role === "guesser" && (
               <View className="flex-row items-center">

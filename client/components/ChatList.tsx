@@ -20,14 +20,13 @@ import { supabase, fetchUnreadCounts } from "../utils/supabase";
 import { readCache, writeCache, userKey } from "../utils/screenCache";
 import Avatar from "./Avatar";
 import { ChatListSkeleton } from "./Skeleton";
-import { useBottomInset } from '../constants/layout';
-import { useTabBarAutoHide } from '../constants/layout';
+import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { C } from '../constants/colors';
 
 const ChatList = () => {
   const autoHideTabBar = useTabBarAutoHide();
   const navigation = useNavigation<any>();
-  const bottomInset = useBottomInset();
+  const tabBarClearance = useTabBarClearance();
   const { user } = useAuth();
 
   const [conversations, setConversations] = useState<any[]>([]);
@@ -50,6 +49,8 @@ const ChatList = () => {
 
   // 1. Create a Ref to store the timer ID
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Latest query typed; a slower response for an older one must not overwrite it.
+  const latestQuery = useRef("");
 
   useFocusEffect(
     useCallback(() => {
@@ -211,8 +212,8 @@ const ChatList = () => {
       return;
     }
     try {
-      console.log("Searching for:", text);
-      const res = await axios.get(`/chat/search?q=${text.trim()}`);
+      const res = await axios.get(`/chat/search?q=${encodeURIComponent(text.trim())}`);
+      if (text !== latestQuery.current) return;
       setResults(res.data.users || []);
     } catch (e) {
       console.log("Search error", e);
@@ -222,6 +223,7 @@ const ChatList = () => {
   /* ---------- 3. INPUT HANDLER (DEBOUNCED) ---------- */
   const handleSearchChange = (text: string) => {
     setSearch(text);
+    latestQuery.current = text;
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
@@ -269,7 +271,7 @@ const ChatList = () => {
 
   // Memoized render functions to prevent unnecessary re-renders
   const renderConversationItem = useCallback(({ item }: any) => {
-    const otherUser = item.participants.find(
+    const otherUser = item.participants?.find(
       (p: any) => p._id !== user._id
     );
     const unread = unreadCounts[item._id] || 0;
@@ -290,13 +292,13 @@ const ChatList = () => {
             size={38}
           />
           {onlineUsers.has(otherUser?._id) && (
-            <View className="absolute right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-card" style={{ bottom: bottomInset }} />
+            <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-card" />
           )}
         </View>
 
         <View className="ml-4 flex-1 justify-center">
           <View className="flex-row items-center justify-between mb-1">
-            <Text className="font-semibold text-base text-ink">
+            <Text className="font-semibold text-base text-ink flex-1 mr-2" numberOfLines={1}>
               {otherUser?.username || "Unknown"}
             </Text>
             <Text className="font-display text-label text-accent-text uppercase">
@@ -343,15 +345,15 @@ const ChatList = () => {
           size={48}
         />
         {onlineUsers.has(item._id) && (
-          <View className="absolute right-0 w-3 h-3 bg-success rounded-full border-2 border-card" style={{ bottom: bottomInset }} />
+          <View className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-card" />
         )}
       </View>
 
       <View className="ml-4 flex-1">
-        <Text className="font-semibold text-ink text-base">
+        <Text className="font-semibold text-ink text-base" numberOfLines={1}>
           {item.username}
         </Text>
-        <Text className="text-ink-3 text-sm mt-0.5">
+        <Text className="text-ink-3 text-sm mt-0.5" numberOfLines={1}>
           {item.name}
         </Text>
       </View>
@@ -392,7 +394,7 @@ const ChatList = () => {
               autoCorrect={false}
             />
             {search.length > 0 && (
-              <TouchableOpacity onPress={() => handleSearchChange("")}>
+              <TouchableOpacity onPress={() => handleSearchChange("")} hitSlop={12}>
                 <Ionicons name="close-circle" size={18} color={C.ink4} />
               </TouchableOpacity>
             )}
@@ -414,7 +416,7 @@ const ChatList = () => {
             {...autoHideTabBar}
             keyExtractor={(item) => item._id}
             renderItem={search.length > 0 ? renderUserItem : renderConversationItem}
-            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: tabBarClearance }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
@@ -422,7 +424,9 @@ const ChatList = () => {
             maxToRenderPerBatch={5}
             windowSize={5}
             removeClippedSubviews={true}
-            ListHeaderComponent={() => (
+            // An element, not an inline component: a new function each render
+            // remounted the whole header on every typing/presence update.
+            ListHeaderComponent={
               <>
                 {/* Special Channels (Only when not searching) */}
                 {search.length === 0 && (
@@ -493,7 +497,7 @@ const ChatList = () => {
                   <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                 </View>
               </>
-            )}
+            }
             ListEmptyComponent={
               <View className="items-center justify-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">

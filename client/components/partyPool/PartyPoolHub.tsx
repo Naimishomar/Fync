@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   Dimensions,
-  StatusBar
+  StatusBar,
+  BackHandler
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -22,10 +23,23 @@ import TriviaSurvival from './TriviaSurvival';
 import ReactionMaster from './ReactionMaster';
 import TrendClash from './TrendClash';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
+import { useBottomInset } from '../../constants/layout';
 
 const PartyPoolHub = () => {
   const navigation = useNavigation<any>();
   const [activeGame, setActiveGame] = useState<'none' | 'bottle' | 'coin' | 'reaction' | 'charades' | 'chess' | 'trivia' | 'trend'>('none');
+  const bottomInset = useBottomInset(24);
+
+  // Android back inside a game returns to the hub instead of leaving Party Pool.
+  useEffect(() => {
+    if (activeGame === 'none') return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setActiveGame('none');
+      return true;
+    });
+    return () => sub.remove();
+  }, [activeGame]);
 
   const renderGame = () => {
     switch (activeGame) {
@@ -49,32 +63,33 @@ const PartyPoolHub = () => {
       </View>
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        {/* Header */}
-        <View className="px-gutter py-8 flex-row justify-between items-start">
-          <View>
-            <Text className="text-2xl font-display text-ink uppercase leading-7">PARTY <Text className="text-brand-500">POOL</Text></Text>
-            <Text className="text-label color-[#8B857E] font-display uppercase mt-1">Campus Social Hub</Text>
-          </View>
-        </View>
+        <AppBar
+          title="Party Pool"
+          subtitle="Campus Social Hub"
+          onBack={activeGame !== 'none' ? () => setActiveGame('none') : () => navigation.goBack()}
+        />
 
         {activeGame !== 'none' ? (
-          /* A running game gets the whole screen: no ScrollView above it to
-             collapse a flex-1 root to nothing or to swallow its taps. */
-          <View className="flex-1 px-5 pb-6">
-            <TouchableOpacity
-              onPress={() => setActiveGame('none')}
-              className="flex-row items-center self-start mb-4 py-[10px] px-4 bg-card rounded-card border-2 border-ink"
-              accessibilityRole="button"
-              accessibilityLabel="Back to Party Pool"
-            >
-              <Ionicons name="chevron-back" size={20} color={C.ink} />
-              <Text className="text-label font-display text-ink ml-1">BACK TO HQ</Text>
-            </TouchableOpacity>
-            <View className="flex-1">{renderGame()}</View>
+          /* Tap-only games scroll so their bottom button is reachable on short
+             phones; flexGrow keeps their grow/flex-1 roots filling the screen.
+             Reaction (timed tap zone) and chess (drag board) stay unscrolled. */
+          <View className="flex-1 px-5" style={{ paddingBottom: bottomInset }}>
+            {activeGame === 'reaction' || activeGame === 'chess' ? (
+              <View className="flex-1">{renderGame()}</View>
+            ) : (
+              <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ flexGrow: 1 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                {renderGame()}
+              </ScrollView>
+            )}
           </View>
         ) : (
         <ScrollView 
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomInset + 24 }}
           showsVerticalScrollIndicator={false}
         >
           <>

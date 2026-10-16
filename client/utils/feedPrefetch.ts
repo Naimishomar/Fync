@@ -1,5 +1,5 @@
 import axios from "../context/axiosConfig";
-import { getSeenPostIds } from "./feedSession";
+import { getSeenPostsBloom } from "./feedSession";
 import { prefetchPostImages } from "./imageWarm";
 
 // Kicked off during auth bootstrap so the first feed request is already in
@@ -7,8 +7,8 @@ import { prefetchPostImages } from "./imageWarm";
 let inflight: Promise<any> | null = null;
 
 export const prefetchFeed = () => {
-  inflight = getSeenPostIds()
-    .then((seenIds) => axios.post("/post/smart-feed?page=1&limit=10", { seenIds }))
+  inflight = getSeenPostsBloom()
+    .then((seenBloom) => axios.post("/post/smart-feed?page=1&limit=10", { seenBloom }))
     .then((res) => {
       // Start pulling the photos down the moment the payload lands, rather than
       // waiting for the home screen to mount and render the rows first. On a

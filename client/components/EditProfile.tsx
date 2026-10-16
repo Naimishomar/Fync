@@ -7,7 +7,8 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
-  Platform
+  Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -17,13 +18,11 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
-import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
 
 export default function EditProfile() {
   const { user, setUser } = useAuth();
   const navigation = useNavigation();
-  const bottomInset = useBottomInset();
   const [loading, setLoading] = useState(false);
 
   // --- Basic Info ---
@@ -161,6 +160,7 @@ export default function EditProfile() {
         <Pressable
           onPress={handleUpdate}
           disabled={loading || !hasChanges}
+          hitSlop={12}
           style={{ opacity: (loading || !hasChanges) ? 0.5 : 1 }}
         >
           {loading ? (
@@ -171,7 +171,8 @@ export default function EditProfile() {
         </Pressable>
       </View>
 
-      <ScrollView className="p-4" showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView className="px-gutter pt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         {/* --- Banner Image --- */}
         <Pressable onPress={() => pickImage('banner')} className="mb-6">
@@ -194,10 +195,10 @@ export default function EditProfile() {
         <View className="items-center -mt-16 mb-1">
           <Pressable onPress={() => pickImage('avatar')}>
             <Image
-              source={{ uri: avatar || `https://ui-avatars.com/api/?name=${username}` }}
+              source={{ uri: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}` }}
               className="h-24 w-24 rounded-full border-4 border-line bg-paper-2"
             />
-            <View className="absolute right-0 bg-brand-500 p-1.5 rounded-full border-2 border-paper" style={{ bottom: bottomInset }}>
+            <View className="absolute right-0 bg-brand-500 p-1.5 rounded-full border-2 border-paper" style={{ bottom: 0 }}>
               <Ionicons name="pencil" size={14} color={C.ink} />
             </View>
           </Pressable>
@@ -232,6 +233,7 @@ export default function EditProfile() {
 
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

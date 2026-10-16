@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
-import {View, Text, ScrollView, TouchableOpacity, TextInput, FlatList, Modal, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform, Image, Linking, StatusBar} from 'react-native'
+import {View, Text, TouchableOpacity, TextInput, FlatList, Modal, ActivityIndicator, KeyboardAvoidingView, Linking, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
@@ -10,6 +11,17 @@ import { formatDistanceToNow } from 'date-fns';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
+import CommentsSheet, { CommentsApi } from '../ui/CommentsSheet';
+
+// Backend: GET /job-openings/comments/:id -> { comments } (getCommentThread, commentor populated);
+// POST /job-openings/comment/:id takes `parentCommentId`. No update/delete routes.
+const JOB_COMMENTS: CommentsApi = {
+    list: (id) => `/job-openings/comments/${id}`,
+    add: (id) => `/job-openings/comment/${id}`,
+    body: (text, parentId) => ({ text, parentCommentId: parentId }),
+    replies: true,
+};
 
 const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, isOwner, navigation }: any) => {
     return (
@@ -26,9 +38,10 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
                         >
                             <Image
                                 source={{ uri: item.alumni?.avatar || 'https://ui-avatars.com/api/?name=User' }}
-                                className="w-6 h-6 rounded-xl mr-2 bg-paper-2"
+                                style={{ width: 24, height: 24, borderRadius: 12, marginRight: 8, backgroundColor: C.paper2 }}
+                                cachePolicy="memory-disk"
                             />
-                            <Text className="text-ink-3 text-label font-display uppercase">{item.alumni?.name} • {item.alumni?.company}</Text>
+                            <Text className="text-ink-3 text-label font-display uppercase flex-1" numberOfLines={1}>{item.alumni?.name} • {item.alumni?.company}</Text>
                         </TouchableOpacity>
                     </View>
                     <View className="items-end">
@@ -36,7 +49,9 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
                             <Text className="text-accent-text font-display text-label uppercase">{item.salary || 'Competitive'}</Text>
                         </View>
                         <Text className="text-ink-3 text-label font-display uppercase mt-2">
-                            {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+                            {item.createdAt && !isNaN(new Date(item.createdAt).getTime())
+                                ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })
+                                : ''}
                         </Text>
                     </View>
                 </View>
@@ -47,7 +62,7 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
 
                 <View className="flex-row gap-3">
                     <TouchableOpacity
-                        onPress={() => Linking.openURL(item.applyLink)}
+                        onPress={() => item.applyLink && Linking.openURL(item.applyLink).catch(() => Alert.alert('Error', 'Could not open the apply link.'))}
                         className="flex-1 bg-ink py-4 rounded-card items-center shadow-hair"
                     >
                         <Text className="text-white font-display text-label uppercase">Apply Protocol</Text>
@@ -95,10 +110,6 @@ export default function AlumniJobs() {
     // Discussion/Comment State
     const [selectedJob, setSelectedJob] = useState<any>(null);
     const [isDiscussionVisible, setDiscussionVisible] = useState(false);
-    const [comments, setComments] = useState<any[]>([]);
-    const [newComment, setNewComment] = useState('');
-    const [loadingComments, setLoadingComments] = useState(false);
-    const [replyingTo, setReplyingTo] = useState<any>(null);
 
     const [form, setForm] = useState({
         title: '',
@@ -110,12 +121,12 @@ export default function AlumniJobs() {
     const CURRENT_USER_ID = user?._id || user?.id;
     const isAlumni = user?.user_access === 'alumni';
 
-    const fetchJobs = async () => {
+    const fetchJobs = useCallback(async () => {
         try {
             setLoading(true);
             const res = await axios.get('/job-openings/get');
             if (res.data.success) {
-                setJobs(res.data.jobOpenings);
+                setJobs(res.data.jobOpenings || []);
             }
         } catch (error) {
             console.error("Fetch Jobs Error:", error);
@@ -123,11 +134,11 @@ export default function AlumniJobs() {
             setLoading(false);
             setRefreshing(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchJobs();
-    }, []);
+    }, [fetchJobs]);
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -155,7 +166,7 @@ export default function AlumniJobs() {
         }
     };
 
-    const handleDeleteJob = (id: string) => {
+    const handleDeleteJob = useCallback((id: string) => {
         Alert.alert("Delete Job", "Are you sure you want to delete this posting?", [
             { text: "Cancel", style: "cancel" },
             {
@@ -173,46 +184,15 @@ export default function AlumniJobs() {
                 }
             }
         ]);
-    };
+    }, [fetchJobs]);
 
-    const handleOpenDiscussion = async (job: any) => {
+    const handleOpenDiscussion = useCallback((job: any) => {
         setSelectedJob(job);
         setDiscussionVisible(true);
-        fetchComments(job._id);
-    };
+    }, []);
 
-    const fetchComments = async (jobId: string) => {
-        setLoadingComments(true);
-        try {
-            const res = await axios.get(`/job-openings/comments/${jobId}`);
-            if (res.data.success) {
-                setComments(res.data.comments);
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoadingComments(false);
-        }
-    };
-
-    const handlePostComment = async () => {
-        if (!newComment.trim()) return;
-        try {
-            const res = await axios.post(`/job-openings/comment/${selectedJob._id}`, {
-                text: newComment,
-                parentCommentId: replyingTo?._id || null
-            });
-            if (res.data.success) {
-                setNewComment('');
-                setReplyingTo(null);
-                fetchComments(selectedJob._id);
-            }
-        } catch (error) {
-            Alert.alert("Error", "Failed to post comment");
-        }
-    };
-
-    const handleMessageAlumni = async (alumni: any) => {
+    const handleMessageAlumni = useCallback(async (alumni: any) => {
+        if (!alumni?._id) return;
         try {
             const res = await axios.post("/chat/start", {
                 userId: alumni._id,
@@ -226,38 +206,18 @@ export default function AlumniJobs() {
         } catch (error) {
             Alert.alert("Error", "Could not start chat with alumni.");
         }
-    };
+    }, [navigation]);
 
-    const renderCommentItem = ({ item, isReply = false }: { item: any, isReply?: boolean }) => {
-        return (
-            <View className={`mb-6 ${isReply ? 'ml-10' : ''}`}>
-                <View className="bg-paper-2 p-5 rounded-card border border-line">
-                    <View className="flex-row items-center justify-between mb-2">
-                        <View className="flex-row items-center">
-                            <Text className="text-ink font-display uppercase text-label">{item.commentor?.username}</Text>
-                            <Text className="text-ink-3 text-label font-display uppercase ml-3">
-                                {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
-                            </Text>
-                        </View>
-                        {!isReply && (
-                            <TouchableOpacity onPress={() => setReplyingTo(item)} className="bg-card border border-line px-2.5 py-1 rounded-full">
-                                <Text className="text-ink font-display text-label uppercase">Reply</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                    <Text className="text-ink-2 text-xs leading-5">
-                        {item.replyToUser && <Text className="text-accent-text font-display">@{item.replyToUser.username} </Text>}
-                        {item.text}
-                    </Text>
-                </View>
-                {item.replies && item.replies.map((reply: any) => (
-                    <View key={reply._id}>
-                        {renderCommentItem({ item: reply, isReply: true })}
-                    </View>
-                ))}
-            </View>
-        );
-    };
+    const renderJob = useCallback(({ item }: { item: any }) => (
+        <JobCard
+            item={item}
+            onOpenDiscussion={handleOpenDiscussion}
+            onMessageAlumni={handleMessageAlumni}
+            onDeleteJob={handleDeleteJob}
+            isOwner={item.alumni?._id === CURRENT_USER_ID}
+            navigation={navigation}
+        />
+    ), [handleOpenDiscussion, handleMessageAlumni, handleDeleteJob, CURRENT_USER_ID, navigation]);
 
     return (
         <View className="flex-1 bg-paper">
@@ -266,48 +226,26 @@ export default function AlumniJobs() {
             {/* Background Protocol Gradient */}
 
             <SafeAreaView className="flex-1" edges={['top']}>
+                <AppBar
+                    onBack={() => navigation.goBack()}
+                    right={isAlumni ? <IconBtn name="add" boxed onPress={() => setPostModalVisible(true)} /> : undefined}
+                />
                 <FlatList
                     data={jobs}
                     keyExtractor={(item) => item._id}
-                    renderItem={({ item }) => (
-                        <JobCard
-                            item={item}
-                            onOpenDiscussion={handleOpenDiscussion}
-                            onMessageAlumni={handleMessageAlumni}
-                            onDeleteJob={handleDeleteJob}
-                            isOwner={item.alumni?._id === CURRENT_USER_ID}
-                            navigation={navigation}
-                        />
-                    )}
+                    renderItem={renderJob}
                     contentContainerStyle={{ paddingBottom: 120 }}
                     showsVerticalScrollIndicator={false}
                     onRefresh={onRefresh}
                     refreshing={refreshing}
                     ListHeaderComponent={
-                        <View className="px-gutter pt-6 mb-10">
+                        <View className="px-gutter mb-10">
                             <View className="flex-row justify-between items-center">
                                 <View>
-                                    <TouchableOpacity
-                                      onPress={() => navigation.goBack()}
-                                      className="w-11 h-11 items-center justify-center rounded-xl"
-                                      accessibilityRole="button"
-                                      accessibilityLabel="Go back"
-                                      style={{ marginLeft: -11 }}
-                                    >
-                                      <Ionicons name="arrow-back" size={24} color={C.ink} />
-                                    </TouchableOpacity>
                                     <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Alumni</Text>
                                     <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Jobs</Text>
                                     <Text className="text-ink-3 text-label font-display uppercase">Exclusive Senior Intel</Text>
                                 </View>
-                                {isAlumni && (
-                                    <TouchableOpacity
-                                        onPress={() => setPostModalVisible(true)}
-                                        className="w-14 h-14 bg-ink rounded-card items-center justify-center shadow-hair"
-                                    >
-                                        <Ionicons name="add" size={28} color="white" />
-                                    </TouchableOpacity>
-                                )}
                             </View>
                         </View>
                     }
@@ -377,63 +315,14 @@ export default function AlumniJobs() {
                     </View>
                 </Modal>
 
-                {/* --- DISCUSSION MODAL --- */}
-                <Modal visible={isDiscussionVisible} animationType="slide" transparent onRequestClose={() => setDiscussionVisible(false)}>
-                    <View className="flex-1 bg-black/50 justify-end">
-                        <View className="bg-paper h-[85%] rounded-t-sheet overflow-hidden">
-                            <View className="p-card-pad pb-6 flex-row justify-between items-center border-b border-line">
-                                <View>
-                                    <Text className="text-ink font-display uppercase text-h1">Discussion</Text>
-                                    <Text className="text-ink-3 text-label font-display uppercase mt-1">Intelligence Network</Text>
-                                </View>
-                                <TouchableOpacity onPress={() => setDiscussionVisible(false)} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                    <Ionicons name="close" size={24} color="black" />
-                                </TouchableOpacity>
-                            </View>
-
-                            <FlatList
-                                data={comments}
-                                keyExtractor={item => item._id}
-                                renderItem={renderCommentItem}
-                                contentContainerStyle={{ padding: 32, paddingBottom: 150 }}
-                                showsVerticalScrollIndicator={false}
-                                ListEmptyComponent={!loadingComments ? (
-                                    <View className="items-center mt-20">
-                                        <Ionicons name="chatbubble-ellipses-outline" size={48} color={C.ink4} />
-                                        <Text className="text-ink-3 font-display uppercase text-label mt-4">No active discussion</Text>
-                                    </View>
-                                ) : <ActivityIndicator color={C.brand[500]} />}
-                            />
-
-                            <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
-                                <View className="p-card-pad pb-12 border-t border-line bg-card">
-                                    {replyingTo && (
-                                        <View className="flex-row items-center justify-between mb-4 bg-paper-2 p-4 rounded-card border border-line">
-                                            <Text className="text-accent-text font-display uppercase text-label">Replying to @{replyingTo.commentor?.username}</Text>
-                                            <TouchableOpacity onPress={() => setReplyingTo(null)}><Ionicons name="close-circle" size={18} color={C.brand[500]} /></TouchableOpacity>
-                                        </View>
-                                    )}
-                                    <View className="flex-row items-center">
-                                        <TextInput
-                                            placeholder="Transmit intelligence..."
-                                            placeholderTextColor={C.ink3}
-                                            className="flex-1 bg-paper text-ink p-5 mr-4 font-display text-xs border-[1.5px] border-ink rounded-md"
-                                            value={newComment}
-                                            onChangeText={setNewComment}
-                                        />
-                                        <TouchableOpacity
-                                            onPress={handlePostComment}
-                                            disabled={!newComment.trim()}
-                                            className={`w-14 h-14 rounded-card items-center justify-center ${newComment.trim() ? 'bg-brand-600 shadow-hair ' : 'bg-paper-2'}`}
-                                        >
-                                            <Ionicons name="send" size={20} color={newComment.trim() ? "white" : "#C4BEB6"} />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            </KeyboardAvoidingView>
-                        </View>
-                    </View>
-                </Modal>
+                <CommentsSheet
+                    visible={isDiscussionVisible}
+                    onClose={() => setDiscussionVisible(false)}
+                    resource={JOB_COMMENTS}
+                    title="Discussion"
+                    targetId={selectedJob?._id ?? null}
+                    currentUser={user}
+                />
 
             </SafeAreaView>
         </View>

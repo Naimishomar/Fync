@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator,
-  RefreshControl, ScrollView, Linking, Modal, Pressable,
+  RefreshControl, ScrollView, Linking, Modal, Pressable, KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -12,6 +12,7 @@ import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 interface Note {
   _id: string;
@@ -55,18 +56,23 @@ export default function NotesExchange() {
 
   const coins = user?.coins ?? 0;
 
+  // Switching filters quickly must not let an older, slower listing land last.
+  const requestId = useRef(0);
   const fetchNotes = useCallback(async () => {
+    const id = ++requestId.current;
     try {
       const res = await axios.get('/notes', {
         params: { kind: kind || undefined, sort, q: query.trim() || undefined },
       });
-      if (res.data.success) setNotes(res.data.notes);
+      if (id === requestId.current && res.data.success) setNotes(res.data.notes ?? []);
     } catch {
       // A failed listing leaves whatever was already on screen rather than
       // blanking it out.
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (id === requestId.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, [kind, sort, query]);
 
@@ -78,7 +84,8 @@ export default function NotesExchange() {
       const res = await axios.post(`/notes/${note._id}/unlock`);
       if (res.data.success) {
         setNotes((prev) => prev.map((n) => (n._id === note._id ? { ...n, owned: true } : n)));
-        Linking.openURL(res.data.fileUrl);
+        Linking.openURL(res.data.fileUrl).catch(() =>
+          Alert.alert('Could not open', 'No app on this phone can open the file.', [{ text: 'Okay' }]));
       }
     } catch (err: any) {
       const data = err?.response?.data;
@@ -149,17 +156,8 @@ export default function NotesExchange() {
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-      <View className="px-5 pt-2">
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="w-11 h-11 items-center justify-center rounded-xl"
-          style={{ marginLeft: -11 }}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <Ionicons name="arrow-back" size={24} color={C.ink} />
-        </TouchableOpacity>
-
+      <AppBar onBack={() => navigation.goBack()} />
+      <View className="px-5">
         <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Notes</Text>
         <Text className="font-display text-display text-brand-600 uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Exchange</Text>
 
@@ -324,7 +322,8 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18,16,14,0.4)' }}>
+      {/* The fields sit at the bottom of the screen, right where the keyboard opens. */}
+      <KeyboardAvoidingView behavior="padding" className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18,16,14,0.4)' }}>
         <Pressable className="flex-1" onPress={onClose} />
         <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-8">
           <View className="items-center mb-4">
@@ -394,7 +393,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
             {busy ? <ActivityIndicator color={C.ink} /> : <Text className="font-display text-ink">SHARE AND EARN</Text>}
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

@@ -6,6 +6,7 @@ import {View, Text, TouchableOpacity, ScrollView, Platform, Image, ActivityIndic
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { AppBar, IconBtn } from '../ui/kit';
 import * as ImagePicker from 'expo-image-picker';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -128,19 +129,8 @@ export default function ImageToPdfScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Header */}
-        <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-          <Ionicons name="arrow-back" size={24} color={C.ink} />
-        </TouchableOpacity>
-        <Text className="text-xl font-display text-ink flex-1">Image to PDF</Text>
-        <TouchableOpacity onPress={() => setImages([])} className="p-2">
-          <Text className="text-sm font-semibold text-ink-3">CLEAR</Text>
-        </TouchableOpacity>
-      </View>
+        <AppBar title="Image to PDF" onBack={() => navigation.goBack()}
+          right={<IconBtn name="trash-outline" color={C.ink3} onPress={() => setImages([])} />} />
 
       <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <TouchableOpacity
@@ -155,17 +145,18 @@ export default function ImageToPdfScreen() {
         </TouchableOpacity>
 
         {images.length > 0 && (
-          <View className="flex-row flex-wrap justify-between pb-24">
+          <View className="flex-row flex-wrap justify-between" style={{ paddingBottom: 120 + bottomInset }}>
             {images.map((uri, index) => (
               <View key={index} className="w-[48%] aspect-[3/4] mb-4 bg-card rounded-card shadow-hair border border-line overflow-hidden relative">
                 <Image source={{ uri }} className="w-full h-full" resizeMode="cover" />
                 <TouchableOpacity 
                   onPress={() => removeImage(index)}
+                  hitSlop={8}
                   className="absolute top-2 right-2 bg-black/50 w-8 h-8 rounded-full items-center justify-center backdrop-blur-md"
                 >
                   <Ionicons name="close" size={18} color="white" />
                 </TouchableOpacity>
-                <View className="absolute left-2 bg-black/50 px-2 py-1 rounded-md backdrop-blur-md" style={{ bottom: bottomInset + 8 }}>
+                <View className="absolute left-2 bottom-2 bg-black/50 px-2 py-1 rounded-md backdrop-blur-md">
                   <Text className="text-white text-label font-semibold">PAGE {index + 1}</Text>
                 </View>
               </View>

@@ -17,6 +17,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const CATEGORIES = ['Education', 'Electronics', 'Fashion', 'Books', 'Lifestyle', 'Other'];
 
@@ -161,13 +162,7 @@ export default function AffiliateAdminScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
       <SafeAreaView style={{ flex: 1 }}>
-        <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <Text className="text-xl font-display text-ink flex-1">Store Admin</Text>
-        </View>
+        <AppBar title="Store Admin" onBack={() => navigation.goBack()} />
 
         <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand[500]} colors={['#F97316']} />}>

@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
+import { useBottomInset } from '../../constants/layout';
 
 const GameLeaderboard = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const insets = useSafeAreaInsets();
+  const bottomInset = useBottomInset();
   const gameName = route.params?.gameName || "FlappyBird"; // Default to FlappyBird
 
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -20,7 +26,7 @@ const GameLeaderboard = () => {
   const fetchLeaderboard = async () => {
     try {
       const res = await axios.get(`/games/leaderboard/${gameName}`);
-      setLeaderboard(res.data.leaderboard);
+      setLeaderboard(res.data?.leaderboard ?? []);
     } catch (err) {
       console.error("Failed to fetch leaderboard", err);
     } finally {
@@ -34,15 +40,8 @@ const GameLeaderboard = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <View className="flex-row items-center justify-between px-5 pt-12 pb-4 border-b border-line shadow-hair z-10 bg-card">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-          <Ionicons name="arrow-back" size={24} color={C.ink} />
-        </TouchableOpacity>
-        <Text className="text-xl font-display text-ink">Leaderboard</Text>
-        <View className="w-10" />
+      <View className="border-b border-line shadow-hair z-10 bg-card" style={{ paddingTop: insets.top }}>
+        <AppBar title="Leaderboard" onBack={() => navigation.goBack()} />
       </View>
 
       <View className="p-6 items-center bg-recruiter/10 border-b border-recruiter/15">
@@ -62,7 +61,7 @@ const GameLeaderboard = () => {
         <FlatList
           data={leaderboard}
           keyExtractor={(item) => item._id}
-          contentContainerStyle={{ padding: 20 }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 20 + bottomInset }}
           renderItem={({ item, index }) => (
             <View className="flex-row items-center bg-card p-4 mb-3 rounded-card shadow-hair border border-line">
               <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${index === 0 ? 'bg-warning/15' : index === 1 ? 'bg-paper-2' : index === 2 ? 'bg-brand-100' : 'bg-paper-2'}`}>
@@ -71,14 +70,15 @@ const GameLeaderboard = () => {
                 </Text>
               </View>
               
-              <Image 
-                source={{ uri: item.user?.avatar || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png" }} 
-                className="w-12 h-12 rounded-full bg-paper-2"
+              <Image
+                source={{ uri: item.user?.avatar || "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png" }}
+                style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: C.paper2 }}
+                cachePolicy="memory-disk"
               />
               
               <View className="ml-3 flex-1">
-                <Text className="font-semibold text-ink text-base">{item.user?.name}</Text>
-                <Text className="text-ink-3 text-xs">@{item.user?.username}</Text>
+                <Text className="font-semibold text-ink text-base" numberOfLines={1}>{item.user?.name || 'Player'}</Text>
+                <Text className="text-ink-3 text-xs" numberOfLines={1}>@{item.user?.username}</Text>
               </View>
 
               <View className="items-end">

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {View, Text, FlatList, Image, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, Dimensions} from 'react-native'
+import {View, Text, FlatList, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, Dimensions} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,6 +10,7 @@ import socket from '../../utils/socket';
 import { goBack, navigate } from '../../utils/navigation';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -36,7 +38,7 @@ interface Message {
 }
 
 export default function EventCommunityChat({ route }: any) {
-    const { eventId, eventName, type } = route.params;
+    const { eventId, eventName, type } = route?.params ?? {};
     const { user } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
@@ -83,28 +85,30 @@ export default function EventCommunityChat({ route }: any) {
         // --- SOCKET JOIN ---
         socket.emit("join_community_room", { eventId });
 
-        socket.on('new_event_message', (newMessage: Message) => {
+        const onNewMessage = (newMessage: Message) => {
             setMessages(prev => {
                 // Prevent duplicate messages if the sender just added it locally
                 if (prev.some(m => m._id === newMessage._id)) return prev;
                 return [...prev, newMessage];
             });
             setTimeout(() => flatListRef.current?.scrollToEnd(), 100);
-        });
-
-        socket.on('event_message_deleted', ({ messageId }: { messageId: string }) => {
+        };
+        const onDeleted = ({ messageId }: { messageId: string }) => {
             setMessages(prev => prev.filter(m => m._id !== messageId));
-        });
+        };
+        socket.on('new_event_message', onNewMessage);
+        socket.on('event_message_deleted', onDeleted);
 
         return () => {
             socket.emit("leave_community_room", { eventId });
-            socket.off('new_event_message');
-            socket.off('event_message_deleted');
+            // Only our handlers — a bare off(event) strips every screen's listener.
+            socket.off('new_event_message', onNewMessage);
+            socket.off('event_message_deleted', onDeleted);
         };
     }, [eventId]);
 
     const handleSend = async (imageUri?: string) => {
-        if (!inputText.trim() && !imageUri) return;
+        if ((!inputText.trim() && !imageUri) || sending) return;
         setSending(true);
         try {
             const formData = new FormData();
@@ -192,7 +196,7 @@ export default function EventCommunityChat({ route }: any) {
     };
 
     const renderMessage = useCallback(({ item, index }: { item: Message, index: number }) => {
-        const isMine = item.sender._id === user?._id;
+        const isMine = item.sender?._id === user?._id;
 
         // Date separator logic
         const showDateSeparator = index === 0 ||
@@ -227,8 +231,9 @@ export default function EventCommunityChat({ route }: any) {
                 >
                     {!isMine && (
                         <Image
-                            source={{ uri: item.sender.avatar || 'https://via.placeholder.com/100' }}
-                            className="w-8 h-8 rounded-card mr-2 mb-1 border-2 border-recruiter/10"
+                            source={{ uri: item.sender?.avatar }}
+                            style={{ width: 32, height: 32, borderRadius: 12, marginRight: 8, marginBottom: 4 }}
+                            cachePolicy="memory-disk"
                         />
                     )}
                     <View
@@ -250,15 +255,16 @@ export default function EventCommunityChat({ route }: any) {
                         {item.image && (
                             <Image
                                 source={{ uri: item.image }}
-                                className="w-64 h-48"
-                                resizeMode="cover"
+                                style={{ width: 256, height: 192 }}
+                                contentFit="cover"
+                                cachePolicy="memory-disk"
                             />
                         )}
 
                         <View className="p-3 px-4">
                             {!isMine && (
                                 <Text className="text-label font-display uppercase text-recruiter mb-1">
-                                    {item.sender.name}
+                                    {item.sender?.name}
                                 </Text>
                             )}
                             {item.text && item.text.trim() !== '' && (
@@ -284,25 +290,8 @@ export default function EventCommunityChat({ route }: any) {
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
                 {/* Header */}
-                <View className="flex-row items-center p-5 bg-card border-b border-line shadow-hair z-10">
-                    <TouchableOpacity
-                        onPress={() => goBack()}
-                        accessibilityRole="button"
-                        accessibilityLabel="Go back"
-                        className="w-11 h-11 items-center justify-center rounded-xl"
-                        style={{ marginLeft: -11 }}>
-                        <Ionicons name="chevron-back" size={24} color={C.ink} />
-                    </TouchableOpacity>
-
-                    <View className="ml-4 flex-1">
-                        <Text className="text-ink font-display uppercase text-base" numberOfLines={1}>
-                            {eventName}
-                        </Text>
-                        <View className="flex-row items-center">
-                            <View className="w-1.5 h-1.5 bg-success rounded-full mr-1.5" />
-                            <Text className="text-ink-3 text-label font-semibold uppercase">Community Hub</Text>
-                        </View>
-                    </View>
+                <View className="bg-card border-b border-line shadow-hair z-10">
+                    <AppBar title={eventName} subtitle="Community Hub" onBack={() => goBack()} />
                 </View>
 
                 {loading ? (
@@ -324,11 +313,7 @@ export default function EventCommunityChat({ route }: any) {
                     />
                 )}
 
-                <KeyboardAvoidingView
-                    behavior="padding"
-                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-                    enabled={Platform.OS === 'ios'}
-                >
+                <KeyboardAvoidingView behavior="padding">
                     {/* Input Area */}
                     <View className="p-4 bg-card border-t border-line">
                         {/* Reply Indicator Preview */}
@@ -336,13 +321,13 @@ export default function EventCommunityChat({ route }: any) {
                             <View className="px-5 py-3 bg-card border-t border-recruiter/15 flex-row items-center justify-between mb-4 rounded-card">
                                 <View className="border-l-4 border-recruiter pl-4">
                                     <Text className="text-recruiter text-label font-display uppercase">
-                                        Replying to {replyingTo.sender.name}
+                                        Replying to {replyingTo.sender?.name}
                                     </Text>
                                     <Text className="text-ink-3 text-label mt-0.5" numberOfLines={1}>
                                         {replyingTo.text}
                                     </Text>
                                 </View>
-                                <TouchableOpacity onPress={() => setReplyingTo(null)}>
+                                <TouchableOpacity onPress={() => setReplyingTo(null)} hitSlop={12}>
                                     <Ionicons name="close-circle" size={22} color={C.recruiter} />
                                 </TouchableOpacity>
                             </View>

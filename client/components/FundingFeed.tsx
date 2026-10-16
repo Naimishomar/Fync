@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef, memo } from "react";
+import React, { useEffect, useState, useRef, memo, useCallback } from "react";
 import { readCache, writeCache } from "../utils/screenCache";
-import {View, Text, FlatList, Image, Pressable, TextInput, Modal, Dimensions, ScrollView, ActivityIndicator, KeyboardAvoidingView, TouchableOpacity, Linking, RefreshControl, StatusBar} from 'react-native'
+import {View, Text, FlatList, Pressable, Dimensions, ScrollView, ActivityIndicator, TouchableOpacity, Linking, RefreshControl, StatusBar} from 'react-native'
+import { Image } from 'expo-image';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess, Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
@@ -21,13 +22,24 @@ import { useWindowDimensions } from 'react-native';
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { ProjectSkeleton } from "./Skeleton";
-import { useTabBarClearance } from '../constants/layout';
+import Avatar from "./Avatar";
 import { Alert } from './ui/AlertModal';
 
-import { RoleSticker } from './ui/kit';
+import { RoleSticker, AppBar } from './ui/kit';
+import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 import { C } from '../constants/colors';
+// Threads come back nested already; only the reply field is spelled differently.
+const FUNDING_COMMENTS: CommentsApi = {
+  list: (id) => `/funding/comment/all/${id}`,
+  add: (id) => `/funding/comment/add/${id}`,
+  body: (text, parentId) => ({ text, parentCommentId: parentId ?? undefined }),
+  replies: true,
+  remove: (id) => ({ method: 'post', url: `/funding/comment/delete/${id}` }),
+};
+
 const { width } = Dimensions.get("window");
-const CARD_WIDTH = width - 32;
+// Fallback until the slider measures itself: the card sits on the 20px gutter.
+const CARD_WIDTH = width - 40;
 
 interface User {
   _id: string;
@@ -132,6 +144,16 @@ const YouTubeVideoPlayer = ({
   };
 
   const [seekFeedback, setSeekFeedback] = useState<'forward' | 'backward' | null>(null);
+  const seekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (seekTimer.current) clearTimeout(seekTimer.current); }, []);
+
+  // Runs on the JS thread; the tap callback below is a worklet and cannot own a timer.
+  const seekWithFeedback = (dir: 'forward' | 'backward') => {
+    setSeekFeedback(dir);
+    if (dir === 'forward') skipForward(); else skipBackward();
+    if (seekTimer.current) clearTimeout(seekTimer.current);
+    seekTimer.current = setTimeout(() => setSeekFeedback(null), 500);
+  };
 
   const singleTap = Gesture.Tap()
     .numberOfTaps(1)
@@ -143,14 +165,7 @@ const YouTubeVideoPlayer = ({
     .numberOfTaps(2)
     .onEnd((event, success) => {
       if (success) {
-        if (event.x < windowWidth / 2) {
-          runOnJS(setSeekFeedback)('backward');
-          runOnJS(skipBackward)();
-        } else {
-          runOnJS(setSeekFeedback)('forward');
-          runOnJS(skipForward)();
-        }
-        setTimeout(() => runOnJS(setSeekFeedback)(null), 500);
+        runOnJS(seekWithFeedback)(event.x < windowWidth / 2 ? 'backward' : 'forward');
       }
     });
 
@@ -234,7 +249,7 @@ const YouTubeVideoPlayer = ({
             <View pointerEvents="box-none" className="flex-row justify-between mb-2">
               <Text className="text-white text-label font-semibold">
                 {status ? `${Math.floor(status.positionMillis / 60000)}:${String(Math.floor((status.positionMillis % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
-                <Text className="text-white/60"> / {status ? `${Math.floor(status.durationMillis! / 60000)}:${String(Math.floor((status.durationMillis! % 60000) / 1000)).padStart(2, '0')}` : '0:00'}</Text>
+                <Text className="text-white/60"> / {status ? `${Math.floor((status.durationMillis ?? 0) / 60000)}:${String(Math.floor(((status.durationMillis ?? 0) % 60000) / 1000)).padStart(2, '0')}` : '0:00'}</Text>
               </Text>
             </View>
             <Pressable onPress={handleSeek} onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)} className="w-full h-3 justify-center">
@@ -271,15 +286,20 @@ const ProjectCard = memo(({
   /** The lead pitch carries the screen's one stamp. */
   stamped?: boolean;
 }) => {
-  const isLiked = item.liked_by.includes(userId || "");
-  const isOwner = item.user._id === userId || (item.user as any).id === userId;
+  // A deleted author comes back as null; the card must still render.
+  const author: User = item.user ?? ({} as User);
+  const isLiked = (item.liked_by ?? []).includes(userId || "");
+  const isOwner = !!userId && (author._id === userId || (author as any).id === userId);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // The slider sits inside the card's border, so measure it instead of
+  // deriving it from the window — a few px off and paging drifts.
+  const [mediaWidth, setMediaWidth] = useState(CARD_WIDTH);
 
+  // On settle only: updating per scroll frame re-rendered the card all swipe long.
   const handleScroll = (event: any) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / CARD_WIDTH);
-    setCurrentImageIndex(index);
+    setCurrentImageIndex(Math.round(scrollPosition / mediaWidth));
   };
 
   const mediaData: { type: 'video' | 'image'; uri: string }[] = [];
@@ -306,13 +326,16 @@ const ProjectCard = memo(({
       {/* User Info Header */}
       <View className="flex-row items-center justify-between px-6 py-5">
         <TouchableOpacity
-          onPress={() => navigation.navigate("PublicProfile", { user: item.user })}
-          className="flex-row items-center"
+          onPress={() => author._id && navigation.navigate("PublicProfile", { user: author })}
+          className="flex-row items-center flex-1 mr-3"
+          style={{ minWidth: 0 }}
         >
-          <Image source={{ uri: item.user.avatar || 'https://ui-avatars.com/api/?name=User' }} className="h-10 w-10 rounded-full mr-2 border border-line bg-paper-2" />
-          <View>
-            <Text className="font-display text-ink text-sm uppercase">{item.user.username || item.user.name}</Text>
-            <Text className="text-label text-ink-3 font-display uppercase">{item.user.college || "PROJECT LEAD"}</Text>
+          <View className="mr-2">
+            <Avatar user={author} size={40} showBadge={false} />
+          </View>
+          <View className="flex-1">
+            <Text className="font-display text-ink text-sm uppercase" numberOfLines={1}>{author.username || author.name}</Text>
+            <Text className="text-label text-ink-3 font-display uppercase" numberOfLines={1}>{author.college || "PROJECT LEAD"}</Text>
           </View>
         </TouchableOpacity>
 
@@ -330,19 +353,18 @@ const ProjectCard = memo(({
 
       {/* Media Slider */}
       {mediaData.length > 0 ? (
-        <View>
+        <View onLayout={(e) => setMediaWidth(e.nativeEvent.layout.width)}>
           <FlatList
             horizontal
             data={mediaData}
             keyExtractor={(_, index) => index.toString()}
             showsHorizontalScrollIndicator={false}
             pagingEnabled
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
+            onMomentumScrollEnd={handleScroll}
             renderItem={({ item: media }) => {
               if (media.type === 'video') {
                 return (
-                  <View style={{ width: CARD_WIDTH, height: 320 }}>
+                  <View style={{ width: mediaWidth, height: 320 }}>
                     <YouTubeVideoPlayer
                       source={media.uri.replace(/^http:\/\//i, 'https://')}
                       thumbnail={item.image && item.image.length > 0 ? item.image[0] : undefined}
@@ -354,9 +376,10 @@ const ProjectCard = memo(({
                 return (
                   <Image
                     source={{ uri: secureUrl }}
-                    style={{ width: CARD_WIDTH, height: 320 }}
-                    resizeMode="cover"
-                    className="bg-ink"
+                    style={{ width: mediaWidth, height: 320, backgroundColor: C.ink }}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    recyclingKey={secureUrl}
                   />
                 );
               }
@@ -398,7 +421,7 @@ const ProjectCard = memo(({
 
             {!isOwner && (
               <TouchableOpacity
-                onPress={() => navigation.navigate("PublicProfile", { user: item.user })}
+                onPress={() => author._id && navigation.navigate("PublicProfile", { user: author })}
                 className="flex-row items-center bg-ink px-5 py-3 rounded-card shadow-hair"
               >
                 <Ionicons name="chatbubbles-outline" size={16} color="#fff" />
@@ -410,7 +433,7 @@ const ProjectCard = memo(({
           <View className="flex-row gap-3">
             {item.github_url && (
               <TouchableOpacity
-                onPress={() => Linking.openURL(item.github_url as string)}
+                onPress={() => Linking.openURL(item.github_url as string).catch(() => Alert.alert("Error", "Could not open link"))}
                 className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line"
               >
                 <Ionicons name="logo-github" size={20} color={C.ink} />
@@ -418,7 +441,7 @@ const ProjectCard = memo(({
             )}
             {item.deployed_url && (
               <TouchableOpacity
-                onPress={() => Linking.openURL(item.deployed_url as string)}
+                onPress={() => Linking.openURL(item.deployed_url as string).catch(() => Alert.alert("Error", "Could not open link"))}
                 className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line"
               >
                 <Ionicons name="globe-outline" size={20} color={C.brand[500]} />
@@ -434,7 +457,6 @@ const ProjectCard = memo(({
 
 /* ---------- MAIN COMPONENT ---------- */
 export default function FundingFeed() {
-  const tabBarClearance = useTabBarClearance();
   const { user } = useAuth();
   const userId = user?.id || user?._id;
   const navigation = useNavigation<any>();
@@ -448,8 +470,9 @@ export default function FundingFeed() {
 
 
   const fetchProjects = async (pageNum: number = 1, shouldAppend: boolean = false) => {
+    // Page 1 never flips `loading` back on: it starts true, and on pull-to-refresh
+    // the stale `refreshing` here used to swap the list for the skeleton.
     if (pageNum > 1) setLoadingMore(true);
-    else if (!refreshing) setLoading(true);
 
     try {
       const res = await axios.get(`/funding/get/all?page=${pageNum}&limit=10`);
@@ -507,11 +530,12 @@ export default function FundingFeed() {
   };
 
 
-  const openEditModal = (project: Project) => {
+  // Stable callbacks so the memoised ProjectCard actually skips re-renders.
+  const openEditModal = useCallback((project: Project) => {
     navigation.navigate("CreateFundingFeed", { project });
-  };
+  }, [navigation]);
 
-  const handleDeleteProject = (id: string) => {
+  const handleDeleteProject = useCallback((id: string) => {
     Alert.alert("Delete Project", "Are you sure? This will remove all files permanently.", [
       { text: "Cancel", style: "cancel" },
       {
@@ -526,81 +550,27 @@ export default function FundingFeed() {
         }
       }
     ]);
-  };
+  }, []);
 
-  const [comments, setComments] = useState<any[]>([]);
-  const [commentText, setCommentText] = useState("");
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
-  const [commentModal, setCommentModal] = useState(false);
-  const [commentsLoading, setCommentsLoading] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<any>(null);
-  const commentInputRef = useRef<TextInput>(null);
 
-  const toggleLike = async (project: Project) => {
-    const liked = project.liked_by.includes(userId!);
-    setProjects((prev) =>
-      prev.map((p) => p._id === project._id ? { ...p, likes: liked ? p.likes - 1 : p.likes + 1, liked_by: liked ? p.liked_by.filter((id) => id !== userId) : [...p.liked_by, userId!] } : p)
+  const toggleLike = useCallback(async (project: Project) => {
+    if (!userId) return;
+    const liked = (project.liked_by ?? []).includes(userId);
+    const apply = (like: boolean) => setProjects((prev) =>
+      prev.map((p) => {
+        if (p._id !== project._id) return p;
+        const others = (p.liked_by ?? []).filter((id) => id !== userId);
+        const had = others.length !== (p.liked_by ?? []).length;
+        if (had === like) return p;
+        return { ...p, likes: (p.likes ?? 0) + (like ? 1 : -1), liked_by: like ? [...others, userId] : others };
+      })
     );
-    try { await axios.post(`/funding/like/${project._id}`); } catch (error) { }
-  };
+    apply(!liked);
+    try { await axios.post(`/funding/like/${project._id}`); } catch (error) { apply(liked); }
+  }, [userId]);
 
-  const openComments = async (id: string) => {
-    setActiveProjectId(id);
-    setCommentModal(true);
-    setCommentsLoading(true);
-    try {
-      const res = await axios.get(`/funding/comment/all/${id}`);
-      if (res.data.success) setComments(res.data.comments);
-    } catch (error) { } finally {
-      setCommentsLoading(false);
-    }
-  };
-
-  const postComment = async () => {
-    if (!commentText || !activeProjectId) return;
-    try {
-      await axios.post(`/funding/comment/add/${activeProjectId}`, {
-        text: commentText,
-        parentCommentId: replyingTo?._id
-      });
-      setCommentText("");
-      setReplyingTo(null);
-      openComments(activeProjectId);
-    } catch (error) { }
-  };
-
-  const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
-    <View className={`${isReply ? 'ml-12 mt-4' : 'mb-8 px-2'}`}>
-      <View className="flex-row">
-        <Image source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'w-8 h-8' : 'w-12 h-12'} rounded-card bg-paper-2 border border-line`} />
-        <View className="ml-4 flex-1 bg-paper p-5 rounded-card rounded-tl-none border border-line">
-          <View className="flex-row items-baseline mb-2">
-            <Text className="font-display text-label text-ink mr-3 uppercase">{comment.commentor?.username || comment.commentor?.name}</Text>
-            <Text className="text-label text-ink-3 font-display uppercase">{new Date(comment.createdAt).toLocaleDateString()}</Text>
-          </View>
-          <Text className="text-ink-2 text-xs leading-5 font-medium">
-            {comment.replyToUser && <Text className="text-accent-text font-display">@{comment.replyToUser.username} </Text>}
-            {comment.text}
-          </Text>
-          {!isReply && (
-            <TouchableOpacity
-              onPress={() => {
-                setReplyingTo(comment);
-                setCommentText(`@${comment.commentor.username} `);
-                commentInputRef.current?.focus();
-              }}
-              className="mt-4 bg-card self-start px-4 py-1.5 rounded-card border border-line"
-            >
-              <Text className="text-ink text-label font-display uppercase">Reply</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-      {comment.replies && comment.replies.map((reply: any) => (
-        <CommentItem key={reply._id} comment={reply} isReply={true} />
-      ))}
-    </View>
-  );
+  const openComments = useCallback((id: string) => setActiveProjectId(id), []);
 
   return (
     <GestureHandlerRootView className="flex-1">
@@ -611,18 +581,10 @@ export default function FundingFeed() {
 
         <SafeAreaView className="flex-1" edges={['top']}>
           {/* Arena Header */}
-          <View className="px-gutter pt-6 pb-4 flex-row justify-between items-center bg-transparent">
+          <AppBar onBack={() => navigation.goBack()} />
+          <View className="px-gutter pb-4 flex-row justify-between items-center bg-transparent">
             <View className="flex-row items-center">
               <View>
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  className="w-11 h-11 items-center justify-center rounded-xl"
-                  accessibilityRole="button"
-                  accessibilityLabel="Go back"
-                  style={{ marginLeft: -11 }}
-                >
-                  <Ionicons name="arrow-back" size={24} color={C.ink} />
-                </TouchableOpacity>
                 <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Funding</Text>
                 <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Feed</Text>
                 <Text className="text-ink-3 text-label font-display uppercase">Innovation Hub</Text>
@@ -674,68 +636,13 @@ export default function FundingFeed() {
             />
           )}
 
-          <Modal visible={commentModal} transparent={true} animationType="slide" onRequestClose={() => setCommentModal(false)}>
-            <View className="flex-1 bg-black/50 justify-end">
-              <Pressable className="flex-1" onPress={() => { setCommentModal(false); setReplyingTo(null); }} />
-              <View className="bg-paper h-[80%] rounded-t-sheet border-t border-line overflow-hidden shadow-hair">
-                <View className="flex-row justify-between items-center px-gutter py-8 border-b border-line bg-card">
-                  <View>
-                    <Text className="text-ink font-display uppercase text-h1">Signal <Text className="text-accent-text">Intel</Text></Text>
-                    <Text className="text-ink-3 text-label font-display uppercase mt-1">Community Discussion</Text>
-                  </View>
-                  <TouchableOpacity onPress={() => { setCommentModal(false); setReplyingTo(null); }} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
-                    <Ionicons name="close" size={24} color={C.ink} />
-                  </TouchableOpacity>
-                </View>
-
-                {commentsLoading ? <ActivityIndicator className="mt-10" color={C.brand[500]} /> : (
-                  <FlatList
-                    data={comments}
-                    keyExtractor={c => c._id}
-                    contentContainerStyle={{ paddingTop: 32, paddingBottom: tabBarClearance }}
-                    renderItem={({ item }) => <CommentItem comment={item} />}
-                    showsVerticalScrollIndicator={false}
-                    ListEmptyComponent={
-                      <View className="items-center mt-20 px-gutter">
-                        <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                          <Ionicons name="chatbubbles-outline" size={32} color={C.ink4} />
-                        </View>
-                        <Text className="font-semibold text-base text-ink text-center">No Signals Detected</Text>
-                        <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Transmit your thoughts to the innovation network.</Text>
-                      </View>
-                    }
-                  />
-                )}
-
-                <KeyboardAvoidingView behavior="padding">
-                  <View className="p-card-pad border-t border-line bg-card pb-12">
-                    {replyingTo && (
-                      <View className="flex-row items-center justify-between bg-paper-2 px-5 py-3 mb-4 rounded-card border border-line">
-                        <Text className="text-accent-text font-display uppercase text-label">Replying to @{replyingTo.commentor.username}</Text>
-                        <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                          <Ionicons name="close-circle" size={18} color={C.brand[500]} />
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                    <View className="flex-row items-center">
-                      <TextInput
-                        ref={commentInputRef}
-                        value={commentText}
-                        onChangeText={setCommentText}
-                        placeholder={replyingTo ? "Transmit reply..." : "Transmit intelligence..."}
-                        placeholderTextColor={C.ink3}
-                        className="font-semibold text-base text-ink flex-1 bg-paper px-6 py-5 mr-4 border-[1.5px] border-ink rounded-md"
-                        multiline
-                      />
-                      <TouchableOpacity onPress={postComment} className="w-14 h-14 bg-ink items-center justify-center border-2 border-ink rounded-md">
-                        <Ionicons name="send" size={20} color="white" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </KeyboardAvoidingView>
-              </View>
-            </View>
-          </Modal>
+          <CommentsSheet
+            visible={!!activeProjectId}
+            onClose={() => setActiveProjectId(null)}
+            resource={FUNDING_COMMENTS}
+            targetId={activeProjectId}
+            currentUser={user}
+          />
         </SafeAreaView>
       </View>
     </GestureHandlerRootView>

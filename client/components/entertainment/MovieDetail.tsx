@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
   Share,
@@ -11,15 +10,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { fetchMovieDetails, getImageUrl } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn, Empty } from '../ui/kit';
 
 const MovieDetail = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { movieId } = route.params;
+  const movieId = route.params?.movieId;
 
   const [movie, setMovie] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,7 @@ const MovieDetail = () => {
   };
 
   const handleShare = async () => {
+    if (!movie) return;
     try {
       const shareUrl = `https://fync-api.duckdns.org/movie?id=${movie.id}`;
       await Share.share({
@@ -59,6 +61,16 @@ const MovieDetail = () => {
     );
   }
 
+  // A failed fetch used to fall through to `movie.release_date` on null and crash.
+  if (!movie) {
+    return (
+      <SafeAreaView className="flex-1 bg-ink" edges={['top']}>
+        <AppBar night onBack={() => navigation.goBack()} />
+        <Empty icon="film-outline" title="Couldn't load this movie" hint="Check your connection and try again." />
+      </SafeAreaView>
+    );
+  }
+
   const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
   const runtime = movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m` : 'N/A';
 
@@ -68,9 +80,10 @@ const MovieDetail = () => {
         {/* Banner Section */}
         <View className="h-[450px] relative">
           <Image
-            source={{ uri: getImageUrl(movie.poster_path, 'original') || '' }}
-            className="w-full h-full"
-            resizeMode="cover"
+            source={{ uri: getImageUrl(movie.poster_path, 'w780') || '' }}
+            style={{ width: '100%', height: '100%' }}
+            contentFit="cover"
+            cachePolicy="memory-disk"
           />
           <LinearGradient
             colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,1)']}
@@ -78,31 +91,18 @@ const MovieDetail = () => {
           />
           
           {/* Header Controls */}
-          <SafeAreaView className="absolute top-0 w-full flex-row justify-between items-center px-4" edges={['top']}>
-            <TouchableOpacity 
-              onPress={() => navigation.goBack()}
-              className="w-11 h-11 items-center justify-center rounded-xl"
-            
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={handleShare}
-              className="w-10 h-10 bg-black/40 rounded-full items-center justify-center border border-white/10"
-             hitSlop={2}>
-              <Ionicons name="share-outline" size={24} color="white" />
-            </TouchableOpacity>
+          <SafeAreaView className="absolute top-0 w-full" edges={['top']}>
+            <AppBar overlay onBack={() => navigation.goBack()}
+              right={<IconBtn overlay name="share-outline" size={24} onPress={handleShare} />} />
           </SafeAreaView>
 
           {/* Action Buttons Overlay */}
-          <View className="absolute bottom-6 w-full px-6">
+          <View className="absolute bottom-6 w-full px-5">
             <Text className="text-white text-3xl font-display mb-2 shadow-hair">{movie.title}</Text>
             <View className="flex-row items-center gap-3 mb-6">
               <View className="flex-row items-center">
                 <Ionicons name="star" size={16} color={C.warning} />
-                <Text className="text-white text-sm ml-1 font-semibold">{movie.vote_average.toFixed(1)}</Text>
+                <Text className="text-white text-sm ml-1 font-semibold">{Number(movie.vote_average ?? 0).toFixed(1)}</Text>
               </View>
               <Text className="text-ink-3">•</Text>
               <Text className="text-ink-3 text-sm font-medium">{releaseYear}</Text>
@@ -123,7 +123,7 @@ const MovieDetail = () => {
         </View>
 
         {/* Details Section */}
-        <View className="px-6 py-6">
+        <View className="px-5 py-6">
           <Text className="text-white text-xl font-display mb-3">Overview</Text>
           <Text className="text-ink-3 leading-6 text-base mb-8">
             {movie.overview}

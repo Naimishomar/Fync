@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Image, View, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getImageUrl } from '../../utils/tmdb';
@@ -10,20 +11,24 @@ interface MovieCardProps {
   onPress: () => void;
   width?: number;
   height?: number;
+  /** Gap after the card in a horizontal rail. Grids space cells themselves and pass 0. */
+  marginRight?: number;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({ item, onPress, width = 140, height = 210 }) => {
+const MovieCard: React.FC<MovieCardProps> = ({ item, onPress, width = 140, height = 210, marginRight = 12 }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={onPress}
-      style={{ width, height, marginRight: 12 }}
+      style={{ width, height, marginRight }}
       className="rounded-xl overflow-hidden bg-ink shadow-hair"
     >
       <Image
         source={{ uri: getImageUrl(item.poster_path, 'w342') || '' }}
         style={StyleSheet.absoluteFillObject}
-        resizeMode="cover"
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        recyclingKey={String(item.id)}
       />
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.8)']}
@@ -36,7 +41,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ item, onPress, width = 140, heigh
             </Text>
             <View className="flex-row items-center mt-0.5">
               <Ionicons name="star" size={10} color={C.warning} />
-              <Text className="text-ink-4 text-label ml-1">{item.vote_average.toFixed(1)}</Text>
+              <Text className="text-ink-4 text-label ml-1">{Number(item.vote_average ?? 0).toFixed(1)}</Text>
             </View>
           </View>
           <View className="bg-danger/80 rounded-full p-1">
@@ -48,4 +53,4 @@ const MovieCard: React.FC<MovieCardProps> = ({ item, onPress, width = 140, heigh
   );
 };
 
-export default MovieCard;
+export default React.memo(MovieCard);

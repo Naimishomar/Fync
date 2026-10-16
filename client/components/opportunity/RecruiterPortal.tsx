@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator, ScrollView, RefreshControl, Linking, TextInput, Modal, Pressable, KeyboardAvoidingView} from 'react-native'
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl, Linking, TextInput, Modal, Pressable, KeyboardAvoidingView, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -11,7 +12,8 @@ import * as Sharing from 'expo-sharing';
 import { Buffer } from 'buffer';
 import Toast from 'react-native-toast-message';
 import { C } from '../../constants/colors';
-import { useTabBarAutoHide } from '../../constants/layout';
+import { AppBar, IconBtn } from '../ui/kit';
+import { useTabBarAutoHide, useTabBarClearance } from '../../constants/layout';
 
 /**
  * view: 'posts'        → My Posts list (default)
@@ -22,6 +24,7 @@ type PortalView = 'posts' | 'applicants' | 'shortlisted';
 
 const RecruiterPortal = () => {
   const autoHideTabBar = useTabBarAutoHide();
+  const tabBarClearance = useTabBarClearance();
     const navigation = useNavigation<any>();
     const { user } = useAuth();
 
@@ -264,7 +267,7 @@ const RecruiterPortal = () => {
     // ─── Derived data ────────────────────────────────────────────────────
     const activeFilter = view === 'shortlisted' ? 'shortlisted' : statusFilter;
 
-    const visibleApplications = applications
+    const visibleApplications = useMemo(() => applications
         .filter(a => a.opportunity?._id === selectedPost?._id)
         .filter(a => {
             if (activeFilter === 'all') return true;
@@ -295,9 +298,23 @@ const RecruiterPortal = () => {
                 (x.candidate?.githubStats?.totalCommits ?? 0) +
                 (x.candidate?.githubStats?.totalStars ?? 0) * 10;
             return score(b) - score(a);
-        });
+        }), [applications, selectedPost, activeFilter, searchQuery, sortBy]);
 
     const postApplications = applications.filter(a => a.opportunity?._id === selectedPost?._id);
+
+    // One pass over applications instead of three filters per post card per render.
+    const postStats = useMemo(() => {
+        const m: Record<string, { applied: number; shortlisted: number; pending: number }> = {};
+        for (const a of applications) {
+            const id = a.opportunity?._id;
+            if (!id) continue;
+            const st = m[id] || (m[id] = { applied: 0, shortlisted: 0, pending: 0 });
+            st.applied++;
+            if (a.status === 'shortlisted') st.shortlisted++;
+            else if (a.status !== 'rejected') st.pending++;
+        }
+        return m;
+    }, [applications]);
     const counts = {
         all: postApplications.length,
         new: postApplications.filter(a => a.status !== 'shortlisted' && a.status !== 'rejected').length,
@@ -307,9 +324,10 @@ const RecruiterPortal = () => {
 
     // ─── Renderers – Post card ───────────────────────────────────────────
     const renderPostCard = ({ item }: { item: any }) => {
-        const appliedCount = applications.filter(a => a.opportunity?._id === item._id).length;
-        const shortlistCount = applications.filter(a => a.opportunity?._id === item._id && a.status === 'shortlisted').length;
-        const pendingCount = applications.filter(a => a.opportunity?._id === item._id && a.status !== 'shortlisted' && a.status !== 'rejected').length;
+        const stats = postStats[item._id];
+        const appliedCount = stats?.applied ?? 0;
+        const shortlistCount = stats?.shortlisted ?? 0;
+        const pendingCount = stats?.pending ?? 0;
         const isActive = item.isActive !== false; // default true if undefined
 
         return (
@@ -328,6 +346,7 @@ const RecruiterPortal = () => {
                         {/* Status Toggle Switch */}
                         <TouchableOpacity
                             onPress={() => handleToggleActive(item)}
+                            hitSlop={12}
                             activeOpacity={0.8}
                             className={`w-10 h-5.5 rounded-full justify-center ${isActive ? 'bg-success' : 'bg-paper-2' }`}
                         >
@@ -345,10 +364,10 @@ const RecruiterPortal = () => {
                             }} />
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => navigation.navigate('CreateOpportunity', { initialData: item })}>
+                        <TouchableOpacity hitSlop={12} onPress={() => navigation.navigate('CreateOpportunity', { initialData: item })}>
                             <Ionicons name="create-outline" size={20} color={C.recruiter} />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => handleDeletePost(item._id)}>
+                        <TouchableOpacity hitSlop={12} onPress={() => handleDeletePost(item._id)}>
                             <Ionicons name="trash-outline" size={20} color={C.danger} />
                         </TouchableOpacity>
                     </View>
@@ -449,15 +468,16 @@ const RecruiterPortal = () => {
         >
             {/* Candidate info */}
             <View className="flex-row items-center gap-4 mb-4">
-                <Image
-                    source={{ uri: item.candidate?.avatar || 'https://via.placeholder.com/100' }}
-                    className="w-14 h-14 rounded-full"
+                <ExpoImage
+                    source={{ uri: item.candidate?.avatar }}
+                    style={{ width: 56, height: 56, borderRadius: 28 }}
+                    cachePolicy="memory-disk"
                 />
-                <View className="flex-1">
-                    <Text className="text-ink text-base font-display uppercase">
+                <View className="flex-1" style={{ minWidth: 0 }}>
+                    <Text className="text-ink text-base font-display uppercase" numberOfLines={1}>
                         {item.candidate?.name}
                     </Text>
-                    <Text className="text-ink-3 text-label font-semibold uppercase">
+                    <Text className="text-ink-3 text-label font-semibold uppercase" numberOfLines={1}>
                         {item.candidate?.college}
                     </Text>
                     {item.candidate?.year && (
@@ -661,55 +681,43 @@ const RecruiterPortal = () => {
         <View className="bg-card border-b border-line">
             {/* Back + title. The subtitle states the one thing a recruiter
                 needs on arrival: how much is left to do. */}
-            <View className="px-4 pt-3 pb-3 flex-row items-center gap-3">
-                <TouchableOpacity
-                    onPress={goBack}
-                    className="w-11 h-11 bg-paper-2 rounded-full items-center justify-center"
-                    hitSlop={6}
-                    accessibilityRole="button"
-                    accessibilityLabel="Back to posts"
-                >
-                    <Ionicons name="arrow-back" size={20} color={C.ink} />
-                </TouchableOpacity>
-
-                <View className="flex-1">
-                    <Text className="text-ink text-sm font-display uppercase" numberOfLines={1}>
-                        {selectedPost?.title}
-                    </Text>
-                    <Text className="text-ink-2 text-label font-display uppercase">
-                        {counts.new > 0 ? `${counts.new} left to review` : 'All reviewed'}
-                    </Text>
-                </View>
-
-                {/* One optional action, not three. Copy-emails and email-all are
-                    gone: shortlisting and rejecting now email the student
-                    automatically, so those buttons duplicated work already done
-                    and left the recruiter unsure whether mail had been sent. */}
-                {/* The mail action names the group currently in view, so it is
-                    never ambiguous who is about to receive it. It only appears
-                    on Shortlisted and Rejected — the two groups a recruiter
-                    actually writes to. */}
-                {(activeFilter === 'shortlisted' || activeFilter === 'rejected') && counts[activeFilter] > 0 && (
-                    <TouchableOpacity
-                        onPress={() => openMail(activeFilter as 'shortlisted' | 'rejected')}
-                        className={`flex-row items-center gap-1.5 px-3 border-2 border-ink rounded-xl ${activeFilter === 'shortlisted' ? 'bg-brand-500' : 'bg-card'}`}
-                        style={{ minHeight: 44 }}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Email all ${counts[activeFilter]} ${activeFilter} candidates`}
-                    >
-                        <Ionicons name="mail-outline" size={14} color={C.ink} />
-                        <Text className="text-ink font-display uppercase" style={{ fontSize: 10 }}>
-                            Email {counts[activeFilter]}
-                        </Text>
-                    </TouchableOpacity>
-                )}
-            </View>
+            <AppBar
+                title={selectedPost?.title}
+                subtitle={counts.new > 0 ? `${counts.new} left to review` : 'All reviewed'}
+                onBack={goBack}
+                right={
+                    <>
+                        {/* One optional action, not three. Copy-emails and email-all are
+                            gone: shortlisting and rejecting now email the student
+                            automatically, so those buttons duplicated work already done
+                            and left the recruiter unsure whether mail had been sent. */}
+                        {/* The mail action names the group currently in view, so it is
+                            never ambiguous who is about to receive it. It only appears
+                            on Shortlisted and Rejected — the two groups a recruiter
+                            actually writes to. */}
+                        {(activeFilter === 'shortlisted' || activeFilter === 'rejected') && counts[activeFilter] > 0 && (
+                            <TouchableOpacity
+                                onPress={() => openMail(activeFilter as 'shortlisted' | 'rejected')}
+                                className={`flex-row items-center gap-1.5 px-3 border-2 border-ink rounded-xl ${activeFilter === 'shortlisted' ? 'bg-brand-500' : 'bg-card'}`}
+                                style={{ minHeight: 44, marginRight: 11 }}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Email all ${counts[activeFilter]} ${activeFilter} candidates`}
+                            >
+                                <Ionicons name="mail-outline" size={14} color={C.ink} />
+                                <Text className="text-ink font-display uppercase" style={{ fontSize: 10 }}>
+                                    Email {counts[activeFilter]}
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                    </>
+                }
+            />
 
             {/* Status filter. This is the screen's real navigation, so it gets
                 its own row and carries the counts — no need to switch to find
                 out how many are in each pile. */}
             <View className="pb-2">
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
                     {([
                         { key: 'new',         label: 'To review' },
                         { key: 'shortlisted', label: 'Shortlisted' },
@@ -741,7 +749,7 @@ const RecruiterPortal = () => {
 
             {/* Search and sort share one row. They were two, which pushed the
                 first candidate below the fold on a normal phone. */}
-            <View className="flex-row items-center gap-2 px-4 pb-3">
+            <View className="flex-row items-center gap-2 px-5 pb-3">
                 <View className="flex-1 flex-row items-center bg-card px-3 border-2 border-ink rounded-xl" style={{ minHeight: 44 }}>
                     <Ionicons name="search" size={16} color={C.ink3} />
                     <TextInput
@@ -785,36 +793,16 @@ const RecruiterPortal = () => {
     // ─── Main header ─────────────────────────────────────────────────────
     const renderMainHeader = () => (
         <>
-            {/* Top bar */}
-            <View className="px-6 pt-4 pb-4 flex-row items-center justify-between border-b border-line">
-                <View>
-                    <Text className="text-2xl font-display uppercase">
-                        Recruiter <Text className="text-accent-text">Portal</Text>
-                    </Text>
-                    <Text className="text-ink-3 text-label font-semibold uppercase">
-                        Applicant Tracking
-                    </Text>
-                </View>
-                <View className="flex-row items-center gap-3">
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('Notification')}
-                        className="w-11 h-11 items-center justify-center"
-                        accessibilityRole="button"
-                        accessibilityLabel="Notifications"
-                    >
-                        <Ionicons name="notifications-outline" size={24} color={C.ink} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={fetchData}
-                        className="w-11 h-11 items-center justify-center"
-                        hitSlop={6}
-                        accessibilityRole="button"
-                        accessibilityLabel="Refresh"
-                    >
-                        <Ionicons name="refresh" size={24} color={C.ink} />
-                    </TouchableOpacity>
-                </View>
-            </View>
+            <AppBar
+                title="Recruiter Portal"
+                subtitle="Applicant Tracking"
+                right={
+                    <>
+                        <IconBtn name="notifications-outline" onPress={() => navigation.navigate('Notification')} />
+                        <IconBtn name="refresh" onPress={fetchData} />
+                    </>
+                }
+            />
 
             {/* Stats */}
             <View className="px-5 pb-5 pt-3 border-b border-line">
@@ -883,11 +871,12 @@ const RecruiterPortal = () => {
 
     // ─── Render ───────────────────────────────────────────────────────────
     return (
-        <SafeAreaView className="flex-1 bg-paper">
+        <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
             {view === 'posts' ? (
                 <>
                     {renderMainHeader()}
-                    {loading ? (
+                    {/* Spinner only on first load; a refresh keeps the list and uses the pull indicator. */}
+                    {loading && posts.length === 0 ? (
                         <View className="flex-1 items-center justify-center">
                             <ActivityIndicator size="large" color={C.brand[500]} />
                         </View>
@@ -897,7 +886,7 @@ const RecruiterPortal = () => {
                             {...autoHideTabBar}
                             keyExtractor={item => item._id}
                             renderItem={renderPostCard}
-                            contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
+                            contentContainerStyle={{ paddingTop: 8, paddingBottom: tabBarClearance }}
                             refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
                             ListEmptyComponent={
                                 <View className="items-center justify-center py-20 px-gutter">
@@ -931,7 +920,7 @@ const RecruiterPortal = () => {
                         {...autoHideTabBar}
                         keyExtractor={item => item._id}
                         renderItem={renderApplicantCard}
-                        contentContainerStyle={{ paddingTop: 12, paddingBottom: 120 }}
+                        contentContainerStyle={{ paddingTop: 12, paddingBottom: tabBarClearance }}
                         refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
                         ListEmptyComponent={
                             // The empty state has to distinguish "nobody applied"
@@ -985,7 +974,7 @@ const RecruiterPortal = () => {
                 cannot be changed from here — switching audience mid-draft is
                 how the wrong message reaches the wrong people. */}
             <Modal visible={!!mailTo} transparent animationType="slide" onRequestClose={() => setMailTo(null)}>
-                <KeyboardAvoidingView behavior="padding" className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
                     <Pressable className="flex-1" onPress={() => setMailTo(null)} />
 
                     <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-6">

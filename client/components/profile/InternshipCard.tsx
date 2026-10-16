@@ -34,8 +34,13 @@ interface Props {
   onDelete?: (id: string) => void;
 }
 
+// Dates are typed by hand in the add form, so an unparseable one is possible.
+const parse = (d?: string) => {
+  const t = d ? new Date(d) : null;
+  return t && !isNaN(t.getTime()) ? t : null;
+};
 const fmtDate = (d?: string) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : '';
+  parse(d)?.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) ?? '';
 
 export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Props) {
   const type = TYPE_CONFIG[item.type || 'internship'] || TYPE_CONFIG.internship;
@@ -43,9 +48,9 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
   const end = item.isCurrentlyWorking ? 'Present' : fmtDate(item.endDate);
 
   let durationStr = '';
-  if (item.startDate) {
-    const s = new Date(item.startDate);
-    const e = item.isCurrentlyWorking ? new Date() : new Date(item.endDate || Date.now());
+  const s = parse(item.startDate);
+  if (s) {
+    const e = (!item.isCurrentlyWorking && parse(item.endDate)) || new Date();
     const months = Math.max(0, Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24 * 30)));
     durationStr = months >= 12
       ? `${Math.floor(months / 12)}y ${months % 12}m`
@@ -60,9 +65,9 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
           <Ionicons name={type.icon as any} size={20} color={type.color} />
         </View>
 
-        <View className="flex-1">
-          <Text className="text-ink font-display uppercase text-sm leading-tight">{item.role}</Text>
-          <Text className="text-ink-3 font-display uppercase text-label mt-0.5">{item.company}</Text>
+        <View className="flex-1" style={{ minWidth: 0 }}>
+          <Text className="text-ink font-display uppercase text-sm leading-tight" numberOfLines={2}>{item.role}</Text>
+          <Text className="text-ink-3 font-display uppercase text-label mt-0.5" numberOfLines={1}>{item.company}</Text>
 
           <View className="flex-row flex-wrap items-center gap-x-4 gap-y-2 mt-3">
             <View className="flex-row items-center gap-1.5">
@@ -104,10 +109,10 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
 
         {isOwner && (
           <View className="ml-4 gap-3 border-l border-line pl-4">
-            <Pressable onPress={() => onEdit?.(item)} className="w-8 h-8 items-center justify-center bg-ink rounded-xl">
+            <Pressable onPress={() => onEdit?.(item)} hitSlop={8} className="w-8 h-8 items-center justify-center bg-ink rounded-xl">
               <Feather name="edit-3" size={12} color="white" />
             </Pressable>
-            <Pressable onPress={() => onDelete?.(item._id)} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
+            <Pressable onPress={() => onDelete?.(item._id)} hitSlop={8} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
               <Ionicons name="trash-outline" size={14} color={C.danger} />
             </Pressable>
           </View>

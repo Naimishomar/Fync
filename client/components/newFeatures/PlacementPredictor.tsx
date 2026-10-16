@@ -8,7 +8,7 @@ import axios from '../../context/axiosConfig';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard } from '../ui/kit';
+import { AppBar, StampCard } from '../ui/kit';
 import { C } from '../../constants/colors';
 const PlacementPredictor = () => {
     const navigation = useNavigation<any>();
@@ -54,7 +54,7 @@ const PlacementPredictor = () => {
             });
 
             if (res.data.success) {
-                setResult(res.data.data.analysis);
+                setResult(res.data.data?.analysis ?? null);
             }
         } catch (err: any) {
             console.error(err);
@@ -69,14 +69,9 @@ const PlacementPredictor = () => {
             <View className="flex-1 bg-paper">
                 <StatusBar barStyle="dark-content" />
                 <SafeAreaView className="flex-1">
-                    <View className="px-6 pt-4 flex-row items-center gap-4">
-                        <TouchableOpacity onPress={() => setResult(null)} className="p-2 bg-paper-2 rounded-full">
-                            <Ionicons name="arrow-back" size={24} color={C.ink} />
-                        </TouchableOpacity>
-                        <Text className="text-2xl font-display uppercase">Analysis <Text className="text-accent-text">Report</Text></Text>
-                    </View>
+                    <AppBar title="Analysis Report" onBack={() => setResult(null)} />
 
-                    <ScrollView className="flex-1 px-6 mt-6 pb-20" showsVerticalScrollIndicator={false}>
+                    <ScrollView className="flex-1 px-5 mt-6 pb-20" showsVerticalScrollIndicator={false}>
                         {/* Probability & ATS Score */}
                         <View className="flex-row items-center justify-between gap-4 mb-8">
                             <StampCard style={{ flex: 1 }}>
@@ -178,21 +173,9 @@ const PlacementPredictor = () => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1">
-                <View className="px-6 pt-4 flex-row items-center gap-4">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="arrow-back" size={24} color={C.ink} />
-                    </TouchableOpacity>
-                    <View>
-                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Placement</Text>
-                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Predictor</Text>
-                        <Text className="text-label font-display uppercase text-ink-3">AI Career Analysis</Text>
-                    </View>
-                </View>
+                <AppBar title="Placement Predictor" subtitle="AI Career Analysis" onBack={() => navigation.goBack()} />
 
-                <ScrollView className="flex-1 px-6 mt-10">
+                <ScrollView className="flex-1 px-5 mt-10">
                     <Text className="font-semibold text-base text-ink mb-4">Enter Academic Details</Text>
 
                     {/* GPA Input */}
@@ -231,7 +214,7 @@ const PlacementPredictor = () => {
                     </View>
                 </ScrollView>
 
-                <View className="p-6">
+                <View className="px-gutter py-6">
                     <TouchableOpacity
                         onPress={handlePredict}
                         disabled={loading}

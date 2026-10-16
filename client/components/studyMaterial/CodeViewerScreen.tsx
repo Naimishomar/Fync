@@ -1,7 +1,9 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
 import { View, ActivityIndicator, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const CodeViewerScreen = ({ route, navigation } : any) => {
   const { url, title, language = 'javascript' } = route.params;
@@ -51,7 +53,7 @@ const CodeViewerScreen = ({ route, navigation } : any) => {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
         <script>
-          fetch('${url}')
+          fetch(${JSON.stringify(String(url ?? ''))})
             .then(response => response.text())
             .then(text => {
               const codeElement = document.getElementById('code');
@@ -70,6 +72,11 @@ const CodeViewerScreen = ({ route, navigation } : any) => {
   return (
     <View className="flex-1 bg-ink">
       <StatusBar barStyle="light-content" />
+      {/* headerShown:false on the stack: without this the code ran under the
+          status bar and there was no way back except the system gesture. */}
+      <SafeAreaView edges={['top']}>
+        <AppBar title={title} night onBack={() => navigation.goBack()} />
+      </SafeAreaView>
       <WebView 
         source={{ html: htmlContent }} 
         style={{ flex: 1, backgroundColor: '#12100E' }}

@@ -4,12 +4,13 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  Image,
   StatusBar,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
+import { AppBar } from '../ui/kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
@@ -84,6 +85,9 @@ const GitHubFolderScreen = () => {
         title: name,
         language: langMap[ext] || 'javascript'
       });
+    } else if (/\.pdf$/i.test(name) && item.download_url) {
+      // Listed but previously did nothing when tapped.
+      navigation.navigate('PDFViewerScreen', { url: item.download_url, title: name });
     }
   };
 
@@ -100,21 +104,8 @@ const GitHubFolderScreen = () => {
       {/* HEADER DECORATION */}
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        <View className='px-gutter pt-8 bg-transparent'>
-          <View className="flex-row items-center justify-between mb-8">
-            <View className="flex-1 mr-4">
-              <Text className="text-ink text-3xl font-display uppercase" numberOfLines={1}>
-                {title.length > 15 ? title.substring(0, 12) + '...' : title}
-              </Text>
-              <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Repo Explorer / {path || 'root'}</Text>
-            </View>
-            <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-              <Ionicons name="arrow-back" size={20} color={C.ink} />
-            </TouchableOpacity>
-          </View>
+        <AppBar title={title} subtitle={`Repo Explorer / ${path || 'root'}`} onBack={() => navigation.goBack()} />
+        <View className='px-gutter bg-transparent'>
 
           <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink mb-6 rounded-md">
             <Ionicons name="search" size={20} color={C.ink4} />
@@ -150,8 +141,9 @@ const GitHubFolderScreen = () => {
                   <View className="w-14 h-14 bg-paper-2 rounded-card items-center justify-center p-2.5">
                     <Image
                       source={{ uri: isFolder ? FOLDER_IMG : getFileIcon(item.name) }}
-                      className="w-full h-full"
-                      resizeMode="contain"
+                      style={{ width: '100%', height: '100%' }}
+                      contentFit="contain"
+                      cachePolicy="memory-disk"
                     />
                   </View>
 

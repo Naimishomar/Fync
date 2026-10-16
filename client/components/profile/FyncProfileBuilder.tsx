@@ -25,7 +25,7 @@ import EducationCard, { EducationEntry } from './EducationCard';
 import AddEducationModal from './AddEducationModal';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard } from '../ui/kit';
+import { AppBar, StampCard } from '../ui/kit';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
 const { width } = Dimensions.get('window');
@@ -63,7 +63,7 @@ function SectionHeader({ title, icon, onAdd, addLabel }: {
   title: string; icon: string; onAdd?: () => void; addLabel?: string;
 }) {
   return (
-    <View className="flex-row items-center justify-between px-6 mb-4 mt-8">
+    <View className="flex-row items-center justify-between px-4 mb-4 mt-8">
       <View className="flex-row items-center gap-3">
         <View className="w-10 h-10 bg-ink rounded-card items-center justify-center shadow-hair">
           <Ionicons name={icon as any} size={18} color={C.brand[500]} />
@@ -216,13 +216,19 @@ export default function FyncProfileBuilder() {
     }
   };
 
+  // These calls had no catch, so a failed request was an unhandled rejection
+  // and the user saw nothing.
+  const failToast = () => Toast.show({ type: 'error', text1: 'Something went wrong' });
+
   const disconnectGitHub = () => {
     Alert.alert('Disconnect GitHub', 'Are you sure? Your GitHub stats will be cleared.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Disconnect', style: 'destructive', onPress: async () => {
-          await axios.delete('/profile/github/disconnect');
-          fetchProfile();
+          try {
+            await axios.delete('/profile/github/disconnect');
+            fetchProfile();
+          } catch { failToast(); }
         }
       }
     ]);
@@ -233,22 +239,28 @@ export default function FyncProfileBuilder() {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive', onPress: async () => {
-          await axios.delete(`/profile/projects/${id}`);
-          fetchProfile();
-          Toast.show({ type: 'success', text1: 'Project deleted' });
+          try {
+            await axios.delete(`/profile/projects/${id}`);
+            fetchProfile();
+            Toast.show({ type: 'success', text1: 'Project deleted' });
+          } catch { failToast(); }
         }
       }
     ]);
   };
 
   const toggleFeatured = async (id: string) => {
-    await axios.post(`/profile/projects/${id}/feature`);
-    fetchProfile();
+    try {
+      await axios.post(`/profile/projects/${id}/feature`);
+      fetchProfile();
+    } catch { failToast(); }
   };
 
   const toggleLike = async (id: string) => {
-    await axios.post(`/profile/projects/${id}/like`);
-    fetchProfile();
+    try {
+      await axios.post(`/profile/projects/${id}/like`);
+      fetchProfile();
+    } catch { failToast(); }
   };
 
   const deleteInternship = (id: string) => {
@@ -256,8 +268,10 @@ export default function FyncProfileBuilder() {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive', onPress: async () => {
-          await axios.delete(`/profile/internships/${id}`);
-          fetchProfile();
+          try {
+            await axios.delete(`/profile/internships/${id}`);
+            fetchProfile();
+          } catch { failToast(); }
         }
       }
     ]);
@@ -268,8 +282,10 @@ export default function FyncProfileBuilder() {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive', onPress: async () => {
-          await axios.delete(`/profile/education/${id}`);
-          fetchProfile();
+          try {
+            await axios.delete(`/profile/education/${id}`);
+            fetchProfile();
+          } catch { failToast(); }
         }
       }
     ]);
@@ -280,8 +296,10 @@ export default function FyncProfileBuilder() {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive', onPress: async () => {
-          await axios.delete(`/profile/certificates/${id}`);
-          fetchProfile();
+          try {
+            await axios.delete(`/profile/certificates/${id}`);
+            fetchProfile();
+          } catch { failToast(); }
         }
       }
     ]);
@@ -293,7 +311,7 @@ export default function FyncProfileBuilder() {
       return;
     }
     const url = profile.user.resumeUrl;
-    await Linking.openURL(url);
+    await Linking.openURL(url).catch(() => Toast.show({ type: 'error', text1: 'Could not open resume' }));
   };
 
   const handlePickResume = async () => {
@@ -352,7 +370,7 @@ export default function FyncProfileBuilder() {
     switch (activeTab) {
       case 'overview':
         return (
-          <View className="px-2">
+          <View className="px-1">
             <CompletenessBar pct={pct} />
 
             {/* User Statistics Row */}
@@ -391,7 +409,7 @@ export default function FyncProfileBuilder() {
                     <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Resume / CV (PDF)</Text>
                   </View>
                 </View>
-                {profile?.user?.resumeUrl && (
+                {!!profile?.user?.resumeUrl && (
                   <Pressable onPress={downloadResume} className="bg-recruiter/10 border border-recruiter/15 px-2.5 py-1 rounded-full">
                     <Text className="text-recruiter font-display text-label uppercase">Preview</Text>
                   </Pressable>
@@ -414,7 +432,7 @@ export default function FyncProfileBuilder() {
                   </>
                 )}
               </Pressable>
-              {profile?.user?.resumeName && (
+              {!!profile?.user?.resumeName && (
                  <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                     Current: {profile.user.resumeName}
                  </Text>
@@ -430,7 +448,7 @@ export default function FyncProfileBuilder() {
                   {skills.map((skill, index) => (
                     <View key={index} className="bg-recruiter/15 border border-recruiter/15 flex-row items-center px-2.5 py-1 rounded-full">
                       <Text className="text-recruiter font-semibold text-label uppercase mr-1">{skill}</Text>
-                      <Pressable onPress={() => removeSkill(index)}>
+                      <Pressable onPress={() => removeSkill(index)} hitSlop={10}>
                         <Ionicons name="close-circle" size={14} color={C.recruiter} />
                       </Pressable>
                     </View>
@@ -463,7 +481,7 @@ export default function FyncProfileBuilder() {
 
       case 'projects':
         return (
-          <View className="px-2">
+          <View className="px-1">
             <SectionHeader title="Projects" icon="code-slash-outline"
               onAdd={() => { setEditingProject(null); setShowAddProject(true); }}
               addLabel="Add Project" />
@@ -489,7 +507,7 @@ export default function FyncProfileBuilder() {
 
       case 'experience':
         return (
-          <View className="px-2">
+          <View className="px-1">
             <SectionHeader title="Work Experience" icon="briefcase-outline"
               onAdd={() => { setEditingInternship(null); setShowAddInternship(true); }}
               addLabel="Add Experience" />
@@ -534,7 +552,7 @@ export default function FyncProfileBuilder() {
 
       case 'certs':
         return (
-          <View className="px-2">
+          <View className="px-1">
             <SectionHeader title="Certificates" icon="ribbon-outline"
               onAdd={() => { setEditingCert(null); setShowAddCert(true); }}
               addLabel="Add Cert" />
@@ -576,37 +594,25 @@ export default function FyncProfileBuilder() {
       {/* HEADER DECORATION - MATCHING DRIVE/STUDY MATERIAL */}
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        {/* Header Content */}
-        <View className="px-gutter pt-8 bg-transparent">
-          <View className="flex-row items-center justify-between mb-8">
-            <View className="flex-row items-center gap-4">
-              <View>
-                <Pressable
-                  onPress={() => navigation.goBack()}
-                  className="w-11 h-11 items-center justify-center rounded-xl"
-                  accessibilityRole="button"
-                  accessibilityLabel="Go back"
-                  style={{ marginLeft: -11 }}
-                >
-                  <Ionicons name="arrow-back" size={24} color={C.ink} />
-                </Pressable>
-                <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
-                <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Portfolio</Text>
-                <View className="flex-row items-center">
-                  <Text className="text-ink-3 text-label font-display uppercase">Core Interface</Text>
-                </View>
-              </View> 
-            </View>
+        <AppBar
+          onBack={() => navigation.goBack()}
+          right={
             <Pressable onPress={downloadResume}
+              style={{ marginRight: 11 }}
               className="bg-ink px-4 py-3 flex-row items-center border-2 border-ink rounded-md">
               <Feather name="file-text" size={14} color={C.brand[500]} />
               <Text className="text-white font-display uppercase text-label ml-2">Resume</Text>
             </Pressable>
-          </View>
+          }
+        />
+        <View className="px-gutter mb-8">
+          <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
+          <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Portfolio</Text>
+          <Text className="text-ink-3 text-label font-display uppercase">Core Interface</Text>
         </View>
 
         {/* Modern Tab Strip */}
-        <View className="flex-row bg-card/50 px-4 py-2 border-b border-line">
+        <View className="flex-row bg-card/50 px-5 py-2 border-b border-line">
           {TABS.map(tab => (
             <Pressable
               key={tab.key}
@@ -619,7 +625,7 @@ export default function FyncProfileBuilder() {
                 {tab.label}
               </Text>
               {activeTab === tab.key && (
-                <View className="absolute w-12 h-1 bg-brand-500 rounded-full" style={{ bottom: bottomInset }} />
+                <View className="absolute w-12 h-1 bg-brand-500 rounded-full" style={{ bottom: 0 }} />
               )}
             </Pressable>
           ))}
@@ -629,7 +635,7 @@ export default function FyncProfileBuilder() {
           className="flex-1"
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
-          contentContainerStyle={{ paddingBottom: 60, paddingTop: 16 }}
+          contentContainerStyle={{ paddingBottom: 44 + bottomInset, paddingTop: 16 }}
         >
           {renderContent()}
         </ScrollView>

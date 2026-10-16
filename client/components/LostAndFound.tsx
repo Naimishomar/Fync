@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, FlatList, Image, TouchableOpacity, Modal, TextInput, ActivityIndicator, Pressable, Animated, StatusBar, RefreshControl, ScrollView} from 'react-native'
+import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Pressable, Animated, StatusBar, RefreshControl, ScrollView} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,6 +9,35 @@ import { useNavigation } from '@react-navigation/native';
 import socket from '../utils/socket';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
+import { AppBar, IconBtn } from './ui/kit';
+import { Image } from 'expo-image';
+
+// Module scope: declared inside the screen it was a new component type on every
+// render, so each keystroke remounted it and started another endless loop.
+const ItemSkeleton = () => {
+    const pulseAnim = useRef(new Animated.Value(0.3)).current;
+    useEffect(() => {
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+            ])
+        );
+        loop.start();
+        return () => loop.stop();
+    }, [pulseAnim]);
+
+    return (
+        <Animated.View style={{ opacity: pulseAnim }} className="bg-card rounded-sheet mb-6 border border-line p-6 flex-row mx-gutter">
+            <View className="w-24 h-24 bg-paper-2 rounded-card mr-5" />
+            <View className="flex-1 justify-center">
+                <View className="h-4 bg-paper-2 rounded w-3/4 mb-3" />
+                <View className="h-3 bg-paper-2 rounded w-1/2 mb-2" />
+                <View className="h-6 bg-paper-2 rounded-xl w-1/3 mt-2" />
+            </View>
+        </Animated.View>
+    );
+};
 
 // --- TYPES ---
 interface LostAndFoundItem {
@@ -44,11 +73,18 @@ const LostAndFound = () => {
     const navigation = useNavigation<any>();
 
     // --- FETCH ITEMS ---
-    const fetchItems = async () => {
+    // Only the latest request may write: switching tabs mid-load used to let the
+    // other tab's list land on this one.
+    const reqId = useRef(0);
+    const fetchItems = async (silent = false) => {
+        const id = ++reqId.current;
         try {
-            if (!refreshing) setLoading(true);
+            // Silent on pull-to-refresh and after an update, so the list is not
+            // swapped for skeletons while it is already on screen.
+            if (!silent) setLoading(true);
             const endpoint = activeTab === 'lost' ? '/lostAndFound/get/lost' : '/lostAndFound/get/found';
             const res = await axios.get(endpoint);
+            if (id !== reqId.current) return;
             if (res.data.success) {
                 const sorted = (res.data.items || []).sort((a: any, b: any) => {
                     const aStatus = activeTab === 'lost' ? a.is_lost_item_found : a.is_found_item_claimed;
@@ -60,8 +96,10 @@ const LostAndFound = () => {
         } catch (error) {
             console.log("Error fetching items", error);
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            if (id === reqId.current) {
+                setLoading(false);
+                setRefreshing(false);
+            }
         }
     };
 
@@ -112,7 +150,7 @@ const LostAndFound = () => {
                 setNewItemName('');
                 setNewItemPlace('');
                 setNewItemImage(null);
-                fetchItems();
+                fetchItems(true);
             }
         } catch (error) {
             Alert.alert("Error", "Transmission failed.");
@@ -141,7 +179,7 @@ const LostAndFound = () => {
 
                         if (res.data.success) {
                             Alert.alert("HQ Synced", "Incident status updated.");
-                            fetchItems();
+                            fetchItems(true);
                         }
                     } catch (error) {
                         Alert.alert("Error", "Sync failed.");
@@ -185,7 +223,7 @@ const LostAndFound = () => {
                 <View className="p-6 flex-row">
                     <View className="w-24 h-24 bg-paper-2 rounded-card mr-6 overflow-hidden border border-line items-center justify-center relative">
                         {item.image ? (
-                            <Image source={{ uri: item.image }} className="w-full h-full" resizeMode="cover" />
+                            <Image source={{ uri: item.image }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={item.image} />
                         ) : (
                             <Ionicons name="cube-outline" size={28} color={C.ink4} />
                         )}
@@ -216,13 +254,14 @@ const LostAndFound = () => {
                         </View>
 
                         <View className="flex-row items-center justify-between pt-4 mt-2 border-t border-line">
-                            <View className="flex-row items-center">
+                            <View className="flex-row items-center flex-1 min-w-0 mr-2">
                                 <Image
-                                    source={{ uri: item.found_or_lost_by.avatar || `https://ui-avatars.com/api/?name=${item.found_or_lost_by.username}` }}
-                                    className="w-5 h-5 rounded-full bg-paper-2 border border-line mr-2"
+                                    source={{ uri: item.found_or_lost_by?.avatar || `https://ui-avatars.com/api/?name=${item.found_or_lost_by?.username || 'U'}` }}
+                                    style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2, marginRight: 8 }}
+                                    cachePolicy="memory-disk"
                                 />
-                                <Text className="text-ink-3 text-label font-display uppercase">
-                                    @{item.found_or_lost_by.username}
+                                <Text className="text-ink-3 text-label font-display uppercase flex-shrink" numberOfLines={1}>
+                                    @{item.found_or_lost_by?.username || 'unknown'}
                                 </Text>
                             </View>
 
@@ -236,6 +275,7 @@ const LostAndFound = () => {
                                 isOwner ? (
                                     <TouchableOpacity
                                         onPress={() => handleClaimItem(item._id)}
+                                        hitSlop={10}
                                         className="bg-ink px-2.5 py-1 rounded-full"
                                     >
                                         <Text className="text-white font-display text-label uppercase">
@@ -245,6 +285,7 @@ const LostAndFound = () => {
                                 ) : (
                                     <TouchableOpacity
                                         onPress={() => handleMessage(item.found_or_lost_by)}
+                                        hitSlop={10}
                                         className="bg-brand-500 px-2.5 py-1 rounded-full"
                                     >
                                         <Text className="text-ink font-display text-label uppercase">
@@ -260,56 +301,22 @@ const LostAndFound = () => {
         );
     };
 
-    const ItemSkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.3)).current;
-        useEffect(() => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-                ])
-            ).start();
-        }, []);
-
-        return (
-            <Animated.View style={{ opacity: pulseAnim }} className="bg-card rounded-sheet mb-6 border border-line p-6 flex-row mx-gutter">
-                <View className="w-24 h-24 bg-paper-2 rounded-card mr-5" />
-                <View className="flex-1 justify-center">
-                    <View className="h-4 bg-paper-2 rounded w-3/4 mb-3" />
-                    <View className="h-3 bg-paper-2 rounded w-1/2 mb-2" />
-                    <View className="h-6 bg-paper-2 rounded-xl w-1/3 mt-2" />
-                </View>
-            </Animated.View>
-        );
-    };
-
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
             <SafeAreaView className="flex-1" edges={['top']}>
-                <View className="px-gutter pt-6">
-                    <View className="flex-row items-center justify-between mb-8">
+                <AppBar
+                    onBack={() => navigation.goBack()}
+                    right={<IconBtn name="add" size={28} color="white" boxed style={{ backgroundColor: C.ink }} onPress={() => setModalVisible(true)} />}
+                />
+                <View className="px-gutter">
+                    <View className="mb-8">
                         <View>
-                            <TouchableOpacity
-                              onPress={() => navigation.goBack()}
-                              className="w-11 h-11 items-center justify-center rounded-xl"
-                              accessibilityRole="button"
-                              accessibilityLabel="Go back"
-                              style={{ marginLeft: -11 }}
-                            >
-                              <Ionicons name="arrow-back" size={24} color={C.ink} />
-                            </TouchableOpacity>
                             <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Lost &</Text>
                             <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Found</Text>
                             <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Asset Recovery Protocol</Text>
                         </View>
-                        <TouchableOpacity
-                            onPress={() => setModalVisible(true)}
-                            className="w-14 h-14 rounded-card items-center justify-center bg-ink shadow-hair"
-                        >
-                            <Ionicons name="add" size={28} color="white" />
-                        </TouchableOpacity>
                     </View>
 
                     <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line shadow-hair">
@@ -337,7 +344,7 @@ const LostAndFound = () => {
                         renderItem={renderItem}
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchItems(); }} tintColor={C.brand[500]} />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchItems(true); }} tintColor={C.brand[500]} />}
                         ListEmptyComponent={
                             <View className="items-center justify-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
@@ -351,7 +358,7 @@ const LostAndFound = () => {
                 )}
             </SafeAreaView>
 
-            <Modal visible={modalVisible} animationType="slide" transparent>
+            <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
                 <View className="flex-1 bg-ink/60 justify-end">
                     <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setModalVisible(false)} />
                     <View className="bg-paper rounded-t-sheet h-[80%] shadow-hair overflow-hidden">
@@ -392,7 +399,7 @@ const LostAndFound = () => {
                             </View>
                             <TouchableOpacity onPress={pickImage} className="flex-row items-center justify-center bg-paper-2 p-card-pad rounded-card mb-10 border border-dashed border-line">
                                 {newItemImage ? (
-                                    <Image source={{ uri: newItemImage.uri }} className="w-full h-40 rounded-card" resizeMode="cover" />
+                                    <Image source={{ uri: newItemImage.uri }} style={{ width: '100%', height: 160, borderRadius: 20 }} contentFit="cover" />
                                 ) : (
                                     <View className="items-center">
                                         <Ionicons name="camera-outline" size={28} color={C.ink4} />
@@ -406,7 +413,10 @@ const LostAndFound = () => {
                                 disabled={submitting}
                                 className={`p-5 rounded-card items-center mb-20 shadow-hair ${activeTab === 'lost' ? 'bg-ink ' : 'bg-brand-500 '}`}
                             >
-                                {submitting ? <ActivityIndicator color={C.ink} /> : <Text className="text-ink font-display uppercase text-sm">Deploy Report to HQ</Text>}
+                                {/* Ink on the ink-filled "lost" button was invisible. */}
+                                {submitting
+                                    ? <ActivityIndicator color={activeTab === 'lost' ? '#fff' : C.ink} />
+                                    : <Text className={`font-display uppercase text-sm ${activeTab === 'lost' ? 'text-white' : 'text-ink'}`}>Deploy Report to HQ</Text>}
                             </TouchableOpacity>
                         </ScrollView>
                     </View>

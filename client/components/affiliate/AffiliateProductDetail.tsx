@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
     View, 
     Text, 
-    Image, 
     StyleSheet, 
     ScrollView, 
     TouchableOpacity, 
@@ -15,16 +14,23 @@ import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Alert } from '../ui/AlertModal';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
 const AffiliateProductDetail = () => {
     const route = useRoute<any>();
     const navigation = useNavigation<any>();
-    const { productId, shareCode } = route.params;
+    const { productId, shareCode } = route.params ?? {};
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [opening, setOpening] = useState(false);
+    const insets = useSafeAreaInsets();
+    const bottomInset = useBottomInset();
 
     useEffect(() => {
         const fetchProductDetails = async () => {
@@ -41,6 +47,9 @@ const AffiliateProductDetail = () => {
     }, [productId]);
 
     const handleBuyNow = async () => {
+        // One tap, one tracked click: a double tap used to log two sales and push two webviews.
+        if (opening) return;
+        setOpening(true);
         try {
             // Track the click in our backend before opening the link
             const response = await axios.post('/affiliate/track', { productId, shareCode });
@@ -59,6 +68,8 @@ const AffiliateProductDetail = () => {
                 url: product.affiliateLink,
                 productId: product._id
             });
+        } finally {
+            setOpening(false);
         }
     };
 
@@ -111,23 +122,16 @@ const AffiliateProductDetail = () => {
         <View style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.imageContainer}>
-                    <Image source={{ uri: product.image }} style={styles.productImage} />
+                    <Image source={{ uri: product.image }} style={styles.productImage} contentFit="cover" cachePolicy="memory-disk" />
                     <LinearGradient
                         colors={['rgba(0,0,0,0.5)', 'transparent']}
-                        style={styles.imageHeader}
+                        style={[styles.imageHeader, { paddingTop: insets.top }]}
                     >
-                        <TouchableOpacity
-                            onPress={() => navigation.goBack()}
-                            accessibilityRole="button"
-                            accessibilityLabel="Go back"
-                            className="w-11 h-11 items-center justify-center rounded-xl"
-                            style={[styles.iconButton, { marginLeft: -11 }]}
-                        >
-                            <Ionicons name="arrow-back" size={24} color="#fff" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
-                            <Ionicons name="share-outline" size={24} color="#fff" />
-                        </TouchableOpacity>
+                        <AppBar
+                            overlay
+                            onBack={() => navigation.goBack()}
+                            right={<IconBtn overlay name="share-outline" onPress={handleShare} />}
+                        />
                     </LinearGradient>
                 </View>
 
@@ -139,7 +143,7 @@ const AffiliateProductDetail = () => {
                         
                         <View style={styles.priceRow}>
                             <Text style={styles.priceText}>₹{product.price}</Text>
-                            {product.originalPrice && (
+                            {product.originalPrice > product.price && (
                                 <>
                                     <Text style={styles.originalPriceText}>₹{product.originalPrice}</Text>
                                     <View style={styles.discountContainer}>
@@ -190,12 +194,12 @@ const AffiliateProductDetail = () => {
                 </View>
             </ScrollView>
 
-            <View style={styles.bottomBar}>
+            <View style={[styles.bottomBar, { paddingBottom: bottomInset + 10 }]}>
                 <View style={styles.bottomPrice}>
                     <Text style={styles.bottomPriceLabel}>Total Price</Text>
                     <Text style={styles.bottomPriceValue}>₹{product.price}</Text>
                 </View>
-                <TouchableOpacity style={styles.buyButton} onPress={handleBuyNow}>
+                <TouchableOpacity style={[styles.buyButton, opening && { opacity: 0.6 }]} onPress={handleBuyNow} disabled={opening}>
                     <Text style={styles.buyButtonText}>Buy Now</Text>
                     <Ionicons name="arrow-forward" size={20} color={C.ink} style={{marginLeft: 8}} />
                 </TouchableOpacity>
@@ -238,25 +242,12 @@ const styles = StyleSheet.create({
     productImage: {
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
     },
     imageHeader: {
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        paddingTop: 50,
-        paddingHorizontal: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    iconButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     content: {
         padding: 20,

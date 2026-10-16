@@ -133,7 +133,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
           </View>
           <View className="gap-4">
             {categories.map(([cat, data]: [string, any]) => {
-              const catPct = Math.min((data.score / data.maxScore) * 100, 100);
+              const catPct = data.maxScore > 0 ? Math.min((data.score / data.maxScore) * 100, 100) : 0;
               const color = CAT_COLORS[cat] || '#8B857E';
               return (
                 <View key={cat}>

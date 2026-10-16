@@ -1,6 +1,6 @@
 import express from 'express';
 import { getDiscoverFeed, reportUnplayable } from "../controllers/discover.controller.js";
-import { addComment, batchViewsInShorts, createShorts, deleteComment, deleteShort, fetchShorts, getAllComments, getShortByShortId, getShortsByUserId, getSmartShorts, getYourShorts, likeAndUnlikeShort, updateComment, updateShort, viewsInShort } from '../controllers/shorts.controller.js';
+import { addComment, batchViewsInShorts, createShorts, deleteComment, deleteShort, fetchShorts, getAllComments, getShortByShortId, getShortsByUserId, getSmartShorts, getYourShorts, likeAndUnlikeShort, reportShort, updateComment, updateShort, viewsInShort } from '../controllers/shorts.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
 import { createLimiter, feedLimiter } from '../middlewares/rateLimit.middleware.js';
@@ -55,6 +55,7 @@ router.get('/individual/:shortId', authMiddleware, cacheMiddleware(300, { tags: 
 
 // Interaction routes
 router.post('/like/:id', authMiddleware, likeAndUnlikeShort);
+router.post('/report', authMiddleware, reportShort);
 router.post('/comment/:id', authMiddleware, addComment);
 router.get('/comments/:id', authMiddleware, cacheMiddleware(60, { tags: (req) => [`short:${req.params.id}`] }), getAllComments);
 router.post('/comment/update/:id', authMiddleware, updateComment);

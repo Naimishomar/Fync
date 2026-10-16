@@ -22,6 +22,7 @@ import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -157,7 +158,7 @@ const ContactUs = () => {
         <SafeAreaView className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             
-            {/* Background Aesthetic */}
+            <AppBar title="Contact Us" onBack={() => navigation.goBack()} />
 
             <KeyboardAvoidingView
                 behavior="padding"
@@ -169,15 +170,6 @@ const ContactUs = () => {
                 >
                     <View className="px-gutter mt-5">
                         <View className="mb-10">
-                            <TouchableOpacity
-                              onPress={() => navigation.goBack()}
-                              className="w-11 h-11 items-center justify-center rounded-xl"
-                              accessibilityRole="button"
-                              accessibilityLabel="Go back"
-                              style={{ marginLeft: -11 }}
-                            >
-                              <Ionicons name="arrow-back" size={24} color={C.ink} />
-                            </TouchableOpacity>
                             <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Support</Text>
                             <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Team</Text>
                             <Text className="text-ink-3 text-label font-display uppercase">Feel Free To Contact Us</Text>
@@ -267,6 +259,7 @@ const ContactUs = () => {
                                             <Image source={{ uri }} className="w-full h-full" />
                                             <TouchableOpacity
                                                 onPress={() => removeImage(index)}
+                                                hitSlop={12}
                                                 className="absolute top-1.5 right-1.5 bg-black/60 rounded-full p-1"
                                             >
                                                 <Ionicons name="close" size={12} color="white" />

@@ -108,6 +108,11 @@ export const getTopRated = async (req, res) => {
 export const getByGenre = async (req, res) => {
   try {
     const { genreId } = req.params;
+    // Interpolated into the TMDB query string: anything but digits could smuggle
+    // extra parameters onto our API key's request.
+    if (!/^\d{1,6}$/.test(genreId)) {
+      return res.status(400).json({ success: false, message: 'Invalid genre' });
+    }
     const data = await tmdbFetch(`/discover/movie?with_genres=${genreId}&language=en-US&sort_by=vote_count.desc&page=1`);
     res.status(200).json({ success: true, results: data.results });
   } catch (error) {

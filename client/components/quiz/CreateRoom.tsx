@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import {View, Text, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, Clipboard, Platform} from 'react-native'
+import {View, Text, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, Platform, KeyboardAvoidingView} from 'react-native'
+import * as Clipboard from "expo-clipboard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -9,6 +10,7 @@ import { RootStackParamList, Question } from "../../App";
 import axios from "../../context/axiosConfig";
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const DOMAINS = ["DSA", "Frontend", "Backend", "Full Stack", "AI", "ML", "DBMS", "OS", "Custom"];
 
@@ -35,15 +37,13 @@ const CreateRoom = () => {
   };
 
   const updateQuestion = (qIndex: number, key: keyof Question, value: any) => {
-    const copy = [...questions];
-    (copy[qIndex] as any)[key] = value;
-    setQuestions(copy);
+    setQuestions((prev) => prev.map((q, i) => (i === qIndex ? { ...q, [key]: value } : q)));
   };
 
   const updateOption = (qIndex: number, optIndex: number, value: string) => {
-    const copy = [...questions];
-    copy[qIndex].options[optIndex] = value;
-    setQuestions(copy);
+    setQuestions((prev) => prev.map((q, i) => (
+      i === qIndex ? { ...q, options: q.options.map((o, j) => (j === optIndex ? value : o)) } : q
+    )));
   };
 
   /* --- DATE TIME PICKER HANDLER --- */
@@ -114,7 +114,7 @@ const CreateRoom = () => {
           {
             text: "Copy & Enter",
             onPress: () => {
-              Clipboard.setString(newRoomId);
+              Clipboard.setStringAsync(String(newRoomId)).catch(() => {});
               navigation.replace("LeaderboardScreen", { roomId: newRoomId });
             },
           },
@@ -134,26 +134,15 @@ const CreateRoom = () => {
 
       <SafeAreaView className="flex-1">
 
-        {/* Header with Back Button */}
-        <View className="flex-row items-center px-gutter pt-8 mb-6">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.9}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-          
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <View>
-            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Room</Text>
-            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Builder</Text>
-            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Initialize Custom Node</Text>
-          </View>
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter mb-6">
+          <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Room</Text>
+          <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Builder</Text>
+          <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Initialize Custom Node</Text>
         </View>
 
-        <ScrollView className="px-gutter pb-12" showsVerticalScrollIndicator={false}>
+        <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView className="px-gutter pb-12" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
           {/* DOMAIN SELECTION */}
           <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
@@ -255,7 +244,8 @@ const CreateRoom = () => {
                 </View>
                 {questions.length > 1 && (
                   <TouchableOpacity
-                    onPress={() => setQuestions(questions.filter((_, i) => i !== qIndex))}
+                    onPress={() => setQuestions((prev) => prev.filter((_, i) => i !== qIndex))}
+                    hitSlop={4}
                     className="w-10 h-10 bg-paper-2 rounded-xl items-center justify-center border border-line"
                   >
                     <Ionicons name="trash-outline" size={18} color={C.danger} />
@@ -316,6 +306,7 @@ const CreateRoom = () => {
           </TouchableOpacity>
 
         </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );

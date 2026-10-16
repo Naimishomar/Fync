@@ -1,9 +1,11 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import { seenPredicate } from '../utils/bloom.js';
 import Shorts from '../models/shorts.model.js';
 import Comment from '../models/comment.model.js';
 import Notification from '../models/notification.model.js';
 import User from '../models/user.model.js';
+import Report from '../models/report.model.js';
 import { deleteFromR2 } from '../utils/r2.js';
 import { getShortsPool, getUserInterestProfile, rankFeed, invalidatePool, getPoolVersion } from '../utils/feedEngine.js';
 import { clearCacheTags } from '../middlewares/cache.middleware.js';
@@ -442,7 +444,7 @@ export const getShortByShortId = async (req, res) => {
 
 /**
  * GET /shorts/smart?page=1
- * Body (optional): { seenIds: ["id1", "id2", ...] }
+ * Body (optional): { seenBloom: { m, k, b } } (utils/bloom.js), or legacy { seenIds: [...] }
  *
  * - Pulls from Redis-cached shorts pool (DB hit: once per 5 min globally)
  * - Ranks by user interest (Gemini, cached 24h) + engagement + recency
@@ -466,7 +468,7 @@ export const getSmartShorts = async (req, res) => {
     };
 
     try {
-        const seenIds = Array.isArray(req.body?.seenIds) ? req.body.seenIds : [];
+        const isSeen = seenPredicate(req.body);
 
         const [candidates, interestProfile, poolVersion] = await Promise.all([
             getShortsPool(Shorts, 100),
@@ -485,7 +487,7 @@ export const getSmartShorts = async (req, res) => {
         let ranked;
         try {
             ranked = rankFeed({
-                candidates, seenIds, interestProfile, page, limit,
+                candidates, isSeen, interestProfile, page, limit,
                 seed: `${req.user.id}:${poolVersion}`
             });
         } catch (e) {
@@ -503,5 +505,27 @@ export const getSmartShorts = async (req, res) => {
     } catch (error) {
         console.error('[SmartShorts] Unexpected error:', error);
         return simpleFallback();
+    }
+};
+
+// Mirrors reportPost: same Report collection, keyed on `short` instead of `post`.
+export const reportShort = async (req, res) => {
+    try {
+        const { shortId, reason } = req.body;
+        if (!mongoose.isValidObjectId(shortId)) return res.status(400).json({ success: false, message: "Invalid short id" });
+
+        const short = await Shorts.findById(shortId);
+        if (!short) return res.status(404).json({ success: false, message: "Short not found" });
+
+        await Report.create({
+            reporter: req.user.id,
+            short: shortId,
+            reason: reason || "Inappropriate content"
+        });
+
+        return res.status(200).json({ success: true, message: "Short reported successfully" });
+    } catch (error) {
+        console.error("Report Short Error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };

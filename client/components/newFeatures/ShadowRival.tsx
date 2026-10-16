@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard } from '../ui/kit';
+import { AppBar, StampCard } from '../ui/kit';
 import { C } from '../../constants/colors';
 type Metrics = { solved: number; commits: number; streak: number; total: number };
 type HistoryPoint = { d: string; me: number; rival: number };
@@ -164,6 +164,7 @@ export default function ShadowRival() {
 
 
             <SafeAreaView className="flex-1" edges={['top']}>
+                <AppBar onBack={() => navigation.goBack()} />
                 <ScrollView
                     contentContainerStyle={{ paddingBottom: 40 }}
                     showsVerticalScrollIndicator={false}
@@ -171,16 +172,7 @@ export default function ShadowRival() {
                         <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchRival(); }} tintColor={C.brand[500]} />
                     }
                 >
-                    <View className="px-gutter pt-2 mb-6">
-                        <TouchableOpacity
-                          onPress={() => navigation.goBack()}
-                          className="w-11 h-11 items-center justify-center rounded-xl"
-                          accessibilityRole="button"
-                          accessibilityLabel="Go back"
-                          style={{ marginLeft: -11 }}
-                        >
-                          <Ionicons name="arrow-back" size={24} color={C.ink} />
-                        </TouchableOpacity>
+                    <View className="px-gutter mb-6">
                         <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Shadow</Text>
                         <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Rival</Text>
                         <Text className="text-ink-3 text-label font-display uppercase">
@@ -254,8 +246,8 @@ export default function ShadowRival() {
                             {/* Metrics */}
                             <View className="mx-gutter mt-6 bg-card p-card-pad rounded-xl border border-line shadow-hair">
                                 {METRICS.map(({ key, label, icon }, i) => {
-                                    const mine = data.me![key];
-                                    const theirs = data.rival![key];
+                                    const mine = data.me![key] ?? 0;
+                                    const theirs = data.rival![key] ?? 0;
                                     const max = Math.max(mine, theirs);
                                     return (
                                         <View key={key} className={i === METRICS.length - 1 ? '' : 'mb-7'}>
@@ -300,7 +292,9 @@ export default function ShadowRival() {
                                     <>
                                         <Ionicons name="eye-off-outline" size={28} color={C.ink3} />
                                         <Text className="font-sans text-sm text-ink-3 mt-3 text-center">
-                                            Identity locked until {new Date(data.revealAt!).toDateString()}
+                                            {data.revealAt && !isNaN(new Date(data.revealAt).getTime())
+                                                ? `Identity locked until ${new Date(data.revealAt).toDateString()}`
+                                                : 'Identity locked until the reveal'}
                                         </Text>
                                     </>
                                 )}

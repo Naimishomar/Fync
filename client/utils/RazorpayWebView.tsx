@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { WebView } from "react-native-webview";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface RazorpayWebViewProps {
   route: {
@@ -20,22 +21,25 @@ export default function RazorpayWebView({ route, navigation }: RazorpayWebViewPr
   const [html, setHtml] = useState("");
 
   useEffect(() => {
+    // JSON.stringify, not "${...}": a quote in a name ended the string literal
+    // and the checkout never opened. A missing phone also prefilled "undefined".
+    const js = (v: unknown) => JSON.stringify(v ?? "");
     const content = `
       <html>
       <body>
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         <script>
           var options = {
-            key: "${keyId}",
-            amount: "${order.amount}",
+            key: ${js(keyId)},
+            amount: ${js(String(order?.amount ?? ""))},
             currency: "INR",
-            name: "${merchantName || "Fync"}",
+            name: ${js(merchantName || "Fync")},
             description: "Tip to Creator",
-            order_id: "${order.id}",
+            order_id: ${js(order?.id)},
             prefill: {
-              name: "${user.name}",
-              email: "${user.email}",
-              contact: "${user.mobileNumber}"
+              name: ${js(user?.name)},
+              email: ${js(user?.email)},
+              contact: ${js(user?.mobileNumber)}
             },
             handler: function (response) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -61,13 +65,14 @@ export default function RazorpayWebView({ route, navigation }: RazorpayWebViewPr
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }}>
       {html ? (
         <WebView
           source={{ html }}
           originWhitelist={["*"]}
           onMessage={(event) => {
-            const msg = JSON.parse(event.nativeEvent.data);
+            let msg: any;
+            try { msg = JSON.parse(event.nativeEvent.data); } catch { return; }
 
             if (msg.event === "SUCCESS") {
               navigation.replace("PaymentVerify", {
@@ -86,6 +91,6 @@ export default function RazorpayWebView({ route, navigation }: RazorpayWebViewPr
       ) : (
         <ActivityIndicator size="large" />
       )}
-    </View>
+    </SafeAreaView>
   );
 }

@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
   FlatList,
-  Image,
   ActivityIndicator,
   Pressable,
   Linking,
@@ -13,12 +12,19 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
+import { useNavigation } from '@react-navigation/native';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const HackathonList = () => {
+  const navigation = useNavigation<any>();
   const [hackathons, setHackathons] = useState<any[]>([]);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  // Starts true so the empty state doesn't flash before the first page lands.
+  const [loading, setLoading] = useState(true);
+  // onEndReached can fire twice before `loading` state re-renders; a ref stops the duplicate page.
+  const inFlightRef = useRef(false);
   const [hasMore, setHasMore] = useState(true);
 
   // 🔍 Search State
@@ -29,7 +35,8 @@ const HackathonList = () => {
   }, []);
 
   const fetchHackathons = async (pageNum: number) => {
-    if (loading) return;
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setLoading(true);
 
     try {
@@ -54,6 +61,7 @@ const HackathonList = () => {
     } catch (error) {
       console.error("Error fetching hackathons:", error);
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
   };
@@ -64,33 +72,34 @@ const HackathonList = () => {
     }
   };
 
-  const filteredHackathons = hackathons.filter((item) => {
+  const filteredHackathons = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return (
+    if (!query) return hackathons;
+    return hackathons.filter((item) => (
       item.title?.toLowerCase().includes(query) ||
       item.organisation?.name?.toLowerCase().includes(query) ||
       item.job_location?.toLowerCase().includes(query) ||
       item.region?.toLowerCase().includes(query) ||
       item.filters?.some((f: any) => f.name?.toLowerCase().includes(query))
-    );
-  });
+    ));
+  }, [hackathons, searchQuery]);
 
-  const openLink = (slug: string) => {
-    const url = `https://unstop.com/${slug}`;
-    if (url) Linking.openURL(url);
+  const openLink = (slug?: string) => {
+    if (slug) Linking.openURL(`https://unstop.com/${slug}`).catch(() => {});
   };
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = useCallback(({ item }: { item: any }) => (
     <View className="bg-card rounded-card mb-5 mx-gutter p-6 shadow-hair border border-line">
 
       {/* Header Row */}
       <View className="flex-row gap-4 items-center">
         {/* Logo */}
         <View className="w-16 h-16 rounded-card border border-line overflow-hidden bg-paper-2 items-center justify-center p-2">
-          <Image
-            source={{ uri: item.logoUrl2 || item.organisation?.logoUrl || 'https://via.placeholder.com/100' }}
-            className="w-12 h-12 rounded-xl"
-            resizeMode="contain"
+          <ExpoImage
+            source={{ uri: item.logoUrl2 || item.organisation?.logoUrl }}
+            style={{ width: 48, height: 48, borderRadius: 12 }}
+            contentFit="contain"
+            cachePolicy="memory-disk"
           />
         </View>
 
@@ -99,7 +108,7 @@ const HackathonList = () => {
           <Text className="text-ink text-lg font-display uppercase leading-5" numberOfLines={2}>
             {item.title}
           </Text>
-          <Text className="text-ink-2 text-label font-display uppercase mt-1">
+          <Text className="text-ink-2 text-label font-display uppercase mt-1" numberOfLines={1}>
             {item.organisation?.name || "Global Organisation"}
           </Text>
         </View>
@@ -171,7 +180,7 @@ const HackathonList = () => {
       </View>
 
     </View>
-  );
+  ), []);
 
   const renderFooter = () => {
     if (!loading) return <View className="h-12" />;
@@ -186,10 +195,11 @@ const HackathonList = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
 
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={['top']}>
+        <AppBar onBack={() => navigation.goBack()} />
 
         {/* Header Title */}
-        <View className="px-gutter pt-8 pb-4">
+        <View className="px-gutter pb-4">
           <View className="flex-row items-center gap-3">
             <View className="w-12 h-12 bg-brand-500 rounded-card items-center justify-center shadow-hair">
               <Ionicons name="rocket" size={24} color={C.ink} />
@@ -202,7 +212,7 @@ const HackathonList = () => {
         </View>
 
         {/* 🔍 Search Bar */}
-        <View className="px-6 mt-2 mb-4">
+        <View className="px-gutter mt-2 mb-4">
           <View className="flex-row items-center bg-card px-6 py-2 border-2 border-ink shadow-hair rounded-md">
             <Ionicons name="search" size={20} color={C.brand[500]} />
             <TextInput
@@ -213,7 +223,7 @@ const HackathonList = () => {
               className="flex-1 ml-3 text-ink text-base font-display"
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-paper-2 p-1 rounded-full">
+              <TouchableOpacity onPress={() => setSearchQuery("")} hitSlop={12} className="bg-paper-2 p-1 rounded-full">
                 <Ionicons name="close" size={18} color={C.ink3} />
               </TouchableOpacity>
             )}
@@ -230,6 +240,9 @@ const HackathonList = () => {
           ListFooterComponent={renderFooter}
           contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={6}
+          windowSize={7}
+          removeClippedSubviews
           ListEmptyComponent={
             !loading ? (
               <View className="items-center mt-20 px-gutter">

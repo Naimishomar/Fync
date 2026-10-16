@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, FlatList, TextInput, StatusBar, Switch, Share} from 'react-native'
+import React, { useState, useEffect, useRef } from 'react';
+import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, TextInput, StatusBar, Switch, KeyboardAvoidingView, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
@@ -10,11 +10,13 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, Empty } from '../ui/kit';
+import Avatar from '../Avatar';
 
 const ClubAdminPanel = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
-    const { clubId } = route.params;
+    const { clubId } = route.params ?? {};
     const { user } = useAuth();
     
     const [club, setClub] = useState<any>(null);
@@ -34,6 +36,9 @@ const ClubAdminPanel = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [searching, setSearching] = useState(false);
+    // One action in flight at a time, so a double tap cannot POST twice.
+    const [actingId, setActingId] = useState<string | null>(null);
+    const latestQuery = useRef('');
 
     const fetchClubDetails = async () => {
         try {
@@ -158,6 +163,7 @@ const ClubAdminPanel = () => {
 
     const handleSearch = async (query: string) => {
         setSearchQuery(query);
+        latestQuery.current = query;
         if (query.length < 2) {
             setSearchResults([]);
             return;
@@ -165,6 +171,7 @@ const ClubAdminPanel = () => {
         setSearching(true);
         try {
             const res = await axios.get('/clubs/search-users', { params: { query } });
+            if (query !== latestQuery.current) return;
             if (res.data.success) {
                 setSearchResults(res.data.users);
             }
@@ -176,6 +183,8 @@ const ClubAdminPanel = () => {
     };
 
     const handleInvite = async (targetUserId: string) => {
+        if (actingId) return;
+        setActingId(targetUserId);
         try {
             const res = await axios.post('/clubs/invite', { clubId, targetUserId, adminId: user?._id });
             if (res.data.success) {
@@ -186,10 +195,14 @@ const ClubAdminPanel = () => {
             }
         } catch (error: any) {
             Alert.alert("Error", error.response?.data?.message || "Invitation failed");
+        } finally {
+            setActingId(null);
         }
     };
 
     const handleRequestAction = async (userId: string, action: 'approve' | 'reject') => {
+        if (actingId) return;
+        setActingId(userId);
         try {
             const res = await axios.post('/clubs/handle-request', { clubId, userId, action, adminId: user?._id });
             if (res.data.success) {
@@ -198,6 +211,8 @@ const ClubAdminPanel = () => {
             }
         } catch (error: any) {
             Alert.alert("Error", error.response?.data?.message || "Action failed");
+        } finally {
+            setActingId(null);
         }
     };
 
@@ -266,23 +281,22 @@ const ClubAdminPanel = () => {
 
     if (loading) return <View className="flex-1 bg-paper justify-center items-center"><ActivityIndicator color={C.ink} /></View>;
 
+    if (!club) {
+        return (
+            <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
+                <AppBar title="Control Panel" onBack={() => navigation.goBack()} />
+                <Empty icon="cloud-offline-outline" title="Could not load club" hint="Go back and try again." />
+            </SafeAreaView>
+        );
+    }
+
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-5 py-4 border-b border-line bg-card flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="arrow-back" size={24} color="black" />
-                    </TouchableOpacity>
-                    <View className="ml-4">
-                        <Text className="text-ink text-lg font-display uppercase">Control Panel</Text>
-                        <Text className="text-ink-3 text-label font-semibold uppercase">{club.name}</Text>
-                    </View>
+                <View className="border-b border-line bg-card">
+                    <AppBar title="Control Panel" subtitle={club.name} onBack={() => navigation.goBack()} />
                 </View>
 
                 {/* Tabs */}
@@ -300,22 +314,23 @@ const ClubAdminPanel = () => {
                     ))}
                 </View>
 
-                <ScrollView className="flex-1 p-5">
+                <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                <ScrollView className="flex-1 p-5" keyboardShouldPersistTaps="handled">
                     {activeTab === 'requests' && (
                         <View>
                             <Text className="text-ink-3 font-semibold uppercase text-label mb-4">Incoming Requests ({club.joinRequests?.length || 0})</Text>
                             {club.joinRequests?.map((req: any) => (
                                 <View key={req._id} className="bg-card p-4 rounded-card border border-line mb-3 flex-row items-center">
-                                    <Image source={{ uri: req.avatar || 'https://via.placeholder.com/150' }} className="w-12 h-12 rounded-full" />
+                                    <Avatar user={req} size={48} showBadge={false} />
                                     <View className="flex-1 ml-4">
-                                        <Text className="text-ink font-semibold text-sm">{req.name}</Text>
-                                        <Text className="text-ink-3 text-xs">@{req.username}</Text>
+                                        <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{req.name}</Text>
+                                        <Text className="text-ink-3 text-xs" numberOfLines={1}>@{req.username}</Text>
                                     </View>
                                     <View className="flex-row gap-2">
-                                        <TouchableOpacity onPress={() => handleRequestAction(req._id, 'approve')} className="w-9 h-9 bg-success rounded-xl items-center justify-center">
+                                        <TouchableOpacity onPress={() => handleRequestAction(req._id, 'approve')} disabled={!!actingId} hitSlop={6} className="w-9 h-9 bg-success rounded-xl items-center justify-center">
                                             <Feather name="check" size={18} color="white" />
                                         </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => handleRequestAction(req._id, 'reject')} className="w-9 h-9 bg-paper-2 rounded-xl items-center justify-center">
+                                        <TouchableOpacity onPress={() => handleRequestAction(req._id, 'reject')} disabled={!!actingId} hitSlop={6} className="w-9 h-9 bg-paper-2 rounded-xl items-center justify-center">
                                             <Feather name="x" size={18} color={C.ink2} />
                                         </TouchableOpacity>
                                     </View>
@@ -352,10 +367,12 @@ const ClubAdminPanel = () => {
                                     </View>
                                     {searchResults.map((u: any) => (
                                         <View key={u._id} className="bg-card p-4 rounded-card border border-line mb-2 flex-row items-center">
-                                            <Image source={{ uri: u.avatar || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-full" />
-                                            <Text className="flex-1 ml-3 text-ink font-semibold">{u.username}</Text>
+                                            <Avatar user={u} size={40} showBadge={false} />
+                                            <Text className="flex-1 ml-3 text-ink font-semibold" numberOfLines={1}>{u.username}</Text>
                                             <TouchableOpacity 
                                                 onPress={() => handleInvite(u._id)}
+                                                disabled={!!actingId}
+                                                hitSlop={10}
                                                 className="bg-ink px-2.5 py-1 rounded-full"
                                             >
                                                 <Text className="text-white font-semibold text-label uppercase">Invite</Text>
@@ -368,10 +385,10 @@ const ClubAdminPanel = () => {
                             <Text className="text-ink-3 font-semibold uppercase text-label mb-4">Pending Invitations ({club.invitations?.length || 0})</Text>
                             {club.invitations?.map((inv: any) => (
                                 <View key={inv._id} className="bg-card p-4 rounded-card border border-line mb-3 flex-row items-center opacity-60">
-                                    <Image source={{ uri: inv.avatar || 'https://via.placeholder.com/150' }} className="w-12 h-12 rounded-full" />
+                                    <Avatar user={inv} size={48} showBadge={false} />
                                     <View className="flex-1 ml-4">
-                                        <Text className="text-ink font-semibold text-sm">{inv.name}</Text>
-                                        <Text className="text-ink-3 text-xs">@{inv.username}</Text>
+                                        <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{inv.name}</Text>
+                                        <Text className="text-ink-3 text-xs" numberOfLines={1}>@{inv.username}</Text>
                                     </View>
                                     <View className="bg-paper-2 px-2.5 py-1 rounded-full">
                                         <Text className="text-ink-3 font-display text-label uppercase">Sent</Text>
@@ -385,13 +402,13 @@ const ClubAdminPanel = () => {
                         <View>
                             <Text className="text-ink-3 font-semibold uppercase text-label mb-4">Active Members ({club.members?.length || 0})</Text>
                             {club.members?.map((member: any) => {
-                                const isCurrentAdmin = club.admins.some((a: any) => (a._id || a) === member._id);
+                                const isCurrentAdmin = (club.admins ?? []).some((a: any) => (a._id || a) === member._id);
                                 return (
                                     <View key={member._id} className="bg-card p-4 rounded-card border border-line mb-3 flex-row items-center">
-                                        <Image source={{ uri: member.avatar || 'https://via.placeholder.com/150' }} className="w-12 h-12 rounded-full" />
+                                        <Avatar user={member} size={48} showBadge={false} />
                                         <View className="flex-1 ml-4">
-                                            <Text className="text-ink font-semibold text-sm">{member.name}</Text>
-                                            <Text className="text-ink-3 text-xs">@{member.username}</Text>
+                                            <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{member.name}</Text>
+                                            <Text className="text-ink-3 text-xs" numberOfLines={1}>@{member.username}</Text>
                                         </View>
                                         {isCurrentAdmin ? (
                                             <View className="flex-row items-center gap-2">
@@ -416,6 +433,7 @@ const ClubAdminPanel = () => {
                                         {!isCurrentAdmin && (
                                             <TouchableOpacity 
                                                 onPress={() => handleRemoveMember(member._id)}
+                                                hitSlop={8}
                                                 className="ml-2 w-8 h-8 bg-danger/10 rounded-lg items-center justify-center border border-danger/15"
                                             >
                                                 <Ionicons name="trash-outline" size={14} color={C.danger} />
@@ -468,14 +486,14 @@ const ClubAdminPanel = () => {
                             <View className="bg-card p-6 rounded-sheet border border-line mb-10">
                                 <View className="flex-row mb-8">
                                     <TouchableOpacity onPress={() => pickImage('logo')} className="relative">
-                                        <Image source={{ uri: newLogo?.uri || club.logo || 'https://via.placeholder.com/150' }} className="w-16 h-16 rounded-card bg-paper-2 border border-line" />
+                                        <Image source={{ uri: newLogo?.uri || club.logo }} className="w-16 h-16 rounded-card bg-paper-2 border border-line" />
                                         <View className="absolute -bottom-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-white">
                                             <Feather name="camera" size={10} color="white" />
                                         </View>
                                     </TouchableOpacity>
                                     
                                     <TouchableOpacity onPress={() => pickImage('banner')} className="flex-1 ml-4 relative">
-                                        <Image source={{ uri: newBanner?.uri || club.banner || 'https://via.placeholder.com/150' }} className="w-full h-16 rounded-card bg-paper-2 border border-line" />
+                                        <Image source={{ uri: newBanner?.uri || club.banner }} className="w-full h-16 rounded-card bg-paper-2 border border-line" />
                                         <View className="absolute -bottom-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-white">
                                             <Feather name="image" size={10} color="white" />
                                         </View>
@@ -518,13 +536,14 @@ const ClubAdminPanel = () => {
                             </View>
                             {club.subGroups?.map((sub: any) => (
                                 <View key={sub._id} className="bg-card p-4 rounded-card border border-line mb-3 flex-row items-center">
-                                    <Image source={{ uri: sub.logo || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-xl bg-paper-2" />
+                                    <Image source={{ uri: sub.logo }} className="w-10 h-10 rounded-xl bg-paper-2" />
                                     <View className="flex-1 ml-4">
-                                        <Text className="text-ink font-semibold text-sm">{sub.name}</Text>
+                                        <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{sub.name}</Text>
                                         <Text className="text-ink-3 text-label font-semibold uppercase">{sub.members?.length || 0} Members</Text>
                                     </View>
                                     <TouchableOpacity 
                                         onPress={() => navigation.navigate('EditSubGroup', { subGroupId: sub._id })}
+                                        hitSlop={8}
                                         className="w-8 h-8 bg-paper-2 rounded-lg items-center justify-center border border-line"
                                     >
                                         <Feather name="edit-3" size={14} color={C.ink2} />
@@ -555,6 +574,7 @@ const ClubAdminPanel = () => {
                     )}
                     <View className="h-40" />
                 </ScrollView>
+                </KeyboardAvoidingView>
             </SafeAreaView>
         </View>
     );

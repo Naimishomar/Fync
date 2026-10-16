@@ -4,10 +4,11 @@
  * transform, so a tool screen stays small enough to read in one go.
  */
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { AppBar } from '../../ui/kit';
 import { Alert } from '../../ui/AlertModal';
 import { pickPdf, sharePdf, savePdfToDevice, prettySize, type PickedPdf } from './pdfKit';
 import { C } from '../../../constants/colors';
@@ -38,13 +39,14 @@ export default function PdfToolShell({
   const choose = async () => {
     try {
       const picked = await pickPdf(multiple);
-      if (picked.length) { setFiles(multiple ? [...files, ...picked] : picked); setResult(null); }
+      if (picked.length) { setFiles((prev) => (multiple ? [...prev, ...picked] : picked)); setResult(null); }
     } catch { Alert.alert('Error', 'Could not open that file.'); }
   };
 
   const blocked = files.length === 0 ? 'Choose a PDF first' : disabledReason?.(files) ?? null;
 
   const go = async () => {
+    if (busy) return;
     setBusy(true);
     try {
       setResult(await run(files));
@@ -58,15 +60,11 @@ export default function PdfToolShell({
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
       <SafeAreaView style={{ flex: 1 }}>
-        <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <Text className="text-xl font-display text-ink flex-1">{title}</Text>
-        </View>
+        <AppBar title={title} onBack={() => navigation.goBack()} />
 
-        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+        {/* Several tools put a text field in `options`; keep it above the keyboard. */}
+        <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <Text className="text-ink-2 text-sm mb-5">{blurb}</Text>
 
           <TouchableOpacity
@@ -150,6 +148,7 @@ export default function PdfToolShell({
           )}
           <View style={{ height: 40 }} />
         </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );

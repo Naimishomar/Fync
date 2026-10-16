@@ -5,11 +5,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Clipboard from 'expo-clipboard';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 /**
  * Problem bank admin.
@@ -53,7 +53,8 @@ export default function ArenaAdminScreen() {
   const load = useCallback(async () => {
     try {
       const res = await axios.get('/arena/admin/problems');
-      setProblems(res.data.problems ?? res.data ?? []);
+      const list = res.data?.problems ?? res.data;
+      setProblems(Array.isArray(list) ? list : []);
     } catch {
       // The bank listing failing must not block importing more problems.
     } finally {
@@ -94,16 +95,8 @@ export default function ArenaAdminScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-      <View className="px-5 pt-2">
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="w-11 h-11 items-center justify-center rounded-xl"
-          style={{ marginLeft: -11 }}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <Ionicons name="arrow-back" size={24} color={C.ink} />
-        </TouchableOpacity>
+      <AppBar onBack={() => navigation.goBack()} />
+      <View className="px-5">
         <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Problem</Text>
         <Text className="font-display text-display text-brand-600 uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Bank</Text>
         <Text className="font-display text-ink-3 uppercase mt-2 mb-4" style={{ fontSize: 11, letterSpacing: 1.4 }}>
@@ -180,7 +173,7 @@ export default function ArenaAdminScreen() {
                     <Text className="font-sans text-ink" style={{ fontSize: 12 }}>
                       #{e.index + 1} {e.title}
                     </Text>
-                    {e.problems.map((p: string, i: number) => (
+                    {e.problems?.map((p: string, i: number) => (
                       <Text key={i} className="font-sans text-ink-3 ml-3" style={{ fontSize: 11 }}>· {p}</Text>
                     ))}
                   </View>

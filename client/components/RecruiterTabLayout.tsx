@@ -10,12 +10,10 @@ import ChatList from "./ChatList";
 import { useAuth } from "context/auth.context";
 import { C } from '../constants/colors';
 import SlidingTabBar from './ui/SlidingTabBar';
+import { TAB_BAR_HEIGHT, useTabBarOffset } from '../constants/layout';
 
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
-
-// Pill bar: the radius is always half the height (mockup .tabbar, 64/32).
-const TAB_BAR_HEIGHT = 64;
 
 // Custom center button for "Post Opportunity"
 const PostOpportunityButton = ({ children, onPress }: any) => {
@@ -50,6 +48,9 @@ const PlaceholderScreen = () => <View />;
 
 export default function RecruiterTabLayout() {
   const { user } = useAuth();
+  // Same offset the screens' useTabBarClearance() assumes; a fixed 40 left
+  // the bar on the gesture bar on some devices and lists cut off on others.
+  const bottomOffset = useTabBarOffset();
   return (
     <View className="flex-1 bg-paper justify-center">
       <Tab.Navigator
@@ -76,7 +77,7 @@ export default function RecruiterTabLayout() {
           tabBarInactiveTintColor: "rgba(245,242,236,0.55)",
           tabBarStyle: {
             position: "absolute",
-            bottom: 40,
+            bottom: bottomOffset,
             marginHorizontal: width * 0.05,
             backgroundColor: "rgba(18, 16, 14, 0.94)",
             borderRadius: TAB_BAR_HEIGHT / 2,

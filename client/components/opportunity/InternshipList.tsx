@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useCallback, memo } from 'react';
+import React, { useEffect, useState, useCallback, useRef, memo } from 'react';
 import {View, Text, FlatList, Image, ActivityIndicator, Pressable, Linking, TextInput, TouchableOpacity, StatusBar, Modal} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -19,10 +21,11 @@ const InternshipCard = memo(({ item, onApply, hideApply }: { item: any; onApply:
       <View className="flex-row gap-4 items-center">
         {/* Company Logo */}
         <View className="w-16 h-16 rounded-card border border-line overflow-hidden bg-paper-2 items-center justify-center p-2">
-          <Image
-            source={{ uri: item.companyLogo || 'https://via.placeholder.com/100' }}
-            className="w-12 h-12 rounded-xl"
-            resizeMode="contain"
+          <ExpoImage
+            source={{ uri: item.companyLogo }}
+            style={{ width: 48, height: 48, borderRadius: 12 }}
+            contentFit="contain"
+            cachePolicy="memory-disk"
           />
         </View>
 
@@ -31,7 +34,7 @@ const InternshipCard = memo(({ item, onApply, hideApply }: { item: any; onApply:
           <Text className="text-ink text-base font-display uppercase leading-5" numberOfLines={2}>
             {item.title}
           </Text>
-          <Text className="text-ink-3 text-label font-display uppercase mt-1">
+          <Text className="text-ink-3 text-label font-display uppercase mt-1" numberOfLines={1}>
             {item.company}
           </Text>
         </View>
@@ -83,7 +86,7 @@ const InternshipCard = memo(({ item, onApply, hideApply }: { item: any; onApply:
             <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
           </View>
           <Text className="text-ink text-lg font-display uppercase">
-            {item.isPaid ? (item.stipend.startsWith('₹') ? item.stipend : `₹${item.stipend}`) : "Voluntary"}
+            {item.isPaid ? (String(item.stipend ?? '').startsWith('₹') ? item.stipend : `₹${item.stipend ?? ''}`) : "Voluntary"}
           </Text>
         </View>
 
@@ -111,7 +114,13 @@ const InternshipList = () => {
   const [internships, setInternships] = useState<any[]>([]);
   const [shortlistedItems, setShortlistedItems] = useState<any[]>([]);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  // Starts true so the empty state doesn't flash before the first fetch lands.
+  const [loading, setLoading] = useState(true);
+  // Search-as-you-type and tab switches fire overlapping requests; only the
+  // latest may write state. The old `if (loading) return` guard dropped the
+  // newest query (or the shortlist tab) whenever an earlier one was in flight.
+  const reqIdRef = useRef(0);
+  const inFlightRef = useRef(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
@@ -131,12 +140,15 @@ const InternshipList = () => {
   );
 
   const fetchInternships = async (pageNum: number, term = searchQuery) => {
-    if (loading) return;
+    if (pageNum > 1 && inFlightRef.current) return;
+    const id = ++reqIdRef.current;
+    inFlightRef.current = true;
     setLoading(true);
 
     try {
       const recruiterParam = recruiterId ? `&recruiterId=${recruiterId}` : "";
-      const response = await axios.get(`/opportunity/list?type=internship&page=${pageNum}&limit=15&search=${term}${recruiterParam}`);
+      const response = await axios.get(`/opportunity/list?type=internship&page=${pageNum}&limit=15&search=${encodeURIComponent(term)}${recruiterParam}`);
+      if (id !== reqIdRef.current) return;
 
       if (response.data.success) {
         const newData = response.data.data || [];
@@ -160,30 +172,38 @@ const InternshipList = () => {
     } catch (error) {
       console.error("Error fetching internships:", error);
     } finally {
-      setLoading(false);
+      if (id === reqIdRef.current) {
+        inFlightRef.current = false;
+        setLoading(false);
+      }
     }
   };
 
   const fetchShortlisted = async () => {
-    if (loading) return;
+    const id = ++reqIdRef.current;
+    inFlightRef.current = true;
     setLoading(true);
     try {
       const response = await axios.get(`/opportunity/student/shortlisted?type=internship`);
+      if (id !== reqIdRef.current) return;
       if (response.data.success) {
-        setShortlistedItems(response.data.data);
+        setShortlistedItems(response.data.data || []);
       }
     } catch (error) {
       console.error("Error fetching shortlisted internships:", error);
     } finally {
-      setLoading(false);
+      if (id === reqIdRef.current) {
+        inFlightRef.current = false;
+        setLoading(false);
+      }
     }
   };
 
   const handleLoadMore = useCallback(() => {
     if (activeTab === 'all' && hasMore && !loading) {
-      fetchInternships(page + 1);
+      fetchInternships(page + 1, searchQuery);
     }
-  }, [hasMore, loading, page, activeTab]);
+  }, [hasMore, loading, page, activeTab, searchQuery]);
 
   const onSearchSubmit = () => {
     if (activeTab === 'all') {
@@ -252,26 +272,13 @@ const InternshipList = () => {
 
       <SafeAreaView className="flex-1" edges={['top']}>
 
-        {/* Arena Header */}
-        <View className="px-gutter pt-2">
-          <View className="flex-row items-center justify-between mb-6">
-            <View className="flex-1">
-              <View className="flex-row items-center">
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  className="w-11 h-11 items-center justify-center rounded-xl"
-                  accessibilityRole="button"
-                  accessibilityLabel="Go back"
-                  style={{ marginLeft: -11 }}
-                >
-                  <Ionicons name="arrow-back" size={24} color={C.ink} />
-                </TouchableOpacity>
-                <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Internships</Text>
-                <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
-              </View>
-              <Text className="text-ink-3 text-label font-display uppercase">Professional Opportunity Archive</Text>
-            </View>
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter mb-6">
+          <View className="flex-row items-center">
+            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Internships</Text>
+            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
           </View>
+          <Text className="text-ink-3 text-label font-display uppercase">Professional Opportunity Archive</Text>
         </View>
 
         {/* Arena Tabs */}
@@ -312,7 +319,7 @@ const InternshipList = () => {
                 className="flex-1 ml-3 text-ink text-sm font-display uppercase"
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => { setSearchQuery(""); fetchInternships(1, ""); }} className="bg-paper-2 p-1.5 rounded-xl">
+                <TouchableOpacity hitSlop={10} onPress={() => { setSearchQuery(""); fetchInternships(1, ""); }} className="bg-paper-2 p-1.5 rounded-xl">
                   <Ionicons name="close" size={16} color={C.ink3} />
                 </TouchableOpacity>
               )}
@@ -388,10 +395,10 @@ const InternshipList = () => {
                 <Text className="font-display text-label text-ink-3 uppercase mb-3" style={{ letterSpacing: 1.4 }}>Candidate Verification</Text>
 
                 <View className="flex-row items-center gap-4 mb-6 pb-6 border-b border-line">
-                  <Image source={{ uri: user?.avatar || 'https://via.placeholder.com/100' }} className="w-14 h-14 rounded-card bg-paper-2" />
-                  <View>
-                    <Text className="text-ink font-display text-lg uppercase">{user?.name}</Text>
-                    <Text className="text-ink-3 text-label font-semibold uppercase">{user?.username} • {user?.college || 'External Entity'}</Text>
+                  <Image source={{ uri: user?.avatar }} className="w-14 h-14 rounded-card bg-paper-2" />
+                  <View className="flex-1" style={{ minWidth: 0 }}>
+                    <Text className="text-ink font-display text-lg uppercase" numberOfLines={1}>{user?.name}</Text>
+                    <Text className="text-ink-3 text-label font-semibold uppercase" numberOfLines={1}>{user?.username} • {user?.college || 'External Entity'}</Text>
                   </View>
                 </View>
 

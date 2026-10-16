@@ -18,7 +18,7 @@ import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { StatusBar } from 'expo-status-bar';
-import { useBottomInset } from '../constants/layout';
+import { AppBar } from './ui/kit';
 import { C } from '../constants/colors';
 
 const { width } = Dimensions.get('window');
@@ -26,7 +26,6 @@ const { width } = Dimensions.get('window');
 export default function RecruiterEditProfile() {
   const { user, setUser } = useAuth();
   const navigation = useNavigation();
-  const bottomInset = useBottomInset();
   const [loading, setLoading] = useState(false);
 
   // --- Recruiter / Company Info ---
@@ -137,26 +136,24 @@ export default function RecruiterEditProfile() {
       <StatusBar style="dark" />
 
       {/* Header */}
-      <View className="flex-row items-center justify-between px-5 py-4 border-b border-line">
-        <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-          <Ionicons name="close" size={24} color={C.ink2} />
-        </TouchableOpacity>
-        <Text className="font-semibold text-base text-ink">Global Profile Settings</Text>
-        <TouchableOpacity
-          onPress={handleUpdate}
-          disabled={loading || !hasChanges}
-          className={`bg-recruiter px-5 py-2 rounded-xl shadow-hair ${(!hasChanges || loading) ? 'opacity-50' : ''}`}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text className="text-white font-display uppercase text-label">Save</Text>
-          )}
-        </TouchableOpacity>
+      <View className="border-b border-line">
+        <AppBar
+          title="Profile Settings"
+          onBack={() => navigation.goBack()}
+          right={
+            <TouchableOpacity
+              onPress={handleUpdate}
+              disabled={loading || !hasChanges}
+              className={`bg-recruiter px-5 py-2 rounded-xl shadow-hair mr-[11px] ${(!hasChanges || loading) ? 'opacity-50' : ''}`}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text className="text-white font-display uppercase text-label">Save</Text>
+              )}
+            </TouchableOpacity>
+          }
+        />
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -171,7 +168,7 @@ export default function RecruiterEditProfile() {
               <Text className="text-ink-3 text-label font-display uppercase mt-2">Add Banner</Text>
             </View>
           )}
-          <View className="absolute right-3 bg-card/90 p-2 rounded-full shadow-hair" style={{ bottom: bottomInset + 12 }}>
+          <View className="absolute right-3 bottom-3 bg-card/90 p-2 rounded-full shadow-hair">
             <Ionicons name="camera" size={18} color={C.recruiter} />
           </View>
         </TouchableOpacity>
@@ -183,7 +180,7 @@ export default function RecruiterEditProfile() {
               source={{ uri: avatar || 'https://ui-avatars.com/api/?name=Company' }}
               className="h-24 w-24 rounded-full bg-paper-2"
             />
-            <View className="absolute right-1 bg-recruiter p-1.5 rounded-full border-2 border-paper" style={{ bottom: bottomInset + 4 }}>
+            <View className="absolute right-1 bottom-1 bg-recruiter p-1.5 rounded-full border-2 border-paper">
               <Ionicons name="pencil" size={14} color="white" />
             </View>
           </TouchableOpacity>

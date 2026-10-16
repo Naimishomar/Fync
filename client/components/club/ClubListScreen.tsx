@@ -1,5 +1,6 @@
-import React, { useState, useCallback, memo } from 'react';
-import {View, Text, TouchableOpacity, FlatList, Image, TextInput, ActivityIndicator, RefreshControl, Dimensions, StatusBar, Modal} from 'react-native'
+import React, { useState, useCallback, useRef, memo } from 'react';
+import {View, Text, TouchableOpacity, FlatList, TextInput, ActivityIndicator, RefreshControl, StatusBar, Modal, KeyboardAvoidingView, Platform} from 'react-native'
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
@@ -9,6 +10,11 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
+import { useBottomInset } from '../../constants/layout';
+
+// Ids may arrive populated ({ _id }) or bare, depending on the endpoint.
+const hasId = (arr: any[] | undefined, id?: string) => !!id && !!arr?.some((x: any) => (x?._id || x) === id);
 
 const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) => {
     return (
@@ -20,8 +26,9 @@ const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) =
             <View className="p-6 flex-row items-center">
                 <View className="relative">
                     <Image
-                        source={{ uri: item.logo || 'https://via.placeholder.com/150' }}
-                        className="w-20 h-20 rounded-full bg-paper-2 border border-line"
+                        source={item.logo ? { uri: item.logo } : undefined}
+                        style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: C.paper2, borderWidth: 1, borderColor: C.line }}
+                        cachePolicy="memory-disk"
                     />
                     {!isInvitation && (
                         <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full border-4 border-white shadow-hair" />
@@ -55,7 +62,7 @@ const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) =
                                 <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
                                     <Text className="text-accent-text text-label font-display uppercase">{item.category || 'HQ'}</Text>
                                 </View>
-                                {(item.admins?.includes(userId)) && (
+                                {hasId(item.admins, userId) && (
                                     <View className="bg-ink px-2.5 py-1 rounded-full">
                                         <Text className="text-white text-label font-display uppercase">Admin Access</Text>
                                     </View>
@@ -80,6 +87,8 @@ const ClubListScreen = () => {
     const [showCodeModal, setShowCodeModal] = useState(false);
     const [joinCode, setJoinCode] = useState('');
     const [verifying, setVerifying] = useState(false);
+    const accepting = useRef(false);
+    const bottomInset = useBottomInset();
 
     const fetchClubs = async () => {
         try {
@@ -124,6 +133,8 @@ const ClubListScreen = () => {
     };
 
     const handleAcceptInvitation = async (clubId: string) => {
+        if (accepting.current) return;
+        accepting.current = true;
         try {
             const res = await axios.post('/clubs/accept-invitation', { clubId, userId: user?._id });
             if (res.data.success) {
@@ -132,11 +143,13 @@ const ClubListScreen = () => {
             }
         } catch (error: any) {
             Alert.alert("Failed", error.response?.data?.message || "Action failed");
+        } finally {
+            accepting.current = false;
         }
     };
 
-    const myClubs = clubs.filter(c => c.members?.includes(user?._id) || c.admins?.includes(user?._id));
-    const invitations = clubs.filter(c => c.invitations?.includes(user?._id));
+    const myClubs = clubs.filter(c => hasId(c.members, user?._id) || hasId(c.admins, user?._id));
+    const invitations = clubs.filter(c => hasId(c.invitations, user?._id));
 
     return (
         <View className="flex-1 bg-paper">
@@ -146,27 +159,14 @@ const ClubListScreen = () => {
 
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-gutter pt-6 pb-2 flex-row justify-between items-center">
-                    <View>
-                        <TouchableOpacity
-                          onPress={() => navigation.goBack()}
-                          className="w-11 h-11 items-center justify-center rounded-xl"
-                          accessibilityRole="button"
-                          accessibilityLabel="Go back"
-                          style={{ marginLeft: -11 }}
-                        >
-                          <Ionicons name="arrow-back" size={24} color={C.ink} />
-                        </TouchableOpacity>
-                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>College</Text>
-                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Clubs</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase">Secure Community Network</Text>
-                    </View>
-                    <TouchableOpacity 
-                        onPress={() => setShowCodeModal(true)}
-                        className="w-14 h-14 bg-card rounded-card items-center justify-center shadow-hair border border-line"
-                    >
-                        <Ionicons name="qr-code-outline" size={24} color={C.ink} />
-                    </TouchableOpacity>
+                <AppBar
+                    onBack={() => navigation.goBack()}
+                    right={<IconBtn name="qr-code-outline" boxed onPress={() => setShowCodeModal(true)} />}
+                />
+                <View className="px-gutter pb-2">
+                    <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>College</Text>
+                    <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Clubs</Text>
+                    <Text className="text-ink-3 text-label font-display uppercase">Secure Community Network</Text>
                 </View>
 
                 <FlatList
@@ -216,6 +216,7 @@ const ClubListScreen = () => {
                         );
                     }}
                     showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: bottomInset }}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                     ListEmptyComponent={!loading ? (
                         <View className="items-center mt-32 px-gutter">
@@ -232,7 +233,7 @@ const ClubListScreen = () => {
 
                 {/* Join Code Modal */}
                 <Modal visible={showCodeModal} transparent animationType="slide" onRequestClose={() => setShowCodeModal(false)}>
-                    <View className="flex-1 bg-black/50 justify-end">
+                    <KeyboardAvoidingView className="flex-1 bg-black/50 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                         <View className="bg-paper rounded-t-sheet p-card-pad border border-line">
                             <View className="flex-row justify-between items-center mb-10">
                                 <Text className="text-ink font-display uppercase text-h1">Enter Code</Text>
@@ -277,7 +278,7 @@ const ClubListScreen = () => {
                             </TouchableOpacity>
                             <View className="h-10" />
                         </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </Modal>
             </SafeAreaView>
         </View>

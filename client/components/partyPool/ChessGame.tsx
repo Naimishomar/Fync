@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, TouchableOpacity, ActivityIndicator, Image, Modal, Dimensions} from 'react-native'
+import {View, Text, TouchableOpacity, ActivityIndicator, Image, Modal, useWindowDimensions} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../../context/auth.context';
 import { Chess } from 'chess.js';
@@ -18,6 +18,10 @@ interface ChessGameProps {
 const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, onGameOver }) => {
     const { user } = useAuth();
     const chessboardRef = useRef<ChessboardRef>(null);
+    // Full-screen modal: ~400px of bars, padding and margins sit around the
+    // board, so a width-only board pushed the player bar off small phones.
+    const { width, height } = useWindowDimensions();
+    const boardSize = Math.min(width - 48, height - 400);
     const [chess] = useState(new Chess());
     const [isMyTurn, setIsMyTurn] = useState(matchDetails.color === 'w');
     const [gameOver, setGameOver] = useState(false);
@@ -38,70 +42,74 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
             }
         }, 2000);
 
+        // Named handlers so cleanup detaches only ours — a bare off(event) on the
+        // shared app socket strips every listener for that event app-wide.
+        const onMoveReceived = ({ move, fen }: any) => {
+            chess.load(fen);
+            // `move` is now an object { from, to, promotion, san }
+            chessboardRef.current?.move({ from: move.from, to: move.to });
+            setIsMyTurn(true);
+            setTimeLeft(60);
+            checkEndGame();
+        };
+        const onTurnSkipped = ({ fen }: any) => {
+            // Opponent ran out of time, their turn was skipped.
+            // We load the mutated FEN
+            chess.load(fen);
+            setIsMyTurn(true);
+            setTimeLeft(60);
+        };
+        const onServerGameOver = ({ reason, winnerId }: any) => {
+            setGameOver(true);
+            let title = "Game Over";
+            let msg = reason;
+            if (reason === 'checkmate') {
+                msg = winnerId === user?._id ? "You won by checkmate" : "You lost by checkmate";
+            } else if (reason === 'resignation') {
+                msg = winnerId === user?._id ? "Opponent resigned — you won" : "You Resigned.";
+            }
+            Alert.alert(title, msg, [{ text: "Leave", onPress: onGameOver }]);
+        };
+
         if (gameMode === 'pvp' && socket) {
-            socket.on('chess_move_received', ({ move, fen }: any) => {
-                chess.load(fen);
-                // `move` is now an object { from, to, promotion, san }
-                chessboardRef.current?.move({ from: move.from, to: move.to });
-                setIsMyTurn(true);
-                setTimeLeft(60);
-                checkEndGame();
-            });
-
-            socket.on('chess_turn_skipped', ({ fen }: any) => {
-                // Opponent ran out of time, their turn was skipped.
-                // We load the mutated FEN
-                chess.load(fen);
-                setIsMyTurn(true);
-                setTimeLeft(60);
-            });
-
-            socket.on('chess_game_over', ({ reason, winnerId }: any) => {
-                setGameOver(true);
-                let title = "Game Over";
-                let msg = reason;
-                if (reason === 'checkmate') {
-                    msg = winnerId === user?._id ? "You won by checkmate" : "You lost by checkmate";
-                } else if (reason === 'resignation') {
-                    msg = winnerId === user?._id ? "Opponent resigned — you won" : "You Resigned.";
-                }
-                Alert.alert(title, msg, [{ text: "Leave", onPress: onGameOver }]);
-            });
+            socket.on('chess_move_received', onMoveReceived);
+            socket.on('chess_turn_skipped', onTurnSkipped);
+            socket.on('chess_game_over', onServerGameOver);
         }
 
         return () => {
             clearTimeout(timer);
             if (timerRef.current) clearInterval(timerRef.current);
             if (socket) {
-                socket.off('chess_move_received');
-                socket.off('chess_turn_skipped');
-                socket.off('chess_game_over');
+                socket.off('chess_move_received', onMoveReceived);
+                socket.off('chess_turn_skipped', onTurnSkipped);
+                socket.off('chess_game_over', onServerGameOver);
             }
         };
     }, []);
 
-    // Timer Logic
+    // Timer Logic. PvP only: the bot game has no clock on screen, and a
+    // timeout there flipped the turn to the bot without asking it to move, so
+    // the game froze after 60s of thinking.
     useEffect(() => {
-        if (!isMyTurn || gameOver || isInitializing) {
+        if (gameMode !== 'pvp' || !isMyTurn || gameOver || isInitializing) {
             if (timerRef.current) clearInterval(timerRef.current);
             return;
         }
 
         timerRef.current = setInterval(() => {
-            setTimeLeft(prev => {
-                if (prev <= 1) {
-                    clearInterval(timerRef.current!);
-                    handleTurnTimeout();
-                    return 0;
-                }
-                return prev - 1;
-            });
+            setTimeLeft(prev => Math.max(prev - 1, 0));
         }, 1000);
 
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
     }, [isMyTurn, gameOver, isInitializing]);
+
+    // Side effects stay out of the state updater (it can run twice).
+    useEffect(() => {
+        if (timeLeft === 0 && isMyTurn && !gameOver && gameMode === 'pvp') handleTurnTimeout();
+    }, [timeLeft]);
 
     const handleTurnTimeout = () => {
         // Skip our turn because time ran out
@@ -119,9 +127,10 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
             let won = false;
 
             if (chess.isCheckmate()) {
-                // If it's my turn when checkmate happens, it means the opponent checkmated me.
-                // If it's NOT my turn, it means I just moved and checkmated the opponent.
-                won = !isMyTurn; 
+                // The side to move is the one checkmated. Reading `isMyTurn` here
+                // gave the stale value from the move's render, so mating the bot
+                // reported a loss and withheld the coins.
+                won = chess.turn() !== matchDetails.color;
                 msg = won ? "You won by checkmate" : "You lost by checkmate";
             } else if (chess.isStalemate()) {
                 msg = "Stalemate!";
@@ -219,7 +228,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
     };
 
     return (
-        <Modal visible={true} animationType="slide" transparent={false}>
+        <Modal visible={true} animationType="slide" transparent={false} onRequestClose={handleResign}>
             <GestureHandlerRootView style={{ flex: 1 }}>
                 <View 
                     className="flex-1 px-4 py-12"
@@ -236,7 +245,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                         <>
                             {/* Top Bar / Opponent */}
                             <View className="flex-row items-center justify-between mb-auto mt-4 bg-card p-4 rounded-card border border-line shadow-hair">
-                                <View className="flex-row items-center">
+                                <View className="flex-row items-center flex-1 mr-3" style={{ minWidth: 0 }}>
                                     <View className="w-14 h-14 bg-paper-2 rounded-full overflow-hidden border-2 border-brand-500/30 shadow-hair">
                                         {matchDetails.opponent?.avatar === 'fync_logo' ? (
                                             <Image source={require('../../assets/Fync.png')} className="w-full h-full" resizeMode="cover" />
@@ -248,8 +257,8 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                             </View>
                                         )}
                                     </View>
-                                    <View className="ml-4">
-                                        <Text className="text-ink text-base font-display uppercase">{matchDetails.opponent?.name || matchDetails.opponent?.username}</Text>
+                                    <View className="ml-4 flex-1" style={{ minWidth: 0 }}>
+                                        <Text className="text-ink text-base font-display uppercase" numberOfLines={1}>{matchDetails.opponent?.name || matchDetails.opponent?.username}</Text>
                                         <View className="flex-row items-center mt-1">
                                             <View className="w-2 h-2 rounded-full bg-brand-500 mr-2" />
                                             <Text className="text-ink-3 font-semibold text-label uppercase">Playing {matchDetails.color === 'w' ? 'Black' : 'White'}</Text>
@@ -275,7 +284,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                     onMove={handleMove}
                                     gestureEnabled={isMyTurn && !gameOver}
                                     colors={{ black: '#12100E', white: '#EDE8E0' }}
-                                    boardSize={Dimensions.get('window').width - 40}
+                                    boardSize={boardSize}
                                 />
                             </View>
 

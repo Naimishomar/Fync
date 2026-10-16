@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, Modal, TouchableOpacity, FlatList, ActivityIndicator, Image, Dimensions} from 'react-native'
+import {View, Text, Modal, TouchableOpacity, FlatList, ActivityIndicator, Dimensions} from 'react-native'
+import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -36,7 +37,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
     try {
       const res = await axios.get('/user/streak-leaderboard');
       if (res.data.success) {
-        setData(res.data.leaderboard);
+        setData(res.data.leaderboard ?? []);
         setUserRank(res.data.userRank);
         setUserStreak(res.data.userStreak);
         setCompletedToday(res.data.completedToday);
@@ -181,7 +182,8 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                     
                     <Image 
                       source={{ uri: item.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} 
-                      className="w-11 h-11 rounded-card mr-4 border border-line"
+                      style={{ width: 44, height: 44, borderRadius: 12, marginRight: 16, borderWidth: 1, borderColor: C.line }}
+                      cachePolicy="memory-disk"
                     />
                     
                     <View className="flex-1">

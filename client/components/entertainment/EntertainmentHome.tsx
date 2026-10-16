@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Image,
   Dimensions,
   ActivityIndicator,
   StatusBar,
@@ -14,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import {
   fetchEntertainmentHome,
@@ -21,6 +21,7 @@ import {
 } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -73,7 +74,7 @@ const EntertainmentHome = () => {
 
   const renderSection = (title: string, data: any[], type: 'trending' | 'popular' | 'upcoming' | 'bollywood') => (
     <View className="mb-6">
-      <View className="flex-row justify-between items-center px-4 mb-3">
+      <View className="flex-row justify-between items-center px-5 mb-3">
         <Text className="text-white text-lg font-display">{title}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('MovieList', { title, type })}>
           <Text className="text-danger font-medium">See All</Text>
@@ -83,7 +84,7 @@ const EntertainmentHome = () => {
         data={data}
         horizontal
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <MovieCard
             item={item}
@@ -101,21 +102,9 @@ const EntertainmentHome = () => {
 
       <ScrollView showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
         {/* Header */}
-        <View className="flex-row justify-between items-center px-4 py-3 bg-ink">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-            <Text className="text-white text-2xl font-display">Fync <Text className="text-danger">Cinema</Text></Text>
-          </View>
-          <View className="flex-row items-center gap-4">
-            <TouchableOpacity onPress={() => navigation.navigate('MovieSearch')}>
-              <Ionicons name="search-outline" size={24} color="white" />
-            </TouchableOpacity>
-          </View>
+        <View className="bg-ink">
+          <AppBar night title="Fync Cinema" onBack={() => navigation.goBack()}
+            right={<IconBtn name="search-outline" color="white" onPress={() => navigation.navigate('MovieSearch')} />} />
         </View>
 
         {/* Hero Banner */}
@@ -126,13 +115,14 @@ const EntertainmentHome = () => {
             className="w-full h-[500px] mb-8"
           >
             <Image
-              source={{ uri: getImageUrl(featuredMovie.poster_path, 'original') || '' }}
-              className="w-full h-full"
-              resizeMode="cover"
+              source={{ uri: getImageUrl(featuredMovie.poster_path, 'w780') || '' }}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
             />
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,1)']}
-              className="absolute bottom-0 w-full h-1/2 justify-end px-6 pb-6"
+              className="absolute bottom-0 w-full h-1/2 justify-end px-5 pb-6"
             >
               <View className="items-center mb-4">
                 <Text className="text-white text-3xl font-display text-center mb-2" numberOfLines={2}>
@@ -151,7 +141,7 @@ const EntertainmentHome = () => {
                   </View>
                   <View className="flex-row items-center">
                     <Ionicons name="star" size={14} color={C.warning} />
-                    <Text className="text-white text-xs ml-1 font-semibold">{featuredMovie.vote_average.toFixed(1)}</Text>
+                    <Text className="text-white text-xs ml-1 font-semibold">{Number(featuredMovie.vote_average ?? 0).toFixed(1)}</Text>
                   </View>
                   <Text className="font-sans text-sm text-night-3">Movie</Text>
                 </View>
@@ -174,13 +164,14 @@ const EntertainmentHome = () => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="px-4 mb-8"
+          className="px-5 mb-8"
           contentContainerStyle={{ gap: 10 }}
         >
-          {['Action', 'Comedy', 'Horror', 'Drama', 'Sci-Fi', 'Anime'].map((cat) => (
+          {/* TMDB genre ids; "Anime" maps to TMDB's Animation genre. */}
+          {([['Action', 28], ['Comedy', 35], ['Horror', 27], ['Drama', 18], ['Sci-Fi', 878], ['Anime', 16]] as const).map(([cat, genre]) => (
             <TouchableOpacity
               key={cat}
-              onPress={() => navigation.navigate('MovieList', { title: cat, type: 'trending' })}
+              onPress={() => navigation.navigate('MovieList', { title: cat, genre })}
               className="bg-ink px-6 py-2.5 rounded-full border border-ink"
             >
               <Text className="text-white font-medium text-sm">{cat}</Text>

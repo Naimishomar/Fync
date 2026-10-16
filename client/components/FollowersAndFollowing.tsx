@@ -1,8 +1,7 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  Image,
   FlatList,
   Pressable,
   ActivityIndicator,
@@ -16,6 +15,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
+import Avatar from './Avatar';
 
 type User = {
   _id: string;
@@ -39,7 +40,7 @@ const ItemSkeleton = () => (
 const FollowersAndFollowing = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { userId, type } = route.params; // type is "followers" or "following"
+  const { userId, type } = route.params ?? {}; // type is "followers" or "following"
 
   const { user: currentUser } = useAuth();
   const myId = currentUser?._id || "";
@@ -69,28 +70,31 @@ const FollowersAndFollowing = () => {
     }
   };
 
-  const toggleFollow = async (targetId: string, isFollowing: boolean) => {
-    if (!myId || targetId === myId) return;
+  // One request per row at a time; a second tap mid-flight would race the first.
+  const pending = useRef(new Set<string>());
 
-    try {
-      // Optimistic Update
+  const toggleFollow = async (targetId: string, isFollowing: boolean) => {
+    if (!myId || targetId === myId || pending.current.has(targetId)) return;
+    pending.current.add(targetId);
+
+    const apply = (follow: boolean) =>
       setUsers((prev) =>
         prev.map((u) => {
           if (u._id !== targetId) return u;
-
-          const currentFollowers = u.followers || [];
-          const updatedFollowers = isFollowing
-            ? currentFollowers.filter((id) => id !== myId)
-            : [...currentFollowers, myId];
-
-          return { ...u, followers: updatedFollowers };
+          const currentFollowers = (u.followers || []).filter((id) => id !== myId);
+          return { ...u, followers: follow ? [...currentFollowers, myId] : currentFollowers };
         })
       );
 
-      // API Call
+    // Optimistic Update
+    apply(!isFollowing);
+    try {
       await axios.post(isFollowing ? `/user/unfollow/${targetId}` : `/user/follow/${targetId}`);
     } catch (err) {
       console.log("Follow error", err);
+      apply(isFollowing);
+    } finally {
+      pending.current.delete(targetId);
     }
   };
 
@@ -104,18 +108,12 @@ const FollowersAndFollowing = () => {
           onPress={() => navigation.push("PublicProfile", { user: item })}
           className="flex-row items-center flex-1"
         >
-          <View className="w-10 h-10 bg-paper-2 rounded-full mr-2 overflow-hidden border border-line items-center justify-center">
-            <Image
-              source={{
-                uri: item.avatar || `https://ui-avatars.com/api/?name=${item.username}&background=random&color=fff`,
-              }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
+          <View className="mr-2">
+            <Avatar user={item} size={40} showBadge={false} />
           </View>
 
           <View className="flex-1 justify-center">
-            <Text className="text-ink font-display text-sm">{item.username}</Text>
+            <Text className="text-ink font-display text-sm" numberOfLines={1}>{item.username}</Text>
             <Text className="text-ink-3 text-label font-semibold" numberOfLines={1}>{item.name}</Text>
           </View>
         </Pressable>
@@ -140,18 +138,10 @@ const FollowersAndFollowing = () => {
       <StatusBar barStyle="dark-content" />
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="px-gutter pt-6 pb-2">
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter pb-2">
             <View className="flex-row items-center mb-3">
                 <View>
-                    <TouchableOpacity
-                      onPress={() => navigation.goBack()}
-                      className="w-11 h-11 items-center justify-center rounded-xl"
-                      accessibilityRole="button"
-                      accessibilityLabel="Go back"
-                      style={{ marginLeft: -11 }}
-                    >
-                      <Ionicons name="arrow-back" size={24} color={C.ink} />
-                    </TouchableOpacity>
                     <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Social</Text>
                     <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>{type}</Text>
                     <Text className="text-ink-3 text-label font-display uppercase">Network Grid Protocol</Text>

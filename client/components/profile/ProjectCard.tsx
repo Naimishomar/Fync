@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable, Linking, Image, ScrollView } from 'react-native';
+import { View, Text, Pressable, Linking, ScrollView } from 'react-native';
+import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Feather from '@expo/vector-icons/Feather';
@@ -54,11 +55,12 @@ export default function ProjectCard({
           contentContainerStyle={{ padding: 12 }}
         >
            {project.images.map((img, i) => (
-             <Image 
-                key={i} 
-                source={{ uri: img }} 
-                className="w-72 h-44 rounded-card mr-4 border border-line" 
-                resizeMode="cover" 
+             <Image
+                key={i}
+                source={{ uri: img }}
+                style={{ width: 288, height: 176, borderRadius: 12, marginRight: 16, borderWidth: 1, borderColor: C.line }}
+                contentFit="cover"
+                cachePolicy="memory-disk"
              />
            ))}
         </ScrollView>
@@ -83,7 +85,7 @@ export default function ProjectCard({
                 {project.title}
               </Text>
             </View>
-            {project.tagline && (
+            {!!project.tagline && (
               <Text className="text-ink-3 font-semibold text-label uppercase" numberOfLines={1}>{project.tagline}</Text>
             )}
           </View>
@@ -93,7 +95,7 @@ export default function ProjectCard({
         </View>
 
         {/* Description */}
-        {project.description && (
+        {!!project.description && (
           <Text className="text-ink-2 text-xs leading-[20px] font-medium mb-4" numberOfLines={3}>
             {project.description}
           </Text>
@@ -119,14 +121,14 @@ export default function ProjectCard({
         <View className="flex-row items-center justify-between border-t border-line pt-5">
           {/* Links */}
           <View className="flex-row gap-3">
-            {project.githubUrl && (
-              <Pressable onPress={() => Linking.openURL(project.githubUrl!)}
+            {!!project.githubUrl && (
+              <Pressable onPress={() => Linking.openURL(project.githubUrl!).catch(() => {})}
                 className="w-10 h-10 bg-card items-center justify-center rounded-card border border-line shadow-hair">
                 <Ionicons name="logo-github" size={18} color={C.ink} />
               </Pressable>
             )}
-            {project.liveUrl && (
-              <Pressable onPress={() => Linking.openURL(project.liveUrl!)}
+            {!!project.liveUrl && (
+              <Pressable onPress={() => Linking.openURL(project.liveUrl!).catch(() => {})}
                 className="w-10 h-10 bg-card items-center justify-center rounded-card border border-line shadow-hair">
                 <Feather name="external-link" size={16} color={C.brand[500]} />
               </Pressable>
@@ -144,14 +146,14 @@ export default function ProjectCard({
             {/* Owner actions */}
             {isOwner && (
               <View className="flex-row items-center gap-2 border-l border-line pl-4">
-                <Pressable onPress={() => onToggleFeatured?.(project._id)} className="w-8 h-8 items-center justify-center bg-paper-2 rounded-xl">
+                <Pressable onPress={() => onToggleFeatured?.(project._id)} hitSlop={6} className="w-8 h-8 items-center justify-center bg-paper-2 rounded-xl">
                   <Ionicons name={project.isFeatured ? 'star' : 'star-outline'} size={14}
                     color={project.isFeatured ? '#F97316' : '#8B857E'} />
                 </Pressable>
-                <Pressable onPress={() => onEdit?.(project)} className="w-8 h-8 items-center justify-center bg-ink rounded-xl">
+                <Pressable onPress={() => onEdit?.(project)} hitSlop={6} className="w-8 h-8 items-center justify-center bg-ink rounded-xl">
                   <Feather name="edit-3" size={12} color="white" />
                 </Pressable>
-                <Pressable onPress={() => onDelete?.(project._id)} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
+                <Pressable onPress={() => onDelete?.(project._id)} hitSlop={6} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
                   <Ionicons name="trash-outline" size={14} color={C.danger} />
                 </Pressable>
               </View>

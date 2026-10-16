@@ -1,7 +1,9 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
 import { View, ActivityIndicator, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const MarkdownViewerScreen = ({ route, navigation } : any) => {
   const { url, title } = route.params;
@@ -95,7 +97,7 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
       <body>
         <div id="content">Loading notes...</div>
         <script>
-          fetch('${url}')
+          fetch(${JSON.stringify(String(url ?? ''))})
             .then(response => response.text())
             .then(text => {
               document.getElementById('content').innerHTML = marked.parse(text);
@@ -111,6 +113,11 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
+      {/* The stack runs headerShown:false, so setOptions({ title }) above never
+          showed anything — the page sat under the status bar with no back. */}
+      <SafeAreaView edges={['top']} className="border-b border-line">
+        <AppBar title={title} onBack={() => navigation.goBack()} />
+      </SafeAreaView>
       <WebView 
         source={{ html: htmlContent }} 
         style={{ flex: 1 }}

@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Switch} from 'react-native'
+import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Switch, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
+import Avatar from '../Avatar';
 
 const EditSubGroupScreen = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
-    const { subGroupId } = route.params;
+    const { subGroupId } = route.params ?? {};
     const { user } = useAuth();
     
     const [subGroup, setSubGroup] = useState<any>(null);
@@ -30,6 +31,8 @@ const EditSubGroupScreen = () => {
     const [joinRequests, setJoinRequests] = useState<any[]>([]);
     const [subAdmins, setSubAdmins] = useState<string[]>([]);
     const [memberLoading, setMemberLoading] = useState(false);
+    // One request decision in flight at a time, so a double tap cannot POST twice.
+    const [actingId, setActingId] = useState<string | null>(null);
 
     const fetchSubGroupDetails = async () => {
         try {
@@ -57,8 +60,8 @@ const EditSubGroupScreen = () => {
         try {
             const res = await axios.get(`/clubs/subgroup/members/${subGroupId}`);
             if (res.data.success) {
-                setMembers(res.data.members);
-                setSubAdmins(res.data.admins.map((a: any) => a._id || a));
+                setMembers(res.data.members ?? []);
+                setSubAdmins((res.data.admins ?? []).map((a: any) => a._id || a));
                 if (res.data.joinRequests) setJoinRequests(res.data.joinRequests);
             }
         } catch (error) {
@@ -172,6 +175,8 @@ const EditSubGroupScreen = () => {
     };
 
     const handleRequestAction = async (targetUserId: string, action: 'approve' | 'reject') => {
+        if (actingId) return;
+        setActingId(targetUserId);
         try {
             const res = await axios.post('/clubs/subgroup/handle-request', {
                 subGroupId,
@@ -184,6 +189,8 @@ const EditSubGroupScreen = () => {
             }
         } catch (error: any) {
             Alert.alert("Failed", error.response?.data?.message || "Action failed");
+        } finally {
+            setActingId(null);
         }
     };
 
@@ -205,7 +212,7 @@ const EditSubGroupScreen = () => {
                             });
                             if (res.data.success) {
                                 Alert.alert("Deleted", "Room has been purged.");
-                                navigation.navigate('ClubHub', { clubId: subGroup.clubId });
+                                navigation.navigate('ClubHub', { clubId: subGroup?.clubId });
                             }
                         } catch (error: any) {
                             Alert.alert("Delete Failed", error.response?.data?.message || "Something went wrong");
@@ -231,23 +238,12 @@ const EditSubGroupScreen = () => {
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-5 py-4 flex-row items-center justify-between border-b border-line">
-                    <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="close" size={28} color="black" />
-                    </TouchableOpacity>
-                    <View className="items-center">
-                        <Text className="text-ink text-lg font-display uppercase">Room Control</Text>
-                        <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Refining your community</Text>
-                    </View>
-                    <View className="w-8" />
+                <View className="border-b border-line">
+                    <AppBar title="Room Control" subtitle="Refining your community" onBack={() => navigation.goBack()} />
                 </View>
 
-                <KeyboardAvoidingView behavior="padding" className="flex-1">
-                    <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+                    <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                         
                         {/* Logo Picker */}
                         <View className="items-center mb-8 mt-4">
@@ -255,7 +251,7 @@ const EditSubGroupScreen = () => {
                                 {logo ? (
                                     <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
                                 ) : (
-                                    <Image source={{ uri: subGroup?.logo || 'https://via.placeholder.com/150' }} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
+                                    <Image source={{ uri: subGroup?.logo }} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
                                 )}
                                 <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-white">
                                     <Feather name="edit-2" size={14} color="white" />
@@ -287,6 +283,7 @@ const EditSubGroupScreen = () => {
                                 numberOfLines={4}
                                 value={description}
                                 onChangeText={setDescription}
+                                editable={canEditRoom}
                             />
 
                             <View className="mb-10 bg-paper-2 p-6 rounded-card border border-line flex-row items-center justify-between">
@@ -315,18 +312,18 @@ const EditSubGroupScreen = () => {
                                     <View className="bg-paper-2 rounded-card border border-line overflow-hidden p-2">
                                         {joinRequests.map((req: any) => (
                                             <View key={req._id} className="flex-row items-center justify-between p-3 bg-card rounded-card mb-2 border border-brand-50 shadow-hair">
-                                                <View className="flex-row items-center">
-                                                    <Image source={{ uri: req.avatar || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-full" />
-                                                    <View className="ml-3">
-                                                        <Text className="text-ink font-semibold text-sm">{req.name}</Text>
-                                                        <Text className="text-ink-3 font-semibold text-label">@{req.username}</Text>
+                                                <View className="flex-row items-center flex-1 mr-2" style={{ minWidth: 0 }}>
+                                                    <Avatar user={req} size={40} showBadge={false} />
+                                                    <View className="ml-3 flex-1">
+                                                        <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{req.name}</Text>
+                                                        <Text className="text-ink-3 font-semibold text-label" numberOfLines={1}>@{req.username}</Text>
                                                     </View>
                                                 </View>
                                                 <View className="flex-row items-center gap-2">
-                                                    <TouchableOpacity onPress={() => handleRequestAction(req._id, 'approve')} className="w-10 h-10 rounded-xl bg-success items-center justify-center">
+                                                    <TouchableOpacity onPress={() => handleRequestAction(req._id, 'approve')} disabled={!!actingId} className="w-10 h-10 rounded-xl bg-success items-center justify-center">
                                                         <Feather name="check" size={18} color="white" />
                                                     </TouchableOpacity>
-                                                    <TouchableOpacity onPress={() => handleRequestAction(req._id, 'reject')} className="w-10 h-10 rounded-xl bg-danger/15 items-center justify-center border border-danger/25">
+                                                    <TouchableOpacity onPress={() => handleRequestAction(req._id, 'reject')} disabled={!!actingId} className="w-10 h-10 rounded-xl bg-danger/15 items-center justify-center border border-danger/25">
                                                         <Feather name="x" size={18} color={C.danger} />
                                                     </TouchableOpacity>
                                                 </View>
@@ -350,10 +347,10 @@ const EditSubGroupScreen = () => {
 
                                             return (
                                                 <View key={m._id} className="flex-row items-center justify-between p-4 border-b border-line">
-                                                    <View className="flex-row items-center">
-                                                        <Image source={{ uri: m.avatar || 'https://via.placeholder.com/150' }} className="w-8 h-8 rounded-full" />
-                                                        <View className="ml-3">
-                                                            <Text className="text-ink font-semibold text-xs">{m.name}</Text>
+                                                    <View className="flex-row items-center flex-1 mr-2" style={{ minWidth: 0 }}>
+                                                        <Avatar user={m} size={32} showBadge={false} />
+                                                        <View className="ml-3 flex-1">
+                                                            <Text className="text-ink font-semibold text-xs" numberOfLines={1}>{m.name}</Text>
                                                             {isMainClubAdmin && <Text className="text-fam-career font-semibold text-label uppercase">Main Club Admin</Text>}
                                                         </View>
                                                     </View>
@@ -372,6 +369,7 @@ const EditSubGroupScreen = () => {
                                                     {canEditRoom && !isMainClubAdmin && (
                                                         <TouchableOpacity 
                                                             onPress={() => handleRemoveFromRoom(m._id)}
+                                                            hitSlop={8}
                                                             className="ml-2 w-8 h-8 bg-danger/10 rounded-lg items-center justify-center border border-danger/15"
                                                         >
                                                             <Ionicons name="trash-outline" size={12} color={C.danger} />

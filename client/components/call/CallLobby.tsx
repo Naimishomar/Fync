@@ -18,6 +18,7 @@ import Avatar from '../Avatar';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 /**
  * One lobby for both audio and video calling.
@@ -73,7 +74,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
     setOnlineUsers(users);
     setLoading(false);
     setRefreshing(false);
-  }, []);
+  }, [mode]);
 
   const clearCall = useCallback(() => {
     if (ringTimeoutRef.current) {
@@ -190,15 +191,20 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
     // retrying while it is still coming up, keeps the room list honest — a user
     // who is not standing here should not appear here.
     const announce = () => { if (callSignaling.isConnected()) { callSignaling.joinLobby(mode); return true; } return false; };
+    let announceRetry: ReturnType<typeof setInterval> | undefined;
+    let announceGiveUp: ReturnType<typeof setTimeout> | undefined;
     if (!announce()) {
-      const t = setInterval(() => { if (announce()) clearInterval(t); }, 1000);
-      setTimeout(() => clearInterval(t), 15000);
+      announceRetry = setInterval(() => { if (announce()) clearInterval(announceRetry); }, 1000);
+      announceGiveUp = setTimeout(() => clearInterval(announceRetry), 15000);
     }
 
     const readyPoll = setInterval(() => setSocketReady(callSignaling.isConnected()), 2000);
 
     return () => {
       clearInterval(readyPoll);
+      // Otherwise a retry can joinLobby after we already left it.
+      clearInterval(announceRetry);
+      clearTimeout(announceGiveUp);
       callSignaling.leaveLobby();
       if (activeCallUserRef.current) callSignaling.endCall(activeCallUserRef.current._id);
       callSignaling.disconnect();
@@ -239,7 +245,8 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
   );
 
   const acceptCall = useCallback(async () => {
-    if (!incomingCall) return;
+    // Ref guard: a double tap lands before the re-render that clears incomingCall.
+    if (!incomingCall || activeCallUserRef.current) return;
     const { callerId, callerInfo, sdp } = incomingCall;
 
     const caller: CallUser = {
@@ -344,24 +351,16 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
 
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="px-gutter pt-2">
-          <View className="flex-row items-start justify-between mb-5">
-            <View className="flex-1">
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter">
+          <View className="mb-5">
+            <View>
               <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>{label}</Text>
               <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Rooms</Text>
               <Text className="text-ink-3 text-label font-display uppercase">
                 {socketReady ? `${onlineUsers.length} people online` : 'Connecting…'}
               </Text>
             </View>
-            <Pressable
-              onPress={() => navigation.goBack()}
-              className="w-11 h-11 items-center justify-center rounded-xl active:opacity-70"
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-            
-            style={{ marginLeft: -11 }}>
-              <Ionicons name="close" size={18} color={C.ink} />
-            </Pressable>
           </View>
         </View>
 
@@ -407,7 +406,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
 
       {/* Dialling overlay — the caller needs to see who is ringing and be able
           to cancel before the callee picks up. */}
-      <Modal visible={isDialling && !!activeCallUser} transparent animationType="fade">
+      <Modal visible={isDialling && !!activeCallUser} transparent animationType="fade" onRequestClose={() => endCall(true)}>
         <View className="flex-1 items-center justify-center px-gutter" style={{ backgroundColor: 'rgba(18, 16, 14,0.85)' }}>
           <Avatar user={activeCallUser as any} size={96} />
           <Text className="text-white text-xl font-display uppercase mt-6" numberOfLines={1}>

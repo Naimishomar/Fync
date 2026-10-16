@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import {View, Text, ScrollView, TextInput, TouchableOpacity, Image, ActivityIndicator, RefreshControl, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
+import {View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
@@ -8,49 +8,30 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
+import CommentsSheet, { CommentsApi } from '../ui/CommentsSheet';
 
-type Author = { _id: string; name: string; username: string; avatar: string };
-type CommentNode = {
-    _id: string;
-    text: string;
-    createdAt: string;
-    commentor: Author;
-    replyToUser?: { username: string };
-    replies?: CommentNode[];
+// Backend (communityPost.routes): comments come back with the post from
+// GET /communities/posts/:id as `comments` (getCommentThread, commentor populated).
+// POST takes `parentComment`; DELETE /communities/comments/:id. No update route.
+const COMMUNITY_COMMENTS: CommentsApi = {
+    list: (id) => `/communities/posts/${id}`,
+    add: (id) => `/communities/posts/${id}/comments`,
+    // One level of nesting server-side: always the thread's top-level comment,
+    // with the replied-to author mentioned.
+    body: (text, _parentId, reply) => ({
+        text,
+        ...(reply ? { parentComment: reply.rootId, replyToUserId: reply.userId } : {}),
+    }),
+    pick: (data) => data?.comments,
+    replies: true,
+    remove: (id) => ({ method: 'delete', url: `/communities/comments/${id}` }),
 };
 
-const CommentRow = ({ comment, depth, rootId, setReplyTo, removeComment, canDelete }: { comment: CommentNode; depth: number; rootId: string; setReplyTo: (v: any) => void; removeComment: (c: any) => void; canDelete: (c: any) => boolean }) => (
-    <View style={{ marginLeft: depth * 16 }} className={depth > 0 ? 'border-l-2 border-line pl-3' : ''}>
-        <View className="py-3">
-            <View className="flex-row items-center mb-1">
-                <Text className="text-ink font-display text-label uppercase">
-                    {comment.commentor?.username || 'unknown'}
-                </Text>
-                <Text className="text-ink-3 font-semibold text-label ml-2">· {ago(comment.createdAt)}</Text>
-            </View>
-            {!!comment.replyToUser?.username && depth > 0 && (
-                <Text className="text-accent-text font-display text-label mb-1">@{comment.replyToUser.username}</Text>
-            )}
-            <Text className="text-ink-2 text-sm leading-snug">{comment.text}</Text>
-            <View className="flex-row items-center mt-2 gap-4">
-                <TouchableOpacity onPress={() => setReplyTo({ comment, rootId })}>
-                    <Text className="text-ink-3 font-display text-label uppercase">Reply</Text>
-                </TouchableOpacity>
-                {canDelete(comment) && (
-                    <TouchableOpacity onPress={() => removeComment(comment)}>
-                        <Text className="text-ink-3 font-display text-label uppercase">Delete</Text>
-                    </TouchableOpacity>
-                )}
-            </View>
-        </View>
-        {comment.replies?.map((reply) => (
-            <CommentRow key={reply._id} comment={reply} depth={depth + 1} rootId={rootId} setReplyTo={setReplyTo} removeComment={removeComment} canDelete={canDelete} />
-        ))}
-    </View>
-);
-
 const ago = (iso: string) => {
-    const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    const t = new Date(iso).getTime();
+    if (!Number.isFinite(t)) return '';
+    const mins = Math.floor((Date.now() - t) / 60000);
     if (mins < 1) return 'now';
     if (mins < 60) return `${mins}m`;
     const hours = Math.floor(mins / 60);
@@ -60,27 +41,20 @@ const ago = (iso: string) => {
 
 export default function CommunityPostDetail() {
     const navigation = useNavigation<any>();
-    const { postId, subName } = useRoute<any>().params;
+    const { postId, subName } = useRoute<any>().params ?? {};
     const { user } = useAuth();
 
     const [post, setPost] = useState<any>(null);
-    const [comments, setComments] = useState<CommentNode[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const [draft, setDraft] = useState('');
-    // `rootId` is the top-level ancestor: the comment thread is two levels deep,
-    // so a reply to a reply attaches to the same parent but still mentions the
-    // person actually being answered.
-    const [replyTo, setReplyTo] = useState<{ comment: CommentNode; rootId: string } | null>(null);
-    const [sending, setSending] = useState(false);
+    const [commentsOpen, setCommentsOpen] = useState(false);
 
     const fetchPost = useCallback(async () => {
         try {
             const res = await axios.get(`/communities/posts/${postId}`);
             if (res.data.success) {
                 setPost(res.data.post);
-                setComments(res.data.comments);
             }
         } catch (err: any) {
             Alert.alert("Unavailable", err.response?.data?.message || "Could not load this post.");
@@ -95,8 +69,8 @@ export default function CommunityPostDetail() {
     const vote = async (dir: 1 | -1) => {
         if (!post) return;
         const target = post.myVote === dir ? 0 : dir;
-        const rollback = { myVote: post.myVote, score: post.score };
-        setPost((p: any) => ({ ...p, myVote: target, score: p.score + (target - p.myVote) }));
+        const rollback = { myVote: post.myVote ?? 0, score: post.score ?? 0 };
+        setPost((p: any) => ({ ...p, myVote: target, score: (p.score ?? 0) + (target - (p.myVote ?? 0)) }));
         try {
             const res = await axios.post(`/communities/posts/${postId}/vote`, { dir: target });
             if (res.data.success) setPost((p: any) => ({ ...p, score: res.data.post.score, myVote: res.data.post.myVote }));
@@ -105,48 +79,6 @@ export default function CommunityPostDetail() {
             Alert.alert("Vote Failed", err.response?.data?.message || "Try again.");
         }
     };
-
-    const submitComment = async () => {
-        if (!draft.trim()) return;
-        setSending(true);
-        try {
-            const res = await axios.post(`/communities/posts/${postId}/comments`, {
-                text: draft.trim(),
-                ...(replyTo ? { parentComment: replyTo.rootId, replyToUserId: replyTo.comment.commentor?._id } : {}),
-            });
-            if (res.data.success) {
-                setDraft('');
-                setReplyTo(null);
-                fetchPost();
-            }
-        } catch (err: any) {
-            Alert.alert("Comment Failed", err.response?.data?.message || "Could not post.");
-        } finally {
-            setSending(false);
-        }
-    };
-
-    // hoisted CommentRow cannot see `user`, so ownership is passed in
-
-    const canDelete = (c: any) => String(c.commentor?._id) === String(user?._id);
-
-
-    const removeComment = (comment: CommentNode) => {
-        Alert.alert("Delete Comment", "This also removes its replies.", [
-            { text: "Cancel", style: "cancel" },
-            {
-                text: "Delete", style: "destructive", onPress: async () => {
-                    try {
-                        await axios.delete(`/communities/comments/${comment._id}`);
-                        fetchPost();
-                    } catch (err: any) {
-                        Alert.alert("Error", err.response?.data?.message || "Could not delete.");
-                    }
-                }
-            },
-        ]);
-    };
-
 
     if (loading) {
         return (
@@ -160,16 +92,8 @@ export default function CommunityPostDetail() {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
-                <KeyboardAvoidingView behavior="padding" className="flex-1">
-                    <View className="px-5 py-2 flex-row items-center">
-                        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                            <Ionicons name="chevron-back" size={24} color={C.ink} />
-                        </TouchableOpacity>
-                        <Text className="text-ink font-display uppercase text-label ml-1">{subName}</Text>
-                    </View>
+                <View className="flex-1">
+                    <AppBar title={subName} onBack={() => navigation.goBack()} />
 
                     <ScrollView
                         contentContainerStyle={{ paddingBottom: 24 }}
@@ -195,55 +119,27 @@ export default function CommunityPostDetail() {
                                         <Ionicons name={post?.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={24} color={post?.myVote === -1 ? '#2563EB' : '#8B857E'} />
                                     </TouchableOpacity>
                                 </View>
-                                <View className="flex-row items-center">
+                                <TouchableOpacity onPress={() => setCommentsOpen(true)} hitSlop={8} className="flex-row items-center">
                                     <Feather name="message-circle" size={15} color={C.ink3} />
                                     <Text className="text-ink-3 font-display text-label uppercase ml-2">
                                         {post?.commentCount ?? 0}
                                     </Text>
-                                </View>
+                                </TouchableOpacity>
                             </View>
-                        </View>
-
-                        <View className="bg-card mx-5 mt-4 px-6 py-2 rounded-card border border-line">
-                            {comments.length === 0 ? (
-                                <Text className="font-sans text-sm text-ink-3 text-center py-8">
-                                    No comments yet
-                                </Text>
-                            ) : comments.map((c) => <CommentRow key={c._id} comment={c} depth={0} rootId={c._id} setReplyTo={setReplyTo} removeComment={removeComment} canDelete={canDelete} />)}
                         </View>
                     </ScrollView>
 
-                    <View className="border-t border-line bg-card px-5 py-3">
-                        {!!replyTo && (
-                            <View className="flex-row items-center mb-2">
-                                <Text className="text-ink-3 font-display text-label uppercase flex-1">
-                                    Replying to @{replyTo.comment.commentor?.username}
-                                </Text>
-                                <TouchableOpacity onPress={() => setReplyTo(null)}>
-                                    <Ionicons name="close" size={16} color={C.ink3} />
-                                </TouchableOpacity>
-                            </View>
-                        )}
-                        <View className="flex-row items-center gap-3">
-                            <TextInput
-                                value={draft}
-                                onChangeText={setDraft}
-                                placeholder="Add a comment"
-                                placeholderTextColor={C.ink3}
-                                multiline
-                                className="flex-1 bg-paper border-[1.5px] border-ink px-4 py-3 text-ink max-h-28 rounded-md"
-                            />
-                            <TouchableOpacity
-                                onPress={submitComment}
-                                disabled={sending || !draft.trim()}
-                                className={`w-11 h-11 rounded-xl items-center justify-center ${sending || !draft.trim() ? 'bg-paper-2' : 'bg-ink'}`}
-                            >
-                                {sending ? <ActivityIndicator color="white" size="small" /> : <Ionicons name="send" size={17} color="white" />}
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </KeyboardAvoidingView>
+                </View>
             </SafeAreaView>
+
+            <CommentsSheet
+                visible={commentsOpen}
+                onClose={() => setCommentsOpen(false)}
+                resource={COMMUNITY_COMMENTS}
+                targetId={postId}
+                currentUser={user}
+                onCountChange={(_id, count) => setPost((p: any) => (p ? { ...p, commentCount: count } : p))}
+            />
         </View>
     );
 }

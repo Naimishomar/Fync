@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, Modal, TextInput, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Avatar from '../Avatar';
 import { C } from '../../constants/colors';
@@ -51,7 +51,7 @@ export default function RepostModal({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={close}>
       <Pressable className="flex-1 bg-black/40 justify-end" onPress={close}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView behavior="padding">
           {/* Stops a tap inside the sheet from closing it. */}
           <Pressable onPress={() => {}} className="bg-card rounded-t-sheet p-5">
             <View className="flex-row items-center justify-between mb-4">

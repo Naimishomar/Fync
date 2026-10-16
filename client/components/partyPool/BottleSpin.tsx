@@ -15,11 +15,17 @@ const BottleSpin = () => {
   const [isSpinning, setIsSpinning] = useState(false);
 
   useEffect(() => {
+    // Leaving before the download finishes would otherwise orphan a loaded sound.
+    let cancelled = false;
     async function loadSound() {
       try {
         const { sound } = await Audio.Sound.createAsync(
           { uri: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3' }
         );
+        if (cancelled) {
+          sound.unloadAsync().catch(() => {});
+          return;
+        }
         soundRef.current = sound;
       } catch (e) {
         console.log("Failed to load sound", e);
@@ -27,7 +33,9 @@ const BottleSpin = () => {
     }
     loadSound();
     return () => {
-      soundRef.current?.unloadAsync();
+      cancelled = true;
+      soundRef.current?.unloadAsync().catch(() => {});
+      soundRef.current = null;
     };
   }, []);
 

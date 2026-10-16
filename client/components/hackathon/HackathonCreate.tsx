@@ -13,6 +13,7 @@ import MultiSelectSheet from '../ui/MultiSelectSheet';
 import { collegesInIndia } from '../../data/college';
 import { PASSOUT_YEARS, BRANCHES } from '../../data/academics';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const ELIGIBILITY_META = {
   colleges: {
@@ -40,6 +41,12 @@ const ELIGIBILITY_PICKERS = [
   { key: 'Year' as const, label: 'Batch', allLabel: 'All batches', icon: 'calendar-outline' },
   { key: 'branch' as const, label: 'Branches', allLabel: 'All branches', icon: 'git-branch-outline' },
 ];
+
+/** A stored date that fails to parse would render "Invalid Date" and throw in toISOString on save. */
+const toDate = (v: any) => {
+  const d = v ? new Date(v) : null;
+  return d && !isNaN(d.getTime()) ? d : new Date();
+};
 
 const HackathonCreate = () => {
   const navigation = useNavigation<any>();
@@ -105,13 +112,13 @@ const HackathonCreate = () => {
       const h = res.data.hackathon;
 
       setForm({
-        title: h.title,
-        description: h.description,
+        title: h.title || '',
+        description: h.description || '',
         applyLink: h.applyLink || '',
         applyLabel: h.applyLabel || 'Register',
         registrationends: h.registrationends ? new Date(h.registrationends) : null,
-        hackathonstarts: new Date(h.hackathonstarts),
-        hackathonends: new Date(h.hackathonends),
+        hackathonstarts: toDate(h.hackathonstarts),
+        hackathonends: toDate(h.hackathonends),
         mode: h.mode || 'Online',
         location: h.location || '',
         teamSize: h.teamSize || '',
@@ -132,7 +139,7 @@ const HackathonCreate = () => {
       if (h.rules?.length) setRules(h.rules);
       if (h.tracks?.length) setTracks(h.tracks);
       if (h.timeline?.length) {
-        setTimeline(h.timeline.map((t: any) => ({ ...t, date: new Date(t.date) })));
+        setTimeline(h.timeline.map((t: any) => ({ ...t, date: toDate(t.date) })));
       }
       if (h.faqs?.length) setFaqs(h.faqs);
       if (h.sponsors?.length) setSponsors(h.sponsors);
@@ -321,15 +328,20 @@ const HackathonCreate = () => {
       formData.append('timeline', JSON.stringify(timeline.filter(t => t.label || t.description).map(t => ({ ...t, date: t.date.toISOString() }))));
       formData.append('faqs', JSON.stringify(faqs.filter(f => f.question)));
 
-      // Sponsors (images are handled separately)
-      const sponsorsData = sponsors.filter(s => s.name).map((s, i) => ({
+      // Sponsors (images are handled separately). The server matches
+      // sponsorLogo_<i> to position i in the *sent* array, so files are indexed
+      // by the filtered list, and an already-uploaded logo URL is sent back so
+      // editing a listing does not wipe it.
+      const namedSponsors = sponsors.filter(s => s.name);
+      const sponsorsData = namedSponsors.map((s, i) => ({
         name: s.name,
         level: s.level,
         index: i, // to track which file matches which sponsor
+        ...(s.logo && !s.logo.startsWith('file') ? { logo: s.logo } : {}),
       }));
       formData.append('sponsors', JSON.stringify(sponsorsData));
 
-      sponsors.forEach((s, i) => {
+      namedSponsors.forEach((s, i) => {
         if (s.logo && s.logo.startsWith('file')) {
           formData.append(`sponsorLogo_${i}`, {
             uri: s.logo,
@@ -386,18 +398,7 @@ const HackathonCreate = () => {
       <SafeAreaView className="flex-1">
 
         {/* Header */}
-        <View className="flex-row items-center px-gutter py-6 border-b border-line bg-card">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <View>
-            <Text className="text-ink text-3xl font-display leading-7">Host</Text>
-            <Text className="text-ink text-3xl font-display leading-7">Mission</Text>
-          </View>
-        </View>
+        <AppBar title="Host Mission" onBack={() => navigation.goBack()} />
 
         <KeyboardAvoidingView behavior="padding" className="flex-1">
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 150 }}>
@@ -720,7 +721,7 @@ const HackathonCreate = () => {
               <View className="py-6 items-center justify-center flex-row" style={{ backgroundColor: '#F97316' }}>
                 {loading ? <ActivityIndicator size="small" color={C.ink} /> : (
                   <>
-                    <Text className="text-ink font-display mr-3 text-lg">Create hackathon</Text>
+                    <Text className="text-ink font-display mr-3 text-lg">{isEdit ? 'Save changes' : 'Create hackathon'}</Text>
                     <Ionicons name="rocket" size={24} color={C.ink} />
                   </>
                 )}
@@ -748,7 +749,8 @@ const HackathonCreate = () => {
 
       {Platform.OS === 'ios' && showPicker !== null && (
         <DateTimePicker
-          value={typeof showPicker === 'string' ? (form as any)[showPicker] : (timeline[showPicker].date)}
+          // registrationends is null until set; the picker crashes on a null value.
+          value={(typeof showPicker === 'string' ? (form as any)[showPicker] : timeline[showPicker]?.date) ?? new Date()}
           mode="datetime"
           display="default"
           onChange={handleDateChange}

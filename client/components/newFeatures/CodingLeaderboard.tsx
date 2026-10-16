@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, FlatList, Image, TextInput, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, ScrollView, Linking, Animated, StatusBar} from 'react-native'
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {View, Text, FlatList, TextInput, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, ScrollView, Linking, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
@@ -10,12 +11,48 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard } from '../ui/kit';
+import { AppBar, StampCard } from '../ui/kit';
 import { C } from '../../constants/colors';
 // Mirrors LEETCODE_COOLDOWN_SECONDS on the server.
 const COOLDOWN_MS = 15 * 60 * 1000;
 
 const LC_LOGO = "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png";
+const UTC_DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+// Outside the screen so a parent re-render doesn't remount it and restart the pulse.
+const LeaderboardSkeleton = () => {
+    const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+    useEffect(() => {
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+            ])
+        );
+        loop.start();
+        return () => loop.stop();
+    }, [pulseAnim]);
+
+    return (
+        <Animated.View
+            style={{ opacity: pulseAnim }}
+            className="flex-row items-center bg-card p-5 mb-4 mx-5 rounded-card border border-line"
+        >
+            <View className="w-10 items-center justify-center mr-3">
+                <View className="w-8 h-8 bg-paper-2 rounded-full" />
+            </View>
+            <View className="w-12 h-12 rounded-full bg-paper-2" />
+            <View className="flex-1 ml-4 justify-center">
+                <View className="h-4 bg-paper-2 rounded w-1/2 mb-2" />
+                <View className="h-3 bg-paper-2 rounded w-1/4" />
+            </View>
+            <View className="items-end justify-center">
+                <View className="h-8 bg-paper-2 rounded-xl w-14" />
+            </View>
+        </Animated.View>
+    );
+};
 
 export default function CodingLeaderboard() {
     const { user, setUser } = useAuth();
@@ -68,23 +105,24 @@ export default function CodingLeaderboard() {
     };
 
     // --- HELPER: Process Calendar Data ---
-    const getActivityData = (calendarString: string) => {
+    const getActivityData = (calendarString: any) => {
         try {
-            const calendar = JSON.parse(calendarString);
-            const today = new Date();
+            const calendar = typeof calendarString === 'string' ? JSON.parse(calendarString) : (calendarString || {});
             const last7Days = [];
 
+            // The calendar is keyed by UTC-midnight timestamps, so the days are built
+            // in UTC too: local midnight in IST is the previous day in UTC.
             for (let i = 6; i >= 0; i--) {
-                const d = new Date(today);
-                d.setDate(d.getDate() - i);
-                d.setHours(0, 0, 0, 0);
+                const d = new Date();
+                d.setUTCHours(0, 0, 0, 0);
+                d.setUTCDate(d.getUTCDate() - i);
                 const dateStr = d.toISOString().split('T')[0];
                 let count = 0;
                 Object.keys(calendar).forEach(ts => {
                     const submissionDate = new Date(parseInt(ts) * 1000).toISOString().split('T')[0];
                     if (submissionDate === dateStr) count += calendar[ts];
                 });
-                last7Days.push({ date: d, count, dayName: d.toLocaleDateString('en-US', { weekday: 'narrow' }) });
+                last7Days.push({ date: d, count, dayName: UTC_DAY_LETTERS[d.getUTCDay()] });
             }
             return last7Days;
         } catch (e) {
@@ -92,6 +130,7 @@ export default function CodingLeaderboard() {
         }
     };
 
+    const requestId = useRef(0);
     const fetchLeaderboard = async () => {
         // Bailing out without clearing `loading` left the board showing its
         // skeleton for good: the flag starts true, and this is the only thing
@@ -101,18 +140,24 @@ export default function CodingLeaderboard() {
             setRefreshing(false);
             return;
         }
+        // Ignore a slower earlier response (scope/filter switch, typing) landing last.
+        const id = ++requestId.current;
         try {
-            if (!refreshing) setLoading(true);
-            const res = await axios.get(`/leaderboard?scope=${activeScope}&type=${timeFilter}&search=${search}`);
-            if (res.data.success) {
-                const filtered = res.data.leaderboard.filter((u: any) => u.codingProfiles?.leetcode);
+            // Skeleton only when there's nothing to show yet; otherwise keep the rows
+            // up while the new set loads instead of flashing placeholders per keystroke.
+            if (!refreshing && users.length === 0) setLoading(true);
+            const res = await axios.get(`/leaderboard?scope=${activeScope}&type=${timeFilter}&search=${encodeURIComponent(search)}`);
+            if (id === requestId.current && res.data.success) {
+                const filtered = (res.data.leaderboard || []).filter((u: any) => u.codingProfiles?.leetcode);
                 setUsers(filtered);
             }
         } catch (error) {
             console.error("Leaderboard Error:", error);
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            if (id === requestId.current) {
+                setLoading(false);
+                setRefreshing(false);
+            }
         }
     };
 
@@ -123,7 +168,7 @@ export default function CodingLeaderboard() {
             if (res.data.success) {
                 setUser(res.data.user);
                 if (res.data.nextRefreshAt) setNextRefreshAt(new Date(res.data.nextRefreshAt));
-                const total = res.data.user.codingStats.totalSolved;
+                const total = res.data.user?.codingStats?.totalSolved ?? 0;
                 Alert.alert(
                     res.data.synced ? "Synced" : "Already Up To Date",
                     `You have solved ${total} problems on LeetCode.`
@@ -137,21 +182,24 @@ export default function CodingLeaderboard() {
         }
     };
 
-    const openUserProfile = async (userData: any) => {
+    const profileRequest = useRef<string | null>(null);
+    const openUserProfile = useCallback(async (userData: any) => {
+        profileRequest.current = userData._id;
         setDbUser(userData);
+        setLcData(null);
         setModalVisible(true);
         setProfileLoading(true);
         try {
             const res = await axios.get(`/leaderboard/user/${userData._id}`);
-            if (res.data.success) {
+            if (profileRequest.current === userData._id && res.data.success) {
                 setLcData(res.data.data);
             }
         } catch (err) {
             console.error(err);
         } finally {
-            setProfileLoading(false);
+            if (profileRequest.current === userData._id) setProfileLoading(false);
         }
-    };
+    }, []);
 
     const navigateToAppProfile = () => {
         setModalVisible(false);
@@ -160,12 +208,15 @@ export default function CodingLeaderboard() {
 
     const openLeetCodeExternal = () => {
         if (dbUser?.codingProfiles?.leetcode) {
-            Linking.openURL(`https://leetcode.com/${dbUser.codingProfiles.leetcode}`);
+            Linking.openURL(`https://leetcode.com/${dbUser.codingProfiles.leetcode}`).catch(() => {});
         }
     };
 
-    useEffect(() => { fetchLeaderboard(); }, [activeScope, timeFilter, hasLinkedProfile]);
-    useEffect(() => { const t = setTimeout(fetchLeaderboard, 500); return () => clearTimeout(t); }, [search]);
+    // One effect: two (one per dep set) fired a duplicate request on mount.
+    useEffect(() => {
+        const t = setTimeout(fetchLeaderboard, search ? 500 : 0);
+        return () => clearTimeout(t);
+    }, [activeScope, timeFilter, hasLinkedProfile, search]);
     const onRefresh = () => { setRefreshing(true); fetchLeaderboard(); };
 
     // --- PER-USER COOLDOWN TIMER ---
@@ -199,7 +250,7 @@ export default function CodingLeaderboard() {
         return () => clearInterval(interval);
     }, [hasLinkedProfile, user?.codingStats?.lastUpdated, nextRefreshAt]);
 
-    const renderItem = ({ item, index }: { item: any, index: number }) => (
+    const renderItem = useCallback(({ item, index }: { item: any, index: number }) => (
         <TouchableOpacity onPress={() => openUserProfile(item)} className="flex-row items-center bg-card p-5 mb-4 mx-5 rounded-card border border-line shadow-hair">
             <View className="w-10 items-center justify-center mr-3">
                 {index < 3 ? (
@@ -211,12 +262,12 @@ export default function CodingLeaderboard() {
                 )}
             </View>
             <View className="p-0.5 rounded-full border border-line bg-card">
-                <Image source={{ uri: item.avatar }} className="w-12 h-12 rounded-full" />
+                <Image source={{ uri: item.avatar }} style={{ width: 48, height: 48, borderRadius: 24 }} cachePolicy="memory-disk" />
             </View>
             <View className="flex-1 ml-4">
                 <Text className="text-ink font-display text-sm uppercase" numberOfLines={1}>{item.name || item.username}</Text>
                 <View className="flex-row items-center mt-1">
-                    <Text className="text-ink-3 text-label font-display uppercase">{item.college || "Global Arena"}</Text>
+                    <Text className="text-ink-3 text-label font-display uppercase flex-1" numberOfLines={1}>{item.college || "Global Arena"}</Text>
                 </View>
             </View>
             <View className="items-center bg-paper-2 px-3 py-1.5 rounded-card border border-line">
@@ -226,39 +277,7 @@ export default function CodingLeaderboard() {
                 <Text className="text-ink-3 text-label font-display uppercase">{timeFilter === 'weekly' ? '7 Days' : 'Solved'}</Text>
             </View>
         </TouchableOpacity>
-    );
-
-    const LeaderboardSkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.3)).current;
-
-        useEffect(() => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-                ])
-            ).start();
-        }, []);
-
-        return (
-            <Animated.View
-                style={{ opacity: pulseAnim }}
-                className="flex-row items-center bg-card p-5 mb-4 mx-5 rounded-card border border-line"
-            >
-                <View className="w-10 items-center justify-center mr-3">
-                    <View className="w-8 h-8 bg-paper-2 rounded-full" />
-                </View>
-                <View className="w-12 h-12 rounded-full bg-paper-2" />
-                <View className="flex-1 ml-4 justify-center">
-                    <View className="h-4 bg-paper-2 rounded w-1/2 mb-2" />
-                    <View className="h-3 bg-paper-2 rounded w-1/4" />
-                </View>
-                <View className="items-end justify-center">
-                    <View className="h-8 bg-paper-2 rounded-xl w-14" />
-                </View>
-            </Animated.View>
-        );
-    };
+    ), [openUserProfile, timeFilter]);
 
     if (!hasLinkedProfile) {
         return (
@@ -267,17 +286,7 @@ export default function CodingLeaderboard() {
 
                 <SafeAreaView className="flex-1">
                     {/* Header with Back Button */}
-                    <View className="px-gutter py-4 flex-row items-center">
-                        <TouchableOpacity 
-                            onPress={() => navigation.goBack()}
-                            className="w-11 h-11 items-center justify-center rounded-xl"
-                        
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                            <Ionicons name="arrow-back" size={20} color={C.ink} />
-                        </TouchableOpacity>
-                    </View>
+                    <AppBar onBack={() => navigation.goBack()} />
 
                     <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingBottom: 50 }}>
                         <View className="items-center mb-10">
@@ -295,7 +304,7 @@ export default function CodingLeaderboard() {
                         <View className="w-full p-card-pad">
                             <View className="flex-row items-center mb-6 px-2">
                                 <View className="w-10 h-10 rounded-card bg-card items-center justify-center mr-4 shadow-hair">
-                                    <Image source={{ uri: LC_LOGO }} className="w-5 h-5" resizeMode="contain" />
+                                    <Image source={{ uri: LC_LOGO }} style={{ width: 20, height: 20 }} contentFit="contain" />
                                 </View>
                                 <View>
                                     <Text className="font-semibold text-base text-ink">LeetCode Identity</Text>
@@ -346,7 +355,8 @@ export default function CodingLeaderboard() {
             {/* HEADER DECORATION */}
 
             <SafeAreaView className="flex-1">
-                <View className="px-gutter pt-8 mb-6 flex-row justify-between items-center">
+                <AppBar onBack={() => navigation.goBack()} />
+                <View className="px-gutter pt-2 mb-6 flex-row justify-between items-center">
                     <View>
                         <Text className="text-ink text-3xl font-display uppercase">Coding<Text className="text-accent-text"> Rank</Text></Text>
                         <Text className="text-ink-3 text-label font-display uppercase">Campus Coding Arena</Text>
@@ -355,14 +365,11 @@ export default function CodingLeaderboard() {
                     {/* Synchronized Refresh Timer */}
                     {canRefresh ? (
                         <TouchableOpacity 
-                            onPress={() => {
-                                fetchLeaderboard();
-                                setCanRefresh(false);
-                            }} 
-                            disabled={loading} 
-                            className={`px-4 py-2.5 rounded-xl items-center shadow-hair ${loading ? 'bg-brand-200' : 'bg-brand-500 '}`}
+                            onPress={handleManualRefresh}
+                            disabled={refreshingStats}
+                            className={`px-4 py-2.5 rounded-xl items-center shadow-hair ${refreshingStats ? 'bg-brand-200' : 'bg-brand-500 '}`}
                         >
-                            {loading ? (
+                            {refreshingStats ? (
                                 <ActivityIndicator size="small" color={C.ink} />
                             ) : (
                                 <View className="flex-row items-center">
@@ -433,15 +440,17 @@ export default function CodingLeaderboard() {
                         <View className="bg-paper h-[85%] rounded-t-sheet border-t border-line p-card-pad shadow-hair">
                             <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mb-8" />
 
-                            {profileLoading || !lcData ? (
+                            {profileLoading ? (
                                 <ActivityIndicator size="large" color={C.brand[500]} className="mt-20" />
+                            ) : !lcData ? (
+                                <Text className="text-ink-3 text-center mt-20">{"Couldn't load this profile. Try again."}</Text>
                             ) : (
                                 <ScrollView showsVerticalScrollIndicator={false}>
 
                                     {/* 1. Header Profile */}
                                     <View className="items-center mb-10">
                                         <View className="p-1.5 rounded-full border-2 border-brand-500 bg-card shadow-hair">
-                                            <Image source={{ uri: lcData?.profile?.avatar }} className="w-24 h-24 rounded-full bg-paper-2" />
+                                            <Image source={{ uri: lcData?.profile?.avatar }} style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
                                         </View>
                                         <Text className="text-ink text-3xl font-display uppercase mt-3">{lcData.profile?.name || dbUser?.name}</Text>
                                         <Text className="text-ink-3 font-display text-label">@{dbUser?.codingProfiles?.leetcode}</Text>
@@ -460,7 +469,7 @@ export default function CodingLeaderboard() {
                                                 onPress={openLeetCodeExternal}
                                                 className="flex-row items-center bg-card px-6 py-3.5 rounded-card border border-line shadow-hair"
                                             >
-                                                <Image source={{ uri: LC_LOGO }} className="w-3.5 h-3.5" />
+                                                <Image source={{ uri: LC_LOGO }} style={{ width: 14, height: 14 }} contentFit="contain" />
                                                 <Text className="text-ink font-display text-label uppercase ml-2">LeetCode</Text>
                                             </TouchableOpacity>
                                         </View>
@@ -536,9 +545,9 @@ export default function CodingLeaderboard() {
                                                 {lcData.badges.map((badge: any, i: number) => (
                                                     <View key={i} className="mr-6 items-center w-24 bg-card p-4 rounded-card border border-line shadow-hair">
                                                         <Image
-                                                            source={{ uri: badge.icon.startsWith("http") ? badge.icon : `https://leetcode.com${badge.icon}` }}
-                                                            className="w-14 h-14 mb-3"
-                                                            resizeMode="contain"
+                                                            source={{ uri: String(badge.icon || '').startsWith("http") ? badge.icon : `https://leetcode.com${badge.icon || ''}` }}
+                                                            style={{ width: 56, height: 56, marginBottom: 12 }}
+                                                            contentFit="contain"
                                                         />
                                                         <Text className="text-ink font-display text-label text-center uppercase" numberOfLines={2}>{badge.displayName}</Text>
                                                     </View>

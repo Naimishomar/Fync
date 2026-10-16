@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useLayoutEffect, useMemo, useCallback } from "react";
-import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, Image, TouchableOpacity, Dimensions, Linking, Keyboard, UIManager, LayoutAnimation} from 'react-native'
+import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, Keyboard, UIManager, LayoutAnimation} from 'react-native'
+import { Image } from 'expo-image';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { supabase } from "../utils/supabase";
 import axios from "../context/axiosConfig";
@@ -13,6 +14,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { Video, ResizeMode } from "expo-av";
 import { ActivityIndicator, Modal } from "react-native";
 import { Alert } from './ui/AlertModal';
+import { AppBar } from './ui/kit';
 import { C } from '../constants/colors';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -59,11 +61,11 @@ const Chat = ({ route, navigation }: any) => {
     if (otherUser) return; // Already have user info from params
     try {
       const res = await axios.get(`/chat/conversations`);
-      const convo = res.data.conversations.find(
+      const convo = res.data?.conversations?.find(
         (c: any) => c._id === conversationId
       );
 
-      const other = convo?.participants.find(
+      const other = convo?.participants?.find(
         (p: any) => p._id !== user._id
       );
 
@@ -211,14 +213,6 @@ const Chat = ({ route, navigation }: any) => {
       )
       .subscribe();
 
-    // Hide tab bar when in chat
-    const parent = navigation.getParent();
-    if (parent) {
-      parent.setOptions({
-        tabBarStyle: { display: 'none' }
-      });
-    }
-
     return () => {
       kbs.remove();
       kbh.remove();
@@ -230,28 +224,9 @@ const Chat = ({ route, navigation }: any) => {
       socket.off("statusUpdate", handleStatusUpdate);
       socket.off("initialOnlineList", handleInitialOnlineList);
       socket.off("connect", handleConnect);
-
-      // Restore tab bar when leaving chat
-      if (parent) {
-        parent.setOptions({
-          tabBarStyle: {
-            position: "absolute",
-            bottom: 40,
-            marginHorizontal: Dimensions.get('window').width * 0.05,
-            backgroundColor: "rgba(20, 20, 20, 0.86)",
-            borderRadius: 26,
-            height: 60,
-            borderWidth: 1,
-            borderColor: "rgba(255, 255, 255, 0.12)",
-            elevation: 10,
-            paddingTop: 10,
-            paddingBottom: 46,
-            display: 'flex'
-          }
-        });
-      }
+      if (typingTimeout.current) clearTimeout(typingTimeout.current);
     };
-  }, [conversationId, navigation]);
+  }, [conversationId]);
 
   /* ---------- LOAD ---------- */
   const loadMessages = useCallback(async () => {
@@ -545,10 +520,11 @@ const Chat = ({ route, navigation }: any) => {
               <Image
                 source={{
                   uri: isMe
-                    ? (user?.avatar || `https://ui-avatars.com/api/?name=${user?.username}&background=333&color=fff`)
-                    : (item.sender?.avatar || `https://ui-avatars.com/api/?name=${item.sender?.username || 'U'}&background=f97316&color=fff`),
+                    ? (user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=333&color=fff`)
+                    : (item.sender?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.sender?.username || 'U')}&background=f97316&color=fff`),
                 }}
-                className="w-full h-full"
+                style={{ width: '100%', height: '100%' }}
+                cachePolicy="memory-disk"
               />
             </View>
           </View>
@@ -596,11 +572,12 @@ const Chat = ({ route, navigation }: any) => {
 
               {item.messageType === "image" && (
                 <TouchableOpacity onPress={() => setSelectedImage(item.mediaUrl)}>
-                  <Image 
-                    source={{ uri: item.mediaUrl }} 
-                    className="w-56 h-56 rounded-xl" 
-                    resizeMode="cover" 
-                    blurRadius={item.pending ? 10 : 0} 
+                  <Image
+                    source={{ uri: item.mediaUrl }}
+                    style={{ width: 224, height: 224, borderRadius: 12 }}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    blurRadius={item.pending ? 10 : 0}
                   />
                 </TouchableOpacity>
               )}
@@ -678,7 +655,8 @@ const Chat = ({ route, navigation }: any) => {
         </View>
       </View>
     );
-  }, [user]);
+  // conversationId: deleteMessage writes lastMessage to it, and Chat -> Chat reuses this screen.
+  }, [user, conversationId]);
 
   if (!conversationId) {
     return (
@@ -703,22 +681,11 @@ const Chat = ({ route, navigation }: any) => {
 
       {/* FIXED HEADER */}
       <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' }}>
-        <View className="flex-row items-center justify-between px-6 py-4">
-          <View className="flex-row items-center">
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-              hitSlop={2}
-              className="w-11 h-11 items-center justify-center rounded-xl"
-            
-            style={{ marginLeft: -11 }}>
-              <Ionicons name="chevron-back" size={24} color={C.ink} />
-            </TouchableOpacity>
-
+        <AppBar onBack={() => navigation.goBack()}>
             {otherUser && (
               <TouchableOpacity
-                className="flex-row items-center ml-4"
+                className="flex-row items-center"
+                style={{ minWidth: 0 }}
                 onPress={() =>
                   navigation.navigate("PublicProfile", {
                     user: otherUser,
@@ -731,9 +698,10 @@ const Chat = ({ route, navigation }: any) => {
                       source={{
                         uri:
                           otherUser.avatar ||
-                          `https://ui-avatars.com/api/?name=${otherUser.username}`,
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser.username || 'U')}`,
                       }}
-                      className="w-full h-full"
+                      style={{ width: '100%', height: '100%' }}
+                      cachePolicy="memory-disk"
                     />
                   </View>
                   {onlineUsers.has(otherUser?._id) && (
@@ -741,8 +709,8 @@ const Chat = ({ route, navigation }: any) => {
                   )}
                 </View>
 
-                <View className="ml-3">
-                  <Text className="font-display text-ink text-base">
+                <View className="ml-3 flex-1" style={{ minWidth: 0 }}>
+                  <Text className="font-display text-ink text-base" numberOfLines={1}>
                     {otherUser.name}
                   </Text>
                   {isTyping ? (
@@ -750,15 +718,14 @@ const Chat = ({ route, navigation }: any) => {
                       typing...
                     </Text>
                   ) : (
-                    <Text className="text-label text-accent-text font-display">
+                    <Text className="text-label text-accent-text font-display" numberOfLines={1}>
                       @{otherUser.username}
                     </Text>
                   )}
                 </View>
               </TouchableOpacity>
             )}
-          </View>
-        </View>
+        </AppBar>
       </SafeAreaView>
 
       <KeyboardAvoidingView
@@ -785,7 +752,6 @@ const Chat = ({ route, navigation }: any) => {
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-                ListHeaderComponent={() => <View className="h-0" />}
               />
             )}
           </View>
@@ -804,6 +770,7 @@ const Chat = ({ route, navigation }: any) => {
               <TouchableOpacity
                 onPress={() => setReplyingTo(null)}
                 className="ml-3 w-6 h-6 items-center justify-center rounded-full bg-paper-2"
+                hitSlop={10}
               >
                 <Ionicons name="close" size={14} color={C.ink3} />
               </TouchableOpacity>
@@ -812,7 +779,7 @@ const Chat = ({ route, navigation }: any) => {
 
           {/* INPUT AREA */}
           <View style={{ paddingBottom: isKeyboardVisible ? 20 : (insets.bottom > 0 ? insets.bottom : 12) }}>
-            <View className="px-6 pb-2 pt-2 bg-card">
+            <View className="px-5 pb-2 pt-2 bg-card">
               <View className="flex-row items-center bg-paper-2 p-2 rounded-card border border-line shadow-hair">
                 <TouchableOpacity onPress={handlePickImage} className="w-10 h-10 items-center justify-center" hitSlop={2}>
                   <Ionicons name="image-outline" size={22} color={C.ink3} />
@@ -842,7 +809,7 @@ const Chat = ({ route, navigation }: any) => {
         </View>
       </KeyboardAvoidingView>
       {/* FULL SCREEN IMAGE MODAL */}
-      <Modal visible={!!selectedImage} transparent={true} animationType="fade">
+      <Modal visible={!!selectedImage} transparent={true} animationType="fade" onRequestClose={() => setSelectedImage(null)}>
         <View className="flex-1 bg-black/95 justify-center items-center">
           <TouchableOpacity
             onPress={() => setSelectedImage(null)}
@@ -853,8 +820,9 @@ const Chat = ({ route, navigation }: any) => {
           {selectedImage && (
             <Image
               source={{ uri: selectedImage }}
-              className="w-full h-[80%]"
-              resizeMode="contain"
+              style={{ width: '100%', height: '80%' }}
+              contentFit="contain"
+              cachePolicy="memory-disk"
             />
           )}
         </View>

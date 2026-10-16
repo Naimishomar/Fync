@@ -1,5 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import { seenPredicate } from '../utils/bloom.js';
 import Post from '../models/post.model.js';
 import Comment from '../models/comment.model.js';
 import User from '../models/user.model.js';
@@ -741,7 +742,7 @@ export const getPostByPostId = async (req, res) => {
 
 /**
  * GET /post/smart-feed?page=1&limit=10
- * Body (optional): { seenIds: ["id1", "id2", ...] }
+ * Body (optional): { seenBloom: { m, k, b } } (utils/bloom.js), or legacy { seenIds: [...] }
  *
  * How it works (zero extra DB load):
  *  1. Candidate pool is fetched from Redis (or DB once, then cached 5 min)
@@ -765,7 +766,7 @@ export const getSmartFeed = async (req, res) => {
     };
 
     try {
-        const seenIds = Array.isArray(req.body?.seenIds) ? req.body.seenIds : [];
+        const isSeen = seenPredicate(req.body);
 
         const [candidates, interestProfile, poolVersion] = await Promise.all([
             getCandidatePool(Post, 150),
@@ -787,7 +788,7 @@ export const getSmartFeed = async (req, res) => {
             // this pool generation, which is what makes page 2 actually continue
             // page 1 instead of re-cutting a freshly shuffled list.
             ranked = rankFeed({
-                candidates, seenIds, interestProfile, page, limit,
+                candidates, isSeen, interestProfile, page, limit,
                 seed: `${req.user.id}:${poolVersion}`
             });
         } catch (e) {
@@ -838,6 +839,10 @@ export const getReports = async (req, res) => {
             .populate("reporter", "name username avatar")
             .populate({
                 path: "post",
+                populate: { path: "user", select: "name username avatar" }
+            })
+            .populate({
+                path: "short",
                 populate: { path: "user", select: "name username avatar" }
             })
             .sort({ createdAt: -1 });

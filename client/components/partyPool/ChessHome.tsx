@@ -15,6 +15,16 @@ const ChessHome = () => {
     const [status, setStatus] = useState<'lobby' | 'searching' | 'playing'>('lobby');
     const [matchDetails, setMatchDetails] = useState<any>(null);
     const [gameMode, setGameMode] = useState<'pvp' | 'bot'>('pvp');
+    const statusRef = useRef(status);
+    statusRef.current = status;
+    const userIdRef = useRef(user?._id);
+    userIdRef.current = user?._id;
+
+    // Backing out of Party Pool mid-search used to leave this player queued on
+    // the server, so the next opponent got matched against nobody.
+    useEffect(() => () => {
+        if (statusRef.current === 'searching') socket.emit('leave_chess', { userId: userIdRef.current });
+    }, []);
 
     // Use the app-wide authenticated socket. Opening a second connection here
     // meant a third TCP/websocket per user, and the server now rejects

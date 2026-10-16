@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-    View, Text, Image, Pressable, ScrollView, Dimensions,
+    View, Text, Pressable, ScrollView, Dimensions,
     ActivityIndicator, Modal, Linking, FlatList, TouchableOpacity
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -19,6 +19,7 @@ import { FlashList } from '@shopify/flash-list';
 import { getFullUrl } from '../utils/imageUtils';
 import GitHubStatsCard from './profile/GitHubStatsCard';
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -67,6 +68,7 @@ const PublicProfile = () => {
     const { user: currentUser } = useAuth();
     const route = useRoute<RouteProp<RootStackParamList, 'PublicProfile'>>();
     const navigation = useNavigation<any>();
+    const insets = useSafeAreaInsets();
 
     const targetUserId = route.params?.userId || route.params?.user?._id;
     const initialUser = route.params?.user;
@@ -107,11 +109,13 @@ const PublicProfile = () => {
     const [hasMorePosts, setHasMorePosts] = useState(true);
     const [hasMoreShorts, setHasMoreShorts] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+    // Responses for a profile we've since navigated away from must not land here.
+    const targetRef = useRef(targetUserId);
+    targetRef.current = targetUserId;
+    const followBusy = useRef(false);
 
     useEffect(() => {
-        console.log("👤 [PublicProfile] Component Mounted/Updated with Params:", route.params);
         if (targetUserId) {
-            console.log(`🚀 [PublicProfile] Initiating data fetch for UID: ${targetUserId}`);
             // Always reset loading and content when switching to a different user
             // to show a fresh state and ensure re-fetch.
             setLoading(true);
@@ -130,7 +134,6 @@ const PublicProfile = () => {
             fetchUserPosts(targetUserId, 1, true);
             fetchUserShorts(targetUserId, 1, true);
         } else {
-            console.warn("⚠️ [PublicProfile] No targetUserId found in params!");
             setLoading(false);
         }
     }, [targetUserId]);
@@ -138,6 +141,7 @@ const PublicProfile = () => {
     const fetchFullProfile = async (uid: string) => {
         try {
             const res = await axios.get(`/user/profile/${uid}`);
+            if (uid !== targetRef.current) return;
             if (res.data.success) {
                 setProfileUser(res.data.user);
             }
@@ -153,6 +157,7 @@ const PublicProfile = () => {
             setIsFetchingMore(true);
             const cursor = page > 1 ? postsCursor.current : null;
             const res = await axios.get(`/post/feed/${uid}?limit=12${cursor ? `&cursor=${cursor}` : ''}`);
+            if (uid !== targetRef.current) return;
             if (res.data.success) {
                 const newPosts = res.data.posts || [];
                 postsCursor.current = res.data.nextCursor ?? null;
@@ -178,6 +183,7 @@ const PublicProfile = () => {
         try {
             setIsFetchingMore(true); // Set to true for all fetches
             const res = await axios.get(`/shorts/feed/${uid}?page=${page}&limit=12`);
+            if (uid !== targetRef.current) return;
             if (res.data.success) {
                 const newShorts = res.data.shorts || [];
                 setShorts(prev => {
@@ -207,25 +213,28 @@ const PublicProfile = () => {
     };
 
     const handleFollowToggle = async () => {
-        if (!profileUser?._id || !currentUser?._id) return;
+        if (!profileUser?._id || !currentUser?._id || followBusy.current) return;
+        followBusy.current = true;
         try {
             if (isFollowing) {
                 await axios.post(`/user/unfollow/${profileUser._id}`);
                 setIsFollowing(false);
                 setProfileUser(prev => prev ? ({
                     ...prev,
-                    followers: prev.followers.filter(id => id !== currentUser._id)
+                    followers: (prev.followers || []).filter(id => id !== currentUser._id)
                 }) : null);
             } else {
                 await axios.post(`/user/follow/${profileUser._id}`);
                 setIsFollowing(true);
                 setProfileUser(prev => prev ? ({
                     ...prev,
-                    followers: [...prev.followers, currentUser._id]
+                    followers: [...(prev.followers || []), currentUser._id]
                 }) : null);
             }
         } catch (error: any) {
             console.log("Follow error", error.message);
+        } finally {
+            followBusy.current = false;
         }
     };
 
@@ -241,6 +250,23 @@ const PublicProfile = () => {
             console.log("Start chat error", err);
         }
     };
+
+    const [recruiterStats, setRecruiterStats] = useState({ active: 0, total: 0 });
+    const isRecruiter = profileUser?.user_access === 'recruiter';
+    const recruiterId = isRecruiter ? profileUser?._id : undefined;
+    useEffect(() => {
+        if (!recruiterId) return;
+        let cancelled = false;
+        axios.get(`/opportunity/list?recruiterId=${recruiterId}`).then(res => {
+            if (cancelled || !res.data.success) return;
+            const recPosts = res.data.data || [];
+            setRecruiterStats({
+                active: recPosts.filter((p: any) => p.isActive !== false).length,
+                total: recPosts.length
+            });
+        }).catch(() => { });
+        return () => { cancelled = true; };
+    }, [recruiterId]);
 
     const openItem = (item: any) => {
         setSelectedItem(item);
@@ -293,10 +319,11 @@ const PublicProfile = () => {
                     </View>
                 ) : (
                     <>
-                        <Image
+                        <ExpoImage
                             source={{ uri: getFullUrl(item.image?.[0]) || '' }}
-                            className="flex-1 bg-paper-2"
-                            resizeMode="cover"
+                            style={{ flex: 1, backgroundColor: C.paper2 }}
+                            contentFit="cover"
+                            cachePolicy="disk"
                         />
 
                         {/* --- MULTIPLE IMAGES INDICATOR (ADDED) --- */}
@@ -314,12 +341,17 @@ const PublicProfile = () => {
 
     /** Rebuilt inline on every render, this re-rendered the whole grid. */
     const renderTabItem = useCallback(({ item }: { item: any }) => {
-        if (activeTab === 'tags') return <AboutSection />;
+        if (activeTab === 'tags') return renderAbout();
         return renderGridItem({ item });
-    }, [activeTab, renderGridItem]);
+        // renderAbout reads profileUser, so the About row must refresh with it.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTab, renderGridItem, profileUser]);
 
+    /** Rebuilt inline on every render, this re-rendered the whole grid. */
+    // A plain render function, not a component: declared inside this one it was a
+    // new component type each render and remounted every time.
     // --- ABOUT SECTION (Light Mode) ---
-    const AboutSection = () => (
+    const renderAbout = () => (
         <View className="px-5 py-6 pb-32">
             {/* About Card */}
             <View className="bg-card rounded-sheet p-6 border border-line mb-6 shadow-hair">
@@ -334,7 +366,7 @@ const PublicProfile = () => {
 
             {/* Details Grid */}
             <View className="flex-row flex-wrap gap-4 mb-6">
-                {profileUser?.experience && (
+                {!!profileUser?.experience && (
                     <View className="w-full bg-card p-5 rounded-sheet border border-line flex-row items-center shadow-hair">
                         <View className="bg-brand-50 p-3 rounded-card mr-4">
                             <Ionicons name="briefcase" size={24} color={C.brand[500]} />
@@ -351,7 +383,7 @@ const PublicProfile = () => {
             </View>
 
             {/* Tags Collection */}
-            {(profileUser?.skills?.length || profileUser?.hobbies || profileUser?.interest) && (
+            {!!(profileUser?.skills?.length || profileUser?.hobbies || profileUser?.interest) && (
                 <View className="mb-6 bg-card p-6 rounded-sheet border border-line shadow-hair">
                     <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
                       <Text className="text-ink-3 text-label font-display uppercase">Tags & Interests</Text>
@@ -363,12 +395,12 @@ const PublicProfile = () => {
                                 <Text className="text-ink-2 text-label font-display uppercase">{skill}</Text>
                             </View>
                         ))}
-                        {profileUser?.interest && (
+                        {!!profileUser?.interest && (
                             <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
                                 <Text className="text-accent-text text-label font-display uppercase"> {profileUser.interest}</Text>
                             </View>
                         )}
-                        {profileUser?.hobbies && (
+                        {!!profileUser?.hobbies && (
                             <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
                                 <Text className="text-accent-text text-label font-display uppercase"> {profileUser.hobbies}</Text>
                             </View>
@@ -383,7 +415,7 @@ const PublicProfile = () => {
               <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
             </View>
             
-            {profileUser?.github_id && (
+            {!!profileUser?.github_id && (
                 <View className="-mx-5 mb-6">
                     <GitHubStatsCard 
                         username={ (profileUser as any).githubUsername || profileUser.github_id.split('/').pop() }
@@ -394,30 +426,30 @@ const PublicProfile = () => {
             )}
 
             <View className="gap-3">
-                {profileUser?.github_id && (
-                    <Pressable onPress={() => Linking.openURL(profileUser.github_id!)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
+                {!!profileUser?.github_id && (
+                    <Pressable onPress={() => Linking.openURL(profileUser.github_id!).catch(() => {})} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
                         <Ionicons name="logo-github" size={24} color={C.ink} />
                         <Text className="text-ink ml-4 font-display uppercase">GitHub</Text>
                         <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
-                {profileUser?.linkedIn_id && (
-                    <Pressable onPress={() => Linking.openURL(profileUser.linkedIn_id!)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
+                {!!profileUser?.linkedIn_id && (
+                    <Pressable onPress={() => Linking.openURL(profileUser.linkedIn_id!).catch(() => {})} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
                         <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
                         <Text className="text-ink ml-4 font-display uppercase">LinkedIn</Text>
                         <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
-                {profileUser?.codingProfiles?.leetcode && (
-                    <Pressable onPress={() => Linking.openURL(`https://leetcode.com/${profileUser.codingProfiles?.leetcode}`)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
-                        <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} className="w-6 h-6" style={{ tintColor: '#F5B700' }} />
+                {!!profileUser?.codingProfiles?.leetcode && (
+                    <Pressable onPress={() => Linking.openURL(`https://leetcode.com/${profileUser.codingProfiles?.leetcode}`).catch(() => {})} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
+                        <ExpoImage source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} style={{ width: 24, height: 24 }} tintColor="#F5B700" cachePolicy="memory-disk" />
                         <Text className="text-ink ml-4 font-display uppercase">LeetCode</Text>
                         <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
                     </Pressable>
                 )}
-                {profileUser?.codingProfiles?.gfg && (
-                    <Pressable onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${profileUser.codingProfiles?.gfg}`)} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
-                        <Image source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }} className="w-6 h-6" />
+                {!!profileUser?.codingProfiles?.gfg && (
+                    <Pressable onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${profileUser.codingProfiles?.gfg}`).catch(() => {})} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
+                        <ExpoImage source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }} style={{ width: 24, height: 24 }} cachePolicy="memory-disk" />
                         <Text className="text-ink ml-4 font-display uppercase">GeeksForGeeks</Text>
                         <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
                     </Pressable>
@@ -427,23 +459,9 @@ const PublicProfile = () => {
     );
 
     // --- RECRUITER PROFILE LAYOUT ---
-    const RecruiterProfileLayout = () => {
-        const [recruiterStats, setRecruiterStats] = useState({ active: 0, total: 0 });
-
-        useEffect(() => {
-            if (profileUser?._id) {
-                axios.get(`/opportunity/list?recruiterId=${profileUser._id}`).then(res => {
-                    if (res.data.success) {
-                        const recPosts = res.data.data;
-                        setRecruiterStats({
-                            active: recPosts.filter((p: any) => p.isActive !== false).length,
-                            total: recPosts.length
-                        });
-                    }
-                }).catch(() => { });
-            }
-        }, [profileUser]);
-
+    // Also a render function: as a nested component it remounted on every parent
+    // render, refetching its stats and jumping the ScrollView back to the top.
+    const renderRecruiterProfile = () => {
         return (
             <ScrollView className="flex-1 bg-paper" showsVerticalScrollIndicator={false}>
                 {/* Banner & Actions */}
@@ -454,15 +472,9 @@ const PublicProfile = () => {
                         contentFit="cover"
                     />
                     <View className="absolute inset-0 bg-black/30" />
-                    <TouchableOpacity
-                        onPress={() => navigation.goBack()}
-                        className="w-11 h-11 items-center justify-center rounded-xl top-12 left-4"
-                    
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="chevron-back" size={24} color="white" />
-                    </TouchableOpacity>
+                    <View className="absolute left-0 right-0" style={{ top: insets.top }}>
+                        <AppBar overlay onBack={() => navigation.goBack()} />
+                    </View>
                 </View>
 
                 {/* Info Card Overlay */}
@@ -483,7 +495,7 @@ const PublicProfile = () => {
 
                     <View className="mt-4">
                         <View className="flex-row items-center gap-2">
-                            <Text className="text-2xl font-display text-ink uppercase">
+                            <Text className="text-2xl font-display text-ink uppercase" style={{ flexShrink: 1 }} numberOfLines={2}>
                                 {(profileUser as any)?.company || profileUser?.name}
                             </Text>
                             <MaterialCommunityIcons name="check-decagram" size={22} color={C.recruiter} />
@@ -525,9 +537,9 @@ const PublicProfile = () => {
                                     <Text className="text-ink font-semibold text-sm">{(profileUser as any)?.college || 'India (Remote)'}</Text>
                                 </View>
                             </View>
-                            {(profileUser as any)?.companyWebsite && (
+                            {!!(profileUser as any)?.companyWebsite && (
                                 <TouchableOpacity
-                                    onPress={() => Linking.openURL((profileUser as any).companyWebsite)}
+                                    onPress={() => Linking.openURL((profileUser as any).companyWebsite).catch(() => {})}
                                     className="flex-row items-center gap-4"
                                 >
                                     <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
@@ -572,19 +584,14 @@ const PublicProfile = () => {
 
     // Switch between Recruiter and Student layouts
     if (profileUser.user_access === 'recruiter') {
-        return <RecruiterProfileLayout />;
+        return renderRecruiterProfile();
     }
 
     return (
         <View className="flex-1 bg-paper">
             {/* Back Button Overlay */}
-            <View className="absolute top-12 left-4 z-20">
-                <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl p-2.5 backdrop-blur-md"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                    <Ionicons name="arrow-back" size={24} color="white" />
-                </Pressable>
+            <View className="absolute left-0 right-0 z-20" style={{ top: insets.top }} pointerEvents="box-none">
+                <AppBar overlay onBack={() => navigation.goBack()} />
             </View>
 
             <FlashList
@@ -698,6 +705,7 @@ const PublicProfile = () => {
                     </View>
                 }
                 className="bg-paper-2"
+                contentContainerStyle={{ paddingBottom: insets.bottom }}
             />
 
             {/* Light Modal */}
@@ -714,7 +722,7 @@ const PublicProfile = () => {
                                         <Text className="text-ink-3 mt-2 font-semibold uppercase text-label">PREVIEW MODE</Text>
                                     </View>
                                 ) : (
-                                    <Image source={{ uri: getFullUrl(selectedItem.image ? selectedItem.image[0] : '') || '' }} className="w-full h-full" resizeMode="cover" />
+                                    <ExpoImage source={{ uri: getFullUrl(selectedItem.image ? selectedItem.image[0] : '') || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                                 )}
                                 <Pressable onPress={() => setModalVisible(false)} className="absolute top-4 right-4 bg-card/80 p-2 rounded-full">
                                     <Ionicons name="close" size={20} color={C.ink} />

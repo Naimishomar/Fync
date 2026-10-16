@@ -6,10 +6,15 @@ const reportSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
+    // Exactly one of post / short is set.
     post: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Post",
-        required: true
+        required: function () { return !this.short; }
+    },
+    short: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Shorts"
     },
     reason: {
         type: String,

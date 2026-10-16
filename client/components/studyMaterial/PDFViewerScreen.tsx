@@ -1,9 +1,9 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
-import { View, ActivityIndicator, Text, Pressable, StatusBar, Platform } from 'react-native';
+import { View, ActivityIndicator, StatusBar, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 /**
  * Google's PDF viewer follows the reader's own Google theme, so on a dark-mode
@@ -79,7 +79,6 @@ const PDFViewerScreen = ({ route, navigation }: any) => {
     }
   };
 
-  const foreground = dark ? '#ffffff' : '#12100E';
   const border = dark ? 'rgba(255,255,255,0.12)' : 'rgba(18, 16, 14,0.08)';
 
   return (
@@ -89,32 +88,8 @@ const PDFViewerScreen = ({ route, navigation }: any) => {
         backgroundColor={Platform.OS === 'android' ? bg : undefined}
       />
       <SafeAreaView edges={['top']} style={{ backgroundColor: bg }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            borderBottomWidth: 1,
-            borderBottomColor: border,
-          }}
-        >
-          <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={12}
-            style={{ marginLeft: -11,  padding: 6, marginRight: 4 }}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          
-            className="w-11 h-11 items-center justify-center rounded-xl">
-            <Ionicons name="chevron-back" size={24} color={foreground} />
-          </Pressable>
-          <Text
-            numberOfLines={1}
-            style={{ flex: 1, color: foreground, fontSize: 15, fontFamily: 'SpaceGrotesk_700Bold' }}
-          >
-            {title}
-          </Text>
+        <View style={{ borderBottomWidth: 1, borderBottomColor: border }}>
+          <AppBar title={title} night={dark} onBack={() => navigation.goBack()} />
         </View>
       </SafeAreaView>
 

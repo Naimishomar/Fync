@@ -17,9 +17,11 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import AuthPoster from './ui/AuthPoster';
 import { C } from '../constants/colors';
+import { useBottomInset } from '../constants/layout';
 
 export default function SignUpScreen() {
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
 
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -74,6 +76,10 @@ export default function SignUpScreen() {
     }
   };
   const verifyOtpAndProceed = async () => {
+    if (!otp.trim()) {
+      Toast.show({ type: 'error', text1: 'Enter the OTP from your email' });
+      return;
+    }
     try {
       setIsLoading(true);
       const res = await axios.post('/user/verify-email-otp', {
@@ -136,7 +142,7 @@ export default function SignUpScreen() {
               meeting on a hard horizontal seam. */}
           <View
             className="bg-paper rounded-t-sheet"
-            style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 }}
+            style={{ marginTop: -22, paddingTop: 8, paddingBottom: bottomInset }}
           >
 
           <View className="px-gutter pt-6 pb-2">

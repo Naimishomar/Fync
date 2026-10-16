@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, TextInput, Dimensions, ScrollView, Pressable, StatusBar, Animated} from 'react-native'
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, TextInput, Dimensions, ScrollView, Pressable, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
@@ -8,9 +9,9 @@ import { useAuth } from '../../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
-const COLUMN_WIDTH = width / 2 - 28;
 
 // --- TYPES ---
 interface Product {
@@ -79,19 +80,19 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
 
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
-            <View className="flex-1 bg-ink/60 justify-end">
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-ink/60 justify-end">
                 <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={onClose} />
                 <View className="bg-paper rounded-t-sheet h-[75%] overflow-hidden shadow-hair">
                     <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
 
                     <View className="flex-row justify-between items-center px-gutter py-2 border-b border-line">
                         <Text className="text-ink font-display uppercase text-h1">List <Text className="text-accent-text">Artifact</Text></Text>
-                        <TouchableOpacity onPress={onClose} className="bg-card p-2 rounded-full border border-line">
+                        <TouchableOpacity onPress={onClose} hitSlop={8} className="bg-card p-2 rounded-full border border-line">
                             <Ionicons name="close" size={20} color={C.ink} />
                         </TouchableOpacity>
                     </View>
 
-                    <ScrollView className="p-card-pad" showsVerticalScrollIndicator={false}>
+                    <ScrollView className="p-card-pad" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                         <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
                           <Text className="text-ink-3 text-label font-display uppercase">Visual Documentation</Text>
                           <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
@@ -132,15 +133,16 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
                         </TouchableOpacity>
                     </ScrollView>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 };
 
 const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDelete }: any) => {
     const navigation = useNavigation<any>();
+    const startingChat = useRef(false);
     if (!product) return null;
-    const isOwner = product.seller._id === currentUserId;
+    const isOwner = !!product.seller?._id && product.seller._id === currentUserId;
 
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
@@ -150,7 +152,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                     <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
                     <ScrollView showsVerticalScrollIndicator={false}>
                         <View className="relative">
-                            <Image source={{ uri: product.product_image[0] }} className="w-full h-96 bg-paper-2" resizeMode="cover" />
+                            <ExpoImage source={{ uri: product.product_image?.[0] }} style={{ width: '100%', height: 384, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
                         </View>
 
                         <View className="p-card-pad">
@@ -186,12 +188,12 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                 className="flex-row items-center mb-8 bg-paper-2 p-4 rounded-card border border-line"
                             >
                                 <Image
-                                    source={{ uri: product.seller.avatar || `https://ui-avatars.com/api/?name=${product.seller.username}` }}
+                                    source={{ uri: product.seller?.avatar || `https://ui-avatars.com/api/?name=${product.seller?.username || 'U'}` }}
                                     className="w-12 h-12 rounded-xl bg-card border border-line"
                                 />
-                                <View className="ml-4">
-                                    <Text className="font-semibold text-base text-ink">{product.seller.name}</Text>
-                                    <Text className="text-ink-3 text-label font-semibold uppercase mt-1">@{product.seller.username} • {product.college}</Text>
+                                <View className="ml-4 flex-1" style={{ minWidth: 0 }}>
+                                    <Text className="font-semibold text-base text-ink" numberOfLines={1}>{product.seller?.name}</Text>
+                                    <Text className="text-ink-3 text-label font-semibold uppercase mt-1" numberOfLines={1}>@{product.seller?.username} • {product.college}</Text>
                                 </View>
                                 <View className="ml-auto w-8 h-8 bg-card rounded-full items-center justify-center border border-line">
                                     <Ionicons name="chevron-forward" size={14} color={C.ink4} />
@@ -217,6 +219,8 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                 <TouchableOpacity
                                     className="bg-brand-500 w-full p-5 items-center flex-row justify-center gap-3 mb-8 border-2 border-ink rounded-md"
                                     onPress={async () => {
+                                        if (startingChat.current) return;
+                                        startingChat.current = true;
                                         try {
                                             const res = await axios.post("/chat/start", { userId: product.seller?._id });
                                             onClose();
@@ -226,6 +230,8 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                             });
                                         } catch (err) {
                                             Alert.alert("Error", "Could not start chat");
+                                        } finally {
+                                            startingChat.current = false;
                                         }
                                     }}
                                 >
@@ -236,7 +242,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                         </View>
                     </ScrollView>
 
-                    <TouchableOpacity onPress={onClose} className="absolute top-6 right-6 bg-black/30 p-2 rounded-xl border border-white/20">
+                    <TouchableOpacity onPress={onClose} hitSlop={8} className="absolute top-6 right-6 bg-black/30 p-2 rounded-xl border border-white/20">
                         <Ionicons name="close" size={20} color="white" />
                     </TouchableOpacity>
                 </View>
@@ -249,7 +255,6 @@ const MarketplaceScreen = () => {
     const { user } = useAuth();
     const navigation = useNavigation<any>();
     const [products, setProducts] = useState<Product[]>([]);
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [search, setSearch] = useState("");
@@ -260,11 +265,9 @@ const MarketplaceScreen = () => {
 
     const fetchProducts = async () => {
         try {
-            if (!refreshing) setLoading(true);
             const res = await axios.get('/olx/products');
             if (res.data.success) {
-                setProducts(res.data.products);
-                setFilteredProducts(res.data.products);
+                setProducts(res.data.products || []);
             }
         } catch (error) {
             console.log("Error fetching products", error);
@@ -276,15 +279,16 @@ const MarketplaceScreen = () => {
 
     useEffect(() => { fetchProducts(); }, []);
 
-    useEffect(() => {
+    const filteredProducts = useMemo(() => {
         let res = products;
-        if (search.trim()) {
-            res = res.filter(p => p.product_name.toLowerCase().includes(search.toLowerCase()));
+        const q = search.trim().toLowerCase();
+        if (q) {
+            res = res.filter(p => (p.product_name || '').toLowerCase().includes(q));
         }
         if (activeTab !== 'all') {
             res = res.filter(p => p.product_type === activeTab);
         }
-        setFilteredProducts(res);
+        return res;
     }, [search, products, activeTab]);
 
     const handleDelete = async (id: string) => {
@@ -304,7 +308,7 @@ const MarketplaceScreen = () => {
         ]);
     };
 
-    const COLUMN_WIDTH = (width - 48 - 12) / 2; // 48 is horizontal padding, 12 is gap between cards
+    const COLUMN_WIDTH = (width - 40 - 12) / 2; // 40 is the 20px gutter on each side, 12 is gap between cards
 
     const renderProductItem = ({ item, index }: { item: Product; index: number }) => (
         // The first listing is the screen's one stamped card. The offset is painted
@@ -324,10 +328,11 @@ const MarketplaceScreen = () => {
             style={{ width: COLUMN_WIDTH }}
         >
             <View className="relative bg-paper-2">
-                <Image
-                    source={{ uri: item.product_image[0] }}
-                    className="w-full h-44"
-                    resizeMode="cover"
+                <ExpoImage
+                    source={{ uri: item.product_image?.[0] }}
+                    style={{ width: '100%', height: 176 }}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
                 />
                 {/* Badge */}
                 <View className="absolute bottom-2 left-2 bg-brand-500 px-2 py-0.5 rounded-md">
@@ -347,12 +352,13 @@ const MarketplaceScreen = () => {
                 </View>
 
                 <View className="flex-row items-center pt-2 border-t border-line">
-                    <Image
-                        source={{ uri: item.seller.avatar || `https://ui-avatars.com/api/?name=${item.seller.username}` }}
-                        className="w-4 h-4 rounded-full mr-1.5 bg-paper-2"
+                    <ExpoImage
+                        source={{ uri: item.seller?.avatar || `https://ui-avatars.com/api/?name=${item.seller?.username || 'U'}` }}
+                        style={{ width: 16, height: 16, borderRadius: 8, marginRight: 6, backgroundColor: C.paper2 }}
+                        cachePolicy="memory-disk"
                     />
                     <Text className="text-ink-3 text-label font-medium flex-1" numberOfLines={1}>
-                        {item.seller.username}
+                        {item.seller?.username}
                     </Text>
                     <View className="bg-paper-2 px-1.5 py-0.5 rounded border border-line">
                         <Text className="text-ink-3 text-label font-display uppercase">Verified</Text>
@@ -370,29 +376,15 @@ const MarketplaceScreen = () => {
             {/* HEADER DECORATION */}
 
             <SafeAreaView className="flex-1" edges={['top']}>
-                {/* Arena Header */}
-                <View className='px-gutter pt-6 bg-transparent'>
-                    <View className="flex-row items-center justify-between mb-8">
-                        <View>
-                            <TouchableOpacity
-                              onPress={() => navigation.goBack()}
-                              className="w-11 h-11 items-center justify-center rounded-xl"
-                              accessibilityRole="button"
-                              accessibilityLabel="Go back"
-                              style={{ marginLeft: -11 }}
-                            >
-                              <Ionicons name="arrow-back" size={24} color={C.ink} />
-                            </TouchableOpacity>
-                            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
-                            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Market</Text>
-                            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Asset exchange</Text>
-                        </View>
-                        <TouchableOpacity
-                            onPress={() => setSellModalVisible(true)}
-                            className="w-14 h-14 rounded-card items-center justify-center bg-ink shadow-hair"
-                        >
-                            <Ionicons name="add" size={28} color="white" />
-                        </TouchableOpacity>
+                <AppBar
+                    onBack={() => navigation.goBack()}
+                    right={<IconBtn name="add" onPress={() => setSellModalVisible(true)} />}
+                />
+                <View className='px-gutter bg-transparent'>
+                    <View className="mb-8">
+                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
+                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Market</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Asset exchange</Text>
                     </View>
 
                     {/* SEARCH DOCK */}
@@ -406,7 +398,7 @@ const MarketplaceScreen = () => {
                             className="flex-1 text-ink font-semibold text-sm p-3"
                         />
                         {search.length > 0 && (
-                            <TouchableOpacity onPress={() => setSearch("")}>
+                            <TouchableOpacity onPress={() => setSearch("")} hitSlop={12}>
                                 <Ionicons name="close-circle" size={18} color={C.ink4} />
                             </TouchableOpacity>
                         )}
@@ -437,7 +429,7 @@ const MarketplaceScreen = () => {
                         renderItem={renderProductItem}
                         keyExtractor={(item) => item._id}
                         numColumns={2}
-                        columnWrapperStyle={{ paddingHorizontal: 20 }}
+                        columnWrapperStyle={{ paddingHorizontal: 20, justifyContent: 'space-between' }}
                         contentContainerStyle={{ paddingTop: 10, paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={

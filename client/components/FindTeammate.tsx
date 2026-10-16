@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, RefreshControl, Linking, TextInput, Animated, StatusBar} from 'react-native'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import {View, Text, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl, Linking, TextInput, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -8,6 +8,7 @@ import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import socket from '../utils/socket';
 import { TeammateSkeleton } from './Skeleton';
+import Avatar from './Avatar';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
 
@@ -51,12 +52,18 @@ export default function FindTeammate() {
     // so a tab switch or pull-to-refresh does not stack duplicates on top of it.
     const PAGE_SIZE = 10;
 
+    // A tab switch fires a new page-1 fetch; the slower response of the old tab
+    // must not land on top of it.
+    const reqId = useRef(0);
+
     const fetchDevelopers = useCallback(async (pageNum = 1) => {
+        const id = ++reqId.current;
         try {
             if (pageNum === 1) setLoading(true); else setLoadingMore(true);
             const response = await axios.get('/user/find-team', {
                 params: { type: activeTab, page: pageNum, limit: PAGE_SIZE }
             });
+            if (id !== reqId.current) return;
 
             if (response.data.success) {
                 const batch = response.data.developers ?? [];
@@ -68,15 +75,18 @@ export default function FindTeammate() {
                 setPage(pageNum);
             }
         } catch (error: any) {
+            if (id !== reqId.current) return;
             console.error("Fetch error:", error);
             if (pageNum === 1) {
                 const msg = error.response?.data?.message || "Check your internet connection.";
                 Alert.alert("Error", msg);
             }
         } finally {
-            setLoading(false);
-            setLoadingMore(false);
-            setRefreshing(false);
+            if (id === reqId.current) {
+                setLoading(false);
+                setLoadingMore(false);
+                setRefreshing(false);
+            }
         }
     }, [activeTab]);
 
@@ -98,14 +108,14 @@ export default function FindTeammate() {
     };
 
     // --- 🔍 FILTER LOGIC ---
-    const filteredDevelopers = developers.filter((dev) => {
+    const filteredDevelopers = useMemo(() => {
         const query = searchQuery.toLowerCase();
-        return (
-            dev.skills.some(skill => skill.toLowerCase().includes(query)) ||
-            dev.name.toLowerCase().includes(query) ||
-            dev.username.toLowerCase().includes(query)
-        );
-    });
+        return developers.filter((dev) => (
+            (dev.skills ?? []).some(skill => String(skill).toLowerCase().includes(query)) ||
+            (dev.name ?? '').toLowerCase().includes(query) ||
+            (dev.username ?? '').toLowerCase().includes(query)
+        ));
+    }, [developers, searchQuery]);
 
     const handleMessage = async (targetUser: UserProfile) => {
         if (connectingId) return;
@@ -117,7 +127,8 @@ export default function FindTeammate() {
                 userId: targetUser._id
             });
 
-            const conversationId = response.data.conversation._id;
+            const conversationId = response.data?.conversation?._id;
+            if (!conversationId) throw new Error("No conversation returned");
 
             socket.emit("join", { conversationId });
 
@@ -156,17 +167,14 @@ export default function FindTeammate() {
                     onPress={() => navigation.navigate('PublicProfile', { userId: item._id })}
                 >
                     <View className="p-1 rounded-full border border-line shadow-hair bg-card">
-                        <Image
-                            source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${item.name}` }}
-                            className="w-16 h-16 rounded-full"
-                        />
+                        <Avatar user={item} size={64} showBadge={false} />
                     </View>
                     <View className="ml-4 flex-1">
-                        <Text className="text-ink text-lg font-display uppercase">{item.name}</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">@{item.username}</Text>
+                        <Text className="text-ink text-lg font-display uppercase" numberOfLines={1}>{item.name}</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5" numberOfLines={1}>@{item.username}</Text>
                         <View className="flex-row items-center mt-1.5 bg-paper-2 self-start px-2 py-0.5 rounded-full border border-line">
                             <MaterialCommunityIcons name="school" size={12} color={C.ink3} />
-                            <Text className="text-ink-3 text-label font-semibold ml-1 uppercase">
+                            <Text className="text-ink-3 text-label font-semibold ml-1 uppercase" numberOfLines={1}>
                                 {item.year}YR • {item.major}
                             </Text>
                         </View>
@@ -237,49 +245,6 @@ export default function FindTeammate() {
         </View>
     );
 
-    const TeammateSkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.3)).current;
-
-        useEffect(() => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-                ])
-            ).start();
-        }, []);
-
-        return (
-            <Animated.View
-                style={{ opacity: pulseAnim }}
-                className="bg-card rounded-sheet p-6 mb-5 border border-line mx-5 mt-2"
-            >
-                <View className="flex-row items-center mb-6">
-                    <View className="w-16 h-16 rounded-full bg-paper-2" />
-                    <View className="ml-4 flex-1">
-                        <View className="h-5 bg-paper-2 rounded w-1/2 mb-2" />
-                        <View className="h-3 bg-paper-2 rounded w-1/4 mb-3" />
-                        <View className="h-3 bg-paper-2 rounded w-1/3" />
-                    </View>
-                </View>
-
-                <View className="flex-row gap-2 mb-6">
-                    {[1, 2, 3].map(i => <View key={i} className="h-7 w-20 bg-paper-2 rounded-card" />)}
-                </View>
-
-                <View className="bg-paper-2 p-4 rounded-card mb-6 border border-line">
-                    <View className="h-3 bg-paper-2 rounded w-full mb-2" />
-                    <View className="h-3 bg-paper-2 rounded w-4/5" />
-                </View>
-
-                <View className="flex-row justify-between items-center">
-                    <View className="h-4 bg-paper-2 rounded w-1/3" />
-                    <View className="w-24 h-12 bg-paper-2 rounded-card" />
-                </View>
-            </Animated.View>
-        );
-    };
-
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
@@ -300,7 +265,7 @@ export default function FindTeammate() {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button"
             accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
+            style={{ marginRight: -11 }}>
                         <Ionicons name="close" size={24} color={C.ink} />
                     </TouchableOpacity>
                 </View>

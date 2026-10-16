@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Image, ScrollView, Switch, Platform, KeyboardAvoidingView, Linking, BackHandler, StatusBar} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
@@ -81,6 +81,8 @@ const AdminPortal = ({ navigation }: any) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [adminPassword, setAdminPassword] = useState('');
     const [verifyingPassword, setVerifyingPassword] = useState(false);
+    // Search-as-you-type: only the newest request may write the list.
+    const userSearchSeq = useRef(0);
 
     const handleVerifyPassword = async () => {
         if (!adminPassword.trim()) return Alert.alert("Required", "Please enter the admin password");
@@ -218,17 +220,18 @@ const AdminPortal = ({ navigation }: any) => {
     };
 
     const fetchAdminUsers = async (search = '') => {
+        const seq = ++userSearchSeq.current;
         try {
             setLoading(true);
-            const res = await axios.get(`/user/admin/users?search=${search}`);
-            if (res.data.success) {
+            const res = await axios.get(`/user/admin/users?search=${encodeURIComponent(search)}`);
+            if (seq === userSearchSeq.current && res.data.success) {
                 setUsers(res.data.users);
             }
         } catch (e) {
             console.error(e);
-            Toast.show({ type: 'error', text1: 'Failed to fetch users' });
+            if (seq === userSearchSeq.current) Toast.show({ type: 'error', text1: 'Failed to fetch users' });
         } finally {
-            setLoading(false);
+            if (seq === userSearchSeq.current) setLoading(false);
         }
     };
 
@@ -300,7 +303,6 @@ const AdminPortal = ({ navigation }: any) => {
         try {
             setLoading(true);
             const res = await axios.get('/subscription/config');
-            console.log("Pricing Config Fetched:", res.data);
             if (res.data.success && res.data.price !== undefined) {
                 setSubscriptionPrice(res.data.price.toString());
                 setCurrentSubscriptionPrice(res.data.price.toString());
@@ -698,7 +700,7 @@ const AdminPortal = ({ navigation }: any) => {
 
     const handleDelete = (id: string, type: 'ad' | 'product' | 'message' | 'media' | 'report' = 'ad') => {
         Alert.alert(
-            type === 'ad' ? 'Delete Ad?' : type === 'product' ? 'Delete Item?' : type === 'report' ? 'Delete Post?' : 'Delete Message?', 
+            type === 'ad' ? 'Delete Ad?' : type === 'product' ? 'Delete Item?' : type === 'report' ? 'Delete Post?' : type === 'media' ? 'Delete Media?' : 'Delete Message?', 
             'This cannot be undone.', [
             { text: 'Cancel', style: 'cancel' },
             {
@@ -881,7 +883,7 @@ const AdminPortal = ({ navigation }: any) => {
                     <View>
                         <Text className="text-ink-3 text-label font-display uppercase">Total Users</Text>
                         <Text className="text-white text-2xl font-display mt-1">
-                            {userStats ? userStats.total.toLocaleString('en-IN') : '—'}
+                            {userStats ? (userStats.total ?? 0).toLocaleString('en-IN') : '—'}
                         </Text>
                         {userStats ? (
                             <Text className="text-ink-3 text-label font-semibold mt-0.5">
@@ -892,7 +894,7 @@ const AdminPortal = ({ navigation }: any) => {
                     <View className="items-end">
                         <Text className="text-ink-3 text-label font-display uppercase">Collected</Text>
                         <Text className="text-white text-2xl font-display mt-1">
-                            {paymentStats ? `₹${Math.round(paymentStats.grossCollected / 100).toLocaleString('en-IN')}` : '—'}
+                            {paymentStats ? `₹${Math.round((paymentStats.grossCollected ?? 0) / 100).toLocaleString('en-IN')}` : '—'}
                         </Text>
                         {paymentStats ? (
                             <Text className="text-ink-3 text-label font-semibold mt-0.5">
@@ -1106,11 +1108,16 @@ const AdminPortal = ({ navigation }: any) => {
                 )}
 
             {view === 'hub' ? (
-                <HubView />
+                // Called, not mounted: a component defined in render is a new type
+                // every render, so the hub remounted (and lost scroll) on each update.
+                HubView()
             ) : activeTab === 'subscription' ? (
                 // Subscription view is rendered above, so we render nothing here to prevent the FlatList fallback
                 null
             ) : activeTab === 'broadcast' ? (
+                // Taller than a phone once the preview shows; without a scroller the
+                // Send button sat off-screen / under the keyboard.
+                <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 <View className="bg-card p-6 rounded-card mx-gutter border border-line shadow-hair mt-4">
                     <View className="flex-row items-center mb-6">
                         <View className="w-12 h-12 bg-fam-social/15 rounded-card items-center justify-center mr-4">
@@ -1216,6 +1223,7 @@ const AdminPortal = ({ navigation }: any) => {
                         )}
                     </TouchableOpacity>
                 </View>
+                </ScrollView>
             ) : (
                 loading ? (
                     <View className="flex-1 items-center justify-center">
@@ -1230,6 +1238,7 @@ const AdminPortal = ({ navigation }: any) => {
                             activeTab === 'reports' ? reports :
                             activeTab === 'users' ? users :
                             activeTab === 'payments' ? payments :
+                            activeTab === 'media' ? fyncMedia :
                             messages
                         }
                         keyExtractor={item => item._id}
@@ -1250,7 +1259,7 @@ const AdminPortal = ({ navigation }: any) => {
                                                         <PaymentItem item={item} onCopy={copyReference} /> :
                                                         <ContactMessageItem item={item} onDelete={handleDelete} onToggleRead={handleToggleMessageReadStatus} />
                         }
-                        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+                        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 100 }}
                         showsVerticalScrollIndicator={false}
                         onEndReached={activeTab === 'payments' ? loadMorePayments : undefined}
                         onEndReachedThreshold={0.5}
@@ -1325,6 +1334,7 @@ const AdminPortal = ({ navigation }: any) => {
                                                 activeTab === 'reports' ? 'No reported posts' :
                                                     activeTab === 'users' ? 'No users found' :
                                                         activeTab === 'payments' ? 'No payments yet' :
+                                                            activeTab === 'media' ? 'No media found' :
                                                             'No messages found'}
                                 </Text>
                             </View>
@@ -1333,13 +1343,13 @@ const AdminPortal = ({ navigation }: any) => {
                 )
             )}
 
-            <Modal visible={modalVisible} animationType="slide" transparent>
+            <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => { setModalVisible(false); resetForm(); }}>
                 <View className="flex-1 bg-black/50 justify-end">
-                    <KeyboardAvoidingView behavior="padding">
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                         <View className="bg-paper rounded-t-sheet p-6 pb-10 border-t border-line">
                             <View className="flex-row justify-between items-center mb-6">
                                 <Text className="text-ink font-display text-h1">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New Reward Item'}</Text>
-                                <TouchableOpacity onPress={() => { setModalVisible(false); resetForm(); }} className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
+                                <TouchableOpacity onPress={() => { setModalVisible(false); resetForm(); }} hitSlop={8} className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
                                     <Ionicons name="close" size={18} color={C.ink} />
                                 </TouchableOpacity>
                             </View>
@@ -1467,7 +1477,7 @@ const AdminPortal = ({ navigation }: any) => {
             </Modal>
             </SafeAreaView>
             {/* Subscription Confirmation Modal */}
-            <Modal visible={subConfirmModalVisible} animationType="fade" transparent>
+            <Modal visible={subConfirmModalVisible} animationType="fade" transparent onRequestClose={() => !submittingPrice && setSubConfirmModalVisible(false)}>
                 <View className="flex-1 bg-ink/80 justify-center px-6">
                     <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setSubConfirmModalVisible(false)} />
                     <View className="bg-card rounded-sheet p-card-pad shadow-hair overflow-hidden border border-line">

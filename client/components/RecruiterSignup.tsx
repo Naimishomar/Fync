@@ -17,9 +17,11 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import AuthPoster from './ui/AuthPoster';
 import { C } from '../constants/colors';
+import { useBottomInset } from '../constants/layout';
 
 export default function RecruiterSignup() {
   const navigation = useNavigation<any>();
+  const bottomInset = useBottomInset();
 
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -74,6 +76,10 @@ export default function RecruiterSignup() {
   };
 
   const verifyOtpAndProceed = async () => {
+    if (!otp.trim()) {
+      Toast.show({ type: 'error', text1: 'Enter the code from your email' });
+      return;
+    }
     try {
       setIsLoading(true);
       const res = await axios.post('/user/verify-recruiter-otp', {
@@ -130,7 +136,7 @@ export default function RecruiterSignup() {
 
             <View
               className="bg-paper rounded-t-sheet px-6"
-              style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 }}
+              style={{ marginTop: -22, paddingTop: 8, paddingBottom: bottomInset }}
             >
               <View style={{ width: 72, height: 72, alignSelf: 'center', marginTop: 18 }}>
                 <View
@@ -213,7 +219,7 @@ export default function RecruiterSignup() {
                     disabled={isLoading || !agreeTerms}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator color={C.ink} />
                     ) : (
                       <Text className="text-white text-base font-semibold">Request Access</Text>
                     )}

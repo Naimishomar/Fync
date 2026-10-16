@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, RefreshControl, ViewToken, TouchableOpacity, Share, DeviceEventEmitter, ScrollView, Animated, Easing, useWindowDimensions, StatusBar} from 'react-native'
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, useRecyclingState } from '@shopify/flash-list';
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,7 +21,7 @@ import { memo } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   checkAndStartSession,
-  getSeenPostIds,
+  getSeenPostsBloom,
   markPostsAsSeen,
   resetSeenPosts,
 } from '../utils/feedSession';
@@ -97,17 +97,27 @@ interface Post {
 const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost, onRequestRepost }: { item: Post, index: number, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void, onRequestRepost: (item: Post, confirm: (text: string) => Promise<void>) => void }) => {
   const { width } = useWindowDimensions();
   const mediaWidth = width;
-  const [liked, setLiked] = useState(
-    !!item.liked_by?.some((u: any) => String(u) === String(currentUser?._id))
+  // FlashList hands this same instance a different post when it recycles the
+  // cell, so plain useState would carry the last post's like/expand state over.
+  // useRecyclingState resets whenever the post changes.
+  const [liked, setLiked] = useRecyclingState(
+    () => !!item.liked_by?.some((u: any) => String(u) === String(currentUser?._id)),
+    [item._id]
   );
-  const [likeCount, setLikeCount] = useState(item.likes || 0);
-  const [reposted, setReposted] = useState(item.repostedBy?.some((u: any) => String(u) === String(currentUser?._id)));
-  const [repostCount, setRepostCount] = useState(item.reposts || 0);
-  const [viewCount] = useState(item.views || 0);
-  
-  const [resizeMode, setResizeMode] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [likeCount, setLikeCount] = useRecyclingState(item.likes || 0, [item._id]);
+  const [reposted, setReposted] = useRecyclingState(
+    () => !!item.repostedBy?.some((u: any) => String(u) === String(currentUser?._id)),
+    [item._id]
+  );
+  const [repostCount, setRepostCount] = useRecyclingState(item.reposts || 0, [item._id]);
+
+  const [resizeMode, setResizeMode] = useRecyclingState(false, [item._id]);
+  const [activeIndex, setActiveIndex] = useRecyclingState(0, [item._id]);
+  const [isExpanded, setIsExpanded] = useRecyclingState(false, [item._id]);
+  // A request that settles after the cell was recycled must not write into the
+  // post now occupying it.
+  const idRef = useRef(item._id);
+  idRef.current = item._id;
 const MAX_CHAR_LIMIT = 150;
 
   const springValue = useRef(new Animated.Value(1)).current;
@@ -136,19 +146,22 @@ const MAX_CHAR_LIMIT = 150;
    */
   const handleLike = async () => {
     animatePress();
+    const id = item._id;
     const prevLiked = liked;
     const prevCount = likeCount;
     setLiked(!prevLiked);
     setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
 
     try {
-      const res = await axios.post(`/post/like/${item._id}`);
+      const res = await axios.post(`/post/like/${id}`);
       const post = res.data?.post;
+      if (idRef.current !== id) return;
       if (post) {
         setLiked(!!post.liked_by?.some((u: any) => String(u) === String(currentUser?._id)));
         setLikeCount(post.likes || 0);
       }
     } catch (error) {
+      if (idRef.current !== id) return;
       setLiked(prevLiked);
       setLikeCount(prevCount);
     }
@@ -163,13 +176,15 @@ const MAX_CHAR_LIMIT = 150;
    * database never held.
    */
   const handleRepost = async (text = '') => {
+    const id = item._id;
     const prevReposted = reposted;
     const prevCount = repostCount;
     setReposted(!prevReposted);
     setRepostCount(prevReposted ? Math.max(0, prevCount - 1) : prevCount + 1);
 
     try {
-      const res = await axios.post(`/post/repost/${item._id}`, { text });
+      const res = await axios.post(`/post/repost/${id}`, { text });
+      if (idRef.current !== id) return;
       if (res.data?.success) {
         setReposted(res.data.reposted);
         setRepostCount(res.data.reposts);
@@ -178,6 +193,7 @@ const MAX_CHAR_LIMIT = 150;
         }
       }
     } catch (err: any) {
+      if (idRef.current !== id) return;
       setReposted(prevReposted);
       setRepostCount(prevCount);
       const msg = err?.response?.data?.message;
@@ -195,6 +211,7 @@ const MAX_CHAR_LIMIT = 150;
 
   const timeAgo = (dateString: string) => {
     const seconds = Math.floor((new Date().getTime() - new Date(dateString).getTime()) / 1000);
+    if (Number.isNaN(seconds)) return '';
     if (seconds < 60) return 'now';
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m`;
@@ -203,6 +220,26 @@ const MAX_CHAR_LIMIT = 150;
     const days = Math.floor(hours / 24);
     return `${days}d`;
   };
+
+  const renderImage = ({ item: imageUrl }: { item: string }) => (
+    <View style={{ width: mediaWidth }}>
+      <Pressable onPress={() => setResizeMode(prev => !prev)}>
+        <ExpoImage
+          source={{ uri: getFullUrl(imageUrl) || '' }}
+          style={{ width: mediaWidth, height: mediaWidth }}
+          contentFit={resizeMode ? "contain" : "cover"}
+          cachePolicy="memory-disk"
+          // Tied to the URL so a recycled row never shows the previous
+          // post's photo for a frame while the new one decodes.
+          recyclingKey={imageUrl}
+          placeholder={{ blurhash: POST_PLACEHOLDER }}
+          placeholderContentFit="cover"
+          transition={120}
+          priority={index === 0 ? "high" : "normal"}
+        />
+      </Pressable>
+    </View>
+  );
 
   const handleShare = async () => {
     try {
@@ -314,34 +351,23 @@ const MAX_CHAR_LIMIT = 150;
       {/* Media (Full Width) */}
       {!!item.image?.length && (
       <View className="relative mb-3">
-        <FlatList
-          data={item.image || []}
-          keyExtractor={(url, index) => `${item._id}-img-${index}`}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={viewabilityConfig}
-          renderItem={({ item: imageUrl }) => (
-            <View style={{ width: mediaWidth }}>
-              <Pressable onPress={() => setResizeMode(prev => !prev)}>
-                <ExpoImage
-                  source={{ uri: getFullUrl(imageUrl) || '' }}
-                  style={{ width: mediaWidth, height: mediaWidth }}
-                  contentFit={resizeMode ? "contain" : "cover"}
-                  cachePolicy="memory-disk"
-                  // Tied to the URL so a recycled row never shows the previous
-                  // post's photo for a frame while the new one decodes.
-                  recyclingKey={imageUrl}
-                  placeholder={{ blurhash: POST_PLACEHOLDER }}
-                  placeholderContentFit="cover"
-                  transition={120}
-                  priority={index === 0 ? "high" : "normal"}
-                />
-              </Pressable>
-            </View>
-          )}
-        />
+        {/* Most posts carry one photo: skip mounting a nested list for it.
+            The carousel is keyed by post so a recycled cell starts on slide 1. */}
+        {images.length === 1 ? (
+          renderImage({ item: images[0] })
+        ) : (
+          <FlatList
+            key={item._id}
+            data={images}
+            keyExtractor={(url, index) => `${item._id}-img-${index}`}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            renderItem={renderImage}
+          />
+        )}
         
         {/* Image Counter (Top Right) */}
         {(item.image?.length || 0) > 1 && (
@@ -435,7 +461,7 @@ const MAX_CHAR_LIMIT = 150;
           >
             <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={20} color={reposted ? '#ff8902' : C.ink} />
             {repostCount > 0 && (
-              <Text className={`font-display ml-1.5 ${reposted ? 'text-[#ff8902]' : 'text-[#fff]'}`} style={{ fontSize: 12 }}>
+              <Text className={`font-display ml-1.5 ${reposted ? 'text-[#ff8902]' : 'text-ink'}`} style={{ fontSize: 12 }}>
                 {formatCount(repostCount)}
               </Text>
             )}
@@ -500,6 +526,11 @@ export default function HomeScreen() {
   const [followingHasMore, setFollowingHasMore] = useState(true);
   const [followingLoadedOnce, setFollowingLoadedOnce] = useState(false);
   const followingCursorRef = useRef<string | null>(null);
+  // A response for the tab you just left must not paint over the one you are on.
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  // onEndReached can fire again before the loadingMore state commits.
+  const loadingMoreRef = useRef(false);
 
   const [feed, setFeed] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
@@ -520,26 +551,33 @@ export default function HomeScreen() {
 
 
   const fetchFeed = useCallback(async (pageNum: number, shouldRefresh = false) => {
+    const tab = activeTab;
+    const isCurrent = () => activeTabRef.current === tab;
     const currentHasMore = activeTab === 'forYou' ? forYouHasMore : followingHasMore;
     if (!currentHasMore && !shouldRefresh && pageNum !== 1) return;
 
     if (pageNum === 1) {
       // 1. Try to load from cache first for instant UI
       const cacheKey = `fync_feed_${activeTab}`;
-      const cached = await AsyncStorage.getItem(cacheKey);
-      if (cached && pageNum === 1 && !shouldRefresh) {
-        const parsed = JSON.parse(cached);
+      const cached = await AsyncStorage.getItem(cacheKey).catch(() => null);
+      let parsed: Post[] | null = null;
+      try { parsed = cached ? JSON.parse(cached) : null; } catch { parsed = null; }
+      if (Array.isArray(parsed) && !shouldRefresh) {
         prefetchPostImages(parsed);
         if (activeTab === 'forYou') setForYouFeed(parsed);
         else setFollowingFeed(parsed);
-        setFeed(parsed);
+        if (isCurrent()) setFeed(parsed);
         setLoading(false);
       } else {
         setLoading(true);
       }
     }
     
-    if (pageNum > 1) setLoadingMore(true);
+    if (pageNum > 1) {
+      if (loadingMoreRef.current) return;
+      loadingMoreRef.current = true;
+      setLoadingMore(true);
+    }
 
     try {
       let newPosts: Post[] = [];
@@ -560,7 +598,7 @@ export default function HomeScreen() {
         const res =
           prefetched ||
           (await axios.post(`/post/smart-feed?page=${pageNum}&limit=10`, {
-            seenIds: await getSeenPostIds(),
+            seenBloom: await getSeenPostsBloom(),
           }));
 
         if (res.data.success) {
@@ -575,30 +613,37 @@ export default function HomeScreen() {
 
       // Update the specific tab state and the active feed
       if (activeTab === 'forYou') {
-        const updatedForYou = (shouldRefresh || pageNum === 1) ? newPosts : [...forYouFeed, ...newPosts.filter(p => !forYouFeed.find(fp => fp._id === p._id))];
+        const have = new Set(forYouFeed.map(fp => fp._id));
+        const updatedForYou = (shouldRefresh || pageNum === 1) ? newPosts : [...forYouFeed, ...newPosts.filter(p => !have.has(p._id))];
         setForYouFeed(updatedForYou);
         setForYouHasMore(serverHasMore);
         setForYouPage(pageNum);
-        setFeed(updatedForYou);
-        setHasMore(serverHasMore);
-        setPage(pageNum);
+        if (isCurrent()) {
+          setFeed(updatedForYou);
+          setHasMore(serverHasMore);
+          setPage(pageNum);
+        }
         // Cache the first page
         if (pageNum === 1) AsyncStorage.setItem(`fync_feed_forYou`, JSON.stringify(updatedForYou));
       } else {
-        const updatedFollowing = (shouldRefresh || pageNum === 1) ? newPosts : [...followingFeed, ...newPosts.filter(p => !followingFeed.find(fp => fp._id === p._id))];
+        const have = new Set(followingFeed.map(fp => fp._id));
+        const updatedFollowing = (shouldRefresh || pageNum === 1) ? newPosts : [...followingFeed, ...newPosts.filter(p => !have.has(p._id))];
         setFollowingFeed(updatedFollowing);
         setFollowingHasMore(serverHasMore);
         setFollowingPage(pageNum);
         setFollowingLoadedOnce(true);
-        setFeed(updatedFollowing);
-        setHasMore(serverHasMore);
-        setPage(pageNum);
+        if (isCurrent()) {
+          setFeed(updatedFollowing);
+          setHasMore(serverHasMore);
+          setPage(pageNum);
+        }
         // Cache the first page
         if (pageNum === 1) AsyncStorage.setItem(`fync_feed_following`, JSON.stringify(updatedFollowing));
       }
     } catch (error) {
       console.log('Failed to load feed', error);
     } finally {
+      if (pageNum > 1) loadingMoreRef.current = false;
       setLoading(false);
       setLoadingMore(false);
       setRefreshing(false);
@@ -644,7 +689,7 @@ export default function HomeScreen() {
   }, [fetchFeed]);
 
   const loadMore = useCallback(() => {
-    if (!loadingMore && hasMore && !loading) {
+    if (!loadingMore && !loadingMoreRef.current && hasMore && !loading) {
       const nextPage = page + 1;
       setPage(nextPage);
       fetchFeed(nextPage);
@@ -687,10 +732,6 @@ export default function HomeScreen() {
     }, [fetchBadges])
   );
 
-  useEffect(() => {
-    fetchBadges();
-  }, []);
-
   /**
    * The repost sheet is owned by the screen, not by the row.
    *
@@ -714,20 +755,32 @@ export default function HomeScreen() {
    * Set a post's comment count — and its previewed comment — to what the server
    * actually returned, so posting from the sheet updates the row behind it.
    */
+  /** Apply to the visible feed and both per-tab copies, so switching tabs never brings back the old row. */
+  const patchFeeds = useCallback((fn: (posts: Post[]) => Post[]) => {
+    setFeed(fn);
+    setForYouFeed(fn);
+    setFollowingFeed(fn);
+  }, []);
+
   const handleCommentCount = useCallback((postId: string, count: number, newest?: any) => {
-    setFeed((currentFeed) =>
+    patchFeeds((currentFeed) =>
       currentFeed.map((post) =>
         post._id === postId
           ? { ...post, commentCount: count, comments: newest ? [newest] : [] }
           : post,
       ),
     );
-  }, []);
+  }, [patchFeeds]);
+
+  // Snapshot for rollback, read through a ref so this callback stays stable and
+  // a page load does not re-render every visible row.
+  const feedsRef = useRef({ feed, forYouFeed, followingFeed });
+  feedsRef.current = { feed, forYouFeed, followingFeed };
 
   const handleDeletePost = useCallback(async (postId: string) => {
-    const previousFeed = feed;
+    const previous = feedsRef.current;
     // Optimistic update
-    setFeed(prev => prev.filter(p => p._id !== postId));
+    patchFeeds(prev => prev.filter(p => p._id !== postId));
     
     try {
       const res = await axios.delete(`/post/${postId}`);
@@ -737,11 +790,14 @@ export default function HomeScreen() {
         throw new Error("Failed to delete");
       }
     } catch (error) {
-      setFeed(previousFeed); // Rollback
+      // Rollback
+      setFeed(previous.feed);
+      setForYouFeed(previous.forYouFeed);
+      setFollowingFeed(previous.followingFeed);
       console.log('Failed to delete post', error);
       Toast.show({ type: 'error', text1: 'Failed to delete post' });
     }
-  }, [feed]);
+  }, [patchFeeds]);
 
   /**
    * Suggestions are woven into the data rather than worked out inside
@@ -801,7 +857,7 @@ export default function HomeScreen() {
             />
           </View>
         </Pressable>
-        <Text className="font-display text-h2 text-ink shrink" numberOfLines={1}>{`Hi, ${user?.name?.split(" ")[0]}`}</Text>
+        <Text className="font-display text-h2 text-ink shrink" numberOfLines={1}>{`Hi, ${user?.name?.split(" ")[0] || user?.username || ''}`}</Text>
       </View>
 
       <View className="flex-row items-center gap-3 shrink-0">
@@ -820,11 +876,11 @@ export default function HomeScreen() {
           </Text>
         </TouchableOpacity>
 
-        <Pressable onPress={() => navigation.navigate('SearchScreen')}>
+        <Pressable onPress={() => navigation.navigate('SearchScreen')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Search">
           <Ionicons name="search-outline" size={22} color={C.ink} />
         </Pressable>
 
-        <Pressable onPress={() => navigation.navigate('Notification')}>
+        <Pressable onPress={() => navigation.navigate('Notification')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Notifications">
           <View>
             <Ionicons name="heart-outline" size={22} color={C.ink} />
             {unreadCount > 0 && (
@@ -836,7 +892,7 @@ export default function HomeScreen() {
             )}
           </View>
         </Pressable>
-        <Pressable onPress={() => navigation.navigate('ChatList')}>
+        <Pressable onPress={() => navigation.navigate('ChatList')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Chats">
           <View>
             <Ionicons name="chatbubble-ellipses-outline" size={22} color={C.ink} />
             {chatUnreadCount > 0 && (
@@ -876,14 +932,17 @@ export default function HomeScreen() {
   );
 
 
-  const renderFooter = () => {
+  // Elements, not inline render functions: a new function each render reads to
+  // the list as a new component type and remounts the header (ads, grid) on
+  // every badge or paging update.
+  const listFooter = useMemo(() => {
     if (!loadingMore) return <View className="h-20" />;
     return (
       <View className="py-4 h-20">
         <ActivityIndicator size="small" color={C.brand[500]} />
       </View>
     );
-  };
+  }, [loadingMore]);
   // The home grid is sourced from constants/features.ts now, so there is one
   // registry instead of a second hand-maintained copy that drifted from it.
   // The four features this user actually opens, newest first. Shared with
@@ -958,6 +1017,24 @@ export default function HomeScreen() {
 }
 
 
+  const showSkeleton = loading && feed.length === 0;
+  const listHeader = useMemo(() => (
+    <View>
+      {renderTabBar()}
+      <View className="bg-transparent">
+        <AdCarousel />
+        {renderFeatureStories()}
+        {/* <CreatePost /> */}
+        {showSkeleton && (
+          <View>
+            {[1, 2, 3].map(i => <PostSkeleton key={i} />)}
+          </View>
+        )}
+      </View>
+    </View>
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [activeTab, quickFeatures, openQuick, showSkeleton]);
+
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
@@ -973,34 +1050,21 @@ export default function HomeScreen() {
         {...autoHideTabBar}
         keyExtractor={(item) => item._id}
         renderItem={renderPostItem}
-        ListHeaderComponent={
-          <View>
-            {renderTabBar()}
-            <View className="bg-transparent">
-              <AdCarousel />
-              {renderFeatureStories()}
-              {/* <CreatePost /> */}
-              {loading && feed.length === 0 && (
-                <View>
-                  {[1, 2, 3].map(i => <PostSkeleton key={i} />)}
-                </View>
-              )}
-            </View>
-          </View>
-        }
+        ListHeaderComponent={listHeader}
 
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
+        ListFooterComponent={listFooter}
         ListEmptyComponent={
           !loading && !refreshing ? (
             <View className="mt-20 flex-1 items-center px-4">
               <ExpoImage
                 source={no_post}
-                className="h-48 w-[80%]"
+                // expo-image is not registered with NativeWind, so className would leave it 0x0.
+                style={{ height: 192, width: '80%' }}
                 contentFit="contain"
               />
               <Text className="font-display text-h1 text-ink mt-4">Welcome to Fync!</Text>

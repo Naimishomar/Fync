@@ -7,6 +7,7 @@ import axios from '../context/axiosConfig';
 //@ts-ignore
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
+import { useBottomInset } from '../constants/layout';
 
 const ForgotPassword = ({ route, navigation }: any) => {
   const [email, setEmail] = useState(route.params?.email || '');
@@ -15,20 +16,21 @@ const ForgotPassword = ({ route, navigation }: any) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const bottomInset = useBottomInset();
 
   const togglePassword = useCallback(() => {
     setPasswordVisible((prev) => !prev);
   }, []);
 
   const handleSendOtp = async () => {
-    if (!email) {
+    if (!email.trim()) {
       Alert.alert("Error", "Please enter your email address.");
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await axios.post(`/user/reset-password`, { email });
+      const response = await axios.post(`/user/reset-password`, { email: email.trim() });
       if (response.data.success) {
         Alert.alert("OTP Sent", "Please check your email for the verification code.");
         setIsOtpSent(true);
@@ -59,7 +61,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
     try {
       // Call your backend verifyResetPassword endpoint
       const response = await axios.post(`/user/verify-reset-password`, {
-        email,
+        email: email.trim(),
         otp,
         password
       });
@@ -101,7 +103,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
 
             <View
               className="bg-paper rounded-t-sheet"
-              style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 }}
+              style={{ marginTop: -22, paddingTop: 8, paddingBottom: bottomInset }}
             >
               <View className="px-6 pt-6 pb-2">
                 <View style={{ width: 72, height: 72, alignSelf: 'center' }}>

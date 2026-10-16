@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {View, Text, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Image, StatusBar, Modal} from 'react-native'
+import {View, Text, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, Modal} from 'react-native'
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
+import Avatar from '../Avatar';
 
 const SubGroupChat = ({ navigation, route }: any) => {
-    const { subGroupId, subGroupName, clubId } = route.params;
+    const { subGroupId, subGroupName, clubId } = route.params ?? {};
     const { user } = useAuth();
     
     const [messages, setMessages] = useState<any[]>([]);
@@ -26,6 +28,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
     const [pollOptions, setPollOptions] = useState(['', '']);
 
     const flatListRef = useRef<FlatList>(null);
+    const pollBusy = useRef(false);
 
     const fetchMessages = async () => {
         try {
@@ -37,13 +40,13 @@ const SubGroupChat = ({ navigation, route }: any) => {
             
             const clubRes = await axios.get(`/clubs/${clubId}`);
             if (clubRes.data.success) {
-                setClubAdmins(clubRes.data.club.admins.map((a: any) => a._id || a));
+                setClubAdmins((clubRes.data.club?.admins ?? []).map((a: any) => a._id || a));
             }
         } catch (error) {
             console.log("Chat fetch error", error);
         } finally {
+            // No scroll timer here: onContentSizeChange already pins the list to the end.
             setLoading(false);
-            setTimeout(() => flatListRef.current?.scrollToEnd(), 500);
         }
     };
 
@@ -51,24 +54,25 @@ const SubGroupChat = ({ navigation, route }: any) => {
         fetchMessages();
         socket.emit("join_club_room", { subGroupId });
         
-        socket.on('new_club_message', (msg: any) => {
-            setMessages(prev => [...prev, msg]);
-            setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 200);
-        });
-
-        socket.on('poll_updated', ({ messageId, pollOptions: newOptions }: any) => {
+        const onNewMessage = (msg: any) => {
+            setMessages(prev => (prev.some(m => m._id === msg?._id) ? prev : [...prev, msg]));
+        };
+        const onPollUpdated = ({ messageId, pollOptions: newOptions }: any) => {
             setMessages(prev => prev.map(m => m._id === messageId ? { ...m, pollOptions: newOptions } : m));
-        });
+        };
+        socket.on('new_club_message', onNewMessage);
+        socket.on('poll_updated', onPollUpdated);
 
         return () => {
             socket.emit("leave_club_room", { subGroupId });
-            socket.off('new_club_message');
-            socket.off('poll_updated');
+            // Remove only our handlers; a bare off(event) strips every screen's listener.
+            socket.off('new_club_message', onNewMessage);
+            socket.off('poll_updated', onPollUpdated);
         };
     }, [subGroupId]);
 
     const handleSend = async (fileData?: any) => {
-        if (!text.trim() && !fileData && !sending) return;
+        if (sending || (!text.trim() && !fileData)) return;
         setSending(true);
         const formData = new FormData();
         formData.append('subGroupId', subGroupId);
@@ -103,7 +107,8 @@ const SubGroupChat = ({ navigation, route }: any) => {
     };
 
     const handleCreatePoll = async () => {
-        if (!pollQuestion.trim() || pollOptions.some(o => !o.trim())) return;
+        if (pollBusy.current || !pollQuestion.trim() || pollOptions.some(o => !o.trim())) return;
+        pollBusy.current = true;
         const options = pollOptions.map(o => ({ optionText: o, votes: [] }));
         
         try {
@@ -119,6 +124,8 @@ const SubGroupChat = ({ navigation, route }: any) => {
             setPollOptions(['', '']);
         } catch (error) {
              Alert.alert("Error", "Could not create poll");
+        } finally {
+            pollBusy.current = false;
         }
     };
 
@@ -157,7 +164,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
         );
     };
 
-    const isRoomAdmin = subGroup?.admins?.includes(user?._id) || clubAdmins.includes(user?._id);
+    const isRoomAdmin = subGroup?.admins?.some((a: any) => (a?._id || a) === user?._id) || clubAdmins.includes(user?._id);
     const canType = !subGroup?.onlyAdminsCanMessage || isRoomAdmin;
 
     const renderMessage = ({ item }: { item: any }) => {
@@ -167,7 +174,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
         return (
             <View className={`mb-4 flex-row ${isMine ? 'justify-end' : 'justify-start'}`}>
                 {!isMine && (
-                    <Image source={{ uri: item.sender?.avatar || 'https://via.placeholder.com/150' }} className="w-8 h-8 rounded-full bg-paper-2 mr-2" />
+                    <View className="mr-2"><Avatar user={item.sender} size={32} showBadge={false} /></View>
                 )}
                 <View className={`max-w-[80%] rounded-card px-4 py-3 ${isMine ? 'bg-paper-2' : 'bg-card border border-line'}`}>
                     {!isMine && (
@@ -177,7 +184,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                     {item.fileUrl && (
                         <View className="mb-2">
                             {item.fileType === 'image' ? (
-                                <Image source={{ uri: item.fileUrl }} className="w-48 h-48 rounded-lg" />
+                                <Image source={{ uri: item.fileUrl }} style={{ width: 192, height: 192, borderRadius: 8 }} cachePolicy="memory-disk" />
                             ) : (
                                 <View className="bg-paper-2 p-2 rounded-lg flex-row items-center border border-line">
                                     <Feather name="file" size={20} color={C.ink2} />
@@ -190,10 +197,10 @@ const SubGroupChat = ({ navigation, route }: any) => {
                     {item.isPoll ? (
                         <View className="w-56">
                             <Text className="text-ink font-semibold text-sm mb-3">{item.pollQuestion}</Text>
-                            {item.pollOptions.map((opt: any, idx: number) => {
-                                const totalVotes = item.pollOptions.reduce((acc: number, curr: any) => acc + curr.votes.length, 0);
-                                const percentage = totalVotes === 0 ? 0 : (opt.votes.length / totalVotes) * 100;
-                                const hasVoted = opt.votes.includes(user?._id);
+                            {(item.pollOptions ?? []).map((opt: any, idx: number) => {
+                                const totalVotes = item.pollOptions.reduce((acc: number, curr: any) => acc + (curr.votes?.length ?? 0), 0);
+                                const percentage = totalVotes === 0 ? 0 : ((opt.votes?.length ?? 0) / totalVotes) * 100;
+                                const hasVoted = !!opt.votes?.includes(user?._id);
 
                                 return (
                                     <TouchableOpacity 
@@ -220,7 +227,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                             <View className="mt-2 pt-2 border-t border-line flex-row items-center justify-between">
                                 <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
                                     <Text className="text-ink-3 text-label font-display uppercase">
-                                        {item.pollOptions.reduce((acc: number, curr: any) => acc + curr.votes.length, 0)} Votes
+                                        {(item.pollOptions ?? []).reduce((acc: number, curr: any) => acc + (curr.votes?.length ?? 0), 0)} Votes
                                     </Text>
                                 </View>
                             </View>
@@ -244,36 +251,24 @@ const SubGroupChat = ({ navigation, route }: any) => {
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
                 {/* Header */}
-                <View className="px-5 py-4 flex-row items-center border-b border-line">
-                    <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="chevron-back" size={24} color="black" />
-                    </TouchableOpacity>
-                    <View className="ml-4 flex-1">
-                        <View className="flex-row items-center">
-                            {subGroup?.isGeneral && <MaterialCommunityIcons name="shield-check" size={14} color={C.success} style={{ marginRight: 4 }} />}
-                            <Text className="font-semibold text-base text-ink">{subGroupName}</Text>
-                        </View>
-                        <Text className="text-success font-semibold text-label uppercase">{subGroup?.isGeneral ? 'Community Hub' : 'Connected Now'}</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => navigation.navigate('EditSubGroup', { subGroupId })} className="mr-4">
-                        <Feather name="info" size={22} color={C.ink2} />
-                    </TouchableOpacity>
-                    {isRoomAdmin && (
-                        <TouchableOpacity onPress={() => setShowPollModal(true)} className="mr-4">
-                            <MaterialCommunityIcons name="poll" size={24} color={C.ink2} />
-                        </TouchableOpacity>
-                    )}
-                    {!subGroup?.isGeneral && (
-                        <TouchableOpacity onPress={handleLeaveRoom}>
-                            <Ionicons name="log-out-outline" size={22} color={C.danger} />
-                        </TouchableOpacity>
-                    )}
+                <View className="border-b border-line">
+                    <AppBar
+                        title={subGroupName}
+                        subtitle={subGroup?.isGeneral ? 'Community Hub' : 'Connected Now'}
+                        onBack={() => navigation.goBack()}
+                        right={<>
+                            <IconBtn name="information-circle-outline" color={C.ink2} onPress={() => navigation.navigate('EditSubGroup', { subGroupId })} />
+                            {isRoomAdmin && (
+                                <IconBtn name="bar-chart-outline" color={C.ink2} onPress={() => setShowPollModal(true)} />
+                            )}
+                            {!subGroup?.isGeneral && (
+                                <IconBtn name="log-out-outline" color={C.danger} onPress={handleLeaveRoom} />
+                            )}
+                        </>}
+                    />
                 </View>
 
+                <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 {/* Chat Area */}
                 <View className="flex-1 bg-paper">
                     {loading ? (
@@ -294,7 +289,6 @@ const SubGroupChat = ({ navigation, route }: any) => {
                 </View>
 
                 {/* Input Area */}
-                <KeyboardAvoidingView behavior="padding">
                     <View className="bg-card px-5 py-4 border-t border-line">
                         {canType ? (
                             <View className="flex-row items-end gap-3">
@@ -331,12 +325,12 @@ const SubGroupChat = ({ navigation, route }: any) => {
                 </KeyboardAvoidingView>
 
                 {/* Poll Creation Modal */}
-                <Modal visible={showPollModal} animationType="slide" transparent>
-                    <View className="flex-1 bg-black/60 justify-end">
+                <Modal visible={showPollModal} animationType="slide" transparent onRequestClose={() => setShowPollModal(false)}>
+                    <KeyboardAvoidingView className="flex-1 bg-black/60 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                         <View className="bg-paper rounded-t-sheet p-card-pad">
                             <View className="flex-row justify-between items-center mb-6">
                                 <Text className="text-ink font-display uppercase text-h1">Create Poll</Text>
-                                <TouchableOpacity onPress={() => setShowPollModal(false)}>
+                                <TouchableOpacity onPress={() => setShowPollModal(false)} hitSlop={10}>
                                     <Ionicons name="close" size={28} color={C.ink} />
                                 </TouchableOpacity>
                             </View>
@@ -376,7 +370,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                 <Text className="text-white font-display uppercase">Post Poll</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </Modal>
             </SafeAreaView>
         </View>

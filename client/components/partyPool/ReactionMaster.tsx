@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, Animated } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../../constants/colors';
+import { Alert } from '../ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 
@@ -13,6 +14,9 @@ const ReactionMaster = () => {
   const startTime = useRef<number>(0);
   const timerTimeout = useRef<any>(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Leaving mid-wait must not fire the pending "go" timer.
+  useEffect(() => () => clearTimeout(timerTimeout.current), []);
 
   const startGame = () => {
     setGameState('waiting');
@@ -29,7 +33,7 @@ const ReactionMaster = () => {
     if (gameState === 'waiting') {
       clearTimeout(timerTimeout.current);
       setGameState('idle');
-      alert("TOO EARLY! Wait for the pink screen.");
+      Alert.alert("Too early!", "Wait for the pink screen.");
       return;
     }
 
@@ -71,7 +75,9 @@ const ReactionMaster = () => {
         onPress={handleTap}
         className="w-full rounded-sheet overflow-hidden bg-paper border border-line"
       >
-        <Animated.View className="flex-1" style={{ transform: [{ scale: scaleAnim }] }}>
+        {/* Explicit floor: the card is content-sized, so flex-1 alone gives the
+            states (and the TAP NOW target) no guaranteed height. */}
+        <Animated.View className="flex-1" style={{ minHeight: 320, transform: [{ scale: scaleAnim }] }}>
             {gameState === 'idle' && (
                 <View className="flex-1 justify-center items-center p-[30px]">
                     <Ionicons name="flash-outline" size={48} color={C.ink3} />

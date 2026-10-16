@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { AppBar } from '../../ui/kit';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
 import { Alert } from '../../ui/AlertModal';
@@ -18,7 +19,8 @@ export default function PdfToImagesScreen() {
   const [pages, setPages] = useState<string[]>([]);
 
   const choose = async () => {
-    const picked = await pickPdf(false);
+    let picked: PickedPdf[];
+    try { picked = await pickPdf(false); } catch { Alert.alert('Error', 'Could not open that file.'); return; }
     if (picked.length) { setFile(picked[0]); setPages([]); prepare(); }
   };
 
@@ -30,8 +32,10 @@ export default function PdfToImagesScreen() {
       if (res.kind === 'error') throw new Error(res.message);
       if (res.kind !== 'pages') throw new Error('Unexpected result.');
       const uris: string[] = [];
+      // Unique per run: a reused path showed the previous PDF's cached thumbnails.
+      const stamp = Date.now();
       for (let i = 0; i < res.pages.length; i++) {
-        const uri = `${FileSystem.cacheDirectory}fync-page-${i + 1}.jpg`;
+        const uri = `${FileSystem.cacheDirectory}fync-page-${stamp}-${i + 1}.jpg`;
         await FileSystem.writeAsStringAsync(uri, res.pages[i], { encoding: FileSystem.EncodingType.Base64 });
         uris.push(uri);
       }
@@ -54,13 +58,7 @@ export default function PdfToImagesScreen() {
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
       <Host />
       <SafeAreaView style={{ flex: 1 }}>
-        <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button" accessibilityLabel="Go back" style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <Text className="text-xl font-display text-ink flex-1">PDF to Images</Text>
-        </View>
+        <AppBar title="PDF to Images" onBack={() => navigation.goBack()} />
 
         <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
           <Text className="text-ink-2 text-sm mb-5">Turn each page into a JPG you can drop into slides or share on chat.</Text>

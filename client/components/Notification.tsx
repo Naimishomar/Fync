@@ -3,8 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  Image,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Pressable,
@@ -14,10 +12,12 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import { NotificationSkeleton } from './Skeleton';
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
 
 // --- TYPES ---
 interface NotificationItem {
@@ -149,7 +149,7 @@ const Notification = () => {
   };
 
   // --- RENDER ITEM ---
-  const renderItem = ({ item }: { item: NotificationItem }) => {
+  const renderItem = useCallback(({ item }: { item: NotificationItem }) => {
     let message = '';
     let iconName: any = 'notifications';
     let iconColor = '#fff';
@@ -245,11 +245,12 @@ const Notification = () => {
       >
         {/* Avatar Section */}
         <View className="relative mr-3">
-          <Image
+          <ExpoImage
             source={{
-              uri: item.sender.avatar || `https://ui-avatars.com/api/?name=${item.sender.username}`
+              uri: item.sender?.avatar || `https://ui-avatars.com/api/?name=${item.sender?.username || 'Fync'}`
             }}
-            className="w-10 h-10 rounded-full border border-line"
+            style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line }}
+            cachePolicy="memory-disk"
           />
           {!item.isRead && (
             <View className="absolute -top-1 -right-1 w-3 h-3 bg-brand-500 rounded-full border-2 border-card" />
@@ -277,16 +278,13 @@ const Notification = () => {
 
         {/* Right Side: Post Image / Follow Button / Opportunity Icon */}
         {item.type === 'broadcast' && item.imageUrl ? (
-          <Image source={{ uri: item.imageUrl }} className="w-12 h-12 rounded-xl border border-line ml-2" />
+          <ExpoImage source={{ uri: item.imageUrl }} style={thumbStyle} cachePolicy="memory-disk" />
         ) : item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
           <View style={{ backgroundColor: 'rgba(249,115,22,0.12)', borderRadius: 12, padding: 8 }}>
             <Ionicons name={item.type === 'broadcast' ? 'megaphone' : 'briefcase'} size={18} color={C.brand[500]} />
           </View>
         ) : item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
-          <Image
-            source={{ uri: item.post.image[0] }}
-            className="w-12 h-12 rounded-xl border border-line ml-2"
-          />
+          <ExpoImage source={{ uri: item.post.image[0] }} style={thumbStyle} cachePolicy="memory-disk" />
         ) : item.type === 'follow' ? (
           <View className="bg-ink ml-2 px-2.5 py-1 rounded-full">
             <Text className="text-white text-label font-display uppercase">Profile</Text>
@@ -294,7 +292,7 @@ const Notification = () => {
         ) : null}
       </Pressable>
     );
-  };
+  }, [navigation]);
 
   return (
     <View className="flex-1 bg-paper">
@@ -303,32 +301,17 @@ const Notification = () => {
       {/* HEADER DECORATION */}
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        {/* Arena Header */}
-        <View className="px-gutter pt-4 bg-transparent">
-          <View className="flex-row items-center justify-between mb-5">
-            <View className="flex-1">
-              <View className="flex-row items-center">
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  className="w-11 h-11 items-center justify-center rounded-xl"
-                  accessibilityRole="button"
-                  accessibilityLabel="Go back"
-                  style={{ marginLeft: -11 }}
-                >
-                  <Ionicons name="arrow-back" size={24} color={C.ink} />
-                </TouchableOpacity>
-                <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
-                  Updates <Text className="text-accent-text">Center</Text>
-                </Text>
-              </View>
-              <Text className="font-display text-label text-ink-3 uppercase">System & Social Logs</Text>
-            </View>
-          </View>
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter mb-5">
+          <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
+            Updates <Text className="text-accent-text">Center</Text>
+          </Text>
+          <Text className="font-display text-label text-ink-3 uppercase">System & Social Logs</Text>
         </View>
 
         {/* List */}
         {loading ? (
-          <View className="flex-1 px-6 pt-6">
+          <View className="flex-1 px-5 pt-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
               <NotificationSkeleton key={i} />
             ))}
@@ -347,19 +330,19 @@ const Notification = () => {
             }
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
-            ListHeaderComponent={() => (
+            ListHeaderComponent={
               <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
                 <Text className="text-ink-3 text-label font-display uppercase">Recent transmissions</Text>
                 <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
               </View>
-            )}
-            ListFooterComponent={() => (
+            }
+            ListFooterComponent={
               loadingMore ? (
                 <View className="py-6 items-center">
                   <ActivityIndicator size="small" color={C.brand[500]} />
                 </View>
               ) : <View className="h-20" />
-            )}
+            }
             ListEmptyComponent={
               <View className="items-center justify-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
@@ -378,9 +361,13 @@ const Notification = () => {
   );
 };
 
+const thumbStyle = { width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: C.line, marginLeft: 8 };
+
 // --- HELPER FUNCTION: Time Ago ---
 const getTimeAgo = (dateString: string) => {
-  const seconds = Math.floor((new Date().getTime() - new Date(dateString).getTime()) / 1000);
+  const then = new Date(dateString).getTime();
+  if (Number.isNaN(then)) return '';
+  const seconds = Math.floor((Date.now() - then) / 1000);
   if (seconds < 60) return 'Just now';
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;

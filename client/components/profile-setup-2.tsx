@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -39,6 +39,8 @@ export default function ProfileSetup2() {
 
   const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  // State updates are async; a quick double tap would otherwise register twice.
+  const submittingRef = useRef(false);
 
   const handleUploadProfilePic = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -60,6 +62,8 @@ export default function ProfileSetup2() {
   };
 
   const submitRegistration = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     try {
       setIsLoading(true);
       const formData = new FormData();
@@ -123,6 +127,7 @@ export default function ProfileSetup2() {
         text2: error.response?.data?.message || 'Something went wrong',
       });
     } finally {
+      submittingRef.current = false;
       setIsLoading(false);
     }
   };
@@ -131,7 +136,7 @@ export default function ProfileSetup2() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <View className="flex-1 bg-paper">

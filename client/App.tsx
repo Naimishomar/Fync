@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import React from "react";
-import { View, ActivityIndicator, Image, Text, Alert, Keyboard } from "react-native";
+import { View, ActivityIndicator, Image, Text, StyleSheet } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 import NoInternetScreen from "./components/NoInternetScreen";
 import { NavigationContainer } from "@react-navigation/native";
@@ -16,6 +16,13 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AlertHost } from './components/ui/AlertModal';
 //@ts-ignore
 import "./global.css";
+import { cssInterop } from "nativewind";
+import { Image as ExpoImage } from "expo-image";
+
+// NativeWind only maps `className` for React Native's own components.
+// expo-image wasn't registered, so `<Image className="w-9 h-9">` got no size
+// and rendered 0x0 — invisible avatars and thumbnails across the app.
+cssInterop(ExpoImage, { className: "style" });
 
 // Campus Press type: Space Grotesk carries every heading, numeral and label;
 // Inter carries everything a user actually reads. Both SIL Open Font Licence.
@@ -383,7 +390,7 @@ export type RootStackParamList = {
   MovieDetail: { movieId: number };
   TrailerReels: { movies?: any[], initialIndex?: number };
   MovieSearch: undefined;
-  MovieList: { title: string; type: 'trending' | 'popular' | 'upcoming' | 'bollywood' };
+  MovieList: { title: string; type?: 'trending' | 'popular' | 'upcoming' | 'bollywood'; genre?: number };
   PartyPool: undefined;
   SubscriptionScreen: undefined;
   AudioCallLobby: undefined;
@@ -663,6 +670,9 @@ const navTheme = {
 const linking = {
   prefixes: ['fync://', 'https://fync-api.duckdns.org'],
   config: {
+    // Cold-starting from a link otherwise builds a one-screen stack, and back
+    // from the shared post/product exits the app instead of landing on home.
+    initialRouteName: 'Tabs' as const,
     screens: {
       IndividualPostOrShort: {
         path: 'view',
@@ -680,7 +690,7 @@ const linking = {
 export default function App() {
   const [isConnected, setIsConnected] = React.useState(true);
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     SpaceGrotesk_500Medium,
     SpaceGrotesk_700Bold,
     Inter_400Regular,
@@ -696,17 +706,10 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  if (!isConnected) {
-    return (
-      <View className="flex-1">
-        <NoInternetScreen onRetry={() => setIsConnected(true)} />
-      </View>
-    );
-  }
-
   // Hold on paper rather than white: a white flash before the first paint reads
   // as a different app than the one that follows.
-  if (!fontsLoaded) {
+  // A font that fails to load falls back to the system face; never spin forever on it.
+  if (!fontsLoaded && !fontError) {
     return (
       <View className="flex-1 items-center justify-center bg-paper">
         <ActivityIndicator color="#EA580C" />
@@ -722,7 +725,7 @@ export default function App() {
         </View>
         <View className="flex-1">
           <Text className="text-zinc-900 font-bold text-sm tracking-tight">{props.text1}</Text>
-          {props.text2 && <Text className="text-slate-500 text-xs mt-0.5">{props.text2}</Text>}
+          {!!props.text2 && <Text className="text-slate-500 text-xs mt-0.5">{props.text2}</Text>}
         </View>
         <View className="bg-green-500 w-1.5 h-6 rounded-full ml-2" />
       </View>
@@ -734,7 +737,7 @@ export default function App() {
         </View>
         <View className="flex-1">
           <Text className="text-white font-bold text-sm tracking-tight">{props.text1}</Text>
-          {props.text2 && <Text className="text-zinc-400 text-xs mt-0.5">{props.text2}</Text>}
+          {!!props.text2 && <Text className="text-zinc-400 text-xs mt-0.5">{props.text2}</Text>}
         </View>
         <View className="bg-indigo-500 w-1.5 h-6 rounded-full ml-2" />
       </View>
@@ -746,7 +749,7 @@ export default function App() {
         </View>
         <View className="flex-1">
           <Text className="text-red-900 font-bold text-sm tracking-tight">{props.text1}</Text>
-          {props.text2 && <Text className="text-red-400 text-xs mt-0.5">{props.text2}</Text>}
+          {!!props.text2 && <Text className="text-red-400 text-xs mt-0.5">{props.text2}</Text>}
         </View>
         <View className="bg-red-500 w-1.5 h-6 rounded-full ml-2" />
       </View>
@@ -763,6 +766,13 @@ export default function App() {
             <AlertHost />
             <Toast config={toastConfig} position="top" visibilityTime={4000} topOffset={60} />
           </NavigationContainer>
+          {/* Overlay, not a replacement: unmounting the tree on a network blip would
+              throw away the whole navigation stack and re-run the auth bootstrap. */}
+          {!isConnected && (
+            <View style={StyleSheet.absoluteFill}>
+              <NoInternetScreen onRetry={() => setIsConnected(true)} />
+            </View>
+          )}
         </SafeAreaProvider>
       </AuthProvider>
     </ErrorBoundary>

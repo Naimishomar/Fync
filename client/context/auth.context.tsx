@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { setAuthToken } from "./axiosConfig";
 import * as Device from "expo-device";
@@ -143,17 +143,17 @@ export const AuthProvider = ({ children }: any) => {
     }
   }, [user?._id]);
 
+  // Memoised so every useAuth() consumer does not re-render whenever the
+  // provider does. login/logout only touch setters and storage, so the
+  // versions captured here never go stale.
+  const value = useMemo(
+    () => ({ user, setUser, login, logout, loading, isLoggedIn: !!user }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, loading],
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser,
-        login,
-        logout,
-        loading,
-        isLoggedIn: !!user,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

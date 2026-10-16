@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Linking,
 } from 'react-native';
@@ -9,6 +9,7 @@ import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { AppBar, Empty } from '../ui/kit';
 
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-zeta.vercel.app';
 
@@ -37,7 +38,7 @@ const VERDICT_FG: Record<string, string> = {
  */
 export default function SolveProblem() {
   const navigation = useNavigation<any>();
-  const { problemId } = useRoute<any>().params;
+  const { problemId } = useRoute<any>().params ?? {};
   const bottomInset = useBottomInset();
 
   const [problem, setProblem] = useState<any>(null);
@@ -62,8 +63,7 @@ export default function SolveProblem() {
     }
   }, [problemId]);
 
-  useEffect(() => { load(); }, [load]);
-  // Re-checked on return so a solve completed in the browser shows up without
+  // Runs on mount too (first focus). Re-checked on return so a solve completed in the browser shows up without
   // the student having to work out that they need to pull to refresh.
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
@@ -82,22 +82,22 @@ export default function SolveProblem() {
     );
   }
 
+  if (!problem) {
+    return (
+      <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
+        <AppBar onBack={() => navigation.goBack()} />
+        <Empty icon="cloud-offline-outline" title="Could not load" hint="This problem would not open." />
+      </SafeAreaView>
+    );
+  }
+
   const level = LEVEL_STYLE[problem?.difficulty] ?? LEVEL_STYLE.Easy;
   const solved = attempts.some((a) => a.status === 'Accepted');
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-      <View className="px-5 pt-2 pb-3 border-b-2 border-ink">
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="w-11 h-11 items-center justify-center rounded-xl"
-          style={{ marginLeft: -11 }}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <Ionicons name="arrow-back" size={24} color={C.ink} />
-        </TouchableOpacity>
-
+      <AppBar onBack={() => navigation.goBack()} />
+      <View className="px-5 pb-3 border-b-2 border-ink">
         <View className="flex-row items-center mt-1 mb-2">
           <View className="px-2 py-1 rounded-sm" style={{ backgroundColor: level.bg }}>
             <Text className="font-display uppercase" style={{ fontSize: 9, color: level.fg }}>

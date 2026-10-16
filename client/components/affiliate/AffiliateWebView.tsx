@@ -1,16 +1,19 @@
-import React, { useState, useRef } from 'react';
-import {View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, SafeAreaView, Platform, Share} from 'react-native'
+import React, { useState, useRef, useEffect } from 'react';
+import {View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, Share, BackHandler} from 'react-native'
+// RN's own SafeAreaView is a no-op on Android, so the header sat under the translucent status bar.
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const AffiliateWebView = () => {
     const route = useRoute<any>();
     const navigation = useNavigation<any>();
-    const { url, productId, saleId } = route.params;
+    const { url, saleId } = route.params ?? {};
     const [loading, setLoading] = useState(true);
     const [canGoBack, setCanGoBack] = useState(false);
     const [canGoForward, setCanGoForward] = useState(false);
@@ -23,6 +26,19 @@ const AffiliateWebView = () => {
             navigation.goBack();
         }
     };
+
+    // Android back walks the merchant's page history first, like a browser,
+    // instead of dropping the user out of checkout mid-flow.
+    useEffect(() => {
+        const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+            if (canGoBack && webViewRef.current) {
+                webViewRef.current.goBack();
+                return true;
+            }
+            return false;
+        });
+        return () => sub.remove();
+    }, [canGoBack]);
 
     const handleForward = () => {
         if (canGoForward && webViewRef.current) {
@@ -68,18 +84,14 @@ const AffiliateWebView = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={handleBack} style={styles.headerIcon}>
-                    <Ionicons name="close" size={24} color="#fff" />
-                </TouchableOpacity>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle} numberOfLines={1}>Checkout</Text>
-                    <Text style={styles.headerSubtitle} numberOfLines={1}>{url}</Text>
-                </View>
-                <TouchableOpacity onPress={handleShare} style={styles.headerIcon}>
-                    <Ionicons name="share-outline" size={24} color="#fff" />
-                </TouchableOpacity>
+                <AppBar
+                    title="Checkout"
+                    subtitle={url}
+                    onBack={handleBack}
+                    right={<IconBtn name="share-outline" onPress={handleShare} />}
+                />
             </View>
 
             <View style={styles.webViewContainer}>
@@ -106,18 +118,18 @@ const AffiliateWebView = () => {
             <View style={styles.footer}>
                 <View style={styles.navControls}>
                     <TouchableOpacity onPress={handleBack} disabled={!canGoBack} style={styles.footerIcon}>
-                        <Ionicons name="chevron-back" size={24} color={canGoBack ? "#fff" : "#8B857E"} />
+                        <Ionicons name="chevron-back" size={24} color={canGoBack ? C.ink : C.ink4} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleForward} disabled={!canGoForward} style={styles.footerIcon}>
-                        <Ionicons name="chevron-forward" size={24} color={canGoForward ? "#fff" : "#8B857E"} />
+                        <Ionicons name="chevron-forward" size={24} color={canGoForward ? C.ink : C.ink4} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleReload} style={styles.footerIcon}>
-                        <Ionicons name="refresh" size={24} color="#fff" />
+                        <Ionicons name="refresh" size={24} color={C.ink} />
                     </TouchableOpacity>
                 </View>
                 
                 <TouchableOpacity style={styles.doneButton} onPress={confirmPurchase}>
-                    <Text style={styles.doneButtonText}>I've Purchased</Text>
+                    <Text style={styles.doneButtonText}>I&apos;ve Purchased</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -130,30 +142,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5F2EC',
     },
     header: {
-        height: 60,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#E3DDD3',
         backgroundColor: '#FFFFFF',
-    },
-    headerIcon: {
-        padding: 5,
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-        paddingHorizontal: 10,
-    },
-    headerTitle: {
-        color: '#12100E',
-        fontSize: 16,
-        fontFamily: 'Inter_700Bold',
-    },
-    headerSubtitle: {
-        color: '#8B857E',
-        fontSize: 10,
     },
     webViewContainer: {
         flex: 1,
@@ -182,7 +173,6 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#E3DDD3',
         backgroundColor: '#FFFFFF',
-        paddingBottom: Platform.OS === 'ios' ? 20 : 10,
     },
     navControls: {
         flexDirection: 'row',
@@ -191,6 +181,8 @@ const styles = StyleSheet.create({
     },
     footerIcon: {
         paddingHorizontal: 15,
+        minHeight: 44,
+        justifyContent: 'center',
     },
     doneButton: {
         backgroundColor: '#EA580C',

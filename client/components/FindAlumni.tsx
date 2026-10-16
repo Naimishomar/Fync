@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
     View, Text, FlatList, Pressable, Image, ActivityIndicator,
     TextInput, TouchableOpacity, Dimensions, RefreshControl, StatusBar, Modal, ScrollView
@@ -11,7 +11,7 @@ import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
 import { TeammateSkeleton } from "./Skeleton";
 
-import { RoleSticker } from './ui/kit';
+import { RoleSticker, AppBar, IconBtn } from './ui/kit';
 import { C } from '../constants/colors';
 const { width } = Dimensions.get("window");
 
@@ -47,12 +47,17 @@ const FindAlumni = ({ navigation }: any) => {
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
+    // Search-as-you-type: only the newest request may write state.
+    const reqId = useRef(0);
+
     const fetchAlumni = async (pageNum = 1, search = "", batch = "", shouldAppend = false) => {
+        const id = ++reqId.current;
         try {
             if (pageNum === 1) setLoading(true);
             else setLoadingMore(true);
 
-            const res = await axios.get(`/user/get-alumni?page=${pageNum}&limit=10&search=${search}&batch=${batch}`);
+            const res = await axios.get(`/user/get-alumni?page=${pageNum}&limit=10&search=${encodeURIComponent(search)}&batch=${batch}`);
+            if (id !== reqId.current) return;
             if (res.data.success) {
                 const newData = res.data.alumni || [];
                 if (shouldAppend) {
@@ -72,9 +77,11 @@ const FindAlumni = ({ navigation }: any) => {
         } catch (error) {
             console.log("Error fetching alumni:", error);
         } finally {
-            setLoading(false);
-            setRefreshing(false);
-            setLoadingMore(false);
+            if (id === reqId.current) {
+                setLoading(false);
+                setRefreshing(false);
+                setLoadingMore(false);
+            }
         }
     };
 
@@ -89,12 +96,15 @@ const FindAlumni = ({ navigation }: any) => {
     }, [debouncedSearch, selectedBatch]);
 
     const loadMore = () => {
-        if (!loadingMore && hasMore) {
+        if (!loading && !loadingMore && hasMore) {
             fetchAlumni(page + 1, debouncedSearch, selectedBatch, true);
         }
     };
 
+    const startingChat = useRef(false);
     const startChat = async (targetUser: any) => {
+        if (startingChat.current) return;
+        startingChat.current = true;
         try {
             const res = await axios.post("/chat/start", { userId: targetUser._id });
             navigation.navigate("Chat", {
@@ -103,6 +113,8 @@ const FindAlumni = ({ navigation }: any) => {
             });
         } catch (err) {
             console.log("Start chat error", err);
+        } finally {
+            startingChat.current = false;
         }
     };
 
@@ -121,12 +133,12 @@ const FindAlumni = ({ navigation }: any) => {
 
             <View className="flex-1 ml-5 pr-2">
                 <View className="flex-row items-center" style={{ gap: 8 }}>
-                  <Text className="font-semibold text-lg text-ink" numberOfLines={1}>{item.name}</Text>
+                  <Text className="font-semibold text-lg text-ink" style={{ flexShrink: 1 }} numberOfLines={1}>{item.name}</Text>
                   {/* Colour is never the only signal: the ring says alumni, this
                       says it in words. */}
                   <RoleSticker role={item.user_access ?? 'alumni'} />
                 </View>
-                <Text className="font-sans text-sm text-ink-3">@{item.username}</Text>
+                <Text className="font-sans text-sm text-ink-3" numberOfLines={1}>@{item.username}</Text>
 
                 <View className="flex-row items-center mt-2 bg-paper-2 self-start px-2.5 rounded-full border border-line" style={{ minHeight: 28 }}>
                     <MaterialCommunityIcons name="school" size={14} color={C.brand[500]} />
@@ -169,32 +181,26 @@ const FindAlumni = ({ navigation }: any) => {
             {/* HEADER DECORATION */}
 
             <SafeAreaView className="flex-1" edges={['top']}>
+                <AppBar
+                    onBack={() => navigation.goBack()}
+                    right={
+                        <IconBtn
+                            name="options"
+                            boxed
+                            color={selectedBatch ? "white" : "#12100E"}
+                            style={selectedBatch ? { backgroundColor: C.brand[500] } : undefined}
+                            onPress={() => setIsFilterVisible(true)}
+                        />
+                    }
+                />
                 {/* Arena Header */}
-                <View className="px-gutter pt-2">
-                    <View className="flex-row items-center justify-between mb-4">
-                        <View className="flex-1">
+                <View className="px-gutter">
+                    <View className="mb-4">
                             <View className="flex-row items-center">
-                                <TouchableOpacity
-                                  onPress={() => navigation.goBack()}
-                                  className="w-11 h-11 items-center justify-center rounded-xl"
-                                  accessibilityRole="button"
-                                  accessibilityLabel="Go back"
-                                  style={{ marginLeft: -11 }}
-                                >
-                                  <Ionicons name="arrow-back" size={24} color={C.ink} />
-                                </TouchableOpacity>
                                 <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Campus</Text>
                                 <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Alumni</Text>
                             </View>
                             <Text className="text-ink-3 text-label font-display uppercase">Professional Alumni Registry</Text>
-                        </View>
-
-                        <TouchableOpacity
-                            onPress={() => setIsFilterVisible(true)}
-                            className={`w-12 h-12 rounded-card items-center justify-center border ${selectedBatch ? 'bg-brand-500 border-brand-400 shadow-hair ' : 'bg-card border-line shadow-hair'}`}
-                        >
-                            <Ionicons name="options" size={22} color={selectedBatch ? "white" : "#12100E"} />
-                        </TouchableOpacity>
                     </View>
                 </View>
 
@@ -226,7 +232,7 @@ const FindAlumni = ({ navigation }: any) => {
                 </View>
 
                 {loading && !refreshing ? (
-                    <View className="flex-1 px-6 pt-2">
+                    <View className="flex-1 px-5 pt-2">
                         {[1, 2, 3, 4].map(i => <TeammateSkeleton key={i} />)}
                     </View>
                 ) : (

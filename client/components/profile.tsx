@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {Text, Image, View, Pressable, FlatList, Dimensions, RefreshControl, Linking, ActivityIndicator, ScrollView, Modal, TextInput, Switch, KeyboardAvoidingView, Platform, DeviceEventEmitter} from 'react-native'
+import {Text, View, Pressable, FlatList, Dimensions, RefreshControl, Linking, ActivityIndicator, ScrollView, Modal, TextInput, Switch, KeyboardAvoidingView, Platform, DeviceEventEmitter} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -71,13 +71,13 @@ const CodingPlatformCard = ({ icon, name, color, bg, username, solved, rating, p
   if (!username && !solved) return null;
   return (
     <Pressable
-      onPress={() => username && Linking.openURL(profileUrl)}
+      onPress={() => username && Linking.openURL(profileUrl).catch(() => {})}
       className="flex-1 rounded-card border p-4 items-center bg-card shadow-hair"
       style={{ borderColor: color + '20' }}
     >
       <View className="w-12 h-12 rounded-xl items-center justify-center mb-3" style={{ backgroundColor: color + '1A' }}>
         {typeof icon === 'string' && icon.startsWith('http')
-          ? <Image source={{ uri: icon }} className="w-7 h-7" resizeMode="contain" />
+          ? <ExpoImage source={{ uri: icon }} style={{ width: 28, height: 28 }} contentFit="contain" cachePolicy="memory-disk" />
           : <Ionicons name={icon} size={26} color={color} />}
       </View>
       <Text className="font-display text-xl text-ink leading-tight">{solved || 0}</Text>
@@ -134,9 +134,9 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView className="flex-1 bg-paper" behavior="padding">
+      <KeyboardAvoidingView className="flex-1 bg-paper" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View className="flex-row items-center justify-between px-4 py-4 border-b border-line">
-          <Pressable onPress={onClose}><Ionicons name="close" size={24} color={C.ink2} /></Pressable>
+          <Pressable onPress={onClose} hitSlop={10}><Ionicons name="close" size={24} color={C.ink2} /></Pressable>
           <Text className="font-display text-h2 text-ink">Update Coding Stats</Text>
           <Pressable onPress={save} disabled={saving} className="bg-brand-500 px-4 py-2 rounded-xl">
             {saving ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-ink font-semibold">Save</Text>}
@@ -165,7 +165,6 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
 
 // ─── ABOUT TAB FULL REBUILD ───────────────────────────────────────────────────
 function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: boolean; onRefresh: () => void }) {
-  const tabBarClearance = useTabBarClearance();
   const navigation = useNavigation<any>();
   const [showCodingModal, setShowCodingModal] = useState(false);
 
@@ -178,7 +177,8 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
   const hasCoding = cp.leetcode || cp.gfg || cp.codechef || cs.leetcodeSolved || cs.gfgSolved;
 
   return (
-    <ScrollView className="flex-1 bg-paper" contentContainerStyle={{ paddingBottom: tabBarClearance }}>
+    // A row of the profile FlashList, which already scrolls and clears the tab bar.
+    <View className="bg-paper">
 
       {/* ── Fync Score Banner ──────────────────────────────────────────── */}
       {/* The one stamped card on this screen. The score is what Profile is for,
@@ -202,7 +202,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
               </View>
 
               <View className="h-2 bg-paper-2 rounded-full overflow-hidden mt-5">
-                <View className="h-full bg-brand-500 rounded-full" style={{ width: `${(user.fyncScore / 1000) * 100}%` }} />
+                <View className="h-full bg-brand-500 rounded-full" style={{ width: `${Math.min(100, Math.max(0, (user.fyncScore / 1000) * 100))}%` }} />
               </View>
               <View className="flex-row items-center justify-between mt-3">
                 <Text className="font-display text-label text-ink-3 uppercase">Next: 1000</Text>
@@ -221,7 +221,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       )}
 
       {/* ── About ──────────────────────────────────────────────────────── */}
-      {user?.about && (
+      {!!user?.about && (
         <View className="mx-4 mt-4 bg-card rounded-sheet p-6 border border-line shadow-hair">
           <SH title="About Me" icon="person-outline" />
           <Text className="text-ink-2 text-sm leading-[24px] font-medium">{user.about}</Text>
@@ -239,7 +239,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       )}
 
       {/* ── Interests & Hobbies ─────────────────────────────────────────── */}
-      {(user?.interest || user?.hobbies) && (
+      {!!(user?.interest || user?.hobbies) && (
         <View className="mx-4 mt-4 bg-card rounded-sheet p-6 border border-line shadow-hair">
           <SH title="Vibe & Interests" icon="heart-outline" accent="#DB2777" />
           <View className="flex-row flex-wrap gap-3">
@@ -284,7 +284,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       </View>
 
       {/* ── Coding Platforms ─────────────────────────────────────────────── */}
-      {(hasCoding || isOwner) && (
+      {!!(hasCoding || isOwner) && (
         <View className="mx-4 mt-4 bg-paper-2 rounded-sheet p-1">
           <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
             <View className="flex-row items-center justify-between mb-5">
@@ -338,12 +338,12 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       )}
 
       {/* ── Social Links ─────────────────────────────────────────────────── */}
-      {(user?.github_id || user?.linkedIn_id || user?.githubUsername) && (
+      {!!(user?.github_id || user?.linkedIn_id || user?.githubUsername) && (
         <View className="mx-4 mt-6 bg-card rounded-sheet p-6 border border-line shadow-hair">
           <SH title="Connected Accounts" icon="share-outline" accent="#57534E" />
           <View className="gap-3">
-            {user?.github_id && (
-              <Pressable onPress={() => Linking.openURL(user.github_id!)}
+            {!!user?.github_id && (
+              <Pressable onPress={() => Linking.openURL(user.github_id!).catch(() => {})}
                 className="flex-row items-center bg-paper-2 px-5 py-4 rounded-card border border-line">
                 <Ionicons name="logo-github" size={24} color={C.ink2} />
                 <View className="ml-4 flex-1">
@@ -353,8 +353,8 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
                 <Ionicons name="chevron-forward" size={16} color={C.ink4} />
               </Pressable>
             )}
-            {user?.linkedIn_id && (
-              <Pressable onPress={() => Linking.openURL(user.linkedIn_id!)}
+            {!!user?.linkedIn_id && (
+              <Pressable onPress={() => Linking.openURL(user.linkedIn_id!).catch(() => {})}
                 className="flex-row items-center bg-paper-2 px-5 py-4 rounded-card border border-line">
                 <Ionicons name="logo-linkedin" size={24} color="#0077B5" />
                 <View className="ml-4 flex-1">
@@ -364,7 +364,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
                 <Ionicons name="chevron-forward" size={16} color={C.ink4} />
               </Pressable>
             )}
-            {user?.upiId && (
+            {!!user?.upiId && (
               <View className="flex-row items-center bg-success/10 px-5 py-4 rounded-card border border-success/15">
                 <View className="w-10 h-10 bg-success rounded-card items-center justify-center">
                   <Ionicons name="wallet" size={20} color="white" />
@@ -385,9 +385,26 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
         onClose={() => setShowCodingModal(false)}
         onSuccess={() => { setShowCodingModal(false); onRefresh(); }}
       />
-    </ScrollView>
+    </View>
   );
 }
+
+// ─── GRID IMAGE ───────────────────────────────────────────────────────────────
+// Module scope: declared inside Profile it was a new component type on every
+// render, so every cell in the grid unmounted and reloaded its image.
+/** Small variant first, full file only if the twin is missing. */
+const GridImage = ({ path }: { path: string }) => {
+  const [src, setSrc] = useState(getThumbUrl(path) || '');
+  return (
+    <ExpoImage
+      source={{ uri: src }}
+      style={{ width: '100%', height: '100%' }}
+      contentFit="cover"
+      cachePolicy="disk"
+      onError={() => { const full = getFullUrl(path); if (full && src !== full) setSrc(full); }}
+    />
+  );
+};
 
 // ─── MAIN PROFILE COMPONENT ───────────────────────────────────────────────────
 function Profile() {
@@ -647,8 +664,8 @@ function Profile() {
         <View className="flex-row w-full bg-ink rounded-sheet mt-6 p-6 shadow-hair">
           {[
             { label: 'Posts', value: postCount ?? posts.length },
-            { label: 'Followers', value: user?.followers?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'followers' }) },
-            { label: 'Following', value: user?.following?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user._id, type: 'following' }) },
+            { label: 'Followers', value: user?.followers?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'followers' }) },
+            { label: 'Following', value: user?.following?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'following' }) },
           ].map((s, i) => (
             <React.Fragment key={i}>
               {i > 0 && <View className="w-[1px] h-8 self-center bg-card/10" />}
@@ -744,26 +761,17 @@ function Profile() {
   );
 
   // ── Grid item ─────────────────────────────────────────────────────────
-  /** Small variant first, full file only if the twin is missing. */
-  const GridImage = ({ path }: { path: string }) => {
-    const [src, setSrc] = useState(getThumbUrl(path) || '');
-    return (
-      <ExpoImage
-        source={{ uri: src }}
-        style={{ width: '100%', height: '100%' }}
-        contentFit="cover"
-        cachePolicy="disk"
-        onError={() => { const full = getFullUrl(path); if (full && src !== full) setSrc(full); }}
-      />
-    );
-  };
+  // Read through a ref so renderGridItem stays stable; the delete handlers are
+  // recreated every render (they close over the list for rollback).
+  const deleteRef = useRef({ deletePost, deleteShort });
+  deleteRef.current = { deletePost, deleteShort };
 
   const renderGridItem = useCallback(({ item, isShort, canDelete = true }: { item: any; isShort?: boolean; canDelete?: boolean }) => (
     <Pressable
       onPress={() => navigation.navigate('IndividualPostOrShort', isShort ? { shortId: item._id } : { postId: item._id })}
       onLongPress={canDelete ? () => Alert.alert(
         isShort ? 'Delete Short' : 'Delete Post', 'Are you sure?',
-        [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => isShort ? deleteShort(item._id) : deletePost(item._id) }]
+        [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => isShort ? deleteRef.current.deleteShort(item._id) : deleteRef.current.deletePost(item._id) }]
       ) : undefined}
       className="m-[1px] rounded-lg overflow-hidden"
       style={{ width: (width / 3) - 2, height: isShort ? (width / 1.8) : (width / 3) }}>
@@ -798,7 +806,7 @@ function Profile() {
         </View>
       )}
     </Pressable>
-  ), [navigation, deleteShort, deletePost]);
+  ), [navigation]);
 
   /** Inline, this was rebuilt on every parent render and took the whole grid
    *  with it. */
@@ -819,7 +827,7 @@ function Profile() {
         key={activeTab}
         {...autoHideTabBar}
         data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : activeTab === 'reposts' ? reposts : (['ABOUT'] as any)}
-        keyExtractor={(item, i) => (typeof item === 'string' ? item : item._id + i)}
+        keyExtractor={(item, i) => (typeof item === 'string' ? item : item._id ?? String(i))}
         numColumns={activeTab === 'about' ? 1 : 3}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.recruiter} />}
         onEndReached={handleLoadMore}

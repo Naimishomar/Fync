@@ -50,7 +50,7 @@ const getRandomTerm = (excludeId?: string) => {
 };
 
 const formatNumber = (num: number) => {
-    return num.toLocaleString();
+    return (num ?? 0).toLocaleString();
 };
 
 const TrendClash = ({ onClose }: { onClose: () => void }) => {
@@ -108,7 +108,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
 
     if (loading && !itemA) {
         return (
-            <View className="flex-1 bg-ink justify-center items-center h-[500px] rounded-sheet">
+            <View className="grow bg-ink justify-center items-center rounded-sheet">
                 <ActivityIndicator size="large" color={C.brand[500]} />
                 <Text className="text-white mt-4 font-display uppercase">Fetching Live Trends...</Text>
             </View>
@@ -117,7 +117,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
 
     if (status === 'gameover') {
         return (
-            <View className="flex-1 bg-ink justify-center items-center h-[500px] rounded-sheet p-6 border-2 border-danger/30">
+            <View className="grow bg-ink justify-center items-center rounded-sheet p-6 border-2 border-danger/30">
                 <Ionicons name="close-circle" size={80} color={C.danger} />
                 <Text className="text-white text-3xl font-display uppercase mt-4 text-center">Game Over</Text>
                 <Text className="text-ink-3 text-sm font-semibold uppercase mt-2 text-center">
@@ -143,11 +143,12 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
         );
     }
 
+    // Halves are flex-1, so the card needs a floor; the hub ScrollView handles the rest.
     return (
-        <View className="flex-1 h-[600px] rounded-sheet overflow-hidden bg-ink border border-ink">
+        <View className="grow rounded-sheet overflow-hidden bg-ink border border-ink" style={{ minHeight: 520 }}>
             {/* Top Half - Item A */}
             <View className="flex-1 justify-center items-center p-6 border-b border-ink bg-ink relative">
-                <TouchableOpacity onPress={onClose} className="absolute top-4 left-4 z-10 bg-card/10 p-2 rounded-full">
+                <TouchableOpacity onPress={onClose} hitSlop={8} className="absolute top-4 left-4 z-10 bg-card/10 p-2 rounded-full">
                     <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
                 <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>

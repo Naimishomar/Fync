@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
-  RefreshControl, ScrollView, Linking, Image,
+  RefreshControl, Linking,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -10,6 +11,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-zeta.vercel.app';
 
@@ -33,14 +35,18 @@ export default function CodingArena() {
   const [live, setLive] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // Toggling scope quickly fires overlapping loads; only the latest may write.
+  const reqId = useRef(0);
 
   const load = useCallback(async () => {
+    const id = ++reqId.current;
     try {
       const [pr, lb, ct] = await Promise.allSettled([
         axios.get('/arena/progress'),
         axios.get('/arena/leaderboard', { params: { scope } }),
         axios.get('/arena/contests'),
       ]);
+      if (id !== reqId.current) return;
       if (pr.status === 'fulfilled') {
         const p = pr.value.data.progress ?? null;
         setProgress(p);
@@ -274,7 +280,7 @@ export default function CodingArena() {
           {(['college', 'global'] as const).map((sc) => (
             <TouchableOpacity
               key={sc}
-              onPress={() => { setScope(sc); setLoading(true); }}
+              onPress={() => setScope(sc)}
               className={`px-3 py-1.5 ${scope === sc ? 'bg-brand-500' : 'bg-card'}`}
               accessibilityRole="button"
               accessibilityState={{ selected: scope === sc }}
@@ -306,7 +312,7 @@ export default function CodingArena() {
       <View className={`flex-row items-center mx-5 mb-2 px-4 py-3 rounded-card border-2 border-ink ${isMe ? 'bg-brand-100' : 'bg-card'}`}>
         <Text className="font-display text-ink" style={{ fontSize: 15, width: 34 }}>#{item.rank}</Text>
         {item.avatar ? (
-          <Image source={{ uri: item.avatar }} style={{ width: 32, height: 32, borderRadius: 16 }} />
+          <Image source={{ uri: item.avatar }} style={{ width: 32, height: 32, borderRadius: 16 }} cachePolicy="memory-disk" />
         ) : (
           <View className="items-center justify-center rounded-full bg-paper-2" style={{ width: 32, height: 32 }}>
             <Text className="font-display text-ink-2" style={{ fontSize: 12 }}>
@@ -327,16 +333,8 @@ export default function CodingArena() {
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-      <View className="px-5 pt-2">
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="w-11 h-11 items-center justify-center rounded-xl"
-          style={{ marginLeft: -11 }}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <Ionicons name="arrow-back" size={24} color={C.ink} />
-        </TouchableOpacity>
+      <AppBar onBack={() => navigation.goBack()} />
+      <View className="px-5">
         <Text className="font-display text-display text-ink uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Coding</Text>
         <Text className="font-display text-display text-brand-600 uppercase" style={{ lineHeight: 35, letterSpacing: -1.2 }}>Arena</Text>
         <Text className="font-display text-ink-2 uppercase mt-2 mb-4" style={{ fontSize: 11, letterSpacing: 1.4 }}>

@@ -105,7 +105,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
       {/* Sub Button 2 (e.g., Create Post) */}
       <Animated.View style={[item1Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => navigation.navigate('CreatePost')}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreatePost'); }}>
           <Ionicons name="aperture-outline" size={20} color={C.brand[500]} />
         </TouchableOpacity>
         <Text className="text-white text-label font-display uppercase mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", letterSpacing: 0.6, overflow: "hidden" }}>Add Post</Text>
@@ -113,7 +113,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
       {/* Sub Button 1 (e.g., Create Video) */}
       <Animated.View style={[item2Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => navigation.navigate('CreateShorts')}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateShorts'); }}>
           <Ionicons name="videocam" size={20} color={C.brand[500]} />
         </TouchableOpacity>
         <Text className="text-white text-label font-display uppercase mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", letterSpacing: 0.6, overflow: "hidden" }}>Add Shorts</Text>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
-import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Dimensions, StatusBar, Modal, ScrollView, KeyboardAvoidingView, Platform, Linking} from 'react-native'
+import React, { useState, useEffect, useCallback, memo, useMemo, useRef } from 'react';
+import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Dimensions, StatusBar, Modal, ScrollView, KeyboardAvoidingView, Platform, Linking, BackHandler} from 'react-native'
+import { Image as ExpoImage } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from '../../context/axiosConfig';
 import { navigate, goBack } from '../../utils/navigation';
@@ -17,6 +18,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -105,7 +107,7 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
         >
             <View className="h-48 relative">
                 {item.banner ? (
-                    <Image source={{ uri: item.banner }} className="w-full h-full" resizeMode="cover" />
+                    <ExpoImage source={{ uri: item.banner }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={item._id} />
                 ) : (
                     <View className="w-full h-full"  style={{ backgroundColor: '#F97316' }} />
                 )}
@@ -132,7 +134,7 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
 
                 <View className="absolute -bottom-6 left-8 w-20 h-20 bg-card rounded-card p-1.5 border border-line shadow-hair">
                     {item.logo ? (
-                        <Image source={{ uri: item.logo }} className="w-full h-full rounded-card" />
+                        <ExpoImage source={{ uri: item.logo }} style={{ width: '100%', height: '100%', borderRadius: 16 }} cachePolicy="memory-disk" />
                     ) : (
                         <View className="w-full h-full bg-paper-2 rounded-card items-center justify-center">
                             <Ionicons name="mic" size={24} color={C.brand[500]} />
@@ -187,10 +189,11 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                                     className="items-center mr-8"
                                 >
                                     <View className="relative">
-                                        <Image
+                                        <ExpoImage
                                             source={{ uri: speaker.image }}
-                                            className="w-16 h-16 rounded-full bg-paper-2 border-2 border-line shadow-hair"
-                                            resizeMode="cover"
+                                            style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: C.paper2, borderWidth: 2, borderColor: C.line }}
+                                            contentFit="cover"
+                                            cachePolicy="memory-disk"
                                         />
                                         {isPrimaryAdmin && (
                                             <View className="absolute -top-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-white">
@@ -425,8 +428,12 @@ export default function SpeakerSessionScreen() {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
     };
 
+    // A ref, not just state: the camera delivers several frames of the same code
+    // before `scanned` re-renders, and each one used to POST.
+    const scanLock = useRef(false);
     const handleBarCodeScanned = async ({ data }: { data: string }) => {
-        if (scanned) return;
+        if (scanLock.current) return;
+        scanLock.current = true;
         setScanned(true);
         console.log("👉 [Scanner] RAW Scan Data:", data);
         try {
@@ -460,6 +467,7 @@ export default function SpeakerSessionScreen() {
             console.log("❌ [Scanner] Scan error:", error);
             Alert.alert("Scan Failed", error.message || "This QR code is not recognized.");
         } finally {
+            scanLock.current = false;
             setScanned(false);
             setScannerVisible(false);
         }
@@ -495,7 +503,8 @@ export default function SpeakerSessionScreen() {
         try {
             // Prepare data for Excel
             const excelData = attendees.map((reg, index) => {
-                const u = reg.userId as User;
+                // Unpopulated/deleted users come back as an id or null.
+                const u = (reg.userId && typeof reg.userId === 'object' ? reg.userId : {}) as User;
                 return {
                     'S.No': index + 1,
                     'Name': u.name || 'N/A',
@@ -521,7 +530,7 @@ export default function SpeakerSessionScreen() {
 
             // Write to base64
             const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-            const uri = FileSystem.cacheDirectory + `${eventName.replace(/ /g, '_')}_Attendees.xlsx`;
+            const uri = FileSystem.cacheDirectory + `${eventName.replace(/[^\w-]+/g, '_')}_Attendees.xlsx`;
 
             await FileSystem.writeAsStringAsync(uri, wbout, {
                 encoding: FileSystem.EncodingType.Base64,
@@ -566,7 +575,13 @@ export default function SpeakerSessionScreen() {
             const [sessionsRes, registrationsRes] = await Promise.all([sessionsPromise, registrationsPromise]);
 
             if (sessionsRes.data.success) {
-                setSessions(isNew ? sessionsRes.data.sessions : [...sessions, ...sessionsRes.data.sessions]);
+                const batch: SpeakerSession[] = sessionsRes.data.sessions ?? [];
+                // Functional + de-duped: `sessions` in this closure can be a page behind.
+                setSessions(prev => {
+                    if (isNew) return batch;
+                    const seen = new Set(prev.map(s => s._id));
+                    return [...prev, ...batch.filter(s => !seen.has(s._id))];
+                });
                 setHasMore(sessionsRes.data.hasMore);
             }
 
@@ -593,21 +608,22 @@ export default function SpeakerSessionScreen() {
             return;
         }
 
+        let alive = true; // a slower, older search must not overwrite a newer one
         const timeout = setTimeout(async () => {
             setSearchingUsers(true);
             try {
                 const res = await axios.post('/user/search', { name: adminEmailInput });
-                if (res.data.success) {
+                if (alive && res.data.success) {
                     setUserSuggestions(res.data.users || []);
                 }
             } catch (e) {
                 console.log("Search error:", e);
             } finally {
-                setSearchingUsers(false);
+                if (alive) setSearchingUsers(false);
             }
         }, 1000); // 1s delay
 
-        return () => clearTimeout(timeout);
+        return () => { alive = false; clearTimeout(timeout); };
     }, [adminEmailInput, sessionModalVisible]);
 
     const onRefresh = () => {
@@ -626,12 +642,15 @@ export default function SpeakerSessionScreen() {
         }
     };
 
+    const registering = useRef(false);
     const handleRegister = async (session: SpeakerSession) => {
+        if (registering.current) return;
         const isAdmin = user?._id === session.admin_email || !!(session.secondaryAdmins?.some((a: any) => a === user?._id || a?._id === user?._id));
         if (isAdmin) {
             Alert.alert("Admin Access", "You are an organizer for this event. You have full access without registration.");
             return;
         }
+        registering.current = true;
         try {
             const res = await axios.post(`/speakers/register`, { eventId: session.eventId });
             if (res.data.success) {
@@ -673,6 +692,8 @@ export default function SpeakerSessionScreen() {
             }
         } catch (error: any) {
             Alert.alert("Registration", error.response?.data?.message || "Something went wrong");
+        } finally {
+            registering.current = false;
         }
     };
 
@@ -983,9 +1004,22 @@ export default function SpeakerSessionScreen() {
         setSpeakerModalVisible(true);
     };
 
-    const filteredColleges = collegesInIndia.filter(c =>
+    const filteredColleges = useMemo(() => collegesInIndia.filter(c =>
         c.toLowerCase().includes(collegeSearch.toLowerCase())
-    );
+    ), [collegeSearch]);
+
+    // The session sheet is an overlay, not a Modal, so Android back would leave
+    // the screen with it open. Close the sheet first.
+    useEffect(() => {
+        if (!sessionModalVisible) return;
+        const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+            setSessionModalVisible(false);
+            setIsEditingSession(false);
+            setLocalSpeakers([]);
+            return true;
+        });
+        return () => sub.remove();
+    }, [sessionModalVisible]);
 
     return (
         <View className="flex-1 bg-paper">
@@ -994,6 +1028,13 @@ export default function SpeakerSessionScreen() {
             {/* Background Protocol Gradient */}
 
             <SafeAreaView className="flex-1" edges={['top']}>
+                <AppBar onBack={() => goBack()}
+                    right={<>
+                        <IconBtn name="ticket" size={20} color={C.brand[500]} boxed onPress={() => setTicketsModalVisible(true)} />
+                        {/* openSessionModal resets edit mode, speakers, fee and limit —
+                            setting only the data here reopened a previous edit as "Update". */}
+                        <IconBtn name="add" size={24} color="white" style={{ backgroundColor: C.ink, marginLeft: 12 }} onPress={() => openSessionModal()} />
+                    </>} />
                 <FlatList
                     data={sessions}
                     keyExtractor={(item: any) => item._id}
@@ -1004,37 +1045,12 @@ export default function SpeakerSessionScreen() {
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
                     ListHeaderComponent={
-                        <View className="px-gutter pt-6">
+                        <View className="px-gutter pt-2">
                             <View className="flex-row justify-between items-center mb-10">
                                 <View>
-                                    <TouchableOpacity
-                                      onPress={() => goBack()}
-                                      className="w-11 h-11 items-center justify-center rounded-xl"
-                                      accessibilityRole="button"
-                                      accessibilityLabel="Go back"
-                                      style={{ marginLeft: -11 }}
-                                    >
-                                      <Ionicons name="arrow-back" size={24} color={C.ink} />
-                                    </TouchableOpacity>
                                     <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Session</Text>
                                     <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
                                     <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Intelligence Archive</Text>
-                                </View>
-                                <View className="flex-row gap-3">
-                                    <TouchableOpacity
-                                        onPress={() => setTicketsModalVisible(true)}
-                                        className="w-12 h-12 bg-card rounded-card items-center justify-center shadow-hair border border-line"
-                                    >
-                                        <Ionicons name="ticket" size={20} color={C.brand[500]} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => {
-                                        setEditSessionData({ admin_email: user?._id });
-                                        setEventLogo(null);
-                                        setEventBanner(null);
-                                        setSessionModalVisible(true);
-                                    }} className="w-12 h-12 bg-ink rounded-card items-center justify-center shadow-hair">
-                                        <Ionicons name="add" size={24} color="white" />
-                                    </TouchableOpacity>
                                 </View>
                             </View>
                         </View>
@@ -1451,7 +1467,7 @@ export default function SpeakerSessionScreen() {
                                                         onPress={() => { setAdminEmailInput(u.username); setUserSuggestions([]); }}
                                                         className="flex-row items-center p-4 border-b border-line last:border-0"
                                                     >
-                                                        <Image source={{ uri: u.avatar || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-full bg-paper-2" />
+                                                        <Image source={{ uri: u.avatar }} className="w-10 h-10 rounded-full bg-paper-2" />
                                                         <View className="ml-4">
                                                             <Text className="text-ink font-display uppercase text-label">{u.name}</Text>
                                                             <Text className="text-accent-text font-semibold text-label uppercase mt-0.5">@{u.username}</Text>
@@ -1539,21 +1555,21 @@ export default function SpeakerSessionScreen() {
 
                                             <TextInput
                                                 placeholder="Organizer Alias" placeholderTextColor={C.ink3} value={contact.name}
-                                                onChangeText={(t) => { const contacts = [...(editSessionData.contactDetails || [])]; contacts[idx].name = t; setEditSessionData({ ...editSessionData, contactDetails: contacts }); }}
+                                                onChangeText={(t) => { const contacts = [...(editSessionData.contactDetails || [])]; contacts[idx] = { ...contacts[idx], name: t }; setEditSessionData({ ...editSessionData, contactDetails: contacts }); }}
                                                 className="bg-card p-4 rounded-xl mb-4 font-display text-ink text-label uppercase border border-line"
                                             />
                                             <View className="flex-row gap-4">
                                                 <View className="flex-1">
                                                     <TextInput
                                                         placeholder="Mobile" placeholderTextColor={C.ink3} value={contact.mobile}
-                                                        onChangeText={(t) => { const contacts = [...(editSessionData.contactDetails || [])]; contacts[idx].mobile = t; setEditSessionData({ ...editSessionData, contactDetails: contacts }); }}
+                                                        onChangeText={(t) => { const contacts = [...(editSessionData.contactDetails || [])]; contacts[idx] = { ...contacts[idx], mobile: t }; setEditSessionData({ ...editSessionData, contactDetails: contacts }); }}
                                                         keyboardType="phone-pad" className="bg-card p-4 rounded-xl font-display text-ink text-label uppercase border border-line"
                                                     />
                                                 </View>
                                                 <View className="flex-1">
                                                     <TextInput
                                                         placeholder="Email" placeholderTextColor={C.ink3} value={contact.email}
-                                                        onChangeText={(t) => { const contacts = [...(editSessionData.contactDetails || [])]; contacts[idx].email = t; setEditSessionData({ ...editSessionData, contactDetails: contacts }); }}
+                                                        onChangeText={(t) => { const contacts = [...(editSessionData.contactDetails || [])]; contacts[idx] = { ...contacts[idx], email: t }; setEditSessionData({ ...editSessionData, contactDetails: contacts }); }}
                                                         autoCapitalize="none" keyboardType="email-address" className="bg-card p-4 rounded-xl font-display text-ink text-label uppercase border border-line"
                                                     />
                                                 </View>
@@ -1606,13 +1622,13 @@ export default function SpeakerSessionScreen() {
                             <FlatList
                                 data={attendees} keyExtractor={(item) => item._id}
                                 renderItem={({ item, index }) => {
-                                    const u = item.userId as User;
+                                    const u = (item.userId && typeof item.userId === 'object' ? item.userId : {}) as User;
                                     return (
                                         <View className="p-6 border-b border-line bg-card">
                                             <View className="flex-row justify-between items-start mb-4">
                                                 <View className="flex-1">
                                                     <View className="flex-row items-center gap-2 mb-1">
-                                                        <Text className="text-ink font-display uppercase text-lg">{u.name}</Text>
+                                                        <Text className="text-ink font-display uppercase text-lg" style={{ flexShrink: 1 }} numberOfLines={1}>{u.name}</Text>
                                                         {item.isPaid && (
                                                             <View className="bg-success/10 border border-success/15 px-2.5 py-1 rounded-full">
                                                                 <Text className="text-success text-label font-display uppercase">Verified</Text>

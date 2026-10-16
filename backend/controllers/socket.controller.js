@@ -12,6 +12,7 @@ import { getSocketAcrossCluster } from "../utils/socketCluster.js";
 import { getPresenceAudience, filterOnline, broadcastStatus } from "../utils/presence.js";
 import { checkClubStatus, nightPseudonym } from "../utils/nightClub.js";
 import { claimCall, confirmCall, endCall as endCallState, releaseIfPeer, getPeer } from "../utils/callState.js";
+import { removeFromQueue } from "../utils/quizQueue.js";
 
 // 12 AM Club data must not outlive one night even if the sunrise sweep misses.
 const NIGHT_KEY_TTL_SECONDS = 8 * 60 * 60;
@@ -349,6 +350,8 @@ export const socketController = (io) => {
             avatar: user.avatar
           });
           await redisClient.lPush(queueKey, userData);
+          // Remember where we queued so cancel/disconnect can take us out.
+          socket.data.quizQueue = queueKey;
           return;
         }
 
@@ -407,6 +410,18 @@ export const socketController = (io) => {
             avatar: user.avatar
           }
         });
+      }
+    });
+
+    // Leave the 1v1 queue. Uses the queue this socket actually joined (not the
+    // payload's domain), so it can only remove its own entry. Safe if not queued.
+    socket.on("cancel_1v1_match", async () => {
+      const queueKey = socket.data.quizQueue;
+      socket.data.quizQueue = null;
+      try {
+        await removeFromQueue(redisClient, queueKey, socket.id);
+      } catch (err) {
+        console.error("Cancel 1v1 error:", err);
       }
     });
 
@@ -891,6 +906,13 @@ export const socketController = (io) => {
           }
         } catch (err) {
           console.error("Call cleanup error:", err.message);
+        }
+
+        // Drop any queued 1v1 quiz entry so nobody gets matched with a ghost.
+        try {
+          await removeFromQueue(redisClient, socket.data.quizQueue, socket.id);
+        } catch (err) {
+          console.error("1v1 queue cleanup error:", err);
         }
 
         // Cleanup 1v1 if they were in a match

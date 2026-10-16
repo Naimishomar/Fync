@@ -34,7 +34,8 @@ export default function LoginScreen() {
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
-      await login(email, password);
+      // Keyboards and autofill leave a trailing space that fails the lookup.
+      await login(email.trim(), password);
       Toast.show({
         type: 'success',
         text1: 'Logged in successfully!',

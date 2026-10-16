@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, TextInput, Pressable, Image, ScrollView, ActivityIndicator, Modal, TouchableOpacity} from 'react-native'
+import {View, Text, TextInput, Pressable, Image, ScrollView, ActivityIndicator, Modal, TouchableOpacity, KeyboardAvoidingView, Platform} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
@@ -12,6 +12,7 @@ import { useAuth } from '../context/auth.context';
 import { Video, ResizeMode } from "expo-av";
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
+import { AppBar, IconBtn } from './ui/kit';
 
 export default function CreateFundingFeed() {
   const { user } = useAuth();
@@ -152,9 +153,9 @@ export default function CreateFundingFeed() {
                 description: "Post Startup Project Fee",
                 order_id: "${currentOrder.id}",
                 prefill: {
-                    name: "${user?.name || ''}",
-                    email: "${user?.email || ''}",
-                    contact: "${user?.mobileNumber || ''}"
+                    name: ${JSON.stringify(user?.name || '')},
+                    email: ${JSON.stringify(user?.email || '')},
+                    contact: ${JSON.stringify(user?.mobileNumber || '')}
                 },
                 theme: { color: "#F97316" },
                 handler: function (response) {
@@ -188,8 +189,9 @@ export default function CreateFundingFeed() {
   };
 
   const handleWebViewMessage = (event: any) => {
-    const msg = JSON.parse(event.nativeEvent.data);
-    if (msg.event === "SUCCESS") {
+    let msg: any = {};
+    try { msg = JSON.parse(event.nativeEvent.data); } catch { /* treated as cancel */ }
+    if (msg.event === "SUCCESS" && msg.data) {
       setShowPaymentParams(null);
       handleFinalSubmit({
         paymentRefId: msg.data.razorpay_payment_id,
@@ -205,18 +207,9 @@ export default function CreateFundingFeed() {
 
   return (
     <SafeAreaView className='flex-1 bg-paper'>
-      <View className='flex-row items-center px-5 py-3'>
-        <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-          <Ionicons name="arrow-back-outline" size={20} color={C.ink} />
-        </Pressable>
-        <View className="flex-1 items-center pr-10">
-          <Text className='text-2xl font-display text-ink'>{isEditing ? 'Edit' : 'Post'} <Text className="text-accent-text">Project</Text></Text>
-        </View>
-      </View>
+      <AppBar title={`${isEditing ? 'Edit' : 'Post'} Project`} onBack={() => navigation.goBack()} />
 
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView className="flex-1 px-5 mt-2" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Basic Info */}
         <View className="bg-card rounded-card p-5 shadow-hair mb-5 relative z-50">
@@ -281,9 +274,10 @@ export default function CreateFundingFeed() {
                       <Image source={{ uri: img.uri }} className="h-20 w-20 rounded-xl bg-paper-2" />
                       <Pressable
                         onPress={() => removeImage(index)}
+                        hitSlop={10}
                         className="absolute top-1 right-1 bg-black/70 h-6 w-6 rounded-full items-center justify-center"
                       >
-                        <Text className="text-white text-xs font-semibold"></Text>
+                        <Ionicons name="close" size={14} color="white" />
                       </Pressable>
                     </View>
                   ))}
@@ -341,15 +335,13 @@ export default function CreateFundingFeed() {
           {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-display text-lg uppercase">{isEditing ? "Update Project" : "Post Project • ₹249"}</Text>}
         </TouchableOpacity>
       </View>
+      </KeyboardAvoidingView>
 
       {/* PAYMENT MODAL */}
       <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} onRequestClose={() => setShowPaymentParams(null)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
-          <View className="flex-row items-center px-4 py-3 bg-card border-b border-line">
-            <TouchableOpacity onPress={() => setShowPaymentParams(null)} className="p-2">
-              <Ionicons name="close" size={24} color={C.ink} />
-            </TouchableOpacity>
-            <Text className="ml-4 font-semibold text-lg">Secure Gateway</Text>
+          <View className="bg-card border-b border-line">
+            <AppBar title="Secure Gateway" right={<IconBtn name="close" size={24} onPress={() => setShowPaymentParams(null)} />} />
           </View>
           <WebView
             source={showPaymentParams}

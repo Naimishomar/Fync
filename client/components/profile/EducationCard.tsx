@@ -18,9 +18,10 @@ export default function EducationCard({ item, isOwner, onEdit, onDelete }: {
         <View className="w-12 h-12 bg-brand-50 rounded-card items-center justify-center mr-4">
           <Ionicons name="school" size={24} color={C.brand[500]} />
         </View>
-        <View className="flex-1">
+        <View className="flex-1" style={{ minWidth: 0 }}>
           <Text className="text-ink font-display text-sm mb-1">{item.institution}</Text>
-          {item.degree && (
+          {/* !! — the add form saves blank fields as '', and a bare '' in a View crashes RN. */}
+          {!!item.degree && (
             <Text className="text-accent-text text-xs font-semibold uppercase mb-2">
               {item.degree}{item.field ? ` • ${item.field}` : ''}
             </Text>
@@ -31,7 +32,7 @@ export default function EducationCard({ item, isOwner, onEdit, onDelete }: {
                 {item.startYear || '?'} — {item.isCurrent ? 'Present' : (item.endYear || '?')}
               </Text>
             </View>
-            {item.grade && (
+            {!!item.grade && (
               <View className="bg-success/10 border border-success/15 px-2.5 py-1 rounded-full">
                 <Text className="text-success text-label font-display">{item.grade}</Text>
               </View>
@@ -42,14 +43,14 @@ export default function EducationCard({ item, isOwner, onEdit, onDelete }: {
               </View>
             )}
           </View>
-          {item.description && <Text className="text-ink-3 text-xs leading-5 font-medium" numberOfLines={3}>{item.description}</Text>}
+          {!!item.description && <Text className="text-ink-3 text-xs leading-5 font-medium" numberOfLines={3}>{item.description}</Text>}
         </View>
         {isOwner && (
           <View className="ml-2 gap-3">
-            <Pressable onPress={() => onEdit?.(item)} className="bg-paper-2 p-2 rounded-xl border border-line">
+            <Pressable onPress={() => onEdit?.(item)} hitSlop={6} className="bg-paper-2 p-2 rounded-xl border border-line">
               <Ionicons name="pencil-outline" size={16} color={C.brand[500]} />
             </Pressable>
-            <Pressable onPress={() => onDelete?.(item._id)} className="bg-danger/10 p-2 rounded-xl border border-danger/15">
+            <Pressable onPress={() => onDelete?.(item._id)} hitSlop={6} className="bg-danger/10 p-2 rounded-xl border border-danger/15">
               <Ionicons name="trash-outline" size={16} color={C.danger} />
             </Pressable>
           </View>

@@ -24,6 +24,7 @@ import Toast from 'react-native-toast-message';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 /**
  * A hackathon listing.
@@ -68,11 +69,12 @@ const RANK_META: Record<number, { label: string; medal: string; tint: string }> 
 
 const TABS = ['Overview', 'Timeline', 'Tracks', 'Prizes', 'FAQs'];
 
-const fmtDate = (d?: string) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-
-const fmtShort = (d?: string) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
+const fmtWith = (opts: Intl.DateTimeFormatOptions) => (d?: string) => {
+  const t = d ? new Date(d) : null;
+  return t && !isNaN(t.getTime()) ? t.toLocaleDateString('en-IN', opts) : '—';
+};
+const fmtDate = fmtWith({ day: 'numeric', month: 'short', year: 'numeric' });
+const fmtShort = fmtWith({ day: 'numeric', month: 'short' });
 
 /** "yourhackathon.com" — what the student is actually about to open. */
 const hostOf = (url?: string) => {
@@ -188,7 +190,7 @@ const HackathonDetail = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const bottomInset = useBottomInset();
-  const { hackathonId } = route.params;
+  const { hackathonId } = route.params ?? {};
   const { user } = useAuth();
 
   const [hackathon, setHackathon] = useState<any | null>(null);
@@ -258,7 +260,7 @@ const HackathonDetail = () => {
     if (!hackathon) return;
     try {
       await Share.share({
-        message: `${hackathon.title} — ${hackathon.prizepool ? `${hackathon.prizepool} prize pool. ` : ''}Register: ${hackathon.applyLink}`,
+        message: `${hackathon.title} — ${hackathon.prizepool ? `${hackathon.prizepool} prize pool. ` : ''}${hackathon.applyLink ? `Register: ${hackathon.applyLink}` : ''}`,
       });
     } catch {
       /* the user dismissed the sheet */
@@ -365,24 +367,11 @@ const HackathonDetail = () => {
 
       {/* Back + share, always tappable above the banner */}
       <SafeAreaView edges={['top']} className="absolute top-0 left-0 right-0 z-30">
-        <View className="flex-row items-center justify-between px-3 h-14">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-full bg-ink/40"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <Ionicons name="arrow-back" size={22} color={C.white} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={shareListing}
-            className="w-11 h-11 items-center justify-center rounded-full bg-ink/40"
-            accessibilityRole="button"
-            accessibilityLabel="Share this hackathon"
-          >
-            <Feather name="share-2" size={18} color={C.white} />
-          </TouchableOpacity>
-        </View>
+        <AppBar
+          overlay
+          onBack={() => navigation.goBack()}
+          right={<IconBtn overlay name="share-outline" onPress={shareListing} />}
+        />
       </SafeAreaView>
 
       <Animated.ScrollView

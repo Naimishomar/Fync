@@ -13,6 +13,7 @@ import { Image as ExpoImage } from 'expo-image';
 import Constants from 'expo-constants';
 import { useAuth } from '../context/auth.context';
 import { Alert } from './ui/AlertModal';
+import { AppBar } from './ui/kit';
 import { C } from '../constants/colors';
 
 type Row = {
@@ -137,15 +138,8 @@ export default function SettingsScreen() {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="px-gutter pt-3">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}
-          >
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter">
           <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Settings</Text>
           <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>& More</Text>
           <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>

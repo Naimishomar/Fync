@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
-import {View, Text, FlatList, Dimensions, Pressable, Image, ViewToken, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, ToastAndroid, Share, Linking} from 'react-native'
+import {View, Text, FlatList, Dimensions, Pressable, ViewToken, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, ToastAndroid, Share, Linking} from 'react-native'
 import { Video, ResizeMode } from "expo-av";
+import { Image } from "expo-image";
 import Ionicons from '@expo/vector-icons/Ionicons';
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation, useIsFocused } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
@@ -14,7 +14,7 @@ import { getFullUrl } from "../utils/imageUtils";
 import { queueShortView, flushShortViews } from "../utils/shortViews";
 import {
   checkAndStartSession,
-  getSeenShortIds,
+  getSeenShortsBloom,
   markShortsAsSeen,
   resetSeenShorts,
 } from "../utils/feedSession";
@@ -78,6 +78,7 @@ const SingleShort = React.memo(({
   item,
   isActive,
   isPreBuffer,
+  height,
   currentUserId,
   navigation,
   onLike,
@@ -88,6 +89,7 @@ const SingleShort = React.memo(({
   item: ShortItem;
   isActive: boolean;
   isPreBuffer?: boolean;
+  height: number;
   currentUserId: string | undefined;
   navigation: any;
   onLike: (item: ShortItem) => void;
@@ -104,16 +106,22 @@ const SingleShort = React.memo(({
   }, [item.liked_by, currentUserId]);
 
   const isFocused = useIsFocused();
+  // A short whose author was deleted arrives with user: null.
+  const author = item.user ?? ({} as User);
+  const title = item.title || '';
+  const description = item.description || '';
 
   useEffect(() => {
+    // These reject while the source is still loading; the shouldPlay prop
+    // covers that case, so the rejection is noise.
     if (isActive && isFocused) {
-      videoRef.current?.playAsync();
+      videoRef.current?.playAsync().catch(() => {});
       queueShortView(item._id);
     } else if (isPreBuffer) {
       // 🚀 Pre-buffer but don't play
-      videoRef.current?.setStatusAsync({ shouldPlay: false, positionMillis: 0 });
+      videoRef.current?.setStatusAsync({ shouldPlay: false, positionMillis: 0 }).catch(() => {});
     } else {
-      videoRef.current?.pauseAsync();
+      videoRef.current?.pauseAsync().catch(() => {});
     }
   }, [isActive, isFocused, isPreBuffer]);
 
@@ -136,7 +144,7 @@ const SingleShort = React.memo(({
       const playStoreUrl = "https://play.google.com/store/apps/details?id=com.fync.app";
 
       await Share.share({
-        message: `Check out this short "${item.title}" by ${item.user.username} on Fync!\n\nWatch here: ${shareUrl}\n\nDon't have Fync? Get it on Play Store: ${playStoreUrl}`,
+        message: `Check out this short "${item.title}" by ${author.username ?? 'a student'} on Fync!\n\nWatch here: ${shareUrl}\n\nDon't have Fync? Get it on Play Store: ${playStoreUrl}`,
       });
     } catch (error: any) {
       console.log('Share error:', error.message);
@@ -144,12 +152,12 @@ const SingleShort = React.memo(({
   };
 
   return (
-    <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink">
+    <View style={{ height, width: SCREEN_WIDTH }} className="bg-ink">
       <Pressable onPress={togglePlay}>
         <Video
           ref={videoRef}
           source={{ uri: getFullUrl(item.video) || '' }}
-          style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }}
+          style={{ height, width: SCREEN_WIDTH }}
           resizeMode={ResizeMode.COVER}
           isLooping
           shouldPlay={isActive && isFocused}
@@ -174,38 +182,39 @@ const SingleShort = React.memo(({
         <View className="flex-1 pr-6">
           <Pressable
             onPress={() => {
-              if (item.user._id === currentUserId) {
+              if (!author._id) return;
+              if (author._id === currentUserId) {
                 navigation.navigate("Profile");
               } else {
-                navigation.navigate("PublicProfile", { user: item.user });
+                navigation.navigate("PublicProfile", { user: author });
               }
             }}
             className="flex-row items-center mb-1"
           >
             <Avatar 
-              user={item.user as any} 
+              user={author as any} 
               size={40} 
             />
-            <View className="ml-3">
-              <Text className="font-semibold text-base text-white">{item.user.name}</Text>
-              <Text className="font-sans text-sm text-night-3">@{item.user.username}</Text>
+            <View className="ml-3 flex-1" style={{ minWidth: 0 }}>
+              <Text className="font-semibold text-base text-white" numberOfLines={1}>{author.name}</Text>
+              <Text className="font-sans text-sm text-night-3" numberOfLines={1}>@{author.username}</Text>
             </View>
           </Pressable>
 
           {/* Truncated Title & Description */}
           <View>
             <Text className="font-display text-base text-white mb-1">
-              {(!showFullText && item.title.length > 50) 
-                ? item.title.substring(0, 50) + "..." 
-                : item.title}
+              {(!showFullText && title.length > 50) 
+                ? title.substring(0, 50) + "..." 
+                : title}
             </Text>
             <Text className="font-sans text-sm text-night-ink">
-              {(!showFullText && item.description.length > 50) 
-                ? item.description.substring(0, 50) + "..." 
-                : item.description}
+              {(!showFullText && description.length > 50) 
+                ? description.substring(0, 50) + "..." 
+                : description}
             </Text>
             
-            {(item.title.length > 50 || item.description.length > 50) && (
+            {(title.length > 50 || description.length > 50) && (
               <Pressable onPress={() => setShowFullText(!showFullText)} className="mt-1">
                 <Text className="font-semibold text-sm text-brand-400">
                   {showFullText ? "Show Less" : "Show More"}
@@ -217,7 +226,7 @@ const SingleShort = React.memo(({
 
         {/* RIGHT */}
         <View className="items-center">
-          {item.user._id === currentUserId && (
+          {!!author._id && author._id === currentUserId && (
             <Pressable
               onPress={() => {
                 Alert.alert(
@@ -250,7 +259,7 @@ const SingleShort = React.memo(({
 
           <Pressable
             onPress={async () => {
-              if (item.user.upiId) {
+              if (author.upiId) {
                 // Opens the phone's UPI app with the creator's ID filled in.
                 // This used to navigate to "EnterAmountScreen", which is not
                 // registered in any navigator and has never existed — every tap
@@ -258,22 +267,22 @@ const SingleShort = React.memo(({
                 // confirmation belong to the UPI app anyway; nothing is
                 // authorised here.
                 const url =
-                  `upi://pay?pa=${encodeURIComponent(item.user.upiId)}` +
-                  `&pn=${encodeURIComponent(item.user.name ?? 'Creator')}&cu=INR`;
+                  `upi://pay?pa=${encodeURIComponent(author.upiId)}` +
+                  `&pn=${encodeURIComponent(author.name ?? 'Creator')}&cu=INR`;
                 const ok = await Linking.canOpenURL(url).catch(() => false);
                 if (ok) {
                   Linking.openURL(url);
                 } else {
                   Alert.alert(
                     "No UPI app found",
-                    `Install a UPI app to tip ${item.user.name}, or send to ${item.user.upiId}.`,
+                    `Install a UPI app to tip ${author.name}, or send to ${author.upiId}.`,
                     [{ text: "Okay" }]
                   );
                 }
               } else {
                 Alert.alert(
                   "Payments Not Setup",
-                  `${item.user.name} hasn't added their UPI ID yet.`,
+                  `${author.name ?? 'This creator'} hasn't added their UPI ID yet.`,
                   [{ text: "Okay" }]
                 );
               }
@@ -287,7 +296,7 @@ const SingleShort = React.memo(({
           </Pressable>
 
           {/* Not offered on your own short — the endpoint refuses it. */}
-          {item.user?._id !== currentUserId && (
+          {author._id !== currentUserId && (
             <Pressable
               onPress={() => onRepost(item)}
               className="mb-4 items-center"
@@ -329,11 +338,13 @@ const DiscoverCard = React.memo(({
   item,
   isActive,
   isNear,
+  height,
   handleUnplayable,
 }: {
   item: ShortItem;
   isActive: boolean;
   isNear: boolean;
+  height: number;
   handleUnplayable: (videoId: string, code: number) => void;
 }) => {
   // A WebView is expensive in a way a native view is not, so one is created
@@ -341,12 +352,13 @@ const DiscoverCard = React.memo(({
   // stands in for the rest, which is all the user ever sees of them.
   if (!isNear) {
     return (
-      <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink">
+      <View style={{ height, width: SCREEN_WIDTH }} className="bg-ink">
         {!!item.thumbnail && (
           <Image
             source={{ uri: item.thumbnail }}
-            style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
-            resizeMode="cover"
+            style={{ width: SCREEN_WIDTH, height }}
+            contentFit="cover"
+            cachePolicy="memory-disk"
             blurRadius={6}
           />
         )}
@@ -355,7 +367,7 @@ const DiscoverCard = React.memo(({
   }
 
   return (
-    <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }}>
+    <View style={{ height, width: SCREEN_WIDTH }}>
       <YouTubeShort
         videoId={item.videoId!}
         isActive={isActive}
@@ -409,6 +421,11 @@ export default function Shorts() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  // Pages must match the list's real height, not the device's: the screen
+  // height includes system bars the list never gets, and paging by a height
+  // the viewport doesn't have leaves each page a sliver off the last.
+  const [pageH, setPageH] = useState(SCREEN_HEIGHT);
+  const loadingMoreRef = useRef(false);
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -428,9 +445,9 @@ export default function Shorts() {
     else setLoadingMore(true);
 
     try {
-      const seenIds = await getSeenShortIds();
+      const seenBloom = await getSeenShortsBloom();
 
-      const res = await axios.post(`/shorts/smart?page=${Math.max(page, 1)}`, { seenIds });
+      const res = await axios.post(`/shorts/smart?page=${Math.max(page, 1)}`, { seenBloom });
 
       if (res.data.success) {
         const newShorts = res.data.shorts;
@@ -444,7 +461,9 @@ export default function Shorts() {
         if (shouldRefresh || isFirstPage) {
           globalShortsCache = newShorts;
           setShorts(newShorts);
-          if (newShorts.length > 0 && !activeVideoId) setActiveVideoId(newShorts[0]._id);
+          // Always: a refresh clears the active id, and the viewability
+          // callback won't fire again if the list still starts at index 0.
+          setActiveVideoId(newShorts[0]?._id ?? null);
         } else if (campusExhausted) {
           // Deliberately not appended: these are repeats, and Discover has
           // genuinely new material to show instead.
@@ -465,7 +484,7 @@ export default function Shorts() {
           // again, then hand straight over rather than waiting for another
           // scroll to trigger it.
           resetSeenShorts();
-          if (!globalDiscoverExhausted) void fetchDiscover();
+          if (!globalDiscoverExhausted) await fetchDiscover();
         }
       }
     } catch (err) {
@@ -477,6 +496,7 @@ export default function Shorts() {
           if (shouldRefresh || isFirstPage) {
             globalShortsCache = newShorts;
             setShorts(newShorts);
+            setActiveVideoId(newShorts[0]?._id ?? null);
           } else {
             globalShortsCache = [...globalShortsCache, ...newShorts.filter((s: ShortItem) => !globalShortsCache.find(x => x._id === s._id))];
             setShorts(globalShortsCache);
@@ -589,29 +609,38 @@ export default function Shorts() {
     axios.post('/shorts/discover/unplayable', { videoId, code }).catch(() => {});
   }, []);
 
-  const loadMore = () => {
-    if (loadingMore) return;
-    if (globalHasMore) {
-      fetchShorts(globalShortsPage + 1);
-    } else if (!globalDiscoverExhausted) {
-      fetchDiscover();
+  // Guarded by a ref, not the loadingMore state: onEndReached and the
+  // viewability prefetch both fire in the same frame, before state updates.
+  const loadMore = async () => {
+    if (loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
+    try {
+      if (globalHasMore) {
+        await fetchShorts(globalShortsPage + 1);
+      } else if (!globalDiscoverExhausted) {
+        await fetchDiscover();
+      }
+    } finally {
+      loadingMoreRef.current = false;
     }
   };
+  const loadMoreRef = useRef(loadMore);
+  loadMoreRef.current = loadMore;
 
   /* ---------------- VIDEO CONTROL ---------------- */
 
+  // Created once, so it must not read component state — it would see the
+  // first render's forever. The module cache and loadMoreRef stay current.
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (!viewableItems.length) return;
       const item = viewableItems[0].item as ShortItem;
       const index = viewableItems[0].index;
-      if (activeVideoId !== item._id) {
-        setActiveVideoId(item._id);
-      }
+      setActiveVideoId(item._id);
       
       // 🚀 PRE-FETCH Logic: If we are within 4 items of the end, start loading the next batch now
-      if (index !== null && index >= shorts.length - 4 && globalHasMore && !loadingMore) {
-        loadMore();
+      if (index !== null && index >= globalShortsCache.length - 4) {
+        loadMoreRef.current();
       }
     }
   ).current;
@@ -622,29 +651,31 @@ export default function Shorts() {
 
   /* ---------------- LIKE ---------------- */
 
-  const toggleLike = async (short: ShortItem) => {
+  // Stable callbacks read the module cache (always in sync with `shorts`) so
+  // the memoised rows don't all re-render on every like or swipe.
+  const toggleLike = useCallback((short: ShortItem) => {
     if (!currentUserId) return;
+    const uid = String(currentUserId);
+    const wasLiked = (short.liked_by ?? []).some(id => String(id) === uid);
 
-    const token = await AsyncStorage.getItem("token");
-    const isLiked = short.liked_by.includes(currentUserId);
+    const apply = (liked: boolean) => {
+      globalShortsCache = globalShortsCache.map(s =>
+        s._id === short._id
+          ? {
+            ...s,
+            likes: Math.max(0, (s.likes || 0) + (liked ? 1 : -1)),
+            liked_by: liked
+              ? [...(s.liked_by ?? []), uid]
+              : (s.liked_by ?? []).filter(id => String(id) !== uid),
+          }
+          : s
+      );
+      setShorts(globalShortsCache);
+    };
 
-    const updatedShorts = shorts.map(s =>
-      s._id === short._id
-        ? {
-          ...s,
-          likes: isLiked ? s.likes - 1 : s.likes + 1,
-          liked_by: isLiked
-            ? s.liked_by.filter(id => id !== currentUserId)
-            : [...s.liked_by, currentUserId],
-        }
-        : s
-    );
-
-    setShorts(updatedShorts);
-    globalShortsCache = updatedShorts;
-
-    axios.post(`/shorts/like/${short._id}`);
-  };
+    apply(!wasLiked);
+    axios.post(`/shorts/like/${short._id}`).catch(() => apply(wasLiked));
+  }, [currentUserId]);
 
   /**
    * Open the comment sheet for a short.
@@ -653,10 +684,10 @@ export default function Shorts() {
    * the active short or made the modal visible, so the comment button did
    * nothing at all. The sheet loads its own data, so opening it is the whole job.
    */
-  const openComments = (shortId: string) => {
+  const openComments = useCallback((shortId: string) => {
     setActiveShortId(shortId);
     setCommentModalVisible(true);
-  };
+  }, []);
 
   const onRefresh = async () => {
     try {
@@ -670,10 +701,10 @@ export default function Shorts() {
     }
   };
 
-  const deleteShort = async (id: string) => {
-    const previousShorts = shorts;
+  const deleteShort = useCallback(async (id: string) => {
+    const previousShorts = globalShortsCache;
     // Optimistic update
-    const updatedShorts = shorts.filter(s => s._id !== id);
+    const updatedShorts = previousShorts.filter(s => s._id !== id);
     setShorts(updatedShorts);
     globalShortsCache = updatedShorts;
 
@@ -695,18 +726,30 @@ export default function Shorts() {
       console.log("Delete failed", error);
       Alert.alert("Error", "Failed to delete short");
     }
-  };
+  }, []);
+
+  const onRepost = useCallback((short: ShortItem) =>
+    short.repostedBy?.some((u) => String(u) === String(currentUserId))
+      ? handleRepost(short)
+      : setRepostTarget(short),
+  [currentUserId, handleRepost]);
+
+  const activeIndex = useMemo(
+    () => shorts.findIndex(s => s._id === activeVideoId),
+    [shorts, activeVideoId]
+  );
 
   const renderItem = useCallback(({ item, index }: { item: ShortItem, index: number }) => {
     // 🚀 Look-Ahead Buffer: We play the active one, and PRE-BUFFER the next one
-    const isNext = index === shorts.findIndex(s => s._id === activeVideoId) + 1;
+    const isNext = index === activeIndex + 1;
 
     if (item.discover) {
       return (
         <DiscoverCard
           item={item}
           isActive={item._id === activeVideoId}
-          isNear={Math.abs(index - shorts.findIndex(s => s._id === activeVideoId)) <= 1}
+          isNear={Math.abs(index - activeIndex) <= 1}
+          height={pageH}
           handleUnplayable={handleUnplayable}
         />
       );
@@ -717,19 +760,22 @@ export default function Shorts() {
         item={item}
         isActive={item._id === activeVideoId}
         isPreBuffer={isNext}
+        height={pageH}
         currentUserId={currentUserId}
         navigation={navigation}
         onLike={toggleLike}
-        onRepost={(short: ShortItem) =>
-          short.repostedBy?.some((u) => String(u) === String(currentUserId))
-            ? handleRepost(short)
-            : setRepostTarget(short)
-        }
+        onRepost={onRepost}
         onComment={openComments}
         onDelete={deleteShort}
       />
     );
-  }, [activeVideoId, currentUserId, navigation, toggleLike, deleteShort, shorts]);
+  }, [activeVideoId, activeIndex, pageH, currentUserId, navigation, toggleLike, onRepost, openComments, deleteShort, handleUnplayable]);
+
+  const getItemLayout = useCallback((_: any, index: number) => ({
+    length: pageH,
+    offset: pageH * index,
+    index,
+  }), [pageH]);
 
 
   if (loading && shorts.length === 0) {
@@ -745,12 +791,12 @@ export default function Shorts() {
         pagingEnabled
         showsVerticalScrollIndicator={false}
         decelerationRate="fast"
-        snapToInterval={SCREEN_HEIGHT}
-        getItemLayout={(_, index) => ({
-          length: SCREEN_HEIGHT,
-          offset: SCREEN_HEIGHT * index,
-          index,
-        })}
+        snapToInterval={pageH}
+        getItemLayout={getItemLayout}
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          if (h > 0 && Math.abs(h - pageH) > 0.5) setPageH(h);
+        }}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         windowSize={3}

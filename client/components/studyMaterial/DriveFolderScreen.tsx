@@ -1,17 +1,49 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image, Animated, StatusBar, TextInput } from 'react-native';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Animated, StatusBar, TextInput } from 'react-native';
+import { Image } from 'expo-image';
 import { fetchDriveData } from '../../utils/handleDrive';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const FOLDER_IMG = 'https://cdn-icons-png.flaticon.com/512/716/716784.png';
 const PDF_IMG = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
 
+// Module scope: declared inside the screen it was a new component type on
+// every render, so each render remounted all six and restarted their loops.
+const SkeletonItem = () => {
+    const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+    useEffect(() => {
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+            ])
+        );
+        loop.start();
+        return () => loop.stop();
+    }, []);
+
+    return (
+        <Animated.View
+            style={{ opacity: pulseAnim }}
+            className="flex-row items-center p-5 mx-gutter mb-4 bg-card rounded-card border border-line"
+        >
+            <View className="w-12 h-12 bg-paper-2 rounded-card" />
+            <View className="ml-4 flex-1">
+                <View className="h-4 bg-paper-2 rounded w-3/4 mb-2" />
+                <View className="h-3 bg-paper-2 rounded w-1/2" />
+            </View>
+            <View className="w-4 h-4 bg-paper-2 rounded-full" />
+        </Animated.View>
+    );
+};
+
 const DriveFolderScreen = ({ route, navigation }: any) => {
     const { folderId, title } = route.params;
     const [items, setItems] = useState<any[]>([]);
-    const [filteredItems, setFilteredItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState<'all' | 'folders' | 'files'>('all');
@@ -21,9 +53,6 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
         loadData();
     }, [folderId]);
 
-    useEffect(() => {
-        filterData();
-    }, [search, items, activeFilter]);
 
     const loadData = async () => {
         setLoading(true);
@@ -32,12 +61,13 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
         setLoading(false);
     };
 
-    const filterData = () => {
+    const filteredItems = useMemo(() => {
         let result = items;
 
         // Search Filter
         if (search.trim()) {
-            result = result.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
+            const q = search.trim().toLowerCase();
+            result = result.filter(i => (i.name || '').toLowerCase().includes(q));
         }
 
         // Type Filter
@@ -47,8 +77,8 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
             result = result.filter(i => i.mimeType !== 'application/vnd.google-apps.folder');
         }
 
-        setFilteredItems(result);
-    };
+        return result;
+    }, [search, items, activeFilter]);
 
     const handlePress = (item: any) => {
         if (item.mimeType === 'application/vnd.google-apps.folder') {
@@ -56,33 +86,6 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
         } else {
             navigation.navigate('PDFViewerScreen', { fileId: item.id, title: item.name });
         }
-    };
-
-    const SkeletonItem = () => {
-        const pulseAnim = useRef(new Animated.Value(0.3)).current;
-
-        useEffect(() => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-                ])
-            ).start();
-        }, []);
-
-        return (
-            <Animated.View
-                style={{ opacity: pulseAnim }}
-                className="flex-row items-center p-5 mx-gutter mb-4 bg-card rounded-card border border-line"
-            >
-                <View className="w-12 h-12 bg-paper-2 rounded-card" />
-                <View className="ml-4 flex-1">
-                    <View className="h-4 bg-paper-2 rounded w-3/4 mb-2" />
-                    <View className="h-3 bg-paper-2 rounded w-1/2" />
-                </View>
-                <View className="w-4 h-4 bg-paper-2 rounded-full" />
-            </Animated.View>
-        );
     };
 
 
@@ -94,20 +97,13 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
             {/* HEADER DECORATION - MATCHING LEADERBOARD */}
 
             <SafeAreaView className="flex-1" edges={['top']}>
-                {loading ? (
+                <AppBar onBack={() => navigation.goBack()} />
+                {/* Skeleton only on first load; a refresh keeps the list and spins the button. */}
+                {loading && items.length === 0 ? (
                     <View>
                         <View className='px-gutter pt-8 bg-transparent'>
                             <View className="flex-row items-center justify-between mb-8">
                                 <View>
-                                    <TouchableOpacity
-                                      onPress={() => navigation.goBack()}
-                                      className="w-11 h-11 items-center justify-center rounded-xl"
-                                      accessibilityRole="button"
-                                      accessibilityLabel="Go back"
-                                      style={{ marginLeft: -11 }}
-                                    >
-                                      <Ionicons name="arrow-back" size={24} color={C.ink} />
-                                    </TouchableOpacity>
                                     <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
                                     <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Drive</Text>
                                     <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Resource Arena</Text>
@@ -189,8 +185,9 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                                     <View className="w-14 h-14 bg-paper-2 rounded-card items-center justify-center p-2.5">
                                         <Image
                                             source={{ uri: isFolder ? FOLDER_IMG : PDF_IMG }}
-                                            className="w-full h-full"
-                                            resizeMode="contain"
+                                            style={{ width: '100%', height: '100%' }}
+                                            contentFit="contain"
+                                            cachePolicy="memory-disk"
                                         />
                                     </View>
 

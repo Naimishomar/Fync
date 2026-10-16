@@ -24,7 +24,7 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
 
   // Pulse Animation Effect
   useEffect(() => {
-    Animated.loop(
+    const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.05,
@@ -37,7 +37,9 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
           useNativeDriver: true,
         })
       ])
-    ).start();
+    );
+    loop.start();
+    return () => loop.stop();
   }, [pulseAnim]);
 
   useEffect(() => {
@@ -46,41 +48,49 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
     socket.emit("join_custom_room", { roomId, userId: user._id });
 
     // 1. START QUIZ
-    socket.on("start_quiz", (data) => {
+    const onStart = (data: any) => {
       navigation.replace("QuizScreen", {
         questions: data.questions,
         roomId,
         mode: 'custom',
         endTime: data.endTime
       });
-    });
+    };
 
     // 2. QUIZ ALREADY ENDED (Late Joiner)
-    socket.on("quiz_ended", () => {
+    const onEnded = () => {
       Alert.alert("Quiz Expired", "This quiz has ended.", [
         { text: "View Leaderboard", onPress: () => navigation.replace("LeaderboardScreen", { roomId }) }
       ]);
-    });
+    };
 
     // 3. ALREADY ATTEMPTED
-    socket.on("already_attempted", () => {
+    const onAttempted = () => {
       navigation.replace("LeaderboardScreen", { roomId });
-    });
+    };
 
-    socket.on("error", (msg) => setStatus(msg));
+    const onError = (msg: any) => setStatus(msg);
 
+    socket.on("start_quiz", onStart);
+    socket.on("quiz_ended", onEnded);
+    socket.on("already_attempted", onAttempted);
+    socket.on("error", onError);
+
+    // Remove only our own handlers: the socket is shared app-wide, and a bare
+    // off("error") strips every other screen's error listener too.
     return () => {
-      socket.off("start_quiz");
-      socket.off("quiz_ended");
-      socket.off("already_attempted");
-      socket.off("error");
+      socket.off("start_quiz", onStart);
+      socket.off("quiz_ended", onEnded);
+      socket.off("already_attempted", onAttempted);
+      socket.off("error", onError);
     };
   }, [navigation, roomId, user]);
 
   // Visual Countdown to Start Time
   useEffect(() => {
     const target = new Date(startTime).getTime();
-    const interval = setInterval(() => {
+    if (Number.isNaN(target)) return;
+    const tick = () => {
       const now = Date.now();
       const diff = target - now;
 
@@ -89,12 +99,14 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
         setIsStarting(true);
         clearInterval(interval);
       } else {
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const m = Math.floor(diff / (1000 * 60));
         const s = Math.floor((diff % (1000 * 60)) / 1000);
         // Format as MM:SS
         setTimeString(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
       }
-    }, 1000);
+    };
+    const interval = setInterval(tick, 1000);
+    tick();
     return () => clearInterval(interval);
   }, [startTime]);
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Dimensions, StatusBar, Modal} from 'react-native'
+import {View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Dimensions, StatusBar, Modal, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
@@ -131,12 +131,12 @@ const CreateCommunityScreen = () => {
                         amount: "${orderRes.data.amount}",
                         currency: "INR",
                         name: "Fync Ecosystem",
-                        description: "Ignite ${name}",
+                        description: ${JSON.stringify(`Ignite ${name}`)},
                         order_id: "${orderRes.data.id}",
                         prefill: {
-                            name: "${user?.username || ''}",
-                            email: "${user?.email || ''}",
-                            contact: "${user?.phone || ''}"
+                            name: ${JSON.stringify(user?.username || '')},
+                            email: ${JSON.stringify(user?.email || '')},
+                            contact: ${JSON.stringify(user?.phone || '')}
                         },
                         theme: { color: "#F97316" },
                         handler: function (response) {
@@ -187,7 +187,8 @@ const CreateCommunityScreen = () => {
     };
 
     const onWebViewMessage = (event: any) => {
-        const msg = JSON.parse(event.nativeEvent.data);
+        let msg: any = {};
+        try { msg = JSON.parse(event.nativeEvent.data); } catch { /* treated as cancel */ }
         setShowWebView(false);
         if (msg.event === 'SUCCESS') {
             handleCreateSuccess(msg.data);
@@ -201,7 +202,7 @@ const CreateCommunityScreen = () => {
 
     return (
         <KeyboardAvoidingView 
-            behavior="padding"
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             className="flex-1 bg-black/60"
         >
             <StatusBar barStyle="light-content" />
@@ -347,7 +348,11 @@ const CreateCommunityScreen = () => {
                 </ScrollView>
             </View>
 
-            <Modal visible={showWebView} animationType="slide">
+            <Modal
+                visible={showWebView}
+                animationType="slide"
+                onRequestClose={() => { setShowWebView(false); setLoading(false); }}
+            >
                 <SafeAreaView className="flex-1 bg-paper">
                     <WebView
                         source={{ html: webViewHtml }}

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView} from 'react-native'
+import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -9,11 +8,12 @@ import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const CreateSubGroupScreen = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
-    const { clubId } = route.params;
+    const { clubId } = route.params ?? {};
     const { user } = useAuth();
     
     const [name, setName] = useState('');
@@ -78,23 +78,12 @@ const CreateSubGroupScreen = () => {
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-5 py-4 flex-row items-center justify-between border-b border-line">
-                    <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="close" size={28} color="black" />
-                    </TouchableOpacity>
-                    <View className="items-center">
-                        <Text className="text-ink text-lg font-display uppercase">Generate Room</Text>
-                        <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Expanding your Hub</Text>
-                    </View>
-                    <View className="w-8" />
+                <View className="border-b border-line">
+                    <AppBar title="Generate Room" subtitle="Expanding your Hub" onBack={() => navigation.goBack()} />
                 </View>
 
-                <KeyboardAvoidingView behavior="padding" className="flex-1">
-                    <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+                    <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                         
                         {/* Logo Picker */}
                         <View className="items-center mb-8 mt-4">

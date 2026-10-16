@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, TextInput, ScrollView, KeyboardAvoidingView, Pressable, Animated, StatusBar} from 'react-native'
+import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, TextInput, ScrollView, KeyboardAvoidingView, Pressable, Animated, StatusBar, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
@@ -8,6 +9,7 @@ import socket from '../utils/socket';
 import { formatDistanceToNow } from 'date-fns';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
+import { AppBar, IconBtn } from './ui/kit';
 
 // --- TYPES ---
 interface Gig {
@@ -33,6 +35,10 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
     const isOwner = item.postedBy?._id === currentUser?._id || item.postedBy === currentUser?._id;
     const avatarUrl = item.postedBy?.avatar || (isOwner ? currentUser?.avatar : `https://ui-avatars.com/api/?name=${item.postedBy?.username || 'User'}`);
     const posterName = item.postedBy?.name || (isOwner ? currentUser?.name : 'Anonymous');
+    const description: string = item.description || '';
+    // formatDistanceToNow throws on an Invalid Date, which would take the whole list down.
+    const created = new Date(item.createdAt);
+    const postedAgo = isNaN(created.getTime()) ? '' : formatDistanceToNow(created, { addSuffix: true });
 
     return (
         <View className="bg-card mx-gutter mb-6 rounded-sheet border border-line shadow-hair overflow-hidden">
@@ -45,15 +51,15 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                             {item.title}
                         </Text>
                         <Text className="text-ink-3 text-label mt-1 uppercase font-display">
-                            {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+                            {postedAgo}
                         </Text>
                     </View>
                     {isOwner && (
                         <View className="flex-row gap-2 bg-paper-2 p-1.5 rounded-card border border-line">
-                            <TouchableOpacity onPress={() => onEdit(item)} className="p-2 bg-card rounded-xl border border-line">
+                            <TouchableOpacity onPress={() => onEdit(item)} hitSlop={10} className="p-2 bg-card rounded-xl border border-line">
                                 <Ionicons name="pencil" size={12} color={C.ink} />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => onDelete(item._id)} className="p-2 bg-danger/10 rounded-xl border border-danger/15">
+                            <TouchableOpacity onPress={() => onDelete(item._id)} hitSlop={10} className="p-2 bg-danger/10 rounded-xl border border-danger/15">
                                 <Ionicons name="trash" size={12} color={C.fam.fun} />
                             </TouchableOpacity>
                         </View>
@@ -68,11 +74,11 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                 </View>
 
                 <Text className="text-ink-2 text-sm leading-6 mb-6 font-medium">
-                    "{item.description.length > MAX_CHAR && !isExpanded
-                        ? `${item.description.substring(0, MAX_CHAR)}...`
-                        : item.description
+                    "{description.length > MAX_CHAR && !isExpanded
+                        ? `${description.substring(0, MAX_CHAR)}...`
+                        : description
                     }"
-                    {item.description.length > MAX_CHAR && (
+                    {description.length > MAX_CHAR && (
                         <Text onPress={() => setIsExpanded(!isExpanded)} className="text-accent-text font-display ml-1 uppercase text-label">
                             {isExpanded ? " Less" : " Read More"}
                         </Text>
@@ -82,12 +88,13 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                 <View className="h-[1px] bg-paper-2 w-full mb-6" />
 
                 <View className="flex-row justify-between items-center mb-6">
-                    <View className="flex-row items-center">
-                        <Image
+                    <View className="flex-row items-center flex-1 mr-3" style={{ minWidth: 0 }}>
+                        <ExpoImage
                             source={{ uri: avatarUrl }}
-                            className="w-10 h-10 rounded-card border border-line bg-paper-2"
+                            style={{ width: 40, height: 40, borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2 }}
+                            cachePolicy="memory-disk"
                         />
-                        <View className="ml-3">
+                        <View className="ml-3 flex-1" style={{ minWidth: 0 }}>
                             <Text className="text-label text-ink-3 uppercase font-display">Poster</Text>
                             <Text className="font-semibold text-base text-ink mt-0.5" numberOfLines={1}>
                                 {posterName}
@@ -96,7 +103,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                     </View>
 
                     {!isOwner && (
-                        <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
+                        <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full" style={{ maxWidth: '50%' }}>
                             <Text className="text-ink-3 font-display text-label uppercase" numberOfLines={1}>
                                 {item.postedUserCollege}
                             </Text>
@@ -138,6 +145,46 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
     );
 });
 
+// Module-level so it keeps its identity across PaidGigs renders; defined inside
+// the screen it remounted (and restarted its pulse) on every state change.
+const GigSkeleton = () => {
+    const pulseAnim = useRef(new Animated.Value(0.3)).current;
+
+    useEffect(() => {
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+            ])
+        );
+        loop.start();
+        return () => loop.stop();
+    }, [pulseAnim]);
+    return (
+        <Animated.View
+            style={{ opacity: pulseAnim }}
+            className="bg-card mx-gutter mb-6 rounded-sheet border border-line p-card-pad shadow-hair"
+        >
+            <View className="flex-row justify-between items-center mb-6">
+                <View className="h-6 bg-paper-2 rounded w-2/3" />
+                <View className="w-10 h-10 bg-paper-2 rounded-card" />
+            </View>
+            <View className="h-8 bg-paper-2 rounded-xl w-32 mb-8" />
+
+            <View className="h-4 bg-paper-2 rounded w-full mb-3" />
+            <View className="h-4 bg-paper-2 rounded w-4/5 mb-10" />
+
+            <View className="flex-row justify-between items-center pt-6 border-t border-line">
+                <View className="flex-row items-center">
+                    <View className="w-10 h-10 bg-paper-2 rounded-card" />
+                    <View className="ml-3"><View className="h-4 bg-paper-2 rounded w-20" /></View>
+                </View>
+                <View className="w-24 h-10 bg-paper-2 rounded-card" />
+            </View>
+        </Animated.View>
+    );
+};
+
 // =======================================================
 // 2. MAIN COMPONENT (Using navigation prop, not hook)
 // =======================================================
@@ -145,7 +192,7 @@ export default function PaidGigs({ navigation }: any) {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<'college' | 'global' | 'mine'>('college');
     const [gigs, setGigs] = useState<Gig[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -164,9 +211,17 @@ export default function PaidGigs({ navigation }: any) {
 
     const [connectingId, setConnectingId] = useState<string | null>(null);
 
-    const fetchGigs = async (pageNum: number = 1, shouldAppend: boolean = false) => {
+    // Tab switches overlap requests; only the latest may write. The ref also
+    // stops onEndReached from fetching the same page twice before state lands.
+    const reqIdRef = useRef(0);
+    const inFlightRef = useRef(false);
+
+    const fetchGigs = async (pageNum: number = 1, shouldAppend: boolean = false, showSkeleton: boolean = true) => {
+        if (shouldAppend && inFlightRef.current) return;
+        const id = ++reqIdRef.current;
+        inFlightRef.current = true;
         if (pageNum > 1) setLoadingMore(true);
-        else if (!refreshing) setLoading(true);
+        else if (showSkeleton) setLoading(true);
 
         try {
             let endpoint = '';
@@ -175,6 +230,7 @@ export default function PaidGigs({ navigation }: any) {
             else if (activeTab === 'mine') endpoint = `/gigs/your?page=${pageNum}&limit=10`;
 
             const res = await axios.get(endpoint);
+            if (id !== reqIdRef.current) return;
             const resData = res.data;
             const fetchedGigs = activeTab === 'mine' ? resData.yourGigs : resData.gigs;
 
@@ -197,6 +253,7 @@ export default function PaidGigs({ navigation }: any) {
                 setHasMore(false);
             }
         } catch (error: any) {
+            if (id !== reqIdRef.current) return;
             if (error.response?.status === 404 && pageNum === 1) {
                 setGigs([]);
                 setHasMore(false);
@@ -204,9 +261,12 @@ export default function PaidGigs({ navigation }: any) {
                 console.log("Error fetching gigs", error);
             }
         } finally {
-            setLoading(false);
-            setRefreshing(false);
-            setLoadingMore(false);
+            if (id === reqIdRef.current) {
+                inFlightRef.current = false;
+                setLoading(false);
+                setRefreshing(false);
+                setLoadingMore(false);
+            }
         }
     };
 
@@ -220,7 +280,7 @@ export default function PaidGigs({ navigation }: any) {
         setRefreshing(true);
         setPage(1);
         setHasMore(true);
-        fetchGigs(1, false);
+        fetchGigs(1, false, false);
     };
 
     const handleLoadMore = () => {
@@ -249,7 +309,7 @@ export default function PaidGigs({ navigation }: any) {
             }
 
             closeModal();
-            fetchGigs();
+            fetchGigs(1, false, false);
         } catch (error: any) {
             Alert.alert("Error", error.response?.data?.message || "Action failed");
         } finally {
@@ -335,6 +395,18 @@ export default function PaidGigs({ navigation }: any) {
         setModalVisible(true);
     }, []);
 
+    const renderGig = useCallback(({ item }: { item: Gig }) => (
+        <GigCard
+            item={item}
+            currentUser={user}
+            onEdit={openEditModal}
+            onDelete={handleDelete}
+            onCloseGig={handleStatusChange}
+            onMessage={handleMessage}
+            connectingId={connectingId}
+        />
+    ), [user, openEditModal, handleDelete, handleStatusChange, handleMessage, connectingId]);
+
     const closeModal = () => {
         setModalVisible(false);
         setEditMode(false);
@@ -345,71 +417,20 @@ export default function PaidGigs({ navigation }: any) {
         setVisibility('Global');
     };
 
-    const GigSkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.3)).current;
-
-        useEffect(() => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-                ])
-            ).start();
-        }, []);
-
-        return (
-            <Animated.View
-                style={{ opacity: pulseAnim }}
-                className="bg-card mx-gutter mb-6 rounded-sheet border border-line p-card-pad shadow-hair"
-            >
-                <View className="flex-row justify-between items-center mb-6">
-                    <View className="h-6 bg-paper-2 rounded w-2/3" />
-                    <View className="w-10 h-10 bg-paper-2 rounded-card" />
-                </View>
-                <View className="h-8 bg-paper-2 rounded-xl w-32 mb-8" />
-
-                <View className="h-4 bg-paper-2 rounded w-full mb-3" />
-                <View className="h-4 bg-paper-2 rounded w-4/5 mb-10" />
-
-                <View className="flex-row justify-between items-center pt-6 border-t border-line">
-                    <View className="flex-row items-center">
-                        <View className="w-10 h-10 bg-paper-2 rounded-card" />
-                        <View className="ml-3"><View className="h-4 bg-paper-2 rounded w-20" /></View>
-                    </View>
-                    <View className="w-24 h-10 bg-paper-2 rounded-card" />
-                </View>
-            </Animated.View>
-        );
-    };
-
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
             <SafeAreaView className="flex-1" edges={['top']}>
-                <View className="px-gutter pt-6">
-                    <View className="flex-row justify-between items-center mb-8">
-                        <View>
-                            <TouchableOpacity
-                              onPress={() => navigation.goBack()}
-                              className="w-11 h-11 items-center justify-center rounded-xl"
-                              accessibilityRole="button"
-                              accessibilityLabel="Go back"
-                              style={{ marginLeft: -11 }}
-                            >
-                              <Ionicons name="arrow-back" size={24} color={C.ink} />
-                            </TouchableOpacity>
-                            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Paid</Text>
-                            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Gigs</Text>
-                            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Freelance Work Protocol</Text>
-                        </View>
-                        <TouchableOpacity
-                            onPress={openCreateModal}
-                            activeOpacity={0.8}
-                            className="w-14 h-14 bg-ink items-center justify-center border-2 border-ink rounded-md"
-                        >
-                            <Ionicons name="add" size={28} color="white" />
-                        </TouchableOpacity>
+                <AppBar
+                    onBack={() => navigation.goBack()}
+                    right={<IconBtn name="add" onPress={openCreateModal} />}
+                />
+                <View className="px-gutter">
+                    <View className="mb-8">
+                        <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Paid</Text>
+                        <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Gigs</Text>
+                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Freelance Work Protocol</Text>
                     </View>
 
                     <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line">
@@ -440,26 +461,16 @@ export default function PaidGigs({ navigation }: any) {
                         showsVerticalScrollIndicator={false}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                         contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
-                        renderItem={({ item }) => (
-                            <GigCard
-                                item={item}
-                                currentUser={user}
-                                onEdit={openEditModal}
-                                onDelete={handleDelete}
-                                onCloseGig={handleStatusChange}
-                                onMessage={handleMessage}
-                                connectingId={connectingId}
-                            />
-                        )}
+                        renderItem={renderGig}
                         onEndReached={handleLoadMore}
                         onEndReachedThreshold={0.5}
-                        ListFooterComponent={() => (
+                        ListFooterComponent={
                             loadingMore ? (
                                 <View className="py-6 items-center">
                                     <ActivityIndicator size="small" color={C.brand[500]} />
                                 </View>
                             ) : <View className="h-10" />
-                        )}
+                        }
                         ListEmptyComponent={
                             <View className="items-center justify-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
@@ -481,13 +492,13 @@ export default function PaidGigs({ navigation }: any) {
                         <Text className="text-xl font-display text-ink uppercase leading-tight">
                             {editMode ? 'Edit' : 'New'} <Text className="text-accent-text">Gig Protocol</Text>
                         </Text>
-                        <TouchableOpacity onPress={closeModal} className="bg-paper-2 p-2 rounded-card border border-line">
+                        <TouchableOpacity onPress={closeModal} hitSlop={8} className="bg-paper-2 p-2 rounded-card border border-line">
                             <Ionicons name="close" size={20} color={C.ink} />
                         </TouchableOpacity>
                     </View>
 
-                    <KeyboardAvoidingView behavior="padding" className="flex-1">
-                        <ScrollView className="p-card-pad" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+                        <ScrollView className="p-card-pad" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
                             <Text className="text-ink-3 text-label font-display uppercase mb-4">Subject Matter</Text>
                             <TextInput

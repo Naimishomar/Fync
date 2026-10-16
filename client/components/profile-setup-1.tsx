@@ -30,7 +30,7 @@ type ProfileSetup1NavigationProp = NativeStackNavigationProp<
 export default function ProfileSetup1() {
   const navigation = useNavigation<ProfileSetup1NavigationProp>();
   const route = useRoute<ProfileSetup1RouteProp>();
-  const { email, username, phoneNumber, password } = route.params;
+  const { email, username, phoneNumber, password } = route.params ?? ({} as ProfileSetup1RouteProp['params']);
 
   const [fullName, setFullName] = useState('');
   const [birthday, setBirthday] = useState('');
@@ -64,7 +64,7 @@ export default function ProfileSetup1() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <View className="flex-1 bg-paper">
@@ -164,7 +164,7 @@ export default function ProfileSetup1() {
         {/* Date Picker */}
         {showDatePicker && (
           <DateTimePicker
-            value={new Date()}
+            value={birthday ? new Date(birthday) : new Date()}
             mode="date"
             display="default"
             onChange={handleDateChange}
@@ -172,7 +172,15 @@ export default function ProfileSetup1() {
         )}
 
         {/* Dropdown Modal */}
-        <Modal transparent visible={!!dropdownType} animationType="fade">
+        <Modal
+          transparent
+          visible={!!dropdownType}
+          animationType="fade"
+          onRequestClose={() => {
+            setSearch('');
+            setDropdownType(null);
+          }}
+        >
           <View className="flex-1 items-center justify-center bg-black/50">
             <View className="w-80 max-h-[70%] rounded-lg bg-card p-4">
               <Text className="mb-4 text-center text-lg font-display">

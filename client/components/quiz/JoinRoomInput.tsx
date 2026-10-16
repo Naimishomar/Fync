@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, TextInput, Text, TouchableOpacity, ActivityIndicator, StatusBar} from 'react-native'
+import {View, TextInput, Text, TouchableOpacity, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import { RootStackParamList } from '../../App';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const JoinRoomInput = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -21,7 +22,7 @@ const JoinRoomInput = () => {
 
     setLoading(true);
     try {
-      const res = await axios.get(`/quiz/room/${roomId.toUpperCase()}`);
+      const res = await axios.get(`/quiz/room/${encodeURIComponent(roomId.trim().toUpperCase())}`);
       navigation.navigate("WaitingRoom", {
         roomId: res.data.roomId,
         startTime: res.data.startTime
@@ -40,27 +41,15 @@ const JoinRoomInput = () => {
 
       <SafeAreaView className="flex-1">
 
-        {/* Header with Back Button */}
-        <View className="flex-row items-center px-gutter pt-8 mb-4">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.9}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <View>
-            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Join</Text>
-            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Room</Text>
-            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Initialize Remote Sync</Text>
-          </View>
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter mb-4">
+          <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Join</Text>
+          <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Room</Text>
+          <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Initialize Remote Sync</Text>
         </View>
 
         {/* Centered Content */}
+        <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View className="flex-1 justify-center px-gutter pb-24">
 
           {/* Main Card */}
@@ -107,6 +96,7 @@ const JoinRoomInput = () => {
 
           </View>
         </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, FlatList, Image, useWindowDimensions, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
+import { View, FlatList, useWindowDimensions, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
+import { Image } from "expo-image";
 import axios from "../context/axiosConfig";
 import { C } from '../constants/colors';
 
@@ -21,7 +22,7 @@ const AdCarousel = () => {
   const fetchAds = async () => {
     try {
       const res = await axios.get("/ads");
-      if (res.data.success && res.data.ads.length > 0) {
+      if (res.data?.success && res.data.ads?.length > 0) {
         setAds(res.data.ads);
       }
     } catch (error) {
@@ -73,6 +74,9 @@ const AdCarousel = () => {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onScrollEnd}
+        // Auto-advance uses scrollToIndex; without a known layout it throws for
+        // any slide outside the render window.
+        getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           // Full-bleed. The gutter, the stamp and its 4px offset are all gone:
@@ -88,7 +92,8 @@ const AdCarousel = () => {
             <Image
               source={{ uri: item.imageUrl }}
               style={{ width, height: imageHeight }}
-              resizeMode="cover"
+              contentFit="cover"
+              cachePolicy="memory-disk"
             />
           </TouchableOpacity>
         )}

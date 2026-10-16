@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Dimensions, Vibration, BackHandler, AppState, AppStateStatus, StatusBar, Animated, ScrollView} from 'react-native'
+import {View, Text, StyleSheet, TouchableOpacity, Dimensions, Vibration, BackHandler, AppState, AppStateStatus, StatusBar, Animated, FlatList} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
@@ -76,13 +76,14 @@ export default function FocusProductivity() {
             status,
             date: new Date().toISOString()
         };
-        const updatedHistory = [newSession, ...forestHistory];
-        setForestHistory(updatedHistory);
-        try {
-            await AsyncStorage.setItem('@focus_forest_history', JSON.stringify(updatedHistory));
-        } catch (e) {
-            console.error("Failed to save session", e);
-        }
+        // Functional update: this runs from AppState/back handlers whose closure
+        // may predate the latest history.
+        setForestHistory((prev) => {
+            const updatedHistory = [newSession, ...prev];
+            AsyncStorage.setItem('@focus_forest_history', JSON.stringify(updatedHistory))
+                .catch((e) => console.error("Failed to save session", e));
+            return updatedHistory;
+        });
     };
 
     useEffect(() => {
@@ -101,15 +102,21 @@ export default function FocusProductivity() {
         };
 
         const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-        const subscription = AppState.addEventListener('change', handleAppStateChange);
+        return () => backHandler.remove();
+    }, [isAppLocked]);
 
+    // Registered once and routed through a ref so it always sees the current
+    // session. Re-subscribing on state changes used to run the cleanup below
+    // right after startSession — turning keep-awake off the moment it went on.
+    const appStateHandler = useRef<(s: AppStateStatus) => void>(() => {});
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (s) => appStateHandler.current(s));
         return () => {
-            backHandler.remove();
             subscription.remove();
             if (timerRef.current) clearInterval(timerRef.current);
             safeDeactivate();
         };
-    }, [isAppLocked, forestHistory]);
+    }, []);
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
         if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
@@ -125,6 +132,7 @@ export default function FocusProductivity() {
         }
         appState.current = nextAppState;
     };
+    appStateHandler.current = handleAppStateChange;
 
     const handleFail = (reason: string) => {
         setIsActive(false);
@@ -326,7 +334,7 @@ export default function FocusProductivity() {
         const witheredTrees = forestHistory.filter(h => h.status === 'failed').length;
 
         return (
-            <View className="flex-1 px-6 pt-6">
+            <View className="flex-1 px-gutter pt-6">
                 <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}><Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>My Forest</Text><View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} /></View>
 
                 <View className="flex-row justify-between mb-8">
@@ -349,35 +357,38 @@ export default function FocusProductivity() {
 
                 <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}><Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>Recent Sessions</Text><View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} /></View>
 
-                <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-                    {forestHistory.length === 0 ? (
+                <FlatList
+                    data={forestHistory}
+                    keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
+                    style={{ flex: 1 }}
+                    ListEmptyComponent={
                         <View className="items-center justify-center py-10 opacity-50">
                             <Ionicons name="leaf-outline" size={32} color={C.ink4} style={{ marginBottom: 12 }} />
                             <Text className="font-display text-label text-ink-3 uppercase">Your forest is empty</Text>
                             <Text className="font-sans text-sm text-ink-3 mt-2">Complete a focus session to plant a tree.</Text>
                         </View>
-                    ) : (
-                        forestHistory.map((item) => (
-                            <View key={item.id} className="flex-row items-center justify-between bg-card p-4 rounded-card mb-3 border border-line">
-                                <View className="flex-row items-center">
-                                    <View className={`w-12 h-12 rounded-xl items-center justify-center mr-4 ${item.status === 'success' ? 'bg-success/10' : 'bg-danger/10'}`}>
-                                        <Ionicons name={item.status === 'success' ? 'leaf' : 'leaf-outline'} size={22} color={item.status === 'success' ? '#047857' : '#DC2626'} />
-                                    </View>
-                                    <View>
-                                        <Text className="text-ink font-display text-sm">{SESSION_THEMES[item.type as SessionType].label}</Text>
-                                        <Text className="text-ink-3 text-xs font-medium">{new Date(item.date).toLocaleDateString()} • {Math.floor(item.duration / 60)} mins</Text>
-                                    </View>
+                    }
+                    ListFooterComponent={<View className="h-10" />}
+                    renderItem={({ item }) => (
+                        <View className="flex-row items-center justify-between bg-card p-4 rounded-card mb-3 border border-line">
+                            <View className="flex-row items-center">
+                                <View className={`w-12 h-12 rounded-xl items-center justify-center mr-4 ${item.status === 'success' ? 'bg-success/10' : 'bg-danger/10'}`}>
+                                    <Ionicons name={item.status === 'success' ? 'leaf' : 'leaf-outline'} size={22} color={item.status === 'success' ? '#047857' : '#DC2626'} />
                                 </View>
-                                <View className={`px-3 py-1 rounded-full ${item.status === 'success' ? 'bg-success/15' : 'bg-danger/15'}`}>
-                                    <Text className={`text-label font-display uppercasest ${item.status === 'success' ? 'text-success' : 'text-danger'}`}>
-                                        {item.status}
-                                    </Text>
+                                <View>
+                                    <Text className="text-ink font-display text-sm">{SESSION_THEMES[item.type as SessionType].label}</Text>
+                                    <Text className="text-ink-3 text-xs font-medium">{new Date(item.date).toLocaleDateString()} • {Math.floor(item.duration / 60)} mins</Text>
                                 </View>
                             </View>
-                        ))
+                            <View className={`px-3 py-1 rounded-full ${item.status === 'success' ? 'bg-success/15' : 'bg-danger/15'}`}>
+                                <Text className={`text-label font-display uppercasest ${item.status === 'success' ? 'text-success' : 'text-danger'}`}>
+                                    {item.status}
+                                </Text>
+                            </View>
+                        </View>
                     )}
-                    <View className="h-10" />
-                </ScrollView>
+                />
             </View>
         );
     }

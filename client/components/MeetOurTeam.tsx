@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
 
 const TEAM_MEMBERS = [
     {
@@ -105,20 +106,7 @@ const MeetOurTeam = () => {
         <View className="flex-1 bg-paper">
         <SafeAreaView className="flex-1" edges={['top']}>
             {/* App bar */}
-            <View className="px-gutter flex-row items-center py-3">
-                <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    className="w-11 h-11 items-center justify-center rounded-xl"
-                    accessibilityRole="button" accessibilityLabel="Go back"
-                    style={{ marginLeft: -11 }}
-                >
-                    <Ionicons name="arrow-back" size={24} color={C.ink} />
-                </TouchableOpacity>
-                <View className="flex-1 ml-1">
-                    <Text className="font-display text-h2 text-ink uppercase">Meet</Text>
-                    <Text className="text-sm text-ink-3" numberOfLines={1}>Responsible for making the magic happen</Text>
-                </View>
-            </View>
+            <AppBar title="Meet" subtitle="Responsible for making the magic happen" onBack={() => navigation.goBack()} />
 
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-gutter">
                 {/* Display headline */}

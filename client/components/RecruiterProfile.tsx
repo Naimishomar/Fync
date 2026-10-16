@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {View, Text, TouchableOpacity, ScrollView, RefreshControl, Linking, Dimensions, ActivityIndicator} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -11,12 +11,14 @@ import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
-import { useTabBarAutoHide } from '../constants/layout';
+import { useTabBarAutoHide, useTabBarClearance } from '../constants/layout';
 
 const { width } = Dimensions.get('window');
 
 const RecruiterProfile = () => {
     const autoHideTabBar = useTabBarAutoHide();
+    const tabBarClearance = useTabBarClearance();
+    const insets = useSafeAreaInsets();
     const navigation = useNavigation<any>();
     const { user, logout, setUser } = useAuth();
 
@@ -85,16 +87,20 @@ const RecruiterProfile = () => {
                 <View className="absolute inset-0 bg-black/20" />
 
                 {/* Top Actions */}
-                <View className="absolute top-12 right-4 flex-row gap-3">
+                <View className="absolute right-4 flex-row gap-3" style={{ top: insets.top + 8 }}>
                     <TouchableOpacity
                         onPress={() => navigation.navigate('EditProfile')}
                         className="bg-card/90 p-2.5 rounded-card shadow-hair"
+                        hitSlop={4}
+                        accessibilityLabel="Edit profile"
                     >
                         <Ionicons name="settings-outline" size={20} color={C.ink2} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={handleLogout}
                         className="bg-card/90 p-2.5 rounded-card shadow-hair"
+                        hitSlop={4}
+                        accessibilityLabel="Logout"
                     >
                         <Ionicons name="log-out-outline" size={20} color={C.danger} />
                     </TouchableOpacity>
@@ -111,7 +117,7 @@ const RecruiterProfile = () => {
 
                 <View className="mt-4">
                     <View className="flex-row items-center gap-2">
-                        <Text className="text-2xl font-display text-ink uppercase">
+                        <Text className="text-2xl font-display text-ink uppercase flex-shrink" numberOfLines={2}>
                             {user?.company || user?.name}
                         </Text>
                         <MaterialCommunityIcons name="check-decagram" size={20} color={C.recruiter} />
@@ -212,7 +218,7 @@ const RecruiterProfile = () => {
                 <View className="gap-3">
                     <View className="flex-row items-center justify-between py-3 border-b border-line">
                         <Text className="text-ink-3 text-label font-display uppercase">Professional Email</Text>
-                        <Text className="text-ink font-semibold text-sm">{user?.email}</Text>
+                        <Text className="text-ink font-semibold text-sm flex-shrink ml-3" numberOfLines={1}>{user?.email}</Text>
                     </View>
                     <View className="flex-row items-center justify-between py-3">
                         <Text className="text-ink-3 text-label font-display uppercase">LinkedIn Profile</Text>
@@ -250,6 +256,7 @@ const RecruiterProfile = () => {
             <StatusBar style="dark" />
             <ScrollView
                 {...autoHideTabBar}
+                contentContainerStyle={{ paddingBottom: tabBarClearance }}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.recruiter} />
                 }

@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from 'react';
-import {View, Text, FlatList, TouchableOpacity, TextInput, Modal, Image, ActivityIndicator, RefreshControl, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
+import React, { useCallback, useRef, useState } from 'react';
+import {View, Text, FlatList, TouchableOpacity, TextInput, Modal, ActivityIndicator, RefreshControl, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
@@ -8,6 +9,8 @@ import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
+import { useBottomInset } from '../../constants/layout';
 
 type Post = {
     _id: string;
@@ -29,6 +32,7 @@ const SORTS = [
 
 const ago = (iso: string) => {
     const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (Number.isNaN(mins)) return '';
     if (mins < 1) return 'now';
     if (mins < 60) return `${mins}m`;
     const hours = Math.floor(mins / 60);
@@ -38,7 +42,8 @@ const ago = (iso: string) => {
 
 export default function CommunityFeed() {
     const navigation = useNavigation<any>();
-    const { subId, subName } = useRoute<any>().params;
+    const { subId, subName } = useRoute<any>().params ?? {};
+    const bottomInset = useBottomInset();
 
     const [sort, setSort] = useState<'hot' | 'new' | 'top'>('hot');
     const [posts, setPosts] = useState<Post[]>([]);
@@ -52,12 +57,18 @@ export default function CommunityFeed() {
     const [body, setBody] = useState('');
     const [image, setImage] = useState<string | null>(null);
     const [posting, setPosting] = useState(false);
+    // Bumped on every fresh (non-append) load. A response from an older
+    // generation — a sort the user already switched away from — is dropped.
+    const gen = useRef(0);
+    const loadingMoreRef = useRef(false);
 
     const fetchFeed = useCallback(async (nextSort = sort, append = false, after: string | null = null) => {
+        const myGen = append ? gen.current : ++gen.current;
         try {
             const res = await axios.get(`/communities/sub/${subId}/posts`, {
                 params: { sort: nextSort, ...(after ? { cursor: after } : {}) },
             });
+            if (myGen !== gen.current) return;
             if (res.data.success) {
                 setPosts((prev) => (append ? [...prev, ...res.data.posts] : res.data.posts));
                 setCursor(res.data.nextCursor);
@@ -65,9 +76,12 @@ export default function CommunityFeed() {
         } catch (err: any) {
             if (!append) Alert.alert("Feed Unavailable", err.response?.data?.message || "Could not load this room.");
         } finally {
-            setLoading(false);
-            setRefreshing(false);
-            setLoadingMore(false);
+            if (append) loadingMoreRef.current = false;
+            if (myGen === gen.current) {
+                setLoading(false);
+                setRefreshing(false);
+                setLoadingMore(false);
+            }
         }
     }, [subId, sort]);
 
@@ -81,7 +95,9 @@ export default function CommunityFeed() {
     };
 
     const loadMore = () => {
-        if (!cursor || loadingMore) return;
+        // Ref, not state: onEndReached can fire twice before a re-render.
+        if (!cursor || loadingMoreRef.current) return;
+        loadingMoreRef.current = true;
         setLoadingMore(true);
         fetchFeed(sort, true, cursor);
     };
@@ -173,7 +189,7 @@ export default function CommunityFeed() {
                     <Text numberOfLines={3} className="text-ink-2 text-sm mt-2 leading-snug">{item.body}</Text>
                 )}
                 {!!item.image?.length && (
-                    <Image source={{ uri: item.image[0] }} className="w-full h-44 rounded-card mt-3" resizeMode="cover" />
+                    <Image source={{ uri: item.image[0] }} style={{ width: '100%', height: 176, borderRadius: 20, marginTop: 12 }} contentFit="cover" cachePolicy="memory-disk" />
                 )}
                 <View className="flex-row items-center mt-3">
                     <Feather name="message-circle" size={14} color={C.ink3} />
@@ -189,21 +205,12 @@ export default function CommunityFeed() {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
-                <View className="px-5 pt-2 pb-4 flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="chevron-back" size={24} color={C.ink} />
-                    </TouchableOpacity>
-                    <View className="flex-1 ml-1">
-                        <Text className="text-ink text-2xl font-display">{subName}</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase">Community Feed</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => setComposerOpen(true)} className="w-10 h-10 bg-ink rounded-xl items-center justify-center shadow-hair">
-                        <Ionicons name="add" size={24} color="white" />
-                    </TouchableOpacity>
-                </View>
+                <AppBar
+                    title={subName}
+                    subtitle="Community Feed"
+                    onBack={() => navigation.goBack()}
+                    right={<IconBtn name="add" boxed onPress={() => setComposerOpen(true)} />}
+                />
 
                 <View className="flex-row px-5 gap-2 mb-4">
                     {SORTS.map((s) => (
@@ -227,7 +234,7 @@ export default function CommunityFeed() {
                         data={posts}
                         keyExtractor={(p) => p._id}
                         renderItem={renderPost}
-                        contentContainerStyle={{ paddingBottom: 40 }}
+                        contentContainerStyle={{ paddingBottom: bottomInset + 24 }}
                         onEndReached={loadMore}
                         onEndReachedThreshold={0.4}
                         ListFooterComponent={loadingMore ? <ActivityIndicator color={C.brand[500]} className="my-4" /> : null}
@@ -245,14 +252,13 @@ export default function CommunityFeed() {
             </SafeAreaView>
 
             <Modal visible={composerOpen} animationType="slide" onRequestClose={() => setComposerOpen(false)}>
-                <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-                    <KeyboardAvoidingView behavior="padding" className="flex-1">
-                        <View className="flex-row items-center px-5 py-3 border-b border-line">
-                            <TouchableOpacity onPress={() => setComposerOpen(false)}>
-                                <Ionicons name="close" size={24} color={C.ink} />
-                            </TouchableOpacity>
-                            <Text className="flex-1 text-ink font-display uppercase text-label ml-4">New Post</Text>
-                            <TouchableOpacity
+                <SafeAreaView className="flex-1 bg-paper" edges={['top', 'bottom']}>
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+                        <View className="border-b border-line">
+                            <AppBar
+                                title="New Post"
+                                onBack={() => setComposerOpen(false)}
+                                right={<TouchableOpacity
                                 onPress={submitPost}
                                 disabled={posting || !title.trim()}
                                 className={`px-5 h-10 rounded-xl items-center justify-center ${posting || !title.trim() ? 'bg-paper-2' : 'bg-ink'}`}
@@ -260,7 +266,8 @@ export default function CommunityFeed() {
                                 {posting
                                     ? <ActivityIndicator color="white" size="small" />
                                     : <Text className="text-white font-display uppercase text-label">Post</Text>}
-                            </TouchableOpacity>
+                            </TouchableOpacity>}
+                            />
                         </View>
 
                         <View className="p-5 flex-1">
@@ -281,7 +288,7 @@ export default function CommunityFeed() {
                                 className="text-ink-2 text-base flex-1 leading-relaxed"
                                 textAlignVertical="top"
                             />
-                            {!!image && <Image source={{ uri: image }} className="w-full h-40 rounded-card mb-3" resizeMode="cover" />}
+                            {!!image && <Image source={{ uri: image }} style={{ width: '100%', height: 160, borderRadius: 20, marginBottom: 12 }} contentFit="cover" />}
                             <TouchableOpacity onPress={pickImage} className="flex-row items-center h-12 px-4 bg-paper-2 rounded-card border border-line">
                                 <Feather name="image" size={16} color={C.brand[500]} />
                                 <Text className="text-ink-3 font-display uppercase text-label ml-3">

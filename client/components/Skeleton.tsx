@@ -30,6 +30,9 @@ const Skeleton = ({ width, height, borderRadius = 8, style, className, lightMode
       ])
     );
     animation.start();
+    // Without this every skeleton that ever mounted keeps looping on the
+    // native side after the real content replaces it.
+    return () => animation.stop();
   }, [animatedValue]);
 
   const opacity = animatedValue.interpolate({

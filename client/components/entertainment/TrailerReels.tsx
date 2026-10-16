@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,21 +17,23 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { fetchTrailersBatch, getMovieTrailers, fetchTrendingMovies } from '../../utils/tmdb';
 import { C } from '../../constants/colors';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const ReelItem = ({ 
+const ReelItem = React.memo(function ReelItem({ 
   movie, 
   isActive, 
   isMuted, 
   onToggleMute,
-  cachedTrailerKey 
+  cachedTrailerKey,
+  pageHeight,
 }: { 
   movie: any, 
   isActive: boolean, 
   isMuted: boolean, 
   onToggleMute: () => void,
-  cachedTrailerKey?: string | null
-}) => {
+  cachedTrailerKey?: string | null,
+  pageHeight: number,
+}) {
   const [trailerKey, setTrailerKey] = useState<string | null>(cachedTrailerKey || null);
   const [loading, setLoading] = useState(!cachedTrailerKey);
   const [isPaused, setIsPaused] = useState(false);
@@ -44,19 +46,21 @@ const ReelItem = ({
       return;
     }
 
+    let alive = true;
     const loadTrailer = async () => {
       try {
         const trailers = await getMovieTrailers(movie.id);
-        if (trailers && trailers.length > 0) {
+        if (alive && trailers && trailers.length > 0) {
           setTrailerKey(trailers[0].key);
         }
       } catch (error) {
         console.error('Error loading trailer:', error);
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     };
     loadTrailer();
+    return () => { alive = false; };
   }, [movie.id, cachedTrailerKey]);
 
   const togglePlayPause = () => {
@@ -148,7 +152,7 @@ const ReelItem = ({
   }), [trailerKey]);
 
   return (
-    <View style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }} className="bg-night">
+    <View style={{ width: SCREEN_WIDTH, height: pageHeight }} className="bg-night">
       {/* Video Container */}
       <View style={{ width: SCREEN_WIDTH, height: videoHeight }} className="bg-ink relative">
         {isActive && trailerKey ? (
@@ -194,7 +198,7 @@ const ReelItem = ({
                </View>
                <View className="flex-row items-center">
                   <Ionicons name="star" size={14} color={C.warning} />
-                  <Text className="text-white text-sm ml-1 font-semibold">{movie.vote_average.toFixed(1)}</Text>
+                  <Text className="text-white text-sm ml-1 font-semibold">{Number(movie.vote_average ?? 0).toFixed(1)}</Text>
                </View>
                <Text className="text-ink-3 text-xs font-semibold uppercase">
                   {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
@@ -274,7 +278,7 @@ const ReelItem = ({
       </ScrollView>
     </View>
   );
-};
+});
 
 const TrailerReels = () => {
   const insets = useSafeAreaInsets();
@@ -285,6 +289,10 @@ const TrailerReels = () => {
   const [loading, setLoading] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [trailerCache, setTrailerCache] = useState<Record<string, string | null>>({});
+  // Pages are sized to the list's measured height, not Dimensions' window
+  // height: on edge-to-edge Android those differ and paging drifts off-page.
+  const [pageHeight, setPageHeight] = useState(0);
+  const toggleMute = useCallback(() => setIsMuted(m => !m), []);
 
   useEffect(() => {
     const init = async () => {
@@ -313,8 +321,8 @@ const TrailerReels = () => {
     try {
       setLoading(true);
       const data = await fetchTrendingMovies();
-      setMovies(data);
-      await fetchAllTrailers(data);
+      setMovies(data || []);
+      await fetchAllTrailers(data || []);
     } catch (error) {
       console.error('Error loading reels:', error);
     } finally {
@@ -341,19 +349,21 @@ const TrailerReels = () => {
   }
 
   return (
-    <View className="flex-1 bg-ink">
+    <View className="flex-1 bg-ink" onLayout={(e) => setPageHeight(Math.round(e.nativeEvent.layout.height))}>
+      {pageHeight > 0 && (
       <FlatList
         data={movies}
         pagingEnabled
         showsVerticalScrollIndicator={false}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => String(item.id)}
         renderItem={({ item, index }) => (
           <ReelItem 
             movie={item} 
             isActive={index === activeIndex} 
             isMuted={isMuted}
-            onToggleMute={() => setIsMuted(!isMuted)}
+            onToggleMute={toggleMute}
             cachedTrailerKey={trailerCache[item.id]}
+            pageHeight={pageHeight}
           />
         )}
         onViewableItemsChanged={onViewableItemsChanged}
@@ -363,17 +373,18 @@ const TrailerReels = () => {
         maxToRenderPerBatch={2}
         windowSize={3}
         getItemLayout={(_, index) => ({
-          length: SCREEN_HEIGHT,
-          offset: SCREEN_HEIGHT * index,
+          length: pageHeight,
+          offset: pageHeight * index,
           index,
         })}
-        initialScrollIndex={route.params?.initialIndex || 0}
+        initialScrollIndex={Math.min(route.params?.initialIndex || 0, Math.max(movies.length - 1, 0))}
       />
+      )}
 
       {/* Close Button */}
       <TouchableOpacity 
         onPress={() => navigation.goBack()}
-        style={{ marginLeft: -11,  top: insets.top + 10, left: 20 }}
+        style={{ position: 'absolute', top: insets.top + 10, left: 9 }}
         className="w-11 h-11 items-center justify-center rounded-xl z-[100]"
       
             accessibilityRole="button"

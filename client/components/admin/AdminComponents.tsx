@@ -8,7 +8,7 @@ const PUBLIC_PROFILE_SCREEN = 'PublicProfile';
 export const AdItem = ({ item, onEdit, onDelete }: any) => (
     <View className="bg-card rounded-card mb-4 border border-line overflow-hidden">
         <Image
-            source={{ uri: item.imageUrl || 'https://via.placeholder.com/300x150?text=No+Image' }}
+            source={{ uri: item.imageUrl }}
             className="w-full h-36"
             resizeMode="cover"
         />
@@ -120,7 +120,7 @@ export const MarketPlaceItem = ({ item, onEdit, onDelete }: any) => (
     <View className="bg-card rounded-card mb-4 border border-line overflow-hidden">
         <View style={{ width: '100%', aspectRatio: 1, backgroundColor: '#EDE8E0' }}>
             <Image
-                source={{ uri: item.product_image || 'https://via.placeholder.com/300x150?text=No+Image' }}
+                source={{ uri: item.product_image }}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="contain"
             />
@@ -177,7 +177,7 @@ export const ReportItem = ({ item, onDelete }: any) => (
 
         <View className="bg-paper-2 rounded-xl p-3 mb-3 border border-line">
             <View className="flex-row items-center gap-2 mb-2">
-                <Image source={{ uri: item.post?.user?.avatar || 'https://via.placeholder.com/40' }} className="w-6 h-6 rounded-full" />
+                <Image source={{ uri: item.post?.user?.avatar }} className="w-6 h-6 rounded-full" />
                 <Text className="text-ink font-semibold text-xs">@{item.post?.user?.username || 'unknown'}</Text>
             </View>
             <Text className="text-ink text-sm leading-5" numberOfLines={3}>{item.post?.description}</Text>

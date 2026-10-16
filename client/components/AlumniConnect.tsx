@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, Image, ActivityIndicator, Linking, TouchableOpacity, Dimensions, Modal, ScrollView} from 'react-native'
+import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Linking, TouchableOpacity, Dimensions, Modal, ScrollView} from 'react-native'
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
@@ -11,7 +12,7 @@ import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
 import { Alert } from './ui/AlertModal';
 
-import { RoleSticker } from './ui/kit';
+import { RoleSticker, AppBar, IconBtn } from './ui/kit';
 import { C } from '../constants/colors';
 const { width, height } = Dimensions.get("window");
 
@@ -27,6 +28,7 @@ const AlumniConnect = ({ navigation }: any) => {
     const [isSearching, setIsSearching] = useState(false);
     const [typingUsers, setTypingUsers] = useState<string[]>([]);
     const typingTimeoutRef = useRef<any>(null);
+    const searchSeq = useRef(0);
 
     const flatListRef = useRef<FlatList>(null);
     const isAlumni = user?.user_access === 'alumni';
@@ -72,28 +74,33 @@ const AlumniConnect = ({ navigation }: any) => {
             });
         };
 
-        socket.on("new_alumni_message", handleNewMessage);
-
-        socket.on("delete_alumni_message", (msgId: string) => {
+        const handleDelete = (msgId: string) => {
             setMessages((prev) => prev.filter(m => m._id !== msgId));
-        });
-
-        socket.on("alumni_user_typing", ({ username }: { username: string }) => {
+        };
+        const handleTypingStart = ({ username }: { username: string }) => {
             setTypingUsers(prev => prev.includes(username) ? prev : [...prev, username]);
-        });
-
-        socket.on("alumni_user_stop_typing", ({ username }: { username: string }) => {
+        };
+        const handleTypingStop = ({ username }: { username: string }) => {
             setTypingUsers(prev => prev.filter(u => u !== username));
-        });
+        };
+
+        socket.on("new_alumni_message", handleNewMessage);
+        socket.on("delete_alumni_message", handleDelete);
+        socket.on("alumni_user_typing", handleTypingStart);
+        socket.on("alumni_user_stop_typing", handleTypingStop);
 
         return () => {
             socket.emit("leave_alumni_room", roomData);
-            socket.off("new_alumni_message");
-            socket.off("delete_alumni_message");
-            socket.off("alumni_user_typing");
-            socket.off("alumni_user_stop_typing");
+            // Remove only our handlers; a bare off(event) also strips every other screen's.
+            socket.off("new_alumni_message", handleNewMessage);
+            socket.off("delete_alumni_message", handleDelete);
+            socket.off("alumni_user_typing", handleTypingStart);
+            socket.off("alumni_user_stop_typing", handleTypingStop);
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         };
-    }, [user, isAlumni]);
+        // Keyed on identity, not the user object: a profile refresh must not re-join the room and refetch.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?._id, user?.college, user?.graduationYear, isAlumni]);
 
     const loadMessages = async () => {
         try {
@@ -125,20 +132,23 @@ const AlumniConnect = ({ navigation }: any) => {
 
     const handleSearch = async (q: string) => {
         setSearchQuery(q);
+        // Every keystroke fires a request; only the newest may write results.
+        const seq = ++searchSeq.current;
         if (q.length < 2) {
             setSearchResults([]);
+            setIsSearching(false);
             return;
         }
         try {
             setIsSearching(true);
-            const res = await axios.get(`/alumni-chat/search?q=${q}`);
-            if (res.data.success) {
-                setSearchResults(res.data.results);
+            const res = await axios.get(`/alumni-chat/search?q=${encodeURIComponent(q)}`);
+            if (seq === searchSeq.current && res.data.success) {
+                setSearchResults(res.data.results ?? []);
             }
         } catch (e) {
             console.log("Search error", e);
         } finally {
-            setIsSearching(false);
+            if (seq === searchSeq.current) setIsSearching(false);
         }
     };
 
@@ -312,14 +322,14 @@ const AlumniConnect = ({ navigation }: any) => {
                     <Pressable
                         onLongPress={() => isMe && !item.pending && handleDeleteMessage(item._id)}
                         delayLongPress={500}
-                        className={`max-w-[280px] p-3 rounded-card ${isMe ? "bg-brand-600 rounded-br-none" : "bg-ink rounded-bl-none"} border border-white/5`}
+                        className={`max-w-[280px] p-3 rounded-card ${isMe ? "bg-brand-600 rounded-br-none" : "bg-card rounded-bl-none"} border border-line`}
                     >
                         {item.messageType === 'text' && (
                             <Text className="text-ink text-sm">{item.message}</Text>
                         )}
                         {item.messageType === 'image' && (
                             <Pressable onPress={() => { }}>
-                                <Image source={{ uri: item.fileUrl }} className="w-48 h-48 rounded-lg" resizeMode="cover" />
+                                <Image source={{ uri: item.fileUrl }} style={{ width: 192, height: 192, borderRadius: 8 }} contentFit="cover" cachePolicy="memory-disk" />
                             </Pressable>
                         )}
                         {item.messageType === 'file' && (
@@ -364,26 +374,17 @@ const AlumniConnect = ({ navigation }: any) => {
 
             <SafeAreaView className="flex-1">
                 {/* Header */}
-                <View className="flex-row items-center justify-between px-4 py-3 border-b border-line">
-                    <View className="flex-row items-center">
-                        <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                            <Ionicons name="arrow-back" size={24} color="white" />
-                        </Pressable>
-                        <View>
-                            <Text className="text-ink font-display text-lg">{user?.college} Alumni</Text>
-                            <Text className="text-accent-text text-xs font-semibold">Class of {user?.graduationYear}</Text>
-                        </View>
-                    </View>
-                    <Pressable onPress={() => setShowMembers(true)} className="bg-card/10 p-2 rounded-full border border-line">
-                        <Ionicons name="people" size={20} color={C.alumniLit} />
-                    </Pressable>
+                <View className="border-b border-line">
+                    <AppBar
+                        title={user?.college ? `${user.college} Alumni` : 'Alumni'}
+                        subtitle={user?.graduationYear ? `Class of ${user.graduationYear}` : undefined}
+                        onBack={() => navigation.goBack()}
+                        right={<IconBtn name="people" color={C.alumniLit} size={20} onPress={() => setShowMembers(true)} />}
+                    />
                 </View>
 
                 {/* Messages */}
-                <KeyboardAvoidingView behavior="padding" className="flex-1">
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
                     {loading ? (
                         <View className="flex-1 justify-center items-center">
                             <ActivityIndicator size="large" color={C.alumniLit} />
@@ -395,7 +396,7 @@ const AlumniConnect = ({ navigation }: any) => {
                             inverted
                             keyExtractor={(item) => item._id}
                             renderItem={renderMessage}
-                            contentContainerStyle={{ padding: 16 }}
+                            contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}
                             showsVerticalScrollIndicator={false}
                             initialNumToRender={15}
                             maxToRenderPerBatch={10}
@@ -414,8 +415,8 @@ const AlumniConnect = ({ navigation }: any) => {
                     )}
 
                     {/* Input Bar */}
-                    <View className="p-3 bg-black/80 border-t border-line">
-                        <View className="flex-row items-center bg-ink rounded-card px-3 py-1 border border-white/5">
+                    <View className="p-3 bg-paper border-t border-line">
+                        <View className="flex-row items-center bg-card rounded-card px-3 py-1 border border-line">
                             <Pressable onPress={handlePickMedia} className="p-2">
                                 <Ionicons name="image" size={22} color="gray" />
                             </Pressable>
@@ -449,18 +450,18 @@ const AlumniConnect = ({ navigation }: any) => {
                 transparent={true}
                 onRequestClose={() => setShowMembers(false)}
             >
-                <View className="flex-1 bg-black/95">
+                <View className="flex-1 bg-paper">
                     <SafeAreaView className="flex-1">
-                        <View className="flex-row items-center justify-between px-6 py-4 border-b border-line">
-                            <Text className="text-ink text-xl font-display">Batch Members</Text>
-                            <Pressable onPress={() => setShowMembers(false)}>
-                                <Ionicons name="close" size={28} color="white" />
-                            </Pressable>
+                        <View className="border-b border-line">
+                            <AppBar
+                                title="Batch Members"
+                                right={<IconBtn name="close" size={28} color={C.ink} onPress={() => setShowMembers(false)} />}
+                            />
                         </View>
 
                         {/* Search Bar */}
-                        <View className="px-6 py-4">
-                            <View className="flex-row items-center bg-ink px-4 py-2 border-2 border-ink rounded-md">
+                        <View className="px-5 py-4">
+                            <View className="flex-row items-center bg-card px-4 py-2 border-2 border-ink rounded-md">
                                 <Ionicons name="search" size={18} color="gray" />
                                 <TextInput
                                     placeholder="Search by name or company..."
@@ -485,13 +486,13 @@ const AlumniConnect = ({ navigation }: any) => {
                                     className="flex-row items-center mb-6"
                                 >
                                     <Avatar user={item} size={50} />
-                                    <View className="ml-4">
-                                        <Text className="text-ink font-semibold text-base">{item.name}</Text>
-                                        <Text className="text-ink-3 text-xs">@{item.username}</Text>
-                                        {item.company && (
+                                    <View className="ml-4 flex-1" style={{ minWidth: 0 }}>
+                                        <Text className="text-ink font-semibold text-base" numberOfLines={1}>{item.name}</Text>
+                                        <Text className="text-ink-3 text-xs" numberOfLines={1}>@{item.username}</Text>
+                                        {!!item.company && (
                                             <View className="flex-row items-center mt-1">
                                                 <Ionicons name="briefcase" size={10} color={C.alumniLit} />
-                                                <Text className="text-accent-text text-label font-semibold ml-1">{item.role} at {item.company}</Text>
+                                                <Text className="text-accent-text text-label font-semibold ml-1 flex-1" numberOfLines={1}>{item.role ? `${item.role} at ` : ''}{item.company}</Text>
                                             </View>
                                         )}
                                     </View>
@@ -500,8 +501,11 @@ const AlumniConnect = ({ navigation }: any) => {
                             )}
                             ListEmptyComponent={
                                 <View className="flex-1 items-center justify-center mt-20">
-                                    <ActivityIndicator size="small" color={C.alumniLit} />
-                                    <Text className="text-ink-3 mt-4">No classmates found</Text>
+                                    {isSearching ? (
+                                        <ActivityIndicator size="small" color={C.alumniLit} />
+                                    ) : (
+                                        <Text className="text-ink-3 mt-4">No classmates found</Text>
+                                    )}
                                 </View>
                             }
                         />

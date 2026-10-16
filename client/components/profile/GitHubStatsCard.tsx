@@ -49,6 +49,11 @@ export default function GitHubStatsCard({
     setLoadingStates(prev => ({ ...prev, [key]: isLoading }));
   };
 
+  // Cache-buster for the stat images. Falling back to Date.now() inline gave a
+  // new URL on every render, so each parent re-render reloaded all three.
+  const [mountedAt] = useState(() => Date.now());
+  const bust = stats?.lastFetched ? new Date(stats.lastFetched).getTime() || mountedAt : mountedAt;
+
   const spinValue = useRef(new Animated.Value(0)).current;
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -111,7 +116,7 @@ export default function GitHubStatsCard({
       {/* Header Profile Section */}
       <View className="p-6 pb-0">
         <View className="flex-row items-center justify-between mb-6">
-          <View className="flex-row items-center gap-4">
+          <View className="flex-row items-center gap-4" style={{ flex: 1, minWidth: 0 }}>
             <View className="relative">
               <ExpoImage 
                 source={{ uri: stats?.avatarUrl || `https://github.com/${username}.png` }}
@@ -121,8 +126,8 @@ export default function GitHubStatsCard({
                 <Ionicons name="logo-github" size={10} color="white" />
               </View>
             </View>
-            <View>
-              <Text className="text-ink font-display text-lg">@{username}</Text>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text className="text-ink font-display text-lg" numberOfLines={1}>@{username}</Text>
               <Text className="text-ink-3 font-semibold text-label uppercase">GitHub Analytics</Text>
             </View>
           </View>
@@ -148,7 +153,7 @@ export default function GitHubStatsCard({
         </View>
 
         {/* Bio if exists */}
-        {stats?.bio && (
+        {!!stats?.bio && (
           <View className="bg-paper-2 p-4 rounded-card mb-4 border border-line">
             <Text className="text-ink-3 text-label leading-4 font-medium italic">"{stats.bio}"</Text>
           </View>
@@ -180,12 +185,13 @@ export default function GitHubStatsCard({
                   </View>
                 )}
                 <ExpoImage 
-                  source={{ uri: `https://github-readme-stats-sigma-five.vercel.app/api?username=${encodeURIComponent(username || '')}&show_icons=true&theme=transparent&hide_border=true&title_color=18181b&text_color=64748b&icon_color=f97316&cache_seconds=1800&t=${new Date(stats?.lastFetched || Date.now()).getTime()}` }}
+                  source={{ uri: `https://github-readme-stats-sigma-five.vercel.app/api?username=${encodeURIComponent(username || '')}&show_icons=true&theme=transparent&hide_border=true&title_color=18181b&text_color=64748b&icon_color=f97316&cache_seconds=1800&t=${bust}` }}
                   style={{ width: '100%', height: 180 }}
                   contentFit="contain"
                   transition={500}
                   onLoadStart={() => updateLoading('general', true)}
                   onLoad={() => updateLoading('general', false)}
+                  onError={() => updateLoading('general', false)}
                 />
               </View>
             </View>
@@ -204,12 +210,13 @@ export default function GitHubStatsCard({
                     </View>
                   )}
                   <ExpoImage 
-                    source={{ uri: `https://github-readme-stats-sigma-five.vercel.app/api/top-langs/?username=${encodeURIComponent(username || '')}&layout=compact&theme=transparent&hide_border=true&title_color=18181b&text_color=64748b&cache_seconds=1800&t=${new Date(stats?.lastFetched || Date.now()).getTime()}` }}
+                    source={{ uri: `https://github-readme-stats-sigma-five.vercel.app/api/top-langs/?username=${encodeURIComponent(username || '')}&layout=compact&theme=transparent&hide_border=true&title_color=18181b&text_color=64748b&cache_seconds=1800&t=${bust}` }}
                     style={{ width: '100%', height: 150 }}
                     contentFit="contain"
                     transition={600}
                     onLoadStart={() => updateLoading('langs', true)}
                     onLoad={() => updateLoading('langs', false)}
+                  onError={() => updateLoading('langs', false)}
                   />
                 </View>
               </View>
@@ -226,12 +233,13 @@ export default function GitHubStatsCard({
                     </View>
                   )}
                   <ExpoImage 
-                    source={{ uri: `https://streak-stats.demolab.com/?user=${encodeURIComponent(username || '')}&theme=transparent&hide_border=true&stroke=00000000&background=00000000&ring=f97316&fire=f97316&currStreakLabel=f97316&sideNums=64748b&sideLabels=64748b&dates=64748b&t=${new Date(stats?.lastFetched || Date.now()).getTime()}` }}
+                    source={{ uri: `https://streak-stats.demolab.com/?user=${encodeURIComponent(username || '')}&theme=transparent&hide_border=true&stroke=00000000&background=00000000&ring=f97316&fire=f97316&currStreakLabel=f97316&sideNums=64748b&sideLabels=64748b&dates=64748b&t=${bust}` }}
                     style={{ width: '100%', height: 150 }}
                     contentFit="contain"
                     transition={700}
                     onLoadStart={() => updateLoading('streak', true)}
                     onLoad={() => updateLoading('streak', false)}
+                  onError={() => updateLoading('streak', false)}
                   />
                 </View>
               </View>
@@ -248,7 +256,8 @@ export default function GitHubStatsCard({
             </Text>
           </View>
           <Pressable
-            onPress={() => Linking.openURL(`https://github.com/${username}`)}
+            onPress={() => Linking.openURL(`https://github.com/${username}`).catch(() => {})}
+            hitSlop={12}
             className="flex-row items-center gap-1.5"
           >
             <Text className="text-ink font-display uppercase text-label">View Profile</Text>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Image, StatusBar} from 'react-native'
+import {View, Text, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar} from 'react-native'
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -9,10 +10,10 @@ import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const SubCommunityChat = ({ navigation, route }: any) => {
-    if (!navigation) return null;
-    const { subId, subName, communityId } = route.params;
+    const { subId, subName, communityId } = route?.params ?? {};
     const { user } = useAuth();
 
     const [messages, setMessages] = useState<any[]>([]);
@@ -53,8 +54,8 @@ const SubCommunityChat = ({ navigation, route }: any) => {
     useEffect(() => {
         fetchMessages();
         socket.emit("join_echo_room", { subId });
-        socket.on('new_message', (msg: any) => {
-            if (msg.subCommunityId === subId) {
+        const onNewMessage = (msg: any) => {
+            if (msg?.subCommunityId === subId) {
                 setMessages(prev => {
                     const exists = prev.find(m => m._id === msg._id);
                     if (exists) return prev;
@@ -62,14 +63,18 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                 });
                 setTimeout(() => flatListRef.current?.scrollToEnd(), 200);
             }
-        });
-        socket.on('message_deleted', ({ messageId }: { messageId: string }) => {
+        };
+        const onDeleted = ({ messageId }: { messageId: string }) => {
             setMessages(prev => prev.filter(m => m._id !== messageId));
-        });
+        };
+        socket.on('new_message', onNewMessage);
+        socket.on('message_deleted', onDeleted);
         return () => {
             socket.emit("leave_echo_room", { subId });
-            socket.off('new_message');
-            socket.off('message_deleted');
+            // Remove only our handlers: a bare off(event) also strips other
+            // screens' listeners (direct chat uses 'new_message' too).
+            socket.off('new_message', onNewMessage);
+            socket.off('message_deleted', onDeleted);
         };
     }, [subId]);
 
@@ -117,7 +122,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
             <View className={`mb-8 flex-row gap-4 ${isMine ? 'justify-end' : 'justify-start'}`}>
                 {!isMine && (
                     <View className="shadow-hair">
-                        <Image source={{ uri: item.sender?.avatar || 'https://via.placeholder.com/150' }} className="w-10 h-10 rounded-lg bg-paper-2" />
+                        <Image source={{ uri: item.sender?.avatar }} style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
                     </View>
                 )}
                 <View className="flex-1 max-w-[85%]">
@@ -149,7 +154,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                         
                         <View className="flex-row items-center justify-between mt-4">
                             <Text className={`text-label font-display uppercase ${isMine ? 'text-white/30' : 'text-ink-4'}`}>
-                                {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                             </Text>
                             
                             <View className="flex-row items-center gap-4">
@@ -174,25 +179,13 @@ const SubCommunityChat = ({ navigation, route }: any) => {
             <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
             <SafeAreaView className="flex-1" edges={['top', 'bottom']}>
                 {/* Modern Header */}
-                <View className="px-gutter py-5 flex-row items-center justify-between border-b border-line bg-card">
-                    <View className="flex-row items-center gap-5">
-                        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                            <Ionicons name="chevron-back" size={22} color={C.ink} />
-                        </TouchableOpacity>
-                        <View>
-                            <Text className="text-ink font-display uppercase text-sm">#{subName}</Text>
-                            <View className="flex-row items-center gap-2 mt-0.5">
-                                <View className="w-2 h-2 rounded-full bg-brand-500 shadow-hair" />
-                                <Text className="text-ink-3 font-display uppercase text-label">Link Established</Text>
-                            </View>
-                        </View>
-                    </View>
-                    <TouchableOpacity className="w-12 h-12 items-center justify-center bg-paper-2 rounded-card border border-line">
-                        <Feather name="more-horizontal" size={20} color={C.ink4} />
-                    </TouchableOpacity>
+                <View className="border-b border-line bg-card">
+                    <AppBar
+                        title={`#${subName}`}
+                        subtitle="Link Established"
+                        onBack={() => navigation.goBack()}
+                        right={<IconBtn name="ellipsis-horizontal" color={C.ink4} boxed />}
+                    />
                 </View>
 
                 {/* Status Bar */}
@@ -209,7 +202,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                             data={messages} 
                             keyExtractor={(item) => item._id} 
                             renderItem={renderMessage} 
-                            contentContainerStyle={{ padding: 24, paddingTop: 16 }}
+                            contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 24, paddingTop: 16 }}
                             showsVerticalScrollIndicator={false}
                             keyboardShouldPersistTaps="handled"
                             keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
@@ -218,7 +211,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                     )}
                 </View>
 
-                <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0} enabled={Platform.OS === 'ios'}>
+                <KeyboardAvoidingView behavior="padding">
                     {subType === 'announcement' && !isCreator ? (
                         <View className="p-card-pad bg-card items-center justify-center border-t border-line">
                             <View className="bg-paper-2 px-gutter py-4 rounded-card border border-line flex-row items-center gap-3">
@@ -227,7 +220,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                             </View>
                         </View>
                     ) : (
-                        <View className="bg-card px-6 py-6 border-t border-line">
+                        <View className="bg-card px-5 py-6 border-t border-line">
                             {replyingTo && (
                                 <View className="mb-5 p-5 bg-paper-2 rounded-card border-l-[6px] border-brand-500 flex-row justify-between items-center shadow-hair">
                                     <View className="flex-1 mr-5">

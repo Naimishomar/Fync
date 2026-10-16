@@ -12,7 +12,8 @@
       },
       "env": {
         "EXPO_PUBLIC_WEB_URL": "https://fync-zeta.vercel.app"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",

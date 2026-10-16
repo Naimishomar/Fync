@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { StampCard } from '../ui/kit';
+import { AppBar, StampCard } from '../ui/kit';
 import { C } from '../../constants/colors';
 export default function UtilityHubScreen() {
   const navigation = useNavigation<any>();
@@ -59,19 +59,8 @@ export default function UtilityHubScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Header */}
-        <View className="px-5 py-4 flex-row items-center justify-between border-b border-line bg-transparent">
-          <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <Text className="text-xl font-display text-ink">Utility Hub</Text>
-        </View>
-        <Ionicons name="construct-outline" size={24} color={C.brand[500]} />
-      </View>
+        <AppBar title="Utility Hub" onBack={() => navigation.goBack()}
+          right={<Ionicons name="construct-outline" size={24} color={C.brand[500]} style={{ marginRight: 11 }} />} />
 
       <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <StampCard style={{ marginBottom: 24 }}>

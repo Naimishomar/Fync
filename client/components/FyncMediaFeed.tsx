@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
+import { Image as ExpoImage } from 'expo-image';
 import {View, Text, FlatList, Dimensions, Pressable, Image, ViewToken, ActivityIndicator, Share, TouchableOpacity, StatusBar, Modal, TextInput, ScrollView, KeyboardAvoidingView, Platform, useWindowDimensions} from 'react-native'
 import { getFullUrl } from "../utils/imageUtils";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,6 +28,35 @@ import FyncLogo from "../assets/Fync.png"
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
+import { AppBar, IconBtn } from './ui/kit';
+import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
+
+// The server returns every comment flat, newest first, each reply pointing at
+// its parent. The sheet wants threads, so fold each reply under its top-level
+// ancestor (a reply to a reply still lands in the right thread).
+const MEDIA_COMMENTS: CommentsApi = {
+  list: (id) => `/fync-media/comment/all/${id}`,
+  add: (id) => `/fync-media/comment/add/${id}`,
+  replies: true,
+  remove: (id) => ({ method: 'delete', url: `/fync-media/comment/${id}` }),
+  pick: (data) => {
+    const all: any[] = data?.comments ?? [];
+    const byId = new Map(all.map((c) => [String(c._id), c]));
+    const rootOf = (c: any): any => {
+      const parent = c.parentComment && byId.get(String(c.parentComment));
+      return parent ? rootOf(parent) : c;
+    };
+    const tops = all.filter((c) => !c.parentComment).map((c) => ({ ...c, replies: [] as any[] }));
+    const topById = new Map(tops.map((t) => [String(t._id), t]));
+    all.forEach((c) => { if (c.parentComment) topById.get(String(rootOf(c)._id))?.replies.push(c); });
+    return tops;
+  },
+  // The add response is unpopulated: `commentor` is a bare id until the refetch.
+  normalize: (c) => ({
+    ...c,
+    commentor: typeof c.commentor === 'object' ? c.commentor : { _id: c.commentor },
+  }),
+};
 
 interface FyncMediaItem {
   _id: string;
@@ -150,9 +180,21 @@ const YouTubeVideoPlayer = ({
     setupAudio();
   }, []);
 
+  // Leaving the player must hand the rest of the app back in portrait, and free
+  // the decoder. Both used to live in the controls effect below, which unloaded
+  // the video every time the controls auto-hid.
+  const fullscreenRef = useRef(false);
+  fullscreenRef.current = isFullscreen;
   useEffect(() => {
-    console.log("🎥 Video Player: New source prepared:", source);
-  }, [source]);
+    const video = videoRef.current;
+    return () => {
+      if (seekTimer.current) clearTimeout(seekTimer.current);
+      video?.unloadAsync().catch(() => {});
+      if (fullscreenRef.current) {
+        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
+      }
+    };
+  }, []);
 
   // Double Tap Seek Gestures
   const skipForward = async () => {
@@ -176,6 +218,15 @@ const YouTubeVideoPlayer = ({
   };
 
   const [seekFeedback, setSeekFeedback] = useState<'forward' | 'backward' | null>(null);
+  const seekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Runs on the JS thread; the tap callback below is a worklet and cannot own a timer.
+  const seekWithFeedback = (dir: 'forward' | 'backward') => {
+    setSeekFeedback(dir);
+    if (dir === 'forward') skipForward(); else skipBackward();
+    if (seekTimer.current) clearTimeout(seekTimer.current);
+    seekTimer.current = setTimeout(() => setSeekFeedback(null), 500);
+  };
 
   // Unified Taps Logic
   const singleTap = Gesture.Tap()
@@ -188,17 +239,7 @@ const YouTubeVideoPlayer = ({
     .numberOfTaps(2)
     .onEnd((event, success) => {
       if (success) {
-        if (event.x < windowWidth / 2) {
-          runOnJS(setSeekFeedback)('backward');
-          runOnJS(skipBackward)();
-        } else {
-          runOnJS(setSeekFeedback)('forward');
-          runOnJS(skipForward)();
-        }
-        // Reset feedback after 500ms
-        setTimeout(() => {
-          runOnJS(setSeekFeedback)(null);
-        }, 500);
+        runOnJS(seekWithFeedback)(event.x < windowWidth / 2 ? 'backward' : 'forward');
       }
     });
 
@@ -252,12 +293,8 @@ const YouTubeVideoPlayer = ({
     if (showControls) {
       resetHideTimer();
     }
-    return () => { 
+    return () => {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-      // Explicitly unload video to free up RAM
-      if (videoRef.current) {
-        videoRef.current.unloadAsync();
-      }
     };
   }, [showControls]);
 
@@ -354,9 +391,9 @@ const YouTubeVideoPlayer = ({
             <View pointerEvents="box-none" className="flex-row justify-between mb-2">
               <Text className="text-white text-label font-semibold">
                 {status ? `${Math.floor(status.positionMillis / 60000)}:${String(Math.floor((status.positionMillis % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
-                <Text className="text-white/60"> / {status ? `${Math.floor(status.durationMillis! / 60000)}:${String(Math.floor((status.durationMillis! % 60000) / 1000)).padStart(2, '0')}` : '0:00'}</Text>
+                <Text className="text-white/60"> / {status ? `${Math.floor((status.durationMillis ?? 0) / 60000)}:${String(Math.floor(((status.durationMillis ?? 0) % 60000) / 1000)).padStart(2, '0')}` : '0:00'}</Text>
               </Text>
-              <TouchableOpacity onPress={toggleFullscreen}>
+              <TouchableOpacity onPress={toggleFullscreen} hitSlop={12}>
                 <Ionicons name={isFullscreen ? "contract-outline" : "expand-outline"} size={18} color="white" />
               </TouchableOpacity>
             </View>
@@ -404,10 +441,12 @@ const YouTubeCard = React.memo(({
     >
       {/* Thumbnail */}
       <View className="w-full aspect-video relative bg-paper-2 mx-0">
-        <Image
+        <ExpoImage
           source={{ uri: getFullUrl(item.thumbnail) || '' }}
-          className="w-full h-full"
-          resizeMode="cover"
+          style={{ width: '100%', height: '100%' }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          recyclingKey={item._id}
         />
         <View className="absolute bottom-4 right-4 bg-ink/90 px-2 py-1 rounded-lg border border-white/20">
           <Text className="text-white text-label font-display uppercase">{formatDuration(item.duration)}</Text>
@@ -516,6 +555,8 @@ const MediaDetailView = React.memo(({
   return (
     <SafeAreaView className="flex-1 bg-paper">
       <View className="flex-1 bg-paper">
+        {/* The only way out used to be Android's back button. */}
+        <AppBar onBack={onClose} />
         {/* YouTube Video Component */}
         <YouTubeVideoPlayer
           source={item.video_link}
@@ -634,13 +675,6 @@ export default function FyncMediaFeed() {
 
   // Comment States
   const [activeCommentMediaId, setActiveCommentMediaId] = useState<string | null>(null);
-  const [comments, setComments] = useState<any[]>([]);
-  const [loadingComments, setLoadingComments] = useState(false);
-  const [newCommentText, setNewCommentText] = useState("");
-  const [postingComment, setPostingComment] = useState(false);
-
-  const [replyingTo, setReplyingTo] = useState<any>(null);
-  const commentInputRef = useRef<TextInput>(null);
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -656,11 +690,16 @@ export default function FyncMediaFeed() {
     try {
       const res = await axios.get(`/fync-media/all?page=${pageNum}&limit=10`);
       if (res.data.success) {
-        const newMedia = res.data.data;
+        const newMedia: FyncMediaItem[] = res.data.data ?? [];
         if (shouldRefresh || pageNum === 1) {
           setMedia(newMedia);
         } else {
-          setMedia([...media, ...newMedia]);
+          // Functional + de-duped: the closure's `media` can be a page behind,
+          // and a post published between pages shifts the offset.
+          setMedia(prev => {
+            const seen = new Set(prev.map(m => m._id));
+            return [...prev, ...newMedia.filter(m => !seen.has(m._id))];
+          });
         }
         setPage(pageNum);
         setHasMore(newMedia.length >= 10);
@@ -679,7 +718,7 @@ export default function FyncMediaFeed() {
   }, []);
 
   const loadMore = () => {
-    if (!loadingMore && hasMore) {
+    if (!loading && !loadingMore && hasMore) {
       fetchMedia(page + 1);
     }
   };
@@ -689,60 +728,14 @@ export default function FyncMediaFeed() {
     await fetchMedia(1, true);
   };
 
-  const fetchComments = async (mediaId: string) => {
-    setLoadingComments(true);
-    try {
-      const res = await axios.get(`/fync-media/comment/all/${mediaId}`);
-      if (res.data.success) {
-        setComments(res.data.comments);
-      }
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoadingComments(false);
-    }
-  };
-
   const handleOpenComments = useCallback((mediaId: string) => {
     setActiveCommentMediaId(mediaId);
-    fetchComments(mediaId);
   }, []);
 
-  const handlePostComment = async () => {
-    if (!activeCommentMediaId || !newCommentText.trim()) return;
-
-    setPostingComment(true);
-    try {
-      const res = await axios.post(`/fync-media/comment/add/${activeCommentMediaId}`, {
-        text: newCommentText,
-        parentComment: replyingTo?._id || null,
-        replyToUser: replyingTo?.commentor?._id || null
-      });
-
-      if (res.data.success) {
-        setNewCommentText("");
-        setReplyingTo(null);
-        fetchComments(activeCommentMediaId);
-
-        // Optimistically update comment count in media array
-        setMedia(prev => prev.map(m => m._id === activeCommentMediaId ? { ...m, comment: [...m.comment, res.data.comment._id] } : m));
-      }
-    } catch (err) {
-      console.log("Error posting comment:", err);
-      Alert.alert("Failed to post comment");
-    } finally {
-      setPostingComment(false);
-    }
-  };
-
-  const handleDeleteComment = async (commentId: string) => {
-    try {
-      await axios.delete(`/fync-media/comment/${commentId}`);
-      if (activeCommentMediaId) fetchComments(activeCommentMediaId);
-    } catch (err) {
-      console.log("Error deleting comment:", err);
-    }
-  };
+  // `comment` is only ever read for its length.
+  const onCommentCount = useCallback((id: string, count: number) => {
+    setMedia(prev => prev.map(m => (m._id === id ? { ...m, comment: Array(count).fill('') } : m)));
+  }, []);
 
   const handleEditPress = (item: FyncMediaItem) => {
     setEditingItem(item);
@@ -846,15 +839,24 @@ export default function FyncMediaFeed() {
       formData.append("description", uploadDescription);
       formData.append("tags", uploadTags);
 
-      const thumbFilename = uploadThumbnail.split('/').pop() || 'thumbnail.jpg';
-      const thumbMatch = /\.(\w+)$/.exec(thumbFilename);
-      const thumbType = thumbMatch ? `image/${thumbMatch[1]}` : `image`;
-      formData.append("thumbnail", { uri: uploadThumbnail, name: thumbFilename, type: thumbType } as any);
+      // When editing, an untouched thumbnail/video is still the remote URL. The
+      // server keeps the existing file when none is sent, and Android cannot
+      // stream a remote URL as a multipart file — so only attach local picks.
+      const isLocal = (uri: string) => /^(file|content|ph|assets-library):/i.test(uri);
 
-      const vidFilename = uploadVideo.split('/').pop() || 'video.mp4';
-      const vidMatch = /\.(\w+)$/.exec(vidFilename);
-      const vidType = vidMatch ? `video/${vidMatch[1]}` : `video`;
-      formData.append("video", { uri: uploadVideo, name: vidFilename, type: vidType } as any);
+      if (isLocal(uploadThumbnail)) {
+        const thumbFilename = uploadThumbnail.split('/').pop() || 'thumbnail.jpg';
+        const thumbMatch = /\.(\w+)$/.exec(thumbFilename);
+        const thumbType = thumbMatch ? `image/${thumbMatch[1]}` : `image`;
+        formData.append("thumbnail", { uri: uploadThumbnail, name: thumbFilename, type: thumbType } as any);
+      }
+
+      if (isLocal(uploadVideo)) {
+        const vidFilename = uploadVideo.split('/').pop() || 'video.mp4';
+        const vidMatch = /\.(\w+)$/.exec(vidFilename);
+        const vidType = vidMatch ? `video/${vidMatch[1]}` : `video`;
+        formData.append("video", { uri: uploadVideo, name: vidFilename, type: vidType } as any);
+      }
 
       if (uploadDuration) {
         formData.append("duration", uploadDuration);
@@ -907,32 +909,19 @@ export default function FyncMediaFeed() {
         <SafeAreaView className="flex-1" edges={['top']}>
 
           {/* Arena Header */}
-          <View className="px-gutter pt-2 bg-transparent">
+          <AppBar
+            onBack={() => navigation.goBack()}
+            right={isAdmin ? <IconBtn name="add" boxed onPress={() => setUploadModalVisible(true)} /> : undefined}
+          />
+          <View className="px-gutter bg-transparent">
             <View className="flex-row items-center justify-between mb-6">
               <View className="flex-1">
                 <View className="flex-row items-center">
-                  <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    className="w-11 h-11 items-center justify-center rounded-xl"
-                    accessibilityRole="button"
-                    accessibilityLabel="Go back"
-                    style={{ marginLeft: -11 }}
-                  >
-                    <Ionicons name="arrow-back" size={24} color={C.ink} />
-                  </TouchableOpacity>
                   <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Fync</Text>
                   <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Media</Text>
                 </View>
                 <Text className="text-ink-3 text-label font-display uppercase">Broadcast Archive & News</Text>
               </View>
-              {isAdmin && (
-                <TouchableOpacity
-                  onPress={() => setUploadModalVisible(true)}
-                  className="w-12 h-12 bg-ink rounded-card items-center justify-center shadow-hair"
-                >
-                  <Ionicons name="add" size={24} color="white" />
-                </TouchableOpacity>
-              )}
             </View>
           </View>
 
@@ -1001,7 +990,7 @@ export default function FyncMediaFeed() {
               </View>
 
               <KeyboardAvoidingView
-                behavior="padding"
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 className="flex-1"
               >
                 <View className="flex-row items-center justify-between px-6 py-4 border-b border-line">
@@ -1089,7 +1078,7 @@ export default function FyncMediaFeed() {
                   </View>
                 </ScrollView>
 
-                <View className="p-4 border-t border-line bg-card mb-6">
+                <View className="p-4 border-t border-line bg-card" style={{ paddingBottom: bottomInset }}>
                   <TouchableOpacity
                     onPress={handleUpload}
                     disabled={uploading}
@@ -1110,118 +1099,14 @@ export default function FyncMediaFeed() {
           </View>
         </Modal>
 
-        {/* Comment Modal */}
-        <Modal visible={!!activeCommentMediaId} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setActiveCommentMediaId(null)}>
-          <SafeAreaView className="flex-1 bg-paper">
-            <KeyboardAvoidingView behavior="padding" className="flex-1 bg-paper">
-              <View className="flex-row justify-between items-center p-4 border-b border-line bg-card">
-                <Text className="font-display text-xl text-ink">COMMENTS</Text>
-                <TouchableOpacity onPress={() => setActiveCommentMediaId(null)} className="p-1 bg-paper-2 rounded-full border border-line">
-                  <Ionicons name="close" size={20} color={C.ink} />
-                </TouchableOpacity>
-              </View>
-
-              {loadingComments ? (
-                <View className="flex-1 justify-center items-center">
-                  <ActivityIndicator size="large" color={C.brand[500]} />
-                </View>
-              ) : (
-                <FlatList
-                  data={comments}
-                  keyExtractor={item => item._id}
-                  contentContainerStyle={{ padding: 20 }}
-                  ListEmptyComponent={
-                    <View className="items-center justify-center mt-20">
-                      <Ionicons name="chatbubbles-outline" size={48} color={C.line} />
-                      <Text className="text-ink-3 font-semibold mt-4">No comments yet</Text>
-                      <Text className="text-ink-3 text-xs mt-1">Be the first to join the conversation.</Text>
-                    </View>
-                  }
-                  renderItem={({ item }: { item: any }) => {
-                    // Only render top-level comments in the main list
-                    if (item.parentComment) return null;
-
-                    const renderCommentItem = (comment: any, isReply = false) => {
-                      // Find replies to THIS specific comment
-                      const commentReplies = comments.filter((c: any) => String(c.parentComment) === String(comment._id));
-
-                      return (
-                        <View key={comment._id} className={`${isReply ? 'ml-8 mt-4' : 'mb-6'}`}>
-                          <View className="flex-row">
-                            <Image source={{ uri: comment.commentor?.avatar || 'https://ui-avatars.com/api/?name=User' }} className={`${isReply ? 'w-7 h-7' : 'w-9 h-9'} rounded-full mr-2 bg-paper-2`} />
-                            <View className="flex-1 bg-paper rounded-card px-3 py-2 border border-line">
-                              <View className="flex-row justify-between items-center mb-1">
-                                <Text className="text-ink-3 text-label font-display">
-                                  {new Date(comment.createdAt).toLocaleDateString()}
-                                </Text>
-                              </View>
-                              <Text className="text-ink text-xs font-medium leading-5">{comment.text}</Text>
-
-                              <View className="flex-row items-center mt-2 gap-4">
-                                {!isReply && (
-                                  <TouchableOpacity onPress={() => {
-                                    setReplyingTo(comment);
-                                    setNewCommentText(`@${comment.commentor.username} `);
-                                    commentInputRef.current?.focus();
-                                  }}>
-                                    <Text className="text-accent-text text-label font-semibold uppercase">Reply</Text>
-                                  </TouchableOpacity>
-                                )}
-                                {comment.commentor?._id === (user?._id || user?.id) && (
-                                  <TouchableOpacity onPress={() => handleDeleteComment(comment._id)}>
-                                    <Text className="text-danger/90 text-label font-semibold uppercase">Delete</Text>
-                                  </TouchableOpacity>
-                                )}
-                              </View>
-                            </View>
-                          </View>
-
-                          {/* Render Replies */}
-                          {commentReplies.map((reply: any) => renderCommentItem(reply, true))}
-                        </View>
-                      );
-                    };
-
-                    return renderCommentItem(item);
-                  }}
-                />
-              )}
-
-              {/* Replying indicator */}
-              {replyingTo && (
-                <View className="px-4 py-2 bg-paper-2 flex-row justify-between items-center border-t border-line">
-                  <Text className="text-ink-3 text-label font-semibold">
-                    Replying to <Text className="text-accent-text">@{replyingTo.commentor?.username}</Text>
-                  </Text>
-                  <TouchableOpacity onPress={() => { setReplyingTo(null); setNewCommentText(""); }}>
-                    <Ionicons name="close-circle" size={16} color={C.ink4} />
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              <View className="p-5 border-t border-line bg-card flex-row items-center mb-4">
-                <Image source={{ uri: user?.avatar }} className="w-10 h-10 rounded-card mr-3 bg-paper-2" />
-                <TextInput
-                  ref={commentInputRef}
-                  value={newCommentText}
-                  onChangeText={setNewCommentText}
-                  placeholder="Broadcast your thoughts..."
-                  placeholderTextColor={C.ink4}
-                  className="flex-1 bg-paper px-4 py-3 border-[1.5px] border-ink font-semibold text-ink text-xs rounded-md"
-                />
-                <TouchableOpacity
-                  disabled={postingComment || !newCommentText.trim()}
-                  onPress={handlePostComment}
-                  className={`w-11 h-11 rounded-card items-center justify-center ml-3 shadow-hair ${newCommentText.trim() ? 'bg-brand-500 ' : 'bg-paper-2 shadow-none'}`}
-                >
-                  {postingComment ? <ActivityIndicator size="small" color={C.ink} /> : <Ionicons name="send" size={18} color={newCommentText.trim() ? "white" : "#8B857E"} style={{ marginLeft: 2 }} />}
-                </TouchableOpacity>
-              </View>
-            </KeyboardAvoidingView>
-          </SafeAreaView>
-        </Modal>
-
-
+        <CommentsSheet
+          visible={!!activeCommentMediaId}
+          onClose={() => setActiveCommentMediaId(null)}
+          resource={MEDIA_COMMENTS}
+          targetId={activeCommentMediaId}
+          currentUser={user}
+          onCountChange={onCommentCount}
+        />
       </View>
     </GestureHandlerRootView>
   );

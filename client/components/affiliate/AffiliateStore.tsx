@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
     View, 
     Text, 
     FlatList, 
-    Image, 
     TouchableOpacity, 
     TextInput, 
     StyleSheet, 
@@ -15,6 +14,9 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
+import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const CATEGORIES = ['All', 'Education', 'Electronics', 'Fashion', 'Books', 'Lifestyle'];
 
@@ -25,8 +27,12 @@ const AffiliateStore = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
+    const insets = useSafeAreaInsets();
+    // Switching chips quickly: only the latest request may fill the grid.
+    const reqSeq = useRef(0);
 
     const fetchProducts = async () => {
+        const seq = ++reqSeq.current;
         try {
             setLoading(true);
             const response = await axios.get(`/affiliate/products`, {
@@ -35,12 +41,15 @@ const AffiliateStore = () => {
                     search: searchQuery || undefined
                 }
             });
-            setProducts(response.data.products);
+            if (seq !== reqSeq.current) return;
+            setProducts(response.data?.products ?? []);
         } catch (error) {
             console.error('Error fetching affiliate products:', error);
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            if (seq === reqSeq.current) {
+                setLoading(false);
+                setRefreshing(false);
+            }
         }
     };
 
@@ -60,8 +69,8 @@ const AffiliateStore = () => {
             activeOpacity={0.9}
         >
             <View style={styles.imageContainer}>
-                <Image source={{ uri: item.image }} style={styles.productImage} />
-                {item.originalPrice && (
+                <Image source={{ uri: item.image }} style={styles.productImage} contentFit="cover" cachePolicy="memory-disk" recyclingKey={item._id} />
+                {item.originalPrice > item.price && (
                     <View style={styles.discountBadge}>
                         <Text style={styles.discountText}>
                             {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
@@ -74,7 +83,7 @@ const AffiliateStore = () => {
                 <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
                 <View style={styles.priceRow}>
                     <Text style={styles.priceText}>₹{item.price}</Text>
-                    {item.originalPrice && (
+                    {item.originalPrice > item.price && (
                         <Text style={styles.originalPriceText}>₹{item.originalPrice}</Text>
                     )}
                 </View>
@@ -93,17 +102,9 @@ const AffiliateStore = () => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.headerTop}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}
-                        className="w-11 h-11 items-center justify-center rounded-xl"
-                        accessibilityRole="button"
-                        accessibilityLabel="Go back"
-                        style={{ marginLeft: -11 }}>
-                        <Ionicons name="arrow-back" size={24} color={C.ink} />
-                    </TouchableOpacity>
-                </View>
-
+            <View style={[styles.header, { paddingTop: insets.top }]}>
+                <AppBar onBack={() => navigation.goBack()} />
+                <View style={styles.headerBody}>
                 {/* Two-line display headline on the left, matching Explore,
                     Meet the Team and Fync Market. */}
                 <Text style={styles.display}>Fync</Text>
@@ -120,6 +121,7 @@ const AffiliateStore = () => {
                         onChangeText={setSearchQuery}
                         onSubmitEditing={fetchProducts}
                     />
+                </View>
                 </View>
             </View>
 
@@ -178,15 +180,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5F2EC',
     },
     header: {
-        paddingTop: 50,
-        paddingHorizontal: 20,
-        paddingBottom: 16,
         backgroundColor: '#F5F2EC',
     },
-    headerTop: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 6,
+    headerBody: {
+        paddingHorizontal: 20,
+        paddingBottom: 16,
     },
     display: {
         fontSize: 34,
@@ -230,7 +228,7 @@ const styles = StyleSheet.create({
         marginVertical: 15,
     },
     categoriesScroll: {
-        paddingHorizontal: 15,
+        paddingHorizontal: 20,
     },
     categoryButton: {
         paddingHorizontal: 20,
@@ -256,7 +254,8 @@ const styles = StyleSheet.create({
         color: '#12100E',
     },
     productList: {
-        paddingHorizontal: 10,
+        // + productCard margin 5 = 20 gutter
+        paddingHorizontal: 15,
         paddingBottom: 100,
     },
     productCard: {
@@ -276,7 +275,6 @@ const styles = StyleSheet.create({
     productImage: {
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
     },
     discountBadge: {
         position: 'absolute',

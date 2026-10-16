@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
 
 const TCSection = ({ icon, title, content }: { icon: any; title: string; content: string }) => (
   <View className="mb-6 bg-card rounded-card p-5 border border-line shadow-hair">
@@ -25,23 +26,7 @@ export default function TermsAndCondition() {
       <StatusBar barStyle="dark-content" />
       <SafeAreaView className="flex-1">
 
-        {/* Header */}
-        <View className="px-6 py-4 flex-row items-center justify-between">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-          
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <View className="items-end">
-            <Text className="text-ink text-xl font-display uppercase">Legal Hub</Text>
-            <Text className="text-recruiter text-label font-display uppercase">Fync Ecosystem</Text>
-          </View>
-          <View className='w-10'></View>
-        </View>
+        <AppBar title="Legal Hub" subtitle="Fync Ecosystem" onBack={() => navigation.goBack()} />
 
         <ScrollView
           showsVerticalScrollIndicator={false}

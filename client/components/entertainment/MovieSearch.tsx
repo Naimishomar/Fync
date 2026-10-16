@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,23 +14,29 @@ import { useNavigation } from '@react-navigation/native';
 import { searchMovies } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
 import { C } from '../../constants/colors';
+import { IconBtn } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 const numColumns = 3;
-const cardWidth = (width - 48) / numColumns;
+// 12px list padding each side + 6px margin each side of every cell.
+const cardWidth = (width - 24 - 12 * numColumns) / numColumns;
 
 const MovieSearch = () => {
   const navigation = useNavigation<any>();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  // Only the newest search may write results; a slow older one is dropped.
+  const latest = useRef(0);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (query.length > 2) {
         performSearch(query);
       } else {
+        latest.current++;
         setResults([]);
+        setLoading(false);
       }
     }, 1000);
 
@@ -38,27 +44,22 @@ const MovieSearch = () => {
   }, [query]);
 
   const performSearch = async (text: string) => {
+    const id = ++latest.current;
     setLoading(true);
     try {
       const data = await searchMovies(text);
-      setResults(data);
+      if (id === latest.current) setResults(data || []);
     } catch (error) {
       console.error('Search error:', error);
     } finally {
-      setLoading(false);
+      if (id === latest.current) setLoading(false);
     }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-ink">
-      <View className="px-4 py-4 flex-row items-center gap-3">
-        <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
+      <View className="px-5 py-4 flex-row items-center gap-3">
+        <IconBtn name="chevron-back" color="white" onPress={() => navigation.goBack()} style={{ marginLeft: -11 }} />
         <View className="flex-1 bg-ink rounded-full flex-row items-center px-4 py-2 border border-ink">
           <Ionicons name="search" size={20} color={C.ink4} />
           <TextInput
@@ -70,7 +71,7 @@ const MovieSearch = () => {
             onChangeText={setQuery}
           />
           {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery('')}>
+            <TouchableOpacity onPress={() => setQuery('')} hitSlop={12}>
               <Ionicons name="close-circle" size={20} color={C.ink4} />
             </TouchableOpacity>
           )}
@@ -85,14 +86,17 @@ const MovieSearch = () => {
         <FlatList
           data={results}
           numColumns={numColumns}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => String(item.id)}
           contentContainerStyle={{ padding: 12 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           renderItem={({ item }) => (
             <View style={{ margin: 6 }}>
               <MovieCard
                 item={item}
                 width={cardWidth}
                 height={cardWidth * 1.5}
+                marginRight={0}
                 onPress={() => navigation.navigate('MovieDetail', { movieId: item.id })}
               />
             </View>

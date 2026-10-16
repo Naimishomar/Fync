@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, memo, useMemo, useRef } from 'react';
 import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Dimensions, StatusBar, Modal, ScrollView, KeyboardAvoidingView, Platform, Linking, Pressable} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
 import axios from '../../context/axiosConfig';
 import { navigate, goBack } from '../../utils/navigation';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -17,6 +18,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -164,7 +166,7 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
         >
             <View className="h-48 relative">
                 {item.banner ? (
-                    <Image source={{ uri: item.banner }} className="w-full h-full" resizeMode="cover" />
+                    <ExpoImage source={{ uri: item.banner }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" />
                 ) : (
                     <View className="w-full h-full"  style={{ backgroundColor: '#4F46E5' }} />
                 )}
@@ -191,7 +193,7 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
 
                 <View className="absolute -bottom-6 left-8 w-20 h-20 bg-card rounded-card p-1.5 border border-line shadow-hair">
                     {item.logo ? (
-                        <Image source={{ uri: item.logo }} className="w-full h-full rounded-card" />
+                        <ExpoImage source={{ uri: item.logo }} style={{ width: '100%', height: '100%', borderRadius: 12 }} cachePolicy="memory-disk" />
                     ) : (
                         <View className="w-full h-full bg-recruiter/10 rounded-card items-center justify-center">
                             <Ionicons name="rocket" size={24} color={C.recruiter} />
@@ -352,14 +354,15 @@ export default function BootcampScreen() {
             return;
         }
 
+        let stale = false;
         const timer = setTimeout(async () => {
             setIsSearchingAdmins(true);
             try {
                 const res = await axios.post('/user/search', { name: adminEmailInput });
-                if (res.data.success) {
+                if (!stale && res.data.success) {
                     // Filter out already added admins
                     const existingAdmins = (editData.secondaryAdmins || []).map(a => typeof a === 'string' ? a : a.username);
-                    const filtered = res.data.users.filter((u: User) => !existingAdmins.includes(u.username) && u.email !== user?.email);
+                    const filtered = (res.data.users || []).filter((u: User) => !existingAdmins.includes(u.username) && u.email !== user?.email);
                     setAdminSuggestions(filtered);
                 }
             } catch (err) {
@@ -369,7 +372,7 @@ export default function BootcampScreen() {
             }
         }, 1000);
 
-        return () => clearTimeout(timer);
+        return () => { stale = true; clearTimeout(timer); };
     }, [adminEmailInput]);
 
     useEffect(() => {
@@ -377,29 +380,28 @@ export default function BootcampScreen() {
     }, []);
 
     const fetchSessions = async () => {
-        try {
-            const [res, regRes] = await Promise.all([
-                axios.get('/bootcamp/all'),
-                axios.get('/bootcamp/my-registrations')
-            ]);
-            setSessions(res.data.sessions || []);
-            setUserRegistrations(regRes.data.registrations || []);
-            setLoading(false);
-            setRefreshing(false);
-        } catch (err) {
-            console.error(err);
-            setLoading(false);
-            setRefreshing(false);
-        }
+        // Settled, not all: a failing registrations call used to hide every session too.
+        const [res, regRes] = await Promise.allSettled([
+            axios.get('/bootcamp/all'),
+            axios.get('/bootcamp/my-registrations')
+        ]);
+        if (res.status === 'fulfilled') setSessions(res.value.data.sessions || []);
+        else console.error(res.reason);
+        if (regRes.status === 'fulfilled') setUserRegistrations(regRes.value.data.registrations || []);
+        setLoading(false);
+        setRefreshing(false);
     };
 
+    const registering = useRef(false);
     const handleRegister = async (session: BootcampSession) => {
-        const isAdmin = session.admin_email.toLowerCase() === user?.email?.toLowerCase() ||
+        const isAdmin = session.admin_email?.toLowerCase() === user?.email?.toLowerCase() ||
             (session.secondaryAdmins || []).some(a => (typeof a === 'string' ? a === user?.id || a === user?.email : a._id === user?._id || a.email === user?.email));
         if (isAdmin) {
             Alert.alert("Admin Access", "You are an organizer for this Bootcamp. You have full access without enrollment.");
             return;
         }
+        if (registering.current) return;
+        registering.current = true;
         try {
             const res = await axios.post('/bootcamp/register', { eventId: session.eventId });
             if (res.data.success) {
@@ -441,6 +443,8 @@ export default function BootcampScreen() {
             }
         } catch (err: any) {
             Alert.alert("Enrollment", err.response?.data?.message || "Error");
+        } finally {
+            registering.current = false;
         }
     };
 
@@ -453,8 +457,8 @@ export default function BootcampScreen() {
         setExporting(true);
         try {
             const excelData = attendees.map((reg, index) => {
-                const u = reg.userId as User;
-                const dayRecord = reg.attendance.find(a => a.date === attendanceDate);
+                const u = (reg.userId || {}) as User;
+                const dayRecord = reg.attendance?.find(a => a.date === attendanceDate);
                 const isPresent = dayRecord?.isPresent;
 
                 return {
@@ -654,7 +658,6 @@ export default function BootcampScreen() {
         if (scanned) return;
         setScanned(true);
         setScannerVisible(false);
-        console.log("👉 [Bootcamp Scanner] RAW Scan Data:", data);
         try {
             let qrInfo: any;
             if (typeof data === 'string') {
@@ -670,7 +673,6 @@ export default function BootcampScreen() {
             }
         } catch (e: any) {
             setScanned(false);
-            console.log("❌ [Bootcamp Scanner] Detail Error:", e);
             Alert.alert("Invalid QR", e.message || "Could not parse ticket data.");
         }
     };
@@ -687,43 +689,28 @@ export default function BootcampScreen() {
             <StatusBar barStyle="dark-content" />
 
             <SafeAreaView className="flex-1" edges={['top']}>
+                <AppBar onBack={() => goBack()}
+                    right={<>
+                        <IconBtn name="ticket" size={20} color={C.brand[500]} boxed onPress={() => setTicketsModalVisible(true)} />
+                        <IconBtn name="add" size={24} color="white" style={{ backgroundColor: C.ink, marginLeft: 12 }} onPress={() => {
+                            setEditData({ admin_email: user?.email });
+                            setEventLogo(null);
+                            setEventBanner(null);
+                            setSessionModalVisible(true);
+                        }} />
+                    </>} />
                 <FlatList
                     data={sessions}
                     keyExtractor={(item) => item._id}
                     contentContainerStyle={{ paddingBottom: 120 }}
                     showsVerticalScrollIndicator={false}
                     ListHeaderComponent={
-                        <View className="px-gutter pt-6">
+                        <View className="px-gutter pt-2">
                             <View className="flex-row justify-between items-center mb-10">
                                 <View>
-                                    <TouchableOpacity
-                                      onPress={() => goBack()}
-                                      className="w-11 h-11 items-center justify-center rounded-xl"
-                                      accessibilityRole="button"
-                                      accessibilityLabel="Go back"
-                                      style={{ marginLeft: -11 }}
-                                    >
-                                      <Ionicons name="arrow-back" size={24} color={C.ink} />
-                                    </TouchableOpacity>
                                     <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Bootcamp</Text>
                                     <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
                                     <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Intelligence Archive</Text>
-                                </View>
-                                <View className="flex-row gap-3">
-                                    <TouchableOpacity
-                                        onPress={() => setTicketsModalVisible(true)}
-                                        className="w-12 h-12 bg-card rounded-card items-center justify-center shadow-hair border border-line"
-                                    >
-                                        <Ionicons name="ticket" size={20} color={C.brand[500]} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => {
-                                        setEditData({ admin_email: user?.email });
-                                        setEventLogo(null);
-                                        setEventBanner(null);
-                                        setSessionModalVisible(true);
-                                    }} className="w-12 h-12 bg-ink rounded-card items-center justify-center shadow-hair">
-                                        <Ionicons name="add" size={24} color="white" />
-                                    </TouchableOpacity>
                                 </View>
                             </View>
                         </View>
@@ -732,9 +719,9 @@ export default function BootcampScreen() {
                         <BootcampCard
                             item={item}
                             stamped={index === 0}
-                            isAdmin={item.admin_email.toLowerCase() === user?.email?.toLowerCase() ||
+                            isAdmin={item.admin_email?.toLowerCase() === user?.email?.toLowerCase() ||
                                 (item.secondaryAdmins || []).some(a => (typeof a === 'string' ? a === user?.id || a === user?.email : a._id === user?._id || a.email === user?.email))}
-                            isPrimaryAdmin={item.admin_email.toLowerCase() === user?.email?.toLowerCase()}
+                            isPrimaryAdmin={item.admin_email?.toLowerCase() === user?.email?.toLowerCase()}
                             isRegistered={userRegistrations.some(r => (r.eventId as any)?._id === item._id)}
                             onRegister={handleRegister}
                             onViewAttendees={viewAttendees}
@@ -756,12 +743,12 @@ export default function BootcampScreen() {
                             }}
                         />
                     )}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchSessions} />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchSessions(); }} />}
                     ListEmptyComponent={<View className="py-20 items-center"><Text className="text-ink-3 font-semibold">No bootcamps available</Text></View>}
                 />
 
                 {/* MODALS (Simplified for now, can expand UI same as Speaker) */}
-                <Modal visible={attendeeModalVisible} transparent animationType="slide">
+                <Modal visible={attendeeModalVisible} transparent animationType="slide" onRequestClose={() => setAttendeeModalVisible(false)}>
                     <View className="flex-1 bg-black/50 justify-end">
                         <View className="bg-paper h-[90%] rounded-t-sheet overflow-hidden">
                             <View className="p-card-pad bg-ink h-48">
@@ -830,12 +817,12 @@ export default function BootcampScreen() {
                                 data={attendees}
                                 keyExtractor={(it) => it._id}
                                 renderItem={({ item, index }) => {
-                                    const u = item.userId as User;
-                                    const dayRecord = item.attendance.find(a => a.date === attendanceDate);
+                                    const u = (item.userId || {}) as User;
+                                    const dayRecord = item.attendance?.find(a => a.date === attendanceDate);
                                     const isPresentToday = dayRecord?.isPresent;
 
                                     const activeSession = sessions.find(s => s.eventId === currentEventForAttendees);
-                                    const isPrimaryAdminForThis = activeSession?.admin_email.toLowerCase() === user?.email?.toLowerCase();
+                                    const isPrimaryAdminForThis = activeSession?.admin_email?.toLowerCase() === user?.email?.toLowerCase();
 
                                     return (
                                         <View className="p-6 border-b border-line bg-card">
@@ -914,8 +901,8 @@ export default function BootcampScreen() {
                     </View>
                 </Modal>
 
-                <Modal visible={sessionModalVisible} transparent animationType="slide">
-                    <View className="flex-1 bg-black/50 justify-end">
+                <Modal visible={sessionModalVisible} transparent animationType="slide" onRequestClose={() => setSessionModalVisible(false)}>
+                    <KeyboardAvoidingView className="flex-1 bg-black/50 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                         <View className="bg-paper h-[80%] rounded-t-sheet overflow-hidden">
                             <View className="p-card-pad flex-row justify-between items-center">
                                 <View>
@@ -926,7 +913,7 @@ export default function BootcampScreen() {
                                     <Ionicons name="close" size={24} color={C.recruiter} />
                                 </TouchableOpacity>
                             </View>
-                            <ScrollView className="p-card-pad">
+                            <ScrollView className="p-card-pad" keyboardShouldPersistTaps="handled">
                                 <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
                                   <Text className="text-ink-3 font-semibold text-label uppercase">Event Branding (Optional)</Text>
                                   <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
@@ -979,6 +966,7 @@ export default function BootcampScreen() {
                                                     const contacts = (editData.contactDetails || []).filter((_, i) => i !== idx);
                                                     setEditData({ ...editData, contactDetails: contacts });
                                                 }}
+                                                hitSlop={12}
                                                 className="absolute top-4 right-4 z-10"
                                             >
                                                 <Ionicons name="trash-outline" size={16} color={C.danger} />
@@ -990,7 +978,7 @@ export default function BootcampScreen() {
                                                 value={contact.name}
                                                 onChangeText={(t) => {
                                                     const contacts = [...(editData.contactDetails || [])];
-                                                    contacts[idx].name = t;
+                                                    contacts[idx] = { ...contacts[idx], name: t };
                                                     setEditData({ ...editData, contactDetails: contacts });
                                                 }}
                                                 className="bg-paper-2 p-4 rounded-xl mb-3 font-semibold text-ink text-label border border-line"
@@ -1003,7 +991,7 @@ export default function BootcampScreen() {
                                                         value={contact.mobile}
                                                         onChangeText={(t) => {
                                                             const contacts = [...(editData.contactDetails || [])];
-                                                            contacts[idx].mobile = t;
+                                                            contacts[idx] = { ...contacts[idx], mobile: t };
                                                             setEditData({ ...editData, contactDetails: contacts });
                                                         }}
                                                         keyboardType="phone-pad"
@@ -1017,7 +1005,7 @@ export default function BootcampScreen() {
                                                         value={contact.email}
                                                         onChangeText={(t) => {
                                                             const contacts = [...(editData.contactDetails || [])];
-                                                            contacts[idx].email = t;
+                                                            contacts[idx] = { ...contacts[idx], email: t };
                                                             setEditData({ ...editData, contactDetails: contacts });
                                                         }}
                                                         autoCapitalize="none"
@@ -1304,7 +1292,7 @@ export default function BootcampScreen() {
                                 )}
                             </ScrollView>
                         </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </Modal>
 
                 {/* My Tickets Dashboard Modal */}

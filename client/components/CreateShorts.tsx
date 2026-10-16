@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import {View, Text, Pressable, TextInput, FlatList, Image, Dimensions, ActivityIndicator, KeyboardAvoidingView, TouchableOpacity, StatusBar, Modal} from 'react-native'
+import {View, Text, Pressable, TextInput, FlatList, Dimensions, ActivityIndicator, KeyboardAvoidingView, TouchableOpacity, StatusBar, Modal} from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode } from "expo-av";
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
 import { useNavigation } from "@react-navigation/native";
 import axios from "../context/axiosConfig";
 import Toast from "react-native-toast-message";
@@ -14,7 +15,6 @@ import StreakModal from './StreakModal';
 import { useAuth } from "../context/auth.context";
 import { compressVideo } from "../utils/mediaUpload";
 import { Alert } from './ui/AlertModal';
-import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
 
 const { width, height } = Dimensions.get("window");
@@ -55,9 +55,8 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
         {thumbnail ? (
           <Image
             source={{ uri: thumbnail }}
-            className="flex-1"
-            resizeMode="cover"
-            style={{ opacity: isSelected ? 0.7 : 1 }}
+            contentFit="cover"
+            style={{ flex: 1, opacity: isSelected ? 0.7 : 1 }}
           />
         ) : (
           <View className="flex-1 bg-paper-2 items-center justify-center">
@@ -70,7 +69,7 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
         )}
         <View className="absolute bottom-2 right-2 bg-black/60 px-2 py-0.5 rounded-lg">
           <Text className="text-white text-label font-display">
-            {Math.floor(item.duration / 60)}:{Math.round(item.duration % 60).toString().padStart(2, '0')}
+            {Math.floor(Math.round(item.duration) / 60)}:{(Math.round(item.duration) % 60).toString().padStart(2, '0')}
           </Text>
         </View>
         {isSelected && (
@@ -86,7 +85,6 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
 const CreateShorts = () => {
   const { setUser } = useAuth();
   const navigation = useNavigation<any>();
-  const bottomInset = useBottomInset();
   const videoRef = useRef<Video>(null);
 
   // States
@@ -109,9 +107,11 @@ const CreateShorts = () => {
   // Streak States
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [currentStreakCount, setCurrentStreakCount] = useState(0);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     getVideos();
+    return () => { if (leaveTimer.current) clearTimeout(leaveTimer.current); };
   }, []);
 
   const getVideos = async () => {
@@ -227,11 +227,14 @@ const CreateShorts = () => {
           if (res.data.isCompletedToday) {
             setCurrentStreakCount(res.data.streakCount);
             setShowStreakModal(true);
-            setTimeout(() => { navigation.navigate("Tabs"); }, 2200);
+            leaveTimer.current = setTimeout(() => { navigation.navigate("Tabs"); }, 2200);
           } else {
             Toast.show({ type: 'success', text1: 'Short Live!', text2: 'Your video has been uploaded.' });
-            setTimeout(() => { navigation.navigate("Tabs"); }, 1500);
+            leaveTimer.current = setTimeout(() => { navigation.navigate("Tabs"); }, 1500);
           }
+      } else {
+          Toast.show({ type: 'error', text1: 'Upload Failed', text2: res.data.message || 'Please try again.' });
+          setLoading(false);
       }
     } catch (err) {
       Toast.show({ type: 'error', text1: 'Upload Failed', text2: 'Please try again.' });
@@ -259,6 +262,7 @@ const CreateShorts = () => {
         <TouchableOpacity 
           onPress={() => selectedAsset && setShowDetailsModal(true)}
           disabled={!selectedAsset}
+          hitSlop={4}
           className={`w-10 h-10 rounded-full items-center justify-center ${selectedAsset ? 'bg-brand-500' : 'bg-paper-2'}`}
         >
           <Ionicons name="arrow-forward" size={20} color="black" />
@@ -280,7 +284,7 @@ const CreateShorts = () => {
                 />
                 <TouchableOpacity 
                   onPress={() => setIsMuted(!isMuted)}
-                  className="absolute right-4 bg-black/40 w-10 h-10 rounded-full items-center justify-center border border-white/20" style={{ bottom: bottomInset + 16 }}
+                  className="absolute right-4 bg-black/40 w-10 h-10 rounded-full items-center justify-center border border-white/20" style={{ bottom: 16 }}
                 >
                   <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={18} color="white" />
                 </TouchableOpacity>

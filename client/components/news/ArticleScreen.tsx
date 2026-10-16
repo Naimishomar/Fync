@@ -5,14 +5,16 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
   Linking, StatusBar, useWindowDimensions, Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 type Block =
   | { type: 'paragraph' | 'heading' | 'quote' | 'bullet' | 'code'; text: string }
@@ -26,17 +28,18 @@ type Article = {
 const ArticleImage = ({ src, width }: { src: string; width: number }) => {
   const [ratio, setRatio] = useState(16 / 9);
   const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    // Height is unknown until the image is measured; without this every picture
-    // would either be letterboxed or pop the layout when it loads.
-    Image.getSize(src, (w, h) => { if (w && h) setRatio(w / h); }, () => setFailed(true));
-  }, [src]);
   if (failed) return null;
+  // Height is unknown until the image is measured; without this every picture
+  // would be letterboxed. onLoad carries the intrinsic size, so the image is
+  // fetched once instead of a separate getSize download that could also land
+  // after unmount.
   return (
     <Image
       source={{ uri: src }}
       style={{ width, height: width / ratio, borderRadius: 12, marginVertical: 14, backgroundColor: '#EDE8E0' }}
-      resizeMode="cover"
+      contentFit="cover"
+      cachePolicy="memory-disk"
+      onLoad={(e) => { const { width: w, height: h } = e.source; if (w && h) setRatio(w / h); }}
       onError={() => setFailed(true)}
     />
   );
@@ -73,25 +76,17 @@ export default function ArticleScreen() {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       <SafeAreaView className="flex-1" edges={['top']}>
-        <View className="px-gutter flex-row items-center py-2 border-b border-line">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button" accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}
-          >
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <Text className="flex-1 font-display text-ink uppercase text-label ml-1" numberOfLines={1}>
-            {article?.siteName ?? source ?? 'Article'}
-          </Text>
-          <TouchableOpacity
-            onPress={() => Share.share({ message: `${article?.title ?? fallbackTitle}\n\n${article?.url ?? url}` })}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button" accessibilityLabel="Share article"
-          >
-            <Ionicons name="share-outline" size={20} color={C.ink} />
-          </TouchableOpacity>
+        <View className="border-b border-line">
+          <AppBar
+            title={article?.siteName ?? source ?? 'Article'}
+            onBack={() => navigation.goBack()}
+            right={
+              <IconBtn
+                name="share-outline"
+                onPress={() => Share.share({ message: `${article?.title ?? fallbackTitle}\n\n${article?.url ?? url}` })}
+              />
+            }
+          />
         </View>
 
         {loading ? (
@@ -134,7 +129,7 @@ export default function ArticleScreen() {
 
             {!!article.leadImage && <ArticleImage src={article.leadImage} width={contentWidth} />}
 
-            {article.blocks.map((b, i) => {
+            {(article.blocks ?? []).map((b, i) => {
               if (b.type === 'image') return <ArticleImage key={`i${i}`} src={b.src} width={contentWidth} />;
               if (b.type === 'heading')
                 return (

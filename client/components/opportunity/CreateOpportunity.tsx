@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Switch, Image} from 'react-native'
+import {View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Switch, Image, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const SelectionGroup = ({ label, options, field, formData, setFormData }: { label: string, options: string[], field: string, formData: any, setFormData: (v: any) => void }) => (
   <View className="mb-5">
@@ -139,21 +140,12 @@ const CreateOpportunity = () => {
   return (
     <SafeAreaView className="flex-1 bg-paper">
       <KeyboardAvoidingView
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
-        <View className="px-6 py-4 border-b border-line flex-row items-center justify-between">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="chevron-back" size={24} color="black" />
-          </TouchableOpacity>
-          <Text className="text-xl font-display uppercase">{isEdit ? 'Edit Opportunity' : 'Post Opportunity'}</Text>
-          <View className="w-10" />
-        </View>
+        <AppBar title={isEdit ? 'Edit Opportunity' : 'Post Opportunity'} onBack={() => navigation.goBack()} />
 
-        <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* Type Selector */}
           <View className="mt-6 flex-row bg-paper-2 p-1.5 rounded-card border border-line">
             <TouchableOpacity

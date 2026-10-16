@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView} from 'react-native'
+import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +8,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const CreateClubScreen = () => {
     const navigation = useNavigation<any>();
@@ -69,7 +69,8 @@ const CreateClubScreen = () => {
             });
             if (res.data.success) {
                 Alert.alert("Success", "Club generated successfully!");
-                navigation.navigate('ClubHub', { clubId: res.data.club._id });
+                // replace: back from the new hub should not land on a filled-in create form.
+                navigation.replace('ClubHub', { clubId: res.data.club?._id });
             }
         } catch (error: any) {
             Alert.alert("Failed", error.response?.data?.message || "Creation error");
@@ -83,20 +84,12 @@ const CreateClubScreen = () => {
             <StatusBar barStyle="dark-content" />
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Header */}
-                <View className="px-5 py-4 flex-row items-center justify-between border-b border-line">
-                    <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="close" size={28} color="black" />
-                    </TouchableOpacity>
-                    <Text className="text-ink text-lg font-display uppercase">Establish Club</Text>
-                    <View className="w-7"></View>
+                <View className="border-b border-line">
+                    <AppBar title="Establish Club" right={<IconBtn name="close" onPress={() => navigation.goBack()} />} />
                 </View>
 
-                <KeyboardAvoidingView behavior="padding" className="flex-1">
-                    <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+                    <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                         
                         {/* Banner Upload */}
                         <TouchableOpacity 

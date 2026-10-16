@@ -12,6 +12,7 @@ import {
   TouchableOpacity
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { AppBar } from './ui/kit';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -19,14 +20,12 @@ import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
-import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
 
 export default function RecruiterProfileSetup() {
   const navigation = useNavigation<any>();
-  const bottomInset = useBottomInset();
   const route = useRoute<any>();
-  const { login } = useAuth();
+  const { login, setUser } = useAuth();
   
   // Data passed from Step 1 (RecruiterSignup)
   const { email, phoneNumber, username } = route.params || {};
@@ -69,24 +68,9 @@ export default function RecruiterProfileSetup() {
     try {
       setIsLoading(true);
 
-      const formData = new FormData();
-      formData.append('email', String(email || ''));
-      formData.append('username', String(username || ''));
-      formData.append('mobileNumber', String(phoneNumber || ''));
-      formData.append('password', String(password || ''));
-      formData.append('name', String(name || ''));
-      formData.append('company', String(company || ''));
-      formData.append('role', String(role || ''));
-      formData.append('professionalEmail', String(email || ''));
-      
-      if (companyWebsite) formData.append('companyWebsite', companyWebsite);
-      if (industry) formData.append('industry', industry);
-      if (companySize) formData.append('companySize', companySize);
-      if (linkedIn) formData.append('linkedIn', linkedIn);
-
       let deviceId = await AsyncStorage.getItem("deviceId");
       if (!deviceId) {
-        deviceId = "device_" + Date.now() + "_" + Math.random().toString(1.36).substring(2, 9);
+        deviceId = "device_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
         await AsyncStorage.setItem("deviceId", deviceId);
       }
 
@@ -107,8 +91,6 @@ export default function RecruiterProfileSetup() {
         deviceModel: Device.modelName || 'Unknown Device'
       };
 
-      console.log('Sending recruiter registration via JSON...', payloadData);
-
       // Using JSON to bypass any potential FormData bounds issues on RN Emulator
       const res = await axios.post('/user/register-recruiter', payloadData);
 
@@ -119,6 +101,30 @@ export default function RecruiterProfileSetup() {
           text2: 'Welcome to the platform!',
         });
         await login(email, password);
+        // Register is JSON-only; the photo goes up through the same /user/update
+        // multipart path RecruiterEditProfile uses, now that login stored the token.
+        if (avatarUri) {
+          try {
+            const fileName = avatarUri.split('/').pop() || 'avatar.jpg';
+            const avatarForm = new FormData();
+            avatarForm.append('avatar', {
+              uri: Platform.OS === 'ios' ? avatarUri.replace('file://', '') : avatarUri,
+              name: fileName,
+              type: `image/${fileName.split('.').pop()}`,
+            } as any);
+            const up = await axios.post('/user/update', avatarForm, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            if (up.data?.user) setUser(up.data.user);
+          } catch (e) {
+            console.log('Recruiter avatar upload err:', e);
+            Toast.show({
+              type: 'info',
+              text1: 'Photo not uploaded',
+              text2: 'Your account is ready. Add a photo from Edit Profile.',
+            });
+          }
+        }
       }
     } catch (error: any) {
       console.log('Recruiter register err:', error);
@@ -144,21 +150,16 @@ export default function RecruiterProfileSetup() {
       behavior="padding"
     >
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 50 }}>
-        <View className="px-6 pt-16 pb-6 bg-paper">
-            <View className="flex-row items-center justify-between mb-4">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                    <Ionicons name="arrow-back" size={20} color="black" />
-                </TouchableOpacity>
-                <Text className="text-ink-3 font-semibold text-xs uppercase">Step 2 of 2</Text>
+        <View className="pt-16 pb-6 bg-paper">
+            <AppBar onBack={() => navigation.goBack()}
+              right={<Text className="text-ink-3 font-semibold text-xs uppercase" style={{ marginRight: 11 }}>Step 2 of 2</Text>} />
+            <View className="px-5">
+              <Text className="text-2xl font-display text-ink mb-1">Company Profile</Text>
+              <Text className="text-ink-3 text-sm font-medium">Complete your recruiter profile.</Text>
             </View>
-            <Text className="text-2xl font-display text-ink mb-1">Company Profile</Text>
-            <Text className="text-ink-3 text-sm font-medium">Complete your recruiter profile.</Text>
         </View>
 
-        <View className="px-6 py-6 border-b border-line">
+        <View className="px-5 py-6 border-b border-line">
           <View className="items-center mb-6">
             <Pressable onPress={pickImage} className="relative">
               {avatarUri ? (
@@ -168,7 +169,7 @@ export default function RecruiterProfileSetup() {
                   <Ionicons name="business" size={40} color={C.ink4} />
                 </View>
               )}
-              <View className="absolute right-0 bg-brand-500 border-2 border-ink h-8 w-8 items-center justify-center border-paper rounded-md" style={{ bottom: bottomInset }}>
+              <View className="absolute right-0 bg-brand-500 border-2 border-ink h-8 w-8 items-center justify-center border-paper rounded-md bottom-0">
                 <Ionicons name="camera" size={14} color={C.ink} />
               </View>
             </Pressable>
@@ -246,7 +247,7 @@ export default function RecruiterProfileSetup() {
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color={C.ink} />
             ) : (
               <Text className="text-white text-base font-semibold">Complete Setup</Text>
             )}

@@ -19,7 +19,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
   const isAlumni = user?.user_access === 'alumni';
   const isRecruiter = user?.user_access === 'recruiter';
   
-  const avatarUrl = getFullUrl(user?.avatar) || `https://ui-avatars.com/api/?name=${user?.username || 'U'}&background=random&color=fff`;
+  const avatarUrl = getFullUrl(user?.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=random&color=fff`;
 
   return (
     <View style={{ width: size, height: size }}>
@@ -31,7 +31,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
           isRecruiter && { borderWidth: 2, borderColor: '#4F46E5' }
         ]}
         className="rounded-full"
-        cachePolicy="disk"
+        cachePolicy="memory-disk"
       />
       {isAlumni && showBadge && (
         <View 

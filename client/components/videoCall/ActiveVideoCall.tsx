@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Avatar from '../Avatar';
 import type { CallUser } from '../../services/CallSignalingService';
 import { RTCView } from 'react-native-webrtc';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mic, MicOff, PhoneOff, Camera, CameraOff, RefreshCw } from '../ui/icons';
 import { webRTCManager } from '../../services/WebRTCService';
 import { C } from '../../constants/colors';
@@ -12,6 +13,8 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [duration, setDuration] = useState(0);
   const [, forceUpdate] = useState(0);
+  // Full-bleed screen: the badge, pip and controls clear the notch and gesture bar themselves.
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const onRemote = () => forceUpdate((x) => x + 1);
@@ -79,13 +82,13 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
           </View>
         )}
         {isCallConnected && (
-          <Text style={styles.durationBadge}>{formatDuration(duration)}</Text>
+          <Text style={[styles.durationBadge, { top: insets.top + 12 }]}>{formatDuration(duration)}</Text>
         )}
       </View>
 
       {/* LOCAL VIDEO (pip) */}
       {webRTCManager.localStream && isVideoOn && (
-        <View style={styles.localContainer}>
+        <View style={[styles.localContainer, { top: insets.top + 20 }]}>
           <RTCView
             streamURL={webRTCManager.localStream.toURL()}
             style={styles.localVideo}
@@ -97,7 +100,7 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
       )}
 
       {/* CONTROLS */}
-      <View style={styles.controls}>
+      <View style={[styles.controls, { paddingBottom: Math.max(40, insets.bottom + 16) }]}>
         <TouchableOpacity onPress={handleToggleMute} style={[styles.controlBtn, isMuted && styles.controlBtnActive]}>
           {isMuted ? <MicOff size={22} color={C.ink} /> : <Mic size={22} color="#fff" />}
         </TouchableOpacity>

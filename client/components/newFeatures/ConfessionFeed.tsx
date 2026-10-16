@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Dimensions, ScrollView, StatusBar} from 'react-native'
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Dimensions, ScrollView, StatusBar, KeyboardAvoidingView} from 'react-native'
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
@@ -9,11 +9,18 @@ import { useNavigation } from '@react-navigation/native';
 import Skeleton, { ConfessionSkeleton } from '../Skeleton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from '../ui/AlertModal';
-import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
+import CommentsSheet, { CommentsApi, CommentModel } from '../ui/CommentsSheet';
 
 const { width } = Dimensions.get('window');
-const ANONYMOUS_AVATAR = 'https://ui-avatars.com/api/?name=?&background=f1f5f9&color=64748b&bold=true';
+
+const CONFESSION_COMMENTS: CommentsApi = {
+    list: (id) => `/confessions/comments/${id}`,
+    add: (id) => `/confessions/comment/${id}`,
+    body: (text, parentId) => ({ text, parentCommentId: parentId ?? undefined }),
+    replies: true,
+};
 
 // Fixed color for all confessions
 const CONFESSION_COLOR = '#FFFFFF';
@@ -36,7 +43,7 @@ let globalConfessionsCache: any[] = [];
 let globalCurrentPage = 1;
 let globalHasMore = true;
 
-const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navigation, stamped }: any) => {
+const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete, navigation, stamped }: any) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const MAX_LIMIT = 200;
     const isLongText = (item.content?.length || 0) > MAX_LIMIT;
@@ -127,12 +134,11 @@ const ConfessionItem = ({ item, user, onLike, onComments, onEdit, onDelete, navi
             </View>
         </View>
     );
-};
+});
 
 const ConfessionFeed = () => {
     const { user } = useAuth();
     const navigation = useNavigation<any>();
-    const bottomInset = useBottomInset();
     const [confessions, setConfessions] = useState<any[]>(globalConfessionsCache);
     const [loading, setLoading] = useState(globalConfessionsCache.length === 0);
     const [isPostModalOpen, setIsPostModalOpen] = useState(false);
@@ -155,37 +161,36 @@ const ConfessionFeed = () => {
     const [taggedUser, setTaggedUser] = useState<any>(null);
     const searchTimeout = useRef<any>(null);
 
-    interface CommentsModalState {
-        visible: boolean;
-        confessionId: string | null;
-        comments: any[];
-    }
+    const [activeConfessionId, setActiveConfessionId] = useState<string | null>(null);
 
-    // Comments states
-    const [commentsModal, setCommentsModal] = useState<CommentsModalState>({
-        visible: false,
-        confessionId: null,
-        comments: []
-    });
-    const [newComment, setNewComment] = useState('');
-    const [replyTo, setReplyTo] = useState<any>(null);
+    const loadingMoreRef = useRef(false);
 
     useEffect(() => {
-        if (globalConfessionsCache.length === 0) {
-            fetchConfessions(1, true);
-        }
+        // With a warm cache, show it instantly and refresh quietly underneath;
+        // before, a cached feed was never refetched for the rest of the session.
+        fetchConfessions(1, true);
+        return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
     }, []);
+
+    // Keep the module cache in step with local edits (post/edit/delete/like), so
+    // coming back doesn't resurrect a deleted confession or an old like count.
+    useEffect(() => { globalConfessionsCache = confessions; }, [confessions]);
 
     const fetchConfessions = async (pageNum = 1, shouldRefresh = false) => {
         if (!globalHasMore && !shouldRefresh && pageNum !== 1) return;
 
         if (pageNum === 1 && !shouldRefresh) setLoading(true);
-        if (pageNum > 1) setLoadingMore(true);
+        if (pageNum > 1) {
+            // onEndReached can fire several times before `loadingMore` re-renders.
+            if (loadingMoreRef.current) return;
+            loadingMoreRef.current = true;
+            setLoadingMore(true);
+        }
 
         try {
             const res = await axios.get(`/confessions?page=${pageNum}&limit=15`);
             if (res.data.success) {
-                const newConfessions = res.data.confessions;
+                const newConfessions = res.data.confessions || [];
                 if (shouldRefresh || pageNum === 1) {
                     globalConfessionsCache = newConfessions;
                     setConfessions(newConfessions);
@@ -203,6 +208,7 @@ const ConfessionFeed = () => {
             console.error('Fetch confessions error:', error);
         } finally {
             setLoading(false);
+            if (pageNum > 1) loadingMoreRef.current = false;
             setLoadingMore(false);
             setRefreshing(false);
         }
@@ -220,7 +226,7 @@ const ConfessionFeed = () => {
     };
 
     const handlePostConfession = async () => {
-        if (!newConfession.trim()) return;
+        if (!newConfession.trim() || submitting) return;
         setSubmitting(true);
         try {
             if (editingConfession) {
@@ -232,7 +238,7 @@ const ConfessionFeed = () => {
                 });
                 console.log('UPDATE RES:', res.data);
                 if (res.data.success) {
-                    setConfessions(confessions.map((c: any) => c._id === editingConfession._id ? res.data.confession : c));
+                    setConfessions(prev => prev.map((c: any) => c._id === editingConfession._id ? res.data.confession : c));
                     Toast.show({ type: 'success', text1: 'Confession updated!' });
                 }
             } else {
@@ -244,7 +250,7 @@ const ConfessionFeed = () => {
                 });
                 console.log('POST RES:', res.data);
                 if (res.data.success) {
-                    setConfessions([res.data.confession, ...confessions]);
+                    setConfessions(prev => [res.data.confession, ...prev]);
                     Toast.show({ type: 'success', text1: 'Posted anonymously!' });
                 }
             }
@@ -265,15 +271,15 @@ const ConfessionFeed = () => {
         setSelectedColor(CONFESSION_COLOR);
     };
 
-    const openEditModal = (item: any) => {
+    const openEditModal = useCallback((item: any) => {
         setEditingConfession(item);
         setNewConfession(item.content);
         setSelectedColor(item.color);
         if (item.taggedUser) setTaggedUser(item.taggedUser);
         setIsPostModalOpen(true);
-    };
+    }, []);
 
-    const handleDelete = (id: string) => {
+    const handleDelete = useCallback((id: string) => {
         Alert.alert(
             "Delete Confession?",
             "This action cannot be undone.",
@@ -284,7 +290,7 @@ const ConfessionFeed = () => {
                         try {
                             const res = await axios.delete(`/confessions/${id}`);
                             if (res.data.success) {
-                                setConfessions(confessions.filter((c: any) => c._id !== id));
+                                setConfessions(prev => prev.filter((c: any) => c._id !== id));
                                 Toast.show({ type: 'success', text1: 'Confession deleted' });
                             }
                         } catch (e) {
@@ -294,7 +300,7 @@ const ConfessionFeed = () => {
                 }
             ]
         );
-    };
+    }, []);
 
     const handleTextChange = (text: string) => {
         setNewConfession(text);
@@ -306,10 +312,10 @@ const ConfessionFeed = () => {
             if (searchTimeout.current) clearTimeout(searchTimeout.current);
             searchTimeout.current = setTimeout(async () => {
                 try {
-                    const res = await axios.get(`/confessions/search-users?query=${query}`);
+                    const res = await axios.get(`/confessions/search-users?query=${encodeURIComponent(query)}`);
                     if (res.data.success) {
-                        setUserSuggestions(res.data.users);
-                        setShowSuggestions(res.data.users.length > 0);
+                        setUserSuggestions(res.data.users || []);
+                        setShowSuggestions((res.data.users?.length || 0) > 0);
                     }
                 } catch (e) {
                     console.error(e);
@@ -328,101 +334,38 @@ const ConfessionFeed = () => {
         setShowSuggestions(false);
     };
 
-    const renderConfession = ({ item, index }: any) => (
+    const handleLike = useCallback(async (id: string) => {
+        try {
+            const res = await axios.post(`/confessions/like/${id}`);
+            if (res.data.success) {
+                setConfessions(prev => prev.map((c: any) => c._id === id ? res.data.confession : c));
+            }
+        } catch (error) {
+            console.error('Like error:', error);
+        }
+    }, []);
+
+    const renderConfession = useCallback(({ item, index }: any) => (
         <ConfessionItem
             item={item}
             stamped={index === 0}
             user={user}
             onLike={handleLike}
-            onComments={fetchComments}
+            onComments={setActiveConfessionId}
             onEdit={openEditModal}
             onDelete={handleDelete}
             navigation={navigation}
         />
-    );
+    ), [user, handleLike, openEditModal, handleDelete, navigation]);
 
-    const handleLike = async (id: string) => {
-        try {
-            const res = await axios.post(`/confessions/like/${id}`);
-            if (res.data.success) {
-                setConfessions(confessions.map((c: any) => c._id === id ? res.data.confession : c));
-            }
-        } catch (error) {
-            console.error('Like error:', error);
-        }
+    // `comments` is only ever read for its length.
+    const onCommentCount = (id: string, count: number) => {
+        setConfessions(prev => prev.map((c: any) => (c._id === id ? { ...c, comments: Array(count).fill('') } : c)));
     };
-
-    const fetchComments = async (id: string) => {
-        try {
-            const res = await axios.get(`/confessions/comments/${id}`);
-            if (res.data.success) {
-                setCommentsModal({ visible: true, confessionId: id, comments: res.data.comments });
-            }
-        } catch (error) {
-            console.error('Fetch comments error:', error);
-        }
-    };
-
-    const handleComment = async () => {
-        if (!newComment.trim() || !commentsModal.confessionId) return;
-        try {
-            const res = await axios.post(`/confessions/comment/${commentsModal.confessionId}`, {
-                text: newComment,
-                parentCommentId: replyTo?._id
-            });
-            if (res.data.success) {
-                if (replyTo) {
-                    setCommentsModal({
-                        ...commentsModal,
-                        comments: commentsModal.comments.map((c: any) =>
-                            c._id === replyTo._id ? { ...c, replies: [...(c.replies || []), res.data.comment] } : c
-                        )
-                    });
-                } else {
-                    setCommentsModal({ ...commentsModal, comments: [res.data.comment, ...commentsModal.comments] });
-                }
-                setNewComment('');
-                setReplyTo(null);
-            }
-        } catch (error) {
-            console.error('Comment error:', error);
-        }
-    };
-
-    const renderComment = (item: any, isReply = false) => (
-        <View key={item._id} className={`mb-5 ${isReply ? 'ml-12 border-l-2 border-line pl-4' : ''}`}>
-            <View className="flex-row items-center mb-3">
-                {item.commentor?.avatar ? (
-                    <ExpoImage source={{ uri: item.commentor.avatar }} className="w-9 h-9 rounded-full bg-paper-2" />
-                ) : (
-                    <View className="w-9 h-9 rounded-full bg-paper-2 items-center justify-center border border-line">
-                        <Ionicons name="person" size={14} color={C.ink3} />
-                    </View>
-                )}
-                <View className="ml-3 flex-1">
-                    <View className="flex-row items-center justify-between">
-                        <Text className="text-ink text-xs font-display">@{item.commentor?.username}</Text>
-                        <Text className="text-ink-3 text-label font-display">{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                    </View>
-                    <Text className="text-ink-2 text-sm mt-1 font-medium leading-5">{item.text}</Text>
-
-                    {!isReply && (
-                        <TouchableOpacity onPress={() => {
-                            setReplyTo(item);
-                            setNewComment(`@${item.commentor?.username} `);
-                        }} className="mt-3">
-                            <Text className="text-accent-text text-label font-display uppercase">Reply</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
-            {item.replies && item.replies.map((reply: any) => renderComment(reply, true))}
-        </View>
-    );
 
     if (loading && confessions.length === 0) {
         return (
-            <View className="flex-1 bg-paper-2 p-4 pt-12">
+            <View className="flex-1 bg-paper-2 px-gutter pb-4 pt-12">
                 <View className="flex-row items-center justify-between mb-8">
                     <View>
                         <Text className="text-ink text-3xl font-display">Secrets & Feeds</Text>
@@ -442,25 +385,12 @@ const ConfessionFeed = () => {
 
             <SafeAreaView className="flex-1" edges={['top']}>
                 {/* Arena Header */}
-                <View className="px-gutter pt-2">
-                    <View className="flex-row items-center justify-between mb-2">
-                        <View className="flex-1">
-                            <View className="flex-row items-center">
-                                <Text className="text-ink font-display uppercase text-h1">
-                                    Confessions <Text className="text-accent-text">FEED</Text>
-                                </Text>
-                            </View>
-                            <Text className="text-ink-3 text-label font-display uppercase">{user?.college} Broadcast Registry</Text>
-                        </View>
-
-                        <TouchableOpacity
-                            onPress={() => setIsPostModalOpen(true)}
-                            className="w-12 h-12 bg-card rounded-card items-center justify-center border border-line shadow-hair"
-                        >
-                            <Ionicons name="megaphone" size={20} color={C.brand[500]} />
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                <AppBar
+                    onBack={() => navigation.goBack()}
+                    title="Confessions Feed"
+                    subtitle={`${user?.college || 'Campus'} Broadcast Registry`}
+                    right={<IconBtn name="megaphone" color={C.brand[500]} boxed onPress={() => setIsPostModalOpen(true)} />}
+                />
 
                 <FlatList
                     data={confessions}
@@ -487,8 +417,8 @@ const ConfessionFeed = () => {
                 />
 
                 {/* Post/Edit Modal */}
-                <Modal visible={isPostModalOpen} animationType="slide" transparent={true}>
-                    <View className="flex-1 bg-black/60 justify-end">
+                <Modal visible={isPostModalOpen} animationType="slide" transparent={true} onRequestClose={closePostModal}>
+                    <KeyboardAvoidingView behavior="padding" className="flex-1 bg-black/60 justify-end">
                         <View className="bg-paper rounded-t-sheet p-card-pad pb-12 border-t border-line shadow-hair">
                             <View className="flex-row justify-between items-center mb-10">
                                 <View>
@@ -506,7 +436,7 @@ const ConfessionFeed = () => {
                                 {taggedUser && !editingConfession && (
                                     <View className="flex-row items-center bg-paper-2 border border-line p-2 px-4 rounded-full self-start mb-5">
                                         {taggedUser.avatar ? (
-                                            <ExpoImage source={{ uri: taggedUser.avatar }} className="w-5 h-5 rounded-full" />
+                                            <ExpoImage source={{ uri: taggedUser.avatar }} style={{ width: 20, height: 20, borderRadius: 10 }} />
                                         ) : (
                                             <View className="w-5 h-5 rounded-full bg-paper-2 items-center justify-center">
                                                 <Ionicons name="person" size={10} color={C.ink3} />
@@ -541,15 +471,15 @@ const ConfessionFeed = () => {
                                                 className="flex-row items-center p-5 border-b border-line"
                                             >
                                                 {u.avatar ? (
-                                                    <ExpoImage source={{ uri: u.avatar }} className="w-10 h-10 rounded-full bg-paper-2" />
+                                                    <ExpoImage source={{ uri: u.avatar }} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2 }} />
                                                 ) : (
                                                     <View className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center border border-line">
                                                         <Ionicons name="person" size={18} color={C.ink3} />
                                                     </View>
                                                 )}
-                                                <View className="ml-4">
-                                                    <Text className="text-ink font-display text-sm uppercase">{u.name}</Text>
-                                                    <Text className="text-ink-3 text-label font-semibold uppercase">@{u.username}</Text>
+                                                <View className="ml-4 flex-1">
+                                                    <Text className="text-ink font-display text-sm uppercase" numberOfLines={1}>{u.name}</Text>
+                                                    <Text className="text-ink-3 text-label font-semibold uppercase" numberOfLines={1}>@{u.username}</Text>
                                                 </View>
                                             </TouchableOpacity>
                                         ))}
@@ -573,81 +503,17 @@ const ConfessionFeed = () => {
                                 )}
                             </TouchableOpacity>
                         </View>
-                    </View>
+                    </KeyboardAvoidingView>
                 </Modal>
 
-                {/* Comments Modal */}
-                <Modal visible={commentsModal.visible} animationType="slide" transparent={true}>
-                    <View className="flex-1 bg-black/60 justify-end">
-                        <View className="bg-paper rounded-t-sheet p-card-pad h-[85%] border-t border-line shadow-hair">
-                            <View className="flex-row justify-between items-center mb-10 px-2">
-                                <View>
-                                    <Text className="text-ink font-display uppercase text-h1">
-                                        Signal <Text className="text-accent-text">Thread</Text>
-                                    </Text>
-                                    <Text className="text-ink-3 text-label font-display uppercase mt-1">Encrypted Commentary Archive</Text>
-                                </View>
-                                <TouchableOpacity onPress={() => {
-                                    setCommentsModal({ ...commentsModal, visible: false });
-                                    setReplyTo(null);
-                                }} className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                    <Ionicons name="close" size={20} color={C.ink} />
-                                </TouchableOpacity>
-                            </View>
-
-                            <FlatList
-                                data={commentsModal.comments}
-                                keyExtractor={(c: any) => c._id}
-                                renderItem={({ item }) => renderComment(item)}
-                                contentContainerStyle={{ paddingBottom: 150 }}
-                                showsVerticalScrollIndicator={false}
-                                ListEmptyComponent={
-                                    <View className="mt-20 items-center">
-                                        <Text className="text-ink-3 text-label font-display uppercase">Silence Detected. Join the frequency.</Text>
-                                    </View>
-                                }
-                            />
-
-                            <View className="absolute left-8 right-8" style={{ bottom: bottomInset + 40 }}>
-                                {replyTo && (
-                                    <View className="bg-paper-2 p-4 rounded-t-sheet border-l-4 border-brand-500 flex-row items-center justify-between border-t border-r border-line">
-                                        <Text className="text-accent-text text-label font-display uppercase">Replying to @{replyTo.commentor?.username}</Text>
-                                        <TouchableOpacity onPress={() => {
-                                            setReplyTo(null);
-                                            setNewComment('');
-                                        }}>
-                                            <Ionicons name="close-circle" size={16} color={C.brand[500]} />
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-
-                                <View className={`flex-row items-center bg-card p-3 border border-line shadow-hair ${replyTo ? 'rounded-b-2xl' : 'rounded-card'}`}>
-                                    {user?.avatar ? (
-                                        <ExpoImage source={{ uri: user.avatar }} className="w-9 h-9 rounded-full mr-4 bg-paper-2 border border-line" />
-                                    ) : (
-                                        <View className="w-9 h-9 rounded-full mr-4 bg-paper-2 items-center justify-center border border-line">
-                                            <Ionicons name="person" size={14} color={C.ink3} />
-                                        </View>
-                                    )}
-                                    <TextInput
-                                        placeholder="Broadcast signal..."
-                                        placeholderTextColor={C.ink3}
-                                        value={newComment}
-                                        onChangeText={setNewComment}
-                                        className="text-ink flex-1 py-3 font-display uppercase text-label"
-                                    />
-                                    <TouchableOpacity
-                                        onPress={handleComment}
-                                        disabled={!newComment.trim()}
-                                        className={`w-11 h-11 rounded-card items-center justify-center ${newComment.trim() ? 'bg-brand-500' : 'bg-paper-2'}`}
-                                    >
-                                        <Ionicons name="send" size={18} color={newComment.trim() ? "white" : "#C4BEB6"} />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
-                    </View>
-                </Modal>
+                <CommentsSheet
+                    visible={!!activeConfessionId}
+                    onClose={() => setActiveConfessionId(null)}
+                    resource={CONFESSION_COMMENTS}
+                    targetId={activeConfessionId}
+                    currentUser={user}
+                    onCountChange={onCommentCount}
+                />
             </SafeAreaView>
         </View>
     );

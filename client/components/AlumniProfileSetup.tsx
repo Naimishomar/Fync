@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { collegesInIndia } from '../data/college';
@@ -20,7 +21,8 @@ import { C } from '../constants/colors';
 export default function AlumniProfileSetup() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { email, phoneNumber } = route.params;
+  const { email, phoneNumber } = route.params ?? {};
+  const insets = useSafeAreaInsets();
 
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
@@ -39,9 +41,11 @@ export default function AlumniProfileSetup() {
   const [showCollegeModal, setShowCollegeModal] = useState(false);
   const [collegeSearch, setCollegeSearch] = useState('');
   
-  const filteredColleges = collegesInIndia.filter(c => 
-    c.toLowerCase().includes(collegeSearch.toLowerCase())
-  );
+  // Every keystroke in any field re-renders this screen; only the search should re-filter.
+  const filteredColleges = useMemo(() => {
+    const q = collegeSearch.toLowerCase();
+    return collegesInIndia.filter(c => c.toLowerCase().includes(q));
+  }, [collegeSearch]);
 
   const experienceLevels = ['Junior', 'Mid', 'Senior', 'Lead', 'Founder', 'Other'];
 
@@ -76,8 +80,9 @@ export default function AlumniProfileSetup() {
   return (
     <View className="flex-1 bg-paper">
       <ScrollView
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 20 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <Image
           source={{ uri: 'https://i.pinimg.com/736x/a2/05/60/a205602210656db27579657ba25f57a4.jpg' }}
@@ -115,7 +120,7 @@ export default function AlumniProfileSetup() {
               value={password}
               onChangeText={setPassword}
             />
-            <Pressable onPress={() => setPasswordVisible(!passwordVisible)}>
+            <Pressable onPress={() => setPasswordVisible(!passwordVisible)} hitSlop={12}>
               <Ionicons
                 name={passwordVisible ? 'eye-off' : 'eye'}
                 size={22}
@@ -231,12 +236,13 @@ export default function AlumniProfileSetup() {
         visible={showCollegeModal}
         animationType="slide"
         transparent={true}
+        onRequestClose={() => setShowCollegeModal(false)}
       >
         <View className="flex-1 bg-black/50 justify-end">
           <View className="bg-paper rounded-t-sheet h-[80%] px-6 pt-8">
             <View className="flex-row justify-between items-center mb-6">
               <Text className="font-display text-h1">Select College</Text>
-              <Pressable onPress={() => setShowCollegeModal(false)}>
+              <Pressable onPress={() => setShowCollegeModal(false)} hitSlop={8}>
                 <Ionicons name="close-circle" size={32} color={C.ink} />
               </Pressable>
             </View>
@@ -255,6 +261,7 @@ export default function AlumniProfileSetup() {
             <FlatList
               data={filteredColleges}
               keyExtractor={(item) => item}
+              keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() => {

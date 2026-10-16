@@ -12,10 +12,15 @@ import { C } from '../../constants/colors';
 type Props = NativeStackScreenProps<RootStackParamList, 'QuizScreen'>;
 
 const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { questions, roomId, mode, endTime, opponent } = route.params as any;
+  const { roomId, mode, endTime, opponent } = route.params as any;
+  const questions: any[] = (route.params as any)?.questions ?? [];
   const { user } = useAuth();
 
   const [answers, setAnswers] = useState<number[]>(Array(questions.length).fill(-1));
+  // The timer's auto-submit runs from an interval created before any answer
+  // was picked; reading state there would submit the initial all -1 array.
+  const answersRef = useRef(answers);
+  answersRef.current = answers;
   const [submitted, setSubmitted] = useState(false);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
 
@@ -24,9 +29,12 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // --- TIMER LOGIC ---
+  // Without a server end time, count down five minutes from opening — a
+  // constant 300 here meant the clock never moved and never auto-submitted.
+  const fallbackEnd = useRef(Date.now() + 300_000).current;
   const calculateRemaining = () => {
-    if (!endTime) return 300;
-    const end = new Date(endTime).getTime();
+    const parsed = endTime ? new Date(endTime).getTime() : NaN;
+    const end = Number.isNaN(parsed) ? fallbackEnd : parsed;
     const now = Date.now();
     const diff = Math.floor((end - now) / 1000);
     return diff > 0 ? diff : 0;
@@ -58,10 +66,11 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
     isSubmittingRef.current = true;
     setSubmitted(true);
 
+    const finalAnswers = answersRef.current;
     if (mode === 'custom') {
-      socket.emit("submit_custom_quiz", { roomId, answers, userId: user?._id });
+      socket.emit("submit_custom_quiz", { roomId, answers: finalAnswers, userId: user?._id });
     } else {
-      socket.emit("submit_1v1", { matchRoomId: roomId, answers, userId: user?._id });
+      socket.emit("submit_1v1", { matchRoomId: roomId, answers: finalAnswers, userId: user?._id });
     }
   };
 
@@ -111,7 +120,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const currentQuestion = questions[currentIndex];
+  const currentQuestion = questions[currentIndex] ?? { question: '', options: [] };
   const isLastQuestion = currentIndex === questions.length - 1;
   const isFirstQuestion = currentIndex === 0;
 
@@ -183,7 +192,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
           <View className="w-full h-2 bg-paper-2 rounded-full mt-6 overflow-hidden border border-line">
             <View
               className="h-full bg-brand-500 rounded-full"
-              style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
+              style={{ width: `${((currentIndex + 1) / Math.max(questions.length, 1)) * 100}%` }}
             />
           </View>
         </View>
@@ -195,7 +204,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
               {currentQuestion.question}
             </Text>
 
-            {currentQuestion.options.map((opt: string, optIndex: number) => {
+            {(currentQuestion.options ?? []).map((opt: string, optIndex: number) => {
               const isSelected = answers[currentIndex] === optIndex;
               return (
                 <TouchableOpacity
@@ -212,7 +221,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                   <View className={`w-6 h-6 rounded-full border-2 mr-4 items-center justify-center ${isSelected ? 'border-brand-500 bg-brand-500' : 'border-line bg-card' }`}>
                     {isSelected && <Ionicons name="checkmark" size={14} color={C.ink} />}
                   </View>
-                  <Text className={`flex-1 text-base font-display uppercase ${isSelected ? 'text-white' : 'text-ink-3'}`}>
+                  <Text className={`flex-1 text-base font-display uppercase ${isSelected ? 'text-ink' : 'text-ink-3'}`}>
                     {opt}
                   </Text>
                 </TouchableOpacity>

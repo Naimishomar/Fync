@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {View, Text, ScrollView, TouchableOpacity, TextInput, FlatList, Modal, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Image, Animated, StatusBar} from 'react-native'
+import {View, Text, ScrollView, TouchableOpacity, TextInput, FlatList, Modal, RefreshControl, KeyboardAvoidingView, Animated, StatusBar, ActivityIndicator} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
+import { useBottomInset } from '../../constants/layout';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
@@ -10,8 +12,18 @@ import { useAuth } from '../../context/auth.context';
 import { formatDistanceToNow } from 'date-fns';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard } from '../ui/kit';
+import { StampCard, AppBar, IconBtn } from '../ui/kit';
+import CommentsSheet, { CommentsApi } from '../ui/CommentsSheet';
 import { C } from '../../constants/colors';
+
+// Backend: GET /placement/comments/:id -> { comments } (getCommentThread, commentor populated);
+// POST /placement/comment/:id takes `parentCommentId`. No update/delete routes.
+const PLACEMENT_COMMENTS: CommentsApi = {
+    list: (id) => `/placement/comments/${id}`,
+    add: (id) => `/placement/comment/${id}`,
+    body: (text, parentId) => ({ text, parentCommentId: parentId ?? undefined }),
+    replies: true,
+};
 const COMPANIES = [
     { name: 'Google', icon: 'google', color: '#4285F4' },
     { name: 'Amazon', icon: 'amazon', color: '#FF9900' },
@@ -25,6 +37,46 @@ const COMPANIES = [
 const QUESTION_TYPES = ["DSA", "HR", "System Design", "Aptitude", "Core Subject"];
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 
+// Outside the screen so a parent re-render doesn't remount it and restart the pulse.
+const QuestionSkeleton = () => {
+    const pulseAnim = useRef(new Animated.Value(0.3)).current;
+    useEffect(() => {
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+            ])
+        );
+        loop.start();
+        return () => loop.stop();
+    }, [pulseAnim]);
+
+    return (
+        <Animated.View style={{ opacity: pulseAnim }} className="bg-card mx-gutter mb-6 rounded-sheet border border-line p-card-pad shadow-hair">
+            <View className="flex-row justify-between mb-6">
+                <View className="h-6 bg-paper-2 rounded-full w-24" />
+                <View className="h-6 bg-paper-2 rounded-full w-20" />
+            </View>
+            <View className="h-4 bg-paper-2 rounded w-full mb-3" />
+            <View className="h-4 bg-paper-2 rounded w-4/5 mb-8" />
+            <View className="flex-row gap-2 mb-8">
+                <View className="w-16 h-5 bg-paper-2 rounded-lg" />
+                <View className="w-16 h-5 bg-paper-2 rounded-lg" />
+            </View>
+            <View className="flex-row justify-between items-center pt-6 border-t border-line">
+                <View className="flex-row items-center">
+                    <View className="w-6 h-6 bg-paper-2 rounded-full" />
+                    <View className="w-20 h-4 bg-paper-2 rounded ml-2" />
+                </View>
+                <View className="flex-row gap-4">
+                    <View className="w-6 h-6 bg-paper-2 rounded-full" />
+                    <View className="w-6 h-6 bg-paper-2 rounded-full" />
+                </View>
+            </View>
+        </Animated.View>
+    );
+};
+
 const PlacementHub = () => {
     const { user } = useAuth();
     const navigation = useNavigation<any>();
@@ -36,12 +88,12 @@ const PlacementHub = () => {
     const [activeType, setActiveType] = useState('All');
 
     const CURRENT_USER_ID = user?._id || user?.id;
+    const bottomInset = useBottomInset();
+    const [posting, setPosting] = useState(false);
+    const requestId = useRef(0);
 
     const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
     const [isDiscussionVisible, setDiscussionVisible] = useState(false);
-    const [newComment, setNewComment] = useState('');
-    const [replyingTo, setReplyingTo] = useState<any>(null);
-    const commentInputRef = useRef<TextInput>(null);
 
     const [isPostModalVisible, setPostModalVisible] = useState(false);
     const [form, setForm] = useState({
@@ -55,34 +107,37 @@ const PlacementHub = () => {
     });
 
     const fetchQuestions = async () => {
+        // Ignore a slower earlier response (filter switch, typing) landing last.
+        const id = ++requestId.current;
         try {
-            if (!refreshing) setLoading(true);
+            // Skeleton only when there's nothing on screen yet, not on every keystroke.
+            if (!refreshing && questions.length === 0) setLoading(true);
             const res = await axios.get('/placement/questions', {
                 params: {
                     type: activeType === 'All' ? undefined : activeType,
                     search: search || undefined
                 }
             });
-            if (res.data.success) setQuestions(res.data.data);
+            if (id !== requestId.current) return;
+            if (res.data.success) setQuestions(res.data.data || []);
 
             const trendingRes = await axios.get('/placement/trending');
-            if (trendingRes.data.success) setTrending(trendingRes.data.data);
+            if (id === requestId.current && trendingRes.data.success) setTrending(trendingRes.data.data || []);
         } catch (error) {
             console.error("Fetch Error:", error);
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            if (id === requestId.current) {
+                setLoading(false);
+                setRefreshing(false);
+            }
         }
     };
 
+    // One effect: two (one per dep) fired a duplicate request on mount.
     useEffect(() => {
-        fetchQuestions();
-    }, [activeType]);
-
-    useEffect(() => {
-        const t = setTimeout(fetchQuestions, 500);
+        const t = setTimeout(fetchQuestions, search ? 500 : 0);
         return () => clearTimeout(t);
-    }, [search]);
+    }, [activeType, search]);
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -95,10 +150,11 @@ const PlacementHub = () => {
             if (res.data.success) {
                 setQuestions(prev => prev.map(q => {
                     if (q._id === id) {
-                        const hasUpvoted = q.upvotes.includes(CURRENT_USER_ID);
+                        const upvotes = q.upvotes || [];
+                        const hasUpvoted = upvotes.includes(CURRENT_USER_ID);
                         const newUpvotes = hasUpvoted
-                            ? q.upvotes.filter((uid: string) => uid !== CURRENT_USER_ID)
-                            : [...q.upvotes, CURRENT_USER_ID];
+                            ? upvotes.filter((uid: string) => uid !== CURRENT_USER_ID)
+                            : [...upvotes, CURRENT_USER_ID];
                         return { ...q, upvotes: newUpvotes };
                     }
                     return q;
@@ -113,10 +169,11 @@ const PlacementHub = () => {
             if (res.data.success) {
                 setQuestions(prev => prev.map(q => {
                     if (q._id === id) {
-                        const isSaved = q.savedBy.includes(CURRENT_USER_ID);
+                        const savedBy = q.savedBy || [];
+                        const isSaved = savedBy.includes(CURRENT_USER_ID);
                         const newSaved = isSaved
-                            ? q.savedBy.filter((uid: string) => uid !== CURRENT_USER_ID)
-                            : [...q.savedBy, CURRENT_USER_ID];
+                            ? savedBy.filter((uid: string) => uid !== CURRENT_USER_ID)
+                            : [...savedBy, CURRENT_USER_ID];
                         return { ...q, savedBy: newSaved };
                     }
                     return q;
@@ -129,6 +186,8 @@ const PlacementHub = () => {
         if (!form.company || !form.role || !form.question) {
             return Alert.alert("Required", "Please fill essential fields.");
         }
+        if (posting) return;
+        setPosting(true);
         try {
             const res = await axios.post('/placement/add', form);
             if (res.data.success) {
@@ -141,25 +200,7 @@ const PlacementHub = () => {
                 Alert.alert("Success", "Intelligence shared with HQ.");
             }
         } catch (error) { Alert.alert("Error", "Transmission failed."); }
-    };
-
-    const handleComment = async () => {
-        if (!newComment.trim() || !selectedQuestion) return;
-        try {
-            const res = await axios.post(`/placement/comment/${selectedQuestion._id}`, {
-                text: newComment,
-                parentCommentId: replyingTo?._id
-            });
-            if (res.data.success) {
-                const commentsRes = await axios.get(`/placement/comments/${selectedQuestion._id}`);
-                if (commentsRes.data.success) {
-                    setSelectedQuestion({ ...selectedQuestion, comments: commentsRes.data.comments });
-                }
-                setNewComment('');
-                setReplyingTo(null);
-                fetchQuestions();
-            }
-        } catch (error) { Alert.alert("Error", "Failed to communicate."); }
+        finally { setPosting(false); }
     };
 
     const renderQuestionCard = ({ item }: { item: any }) => {
@@ -193,11 +234,12 @@ const PlacementHub = () => {
                         <View className="flex-row items-center">
                             <Image
                                 source={{ uri: item.postedBy?.avatar || `https://ui-avatars.com/api/?name=${item.postedBy?.username}` }}
-                                className="w-6 h-6 rounded-full border border-line bg-paper-2"
+                                style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2 }}
+                                cachePolicy="memory-disk"
                             />
                             <View className="ml-2">
                                 <Text className="text-ink text-label font-display uppercase">@{item.postedBy?.username}</Text>
-                                <Text className="text-ink-3 text-label uppercase font-semibold">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}</Text>
+                                <Text className="text-ink-3 text-label uppercase font-semibold">{item.createdAt && !isNaN(new Date(item.createdAt).getTime()) ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true }) : ''}</Text>
                             </View>
                         </View>
 
@@ -207,15 +249,7 @@ const PlacementHub = () => {
                                 <Text className={`ml-1 text-label font-display ${isUpvoted ? 'text-accent-text' : 'text-ink-3'}`}>{item.upvotes?.length}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={async () => {
-                                    try {
-                                        const res = await axios.get(`/placement/comments/${item._id}`);
-                                        if (res.data.success) {
-                                            setSelectedQuestion({ ...item, comments: res.data.comments });
-                                            setDiscussionVisible(true);
-                                        }
-                                    } catch (e) { }
-                                }}
+                                onPress={() => { setSelectedQuestion(item); setDiscussionVisible(true); }}
                                 className="flex-row items-center"
                             >
                                 <Ionicons name="chatbubble-outline" size={14} color={C.ink4} />
@@ -231,98 +265,18 @@ const PlacementHub = () => {
         );
     };
 
-    const QuestionSkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.3)).current;
-        useEffect(() => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-                ])
-            ).start();
-        }, []);
-
-        return (
-            <Animated.View style={{ opacity: pulseAnim }} className="bg-card mx-gutter mb-6 rounded-sheet border border-line p-card-pad shadow-hair">
-                <View className="flex-row justify-between mb-6">
-                    <View className="h-6 bg-paper-2 rounded-full w-24" />
-                    <View className="h-6 bg-paper-2 rounded-full w-20" />
-                </View>
-                <View className="h-4 bg-paper-2 rounded w-full mb-3" />
-                <View className="h-4 bg-paper-2 rounded w-4/5 mb-8" />
-                <View className="flex-row gap-2 mb-8">
-                    <View className="w-16 h-5 bg-paper-2 rounded-lg" />
-                    <View className="w-16 h-5 bg-paper-2 rounded-lg" />
-                </View>
-                <View className="flex-row justify-between items-center pt-6 border-t border-line">
-                    <View className="flex-row items-center">
-                        <View className="w-6 h-6 bg-paper-2 rounded-full" />
-                        <View className="w-20 h-4 bg-paper-2 rounded ml-2" />
-                    </View>
-                    <View className="flex-row gap-4">
-                        <View className="w-6 h-6 bg-paper-2 rounded-full" />
-                        <View className="w-6 h-6 bg-paper-2 rounded-full" />
-                    </View>
-                </View>
-            </Animated.View>
-        );
-    };
-
-    const CommentItem = ({ comment, isReply = false }: { comment: any, isReply?: boolean }) => (
-        <View className={`${isReply ? 'ml-10 mt-4' : 'mb-6'}`}>
-            <View className="flex-row">
-                <Image
-                    source={{ uri: comment.commentor?.avatar || `https://ui-avatars.com/api/?name=${comment.commentor?.username}` }}
-                    className={`${isReply ? 'w-6 h-6' : 'w-10 h-10'} rounded-card bg-paper-2 border border-line shadow-hair`}
-                />
-                <View className="flex-1 ml-4 bg-card p-5 rounded-card rounded-tl-none border border-line shadow-hair">
-                    <View className="flex-row justify-between items-center mb-2">
-                        <Text className="text-ink font-display text-label uppercase">@{comment.commentor?.username}</Text>
-                        <Text className="text-ink-3 text-label font-semibold uppercase">{comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }) : ''}</Text>
-                    </View>
-                    <Text className="text-ink-2 text-xs leading-5 font-medium">
-                        {comment.replyToUser && <Text className="text-accent-text font-display">@{comment.replyToUser.username} </Text>}
-                        {comment.text}
-                    </Text>
-                    {!isReply && (
-                        <TouchableOpacity
-                            onPress={() => {
-                                setReplyingTo(comment);
-                                setNewComment(`@${comment.commentor?.username} `);
-                                commentInputRef.current?.focus();
-                            }}
-                            className="mt-3"
-                        >
-                            <Text className="text-accent-text text-label font-display uppercase">Protocol Reply</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
-            {comment.replies && comment.replies.map((reply: any) => (
-                <CommentItem key={reply._id} comment={reply} isReply={true} />
-            ))}
-        </View>
-    );
-
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="dark-content" />
 
             <SafeAreaView className="flex-1" edges={['top']}>
-                <View className="px-gutter pt-6">
-                    <View className="flex-row justify-between items-center mb-8">
-                        <View>
-                            <Text className="text-ink text-3xl font-display uppercase leading-tight">Career <Text className="text-fam-career">Hub</Text></Text>
-                            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Corporate Intelligence Unit</Text>
-                        </View>
-                        <TouchableOpacity
-                            onPress={() => setPostModalVisible(true)}
-                            activeOpacity={0.8}
-                            className="w-14 h-14 rounded-card bg-ink items-center justify-center shadow-hair"
-                        >
-                            <Ionicons name="add" size={28} color="white" />
-                        </TouchableOpacity>
-                    </View>
+                <AppBar
+                    onBack={() => navigation.goBack()}
+                    title="Career Hub"
+                    subtitle="Corporate Intelligence Unit"
+                    right={<IconBtn name="add" boxed onPress={() => setPostModalVisible(true)} />}
+                />
+                <View className="px-gutter">
 
                     <View className="bg-card flex-row items-center p-4 border-2 border-ink mb-6 shadow-hair overflow-hidden rounded-md">
                         <Ionicons name="search" size={20} color={C.ink4} />
@@ -336,10 +290,16 @@ const PlacementHub = () => {
                     </View>
                 </View>
 
-                <ScrollView
+                {/* The feed itself is the scroller; it used to be a scrollEnabled={false}
+                    FlatList inside a ScrollView, which renders every card up front. */}
+                <FlatList
+                    data={loading && !refreshing ? [] : questions}
+                    keyExtractor={(item) => item._id}
+                    renderItem={renderQuestionCard}
                     showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: bottomInset }}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.info} />}
-                >
+                    ListHeaderComponent={<>
                     {/* Feature Cards */}
                     <View className="px-gutter mb-8 flex-row gap-4">
                         <TouchableOpacity
@@ -409,15 +369,7 @@ const PlacementHub = () => {
                                 {trending.map((item, i) => (
                                     <TouchableOpacity
                                         key={i}
-                                        onPress={async () => {
-                                            try {
-                                                const res = await axios.get(`/placement/comments/${item._id}`);
-                                                if (res.data.success) {
-                                                    setSelectedQuestion({ ...item, comments: res.data.comments });
-                                                    setDiscussionVisible(true);
-                                                }
-                                            } catch (e) { }
-                                        }}
+                                        onPress={() => { setSelectedQuestion(item); setDiscussionVisible(true); }}
                                         className="bg-card mr-4 p-6 rounded-sheet border border-fam-career/15 w-[240px] shadow-hair"
                                     >
                                         <Text className="font-semibold text-base text-ink" numberOfLines={1}>{item.company}</Text>
@@ -437,25 +389,20 @@ const PlacementHub = () => {
                     </View>
                     {loading && !refreshing ? (
                         <View>{[1, 2, 3].map(i => <QuestionSkeleton key={i} />)}</View>
-                    ) : (
-                        <FlatList
-                            data={questions}
-                            scrollEnabled={false}
-                            keyExtractor={(item) => item._id}
-                            renderItem={renderQuestionCard}
-                            ListEmptyComponent={
-                                <View className="items-center py-20 px-gutter">
-                                    <Ionicons name="document-text-outline" size={48} color={C.ink4} />
-                                    <Text className="font-semibold text-base text-ink mt-6 text-center">No Intelligence Found</Text>
-                                </View>
-                            }
-                        />
+                    ) : null}
+                    </>}
+                    ListEmptyComponent={loading && !refreshing ? null : (
+                        <View className="items-center py-20 px-gutter">
+                            <Ionicons name="document-text-outline" size={48} color={C.ink4} />
+                            <Text className="font-semibold text-base text-ink mt-6 text-center">No Intelligence Found</Text>
+                        </View>
                     )}
-                </ScrollView>
+                />
 
                 {/* --- POST MODAL --- */}
                 <Modal visible={isPostModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPostModalVisible(false)}>
-                    <View className="flex-1 bg-paper">
+                    {/* Android draws this full-screen modal under the status bar. */}
+                    <SafeAreaView className="flex-1 bg-paper" edges={['top', 'bottom']}>
                         <StatusBar barStyle="dark-content" />
                         <View className="flex-row justify-between items-center px-gutter py-6 border-b border-line bg-card">
                             <View>
@@ -522,90 +469,27 @@ const PlacementHub = () => {
 
                                 <TouchableOpacity
                                     onPress={handlePost}
+                                    disabled={posting}
                                     className="bg-fam-career py-6 rounded-card items-center shadow-hair"
                                 >
-                                    <Text className="text-white font-display uppercase text-xs">Deploy Intel to Hub</Text>
+                                    {posting ? <ActivityIndicator color="white" /> : <Text className="text-white font-display uppercase text-xs">Deploy Intel to Hub</Text>}
                                 </TouchableOpacity>
                             </ScrollView>
                         </KeyboardAvoidingView>
-                    </View>
+                    </SafeAreaView>
                 </Modal>
 
-                {/* --- DISCUSSION MODAL --- */}
-                <Modal visible={isDiscussionVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setDiscussionVisible(false)}>
-                    <View className="flex-1 bg-paper">
-                        <StatusBar barStyle="dark-content" />
-                        <View className="flex-row justify-between items-center px-gutter py-6 border-b border-line bg-card shadow-hair">
-                            <View>
-                                <Text className="text-xl font-display text-ink uppercase leading-tight">Intelligence <Text className="text-recruiter">Sync</Text></Text>
-                                <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Deep Dive Protocol</Text>
-                            </View>
-                            <TouchableOpacity onPress={() => { setDiscussionVisible(false); setReplyingTo(null); }} className="bg-paper-2 p-2 rounded-card border border-line">
-                                <Ionicons name="close" size={20} color={C.ink} />
-                            </TouchableOpacity>
-                        </View>
-
-                        <KeyboardAvoidingView behavior="padding" className="flex-1">
-                            <ScrollView className="flex-1 p-card-pad" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-                                {selectedQuestion && (
-                                    <View className="mb-10 bg-card p-card-pad rounded-sheet border border-recruiter/15 shadow-hair">
-                                        <View className="bg-recruiter/10 self-start px-3 py-1.5 rounded-full border border-recruiter/15 mb-6">
-                                            <Text className="text-recruiter font-display text-label uppercase">{selectedQuestion.company}</Text>
-                                        </View>
-                                        <Text className="text-ink text-lg leading-7 font-display uppercase">"{selectedQuestion.question}"</Text>
-
-                                        {selectedQuestion.description && (
-                                            <View className="mt-8 pt-8 border-t border-line">
-                                                <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                                                  <Text className="text-ink-3 text-label font-display uppercase">Intel Input</Text>
-                                                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                                </View>
-                                                <Text className="text-ink-3 text-xs leading-6 font-medium">"{selectedQuestion.description}"</Text>
-                                            </View>
-                                        )}
-                                    </View>
-                                )}
-
-                                <View className="flex-row items-center mb-8 px-2">
-                                    <Text className="text-ink-3 text-label font-display uppercase">Response Ledger</Text>
-                                    <View className="h-[1px] bg-paper-2 flex-1 ml-4" />
-                                </View>
-
-                                {selectedQuestion?.comments?.map((c: any, i: number) => (
-                                    <CommentItem key={i} comment={c} />
-                                ))}
-                            </ScrollView>
-
-                            <View className="p-card-pad bg-card border-t border-line shadow-hair">
-                                {replyingTo && (
-                                    <View className="flex-row items-center justify-between bg-paper-2 px-4 py-2.5 mb-4 rounded-xl border border-line">
-                                        <Text className="text-accent-text text-label font-display uppercase">Sync: @{replyingTo.commentor?.username}</Text>
-                                        <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                                            <Ionicons name="close-circle" size={16} color={C.brand[500]} />
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-                                <View className="flex-row items-center gap-4">
-                                    <View className="flex-1 bg-paper border border-line rounded-card px-6 h-16 justify-center">
-                                        <TextInput
-                                            ref={commentInputRef}
-                                            placeholder="Establish intelligence..." placeholderTextColor={C.ink4}
-                                            value={newComment} onChangeText={setNewComment}
-                                            className="text-ink font-display uppercase text-label"
-                                            multiline
-                                        />
-                                    </View>
-                                    <TouchableOpacity
-                                        onPress={handleComment}
-                                        className="bg-ink w-16 h-16 items-center justify-center border-2 border-ink rounded-md"
-                                    >
-                                        <Ionicons name="paper-plane" size={20} color="white" />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </KeyboardAvoidingView>
-                    </View>
-                </Modal>
+                <CommentsSheet
+                    visible={isDiscussionVisible}
+                    onClose={() => setDiscussionVisible(false)}
+                    resource={PLACEMENT_COMMENTS}
+                    title={selectedQuestion?.company || 'Discussion'}
+                    targetId={selectedQuestion?._id ?? null}
+                    currentUser={user}
+                    onCountChange={(id, count) => setQuestions(prev => prev.map(q =>
+                        q._id === id ? { ...q, comments: Array.from({ length: count }) } : q
+                    ))}
+                />
             </SafeAreaView>
         </View >
     );

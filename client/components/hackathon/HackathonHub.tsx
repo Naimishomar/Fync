@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useCallback, useRef, memo } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo, memo } from 'react';
 import {
   View,
   Text,
   FlatList,
-  Image,
   ActivityIndicator,
   TouchableOpacity,
   TextInput,
@@ -22,12 +21,14 @@ import Toast from 'react-native-toast-message';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { C } from '../../constants/colors';
+import { Image } from 'expo-image';
+import { AppBar } from '../ui/kit';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 // Fixed pixel heights, not percentages of the screen. The banner used to be
 // hp(28–35) and the header hp(35–45), so on a 6.1" phone a single card was
 // taller than the viewport and you could never see two hackathons at once.
-const GUTTER = 16;
+const GUTTER = 20;
 const BANNER_H = 148;
 const CARD_GAP = 14;
 
@@ -99,8 +100,10 @@ const hostOf = (url?: string) => {
   }
 };
 
-const fmtDate = (d?: string) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
+const fmtDate = (d?: string) => {
+  const t = d ? new Date(d) : null;
+  return t && !isNaN(t.getTime()) ? t.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
+};
 
 /**
  * The same rule the server filters by, applied at render time.
@@ -174,7 +177,7 @@ const HackathonCard = memo(
           {/* Banner */}
           <View style={{ height: BANNER_H }} className="bg-ink">
             {item.bannerImage ? (
-              <Image source={{ uri: item.bannerImage }} className="w-full h-full" resizeMode="cover" />
+              <Image source={{ uri: item.bannerImage }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={item.bannerImage} />
             ) : (
               <View
                 className="w-full h-full items-center justify-center"
@@ -225,7 +228,7 @@ const HackathonCard = memo(
               <View className="flex-row items-center flex-1 mr-3">
                 <View className="w-7 h-7 rounded-lg bg-paper-2 border border-line items-center justify-center overflow-hidden mr-2">
                   {item.logo ? (
-                    <Image source={{ uri: item.logo }} className="w-full h-full" resizeMode="contain" />
+                    <Image source={{ uri: item.logo }} style={{ width: '100%', height: '100%' }} contentFit="contain" cachePolicy="memory-disk" recyclingKey={item.logo} />
                   ) : (
                     <MaterialCommunityIcons name="domain" size={14} color={C.ink3} />
                   )}
@@ -312,7 +315,6 @@ const ListHeader = memo(
     onView,
     activeFilter,
     onFilter,
-    onCreate,
   }: {
     search: string;
     onSearch: (v: string) => void;
@@ -320,28 +322,8 @@ const ListHeader = memo(
     onView: (v: 'discover' | 'mine') => void;
     activeFilter: string;
     onFilter: (v: string) => void;
-    onCreate: () => void;
   }) => (
     <View style={{ paddingTop: 8 }}>
-      {/* Title row */}
-      <View className="flex-row items-start justify-between mb-4">
-        <View className="flex-1 mr-3">
-          <Text className="text-ink text-2xl font-display">
-            Hackathon <Text className="text-brand-500">Hub</Text>
-          </Text>
-          <Text className="text-ink-3 text-label font-semibold mt-0.5">
-            Find one, register with the host
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={onCreate}
-          className="flex-row items-center bg-ink px-3.5 py-2.5 border-2 border-ink rounded-md"
-          activeOpacity={0.85}
-        >
-          <MaterialCommunityIcons name="plus" size={15} color={C.brand[500]} />
-          <Text className="text-white text-label font-semibold ml-1">Host</Text>
-        </TouchableOpacity>
-      </View>
 
       {/* Search */}
       <View className="flex-row items-center bg-card border-2 border-ink px-3 mb-3 rounded-md" style={{ height: 44 }}>
@@ -510,29 +492,59 @@ const HackathonHub = () => {
   const onView = useCallback((v: 'discover' | 'mine') => setView(v), []);
 
   const q = search.trim().toLowerCase();
-  const filtered = q
-    ? hackathons.filter(
-        (h) =>
-          h.title?.toLowerCase().includes(q) ||
-          h.tags?.some((t) => t.toLowerCase().includes(q))
-      )
-    : hackathons;
+  const filtered = useMemo(
+    () =>
+      q
+        ? hackathons.filter(
+            (h) =>
+              h.title?.toLowerCase().includes(q) ||
+              h.tags?.some((t) => t?.toLowerCase().includes(q))
+          )
+        : hackathons,
+    [hackathons, q]
+  );
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: Hackathon; index: number }) => (
+      <HackathonCard
+        item={item}
+        width={cardWidth}
+        stamped={index === 0 && deriveStatus(item) === 'active'}
+        onOpen={openDetail}
+      />
+    ),
+    [cardWidth, openDetail]
+  );
 
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <SafeAreaView className="flex-1" edges={['top']}>
+        <AppBar
+          title="Hackathon Hub"
+          subtitle="Find one, register with the host"
+          onBack={() => navigation.goBack()}
+          right={
+            <TouchableOpacity
+              onPress={openCreate}
+              className="flex-row items-center bg-ink px-3.5 border-2 border-ink rounded-md"
+              style={{ minHeight: 40, marginRight: 11 }}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Host a hackathon"
+            >
+              <MaterialCommunityIcons name="plus" size={15} color={C.brand[500]} />
+              <Text className="text-white text-label font-semibold ml-1">Host</Text>
+            </TouchableOpacity>
+          }
+        />
         <FlatList
           data={filtered}
           keyExtractor={(item) => item._id}
-          renderItem={({ item, index }) => (
-            <HackathonCard
-              item={item}
-              width={cardWidth}
-              stamped={index === 0 && item.status === 'active'}
-              onOpen={openDetail}
-            />
-          )}
+          renderItem={renderItem}
+          removeClippedSubviews
+          windowSize={7}
+          initialNumToRender={4}
           contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: 96 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -549,7 +561,6 @@ const HackathonHub = () => {
               onView={onView}
               activeFilter={activeFilter}
               onFilter={onFilter}
-              onCreate={openCreate}
             />
           }
           ListFooterComponent={

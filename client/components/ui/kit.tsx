@@ -74,19 +74,28 @@ export const Pad = ({ style, ...p }: ViewProps) => (
 
 /* ------------------------------------------------------------------ appbar */
 export function AppBar({
-  title, subtitle, onBack, right, night,
+  title, subtitle, onBack, right, night, overlay, children,
 }: {
   title?: string; subtitle?: string; onBack?: () => void;
   right?: React.ReactNode; night?: boolean;
+  /** Floating over a photo/poster: light glyphs on dark discs so they read on any
+   *  image. Pass `overlay` to the `right` IconBtns too. */
+  overlay?: boolean;
+  /** Replaces the title block when it needs more than text (avatar, presence). */
+  children?: React.ReactNode;
 }) {
-  const fg = night ? C.nightInk : C.ink;
+  const fg = night || overlay ? C.nightInk : C.ink;
   return (
-    <View style={s.appbar}>
+    // box-none: floated over a banner, the empty stretch between the buttons must
+    // not swallow the drag that scrolls the list underneath.
+    <View style={s.appbar} pointerEvents="box-none">
       {onBack ? (
         // -11px so the chevron's own edge lands on the 20px gutter, not the box's.
-        <IconBtn name="chevron-back" onPress={onBack} color={fg} style={{ marginLeft: -11 }} />
+        // A disc already reads as the button, so it sits on the gutter itself.
+        <IconBtn name="chevron-back" onPress={onBack} overlay={overlay} color={fg} style={overlay ? undefined : { marginLeft: -11 }} />
       ) : null}
       <View style={{ flex: 1, minWidth: 0 }}>
+        {children}
         {title ? <H2 style={{ color: fg }} numberOfLines={1}>{title}</H2> : null}
         {subtitle ? (
           <Meta numberOfLines={1} style={night ? { color: C.night3 } : undefined}>{subtitle}</Meta>
@@ -99,10 +108,10 @@ export function AppBar({
 
 /* -------------------------------------------------------------- icon button */
 export function IconBtn({
-  name, onPress, color = C.ink, size = 22, boxed, badge, style,
+  name, onPress, color, size = 22, boxed, overlay, badge, style,
 }: {
   name: React.ComponentProps<typeof Ionicons>['name'];
-  onPress?: () => void; color?: string; size?: number; boxed?: boolean;
+  onPress?: () => void; color?: string; size?: number; boxed?: boolean; overlay?: boolean;
   badge?: number | string; style?: any;
 }) {
   return (
@@ -111,10 +120,10 @@ export function IconBtn({
       accessibilityRole="button"
       hitSlop={6}
       style={({ pressed }) => [
-        s.iconbtn, boxed && s.iconbtnBoxed, pressed && { opacity: 0.6 }, style,
+        s.iconbtn, boxed && s.iconbtnBoxed, overlay && s.iconbtnOverlay, pressed && { opacity: 0.6 }, style,
       ]}
     >
-      <Ionicons name={name} size={size} color={color} />
+      <Ionicons name={name} size={size} color={color ?? (overlay ? C.nightInk : C.ink)} />
       {badge != null && badge !== 0 ? <Badge value={badge} /> : null}
     </Pressable>
   );
@@ -408,7 +417,7 @@ export function Avatar({
 // Kept local so the kit does not force expo-image on callers that pass initials.
 function ExpoImageLike({ uri, size }: { uri: string; size: number }) {
   const { Image } = require('expo-image');
-  return <Image source={{ uri }} style={{ width: size, height: size }} contentFit="cover" cachePolicy="disk" />;
+  return <Image source={{ uri }} style={{ width: size, height: size }} contentFit="cover" cachePolicy="memory-disk" />;
 }
 
 /* -------------------------------------------------------------------- rows */
@@ -518,6 +527,7 @@ const s = StyleSheet.create({
 
   iconbtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
   iconbtnBoxed: { borderWidth: 1, borderColor: C.line, backgroundColor: C.card },
+  iconbtnOverlay: { borderRadius: 22, backgroundColor: 'rgba(18,16,14,0.45)', marginHorizontal: 4 },
 
   badge: {
     position: 'absolute', top: 4, right: 4, minWidth: 18, height: 18, paddingHorizontal: 4,

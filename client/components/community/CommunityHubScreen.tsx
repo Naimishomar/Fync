@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, Dimensions, Modal, TextInput, Linking, Share, StatusBar, Animated, KeyboardAvoidingView} from 'react-native'
+import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, Dimensions, Modal, TextInput, Linking, Share, StatusBar, Animated, KeyboardAvoidingView, Platform, StyleSheet} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -14,11 +14,13 @@ import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { WebView } from 'react-native-webview';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
-const { width, height: screenHeight } = Dimensions.get('window');
+const { height: screenHeight } = Dimensions.get('window');
+const KAV_BEHAVIOR = Platform.OS === 'ios' ? 'padding' : 'height';
 
 const CommunityHubScreen = ({ navigation, route }: any) => {
-    const { communityId } = route.params;
+    const { communityId } = route.params ?? {};
     const { user } = useAuth();
     
     const [data, setData] = useState<any>(null);
@@ -266,16 +268,16 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
                     <script>
                     var options = {
-                        key: "${RAZORPAY_KEY_ID}",
-                        amount: "${orderRes.data.amount}",
+                        key: ${JSON.stringify(RAZORPAY_KEY_ID)},
+                        amount: ${JSON.stringify(String(orderRes.data.amount))},
                         currency: "INR",
                         name: "Fync Ecosystem",
-                        description: "Restore Spark for ${data.community.name}",
-                        order_id: "${orderRes.data.id}",
+                        description: ${JSON.stringify(`Restore Spark for ${data.community.name}`)},
+                        order_id: ${JSON.stringify(orderRes.data.id)},
                         prefill: {
-                            name: "${user?.username || ''}",
-                            email: "${user?.email || ''}",
-                            contact: "${user?.phone || ''}"
+                            name: ${JSON.stringify(user?.username || '')},
+                            email: ${JSON.stringify(user?.email || '')},
+                            contact: ${JSON.stringify(user?.phone || '')}
                         },
                         theme: { color: "#F97316" },
                         handler: function (response) {
@@ -324,10 +326,16 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
         }
     };
 
-    const handleWebMsg = (event: any) => {
-        const msg = JSON.parse(event.nativeEvent.data);
+    const cancelWebPayment = () => {
         setShowWebView(false);
-        if (msg.event === 'SUCCESS') {
+        setRenewing(false);
+    };
+
+    const handleWebMsg = (event: any) => {
+        let msg: any = null;
+        try { msg = JSON.parse(event.nativeEvent.data); } catch { /* not ours */ }
+        setShowWebView(false);
+        if (msg?.event === 'SUCCESS') {
             handleRestoreSuccess(msg.data);
         } else {
             setRenewing(false);
@@ -389,12 +397,14 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
     const CommunityHubSkeleton = () => {
         const pulseAnim = useRef(new Animated.Value(0.3)).current;
         useEffect(() => {
-            Animated.loop(
+            const loop = Animated.loop(
                 Animated.sequence([
                     Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
                     Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
                 ])
-            ).start();
+            );
+            loop.start();
+            return () => loop.stop();
         }, []);
 
         return (
@@ -416,8 +426,10 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
     if (loading) return <CommunityHubSkeleton />;
     if (!data) return <View className="flex-1 items-center justify-center bg-paper"><Text className="font-semibold text-base text-ink">Hub Not Found</Text></View>;
 
-    const { community, subCommunities, creatorOtherCommunities } = data;
-    const isMember = community.members?.includes(user?._id);
+    const { community } = data;
+    const subCommunities: any[] = data.subCommunities ?? [];
+    const creatorOtherCommunities: any[] = data.creatorOtherCommunities ?? [];
+    const isMember = community.members?.some((m: any) => (m?._id || m) === user?._id);
     const isCreator = community.creator?._id === user?._id;
     const isSuspended = community.subscription?.status === 'suspended';
     const socials = community.socialLinks || {};
@@ -432,31 +444,33 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                 {/* Cinematic Header */}
                 <View className="h-72 w-full relative">
                     <Image source={{ uri: community.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} className="w-full h-full" resizeMode="cover" />
-                    <LinearGradient colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.9)']} className="absolute inset-0" />
+                    <LinearGradient colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
                     
-                    <SafeAreaView edges={['top']} className="absolute top-0 left-0 right-0 flex-row justify-between px-6 pt-4">
-                        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl backdrop-blur-md"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                            <Ionicons name="chevron-back" size={20} color="white" />
-                        </TouchableOpacity>
-                        {isCreator && (
-                            <TouchableOpacity onPress={() => setEditHubModal(true)} className="w-11 h-11 bg-black/20 rounded-card items-center justify-center backdrop-blur-md border border-white/10">
-                                <Feather name="settings" size={18} color="white" />
-                            </TouchableOpacity>
-                        )}
+                    <SafeAreaView edges={['top']} className="absolute top-0 left-0 right-0">
+                        <AppBar
+                            night
+                            onBack={() => navigation.goBack()}
+                            right={isCreator ? (
+                                <IconBtn
+                                    name="settings-outline"
+                                    size={18}
+                                    color="white"
+                                    onPress={() => setEditHubModal(true)}
+                                    style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
+                                />
+                            ) : undefined}
+                        />
                     </SafeAreaView>
 
                     <View className="absolute bottom-8 left-8 right-8 flex-row items-end gap-6">
                         <View className="w-20 h-20 rounded-full border-4 border-white/20 shadow-hair overflow-hidden bg-ink">
-                            <Image source={{ uri: community.logo || 'https://via.placeholder.com/150' }} className="w-full h-full" />
+                            <Image source={{ uri: community.logo }} className="w-full h-full" />
                         </View>
                         <View className="flex-1 pb-1">
                             <Text className="text-white text-3xl font-display uppercase leading-tight" numberOfLines={1}>{community.name}</Text>
                             <View className="flex-row items-center gap-2 mt-1">
                                 <View className="w-2 h-2 rounded-full bg-brand-500 shadow-hair" />
-                                <Text className="text-ink/60 text-label font-display uppercase">{community.members?.length} Sparks Active</Text>
+                                <Text className="text-white/60 text-label font-display uppercase">{community.members?.length ?? 0} Sparks Active</Text>
                             </View>
                         </View>
                     </View>
@@ -596,7 +610,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                         : <Feather name={sub.type === 'feed' ? 'trending-up' : 'hash'} size={20} color={C.ink4} />}
                                 </View>
                                 <View className="flex-1">
-                                    <Text className="text-ink font-display uppercase text-label">{sub.name}</Text>
+                                    <Text className="text-ink font-display uppercase text-label" numberOfLines={1}>{sub.name}</Text>
                                     <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">
                                         {sub.type === 'feed' ? 'Post Feed' : sub.type === 'announcement' ? 'Announcements' : 'Active Link'}
                                     </Text>
@@ -612,12 +626,14 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                                 setSubLogo(sub.logo); 
                                                 setEditSubModal(true); 
                                             }}
+                                            hitSlop={6}
                                             className="w-9 h-9 bg-paper-2 rounded-card items-center justify-center border border-line"
                                         >
                                             <Feather name="edit-3" size={14} color={C.brand[500]} />
                                         </TouchableOpacity>
                                         <TouchableOpacity 
                                             onPress={(e: any) => { e.stopPropagation(); handleExportHistory(sub._id, sub.name); }}
+                                            hitSlop={6}
                                             className="w-9 h-9 bg-paper-2 rounded-card items-center justify-center border border-line"
                                         >
                                             <Feather name="download" size={14} color={C.success} />
@@ -644,7 +660,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                         className="bg-card p-4 rounded-card border border-line items-center w-[29%] shadow-hair"
                                     >
                                         <View className="w-11 h-11 rounded-card overflow-hidden mb-3 border border-line bg-paper-2">
-                                            <Image source={{ uri: c.logo || 'https://via.placeholder.com/150' }} className="w-full h-full" />
+                                            <Image source={{ uri: c.logo }} className="w-full h-full" />
                                         </View>
                                         <Text className="text-ink font-display uppercase text-label text-center" numberOfLines={1}>{c.name}</Text>
                                     </TouchableOpacity>
@@ -680,21 +696,20 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                             </TouchableOpacity>
                         </View>
                     )}
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl mt-12"
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="px-4 h-11 items-center justify-center rounded-xl mt-12"
             accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
+            accessibilityLabel="Go back">
                         <Text className="text-ink-4 font-display uppercase text-label">Back to Directory</Text>
                     </TouchableOpacity>
                 </View>
             )}
 
             {/* Sub-Community Creation Modal */}
-            <Modal visible={subModalVisible} transparent animationType="slide">
+            <Modal visible={subModalVisible} transparent animationType="slide" onRequestClose={() => setSubModalVisible(false)}>
                 <View className="flex-1 bg-black/60">
                     <TouchableOpacity activeOpacity={1} onPress={() => setSubModalVisible(false)} className="flex-1" />
                     <KeyboardAvoidingView 
-                        behavior="padding"
+                        behavior={KAV_BEHAVIOR}
                         className="w-full bg-paper rounded-t-sheet overflow-hidden"
                         style={{ height: screenHeight * 0.8 }}
                     >
@@ -759,11 +774,11 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
             </Modal>
 
             {/* Sub-Community Update Modal */}
-            <Modal visible={editSubModal} transparent animationType="slide">
+            <Modal visible={editSubModal} transparent animationType="slide" onRequestClose={() => setEditSubModal(false)}>
                 <View className="flex-1 bg-black/60">
                     <TouchableOpacity activeOpacity={1} onPress={() => setEditSubModal(false)} className="flex-1" />
                     <KeyboardAvoidingView 
-                        behavior="padding"
+                        behavior={KAV_BEHAVIOR}
                         className="w-full bg-paper rounded-t-sheet overflow-hidden"
                         style={{ height: screenHeight * 0.8 }}
                     >
@@ -812,11 +827,11 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
             </Modal>
 
             {/* Configuration Suite */}
-            <Modal visible={editHubModal} transparent animationType="slide">
+            <Modal visible={editHubModal} transparent animationType="slide" onRequestClose={() => setEditHubModal(false)}>
                 <View className="flex-1 bg-black/60">
                     <TouchableOpacity activeOpacity={1} onPress={() => setEditHubModal(false)} className="flex-1" />
                     <KeyboardAvoidingView 
-                        behavior="padding"
+                        behavior={KAV_BEHAVIOR}
                         className="w-full bg-paper rounded-t-sheet overflow-hidden"
                         style={{ height: screenHeight * 0.8 }}
                     >
@@ -905,10 +920,10 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                 </View>
             </Modal>
 
-            <Modal visible={showWebView} animationType="slide">
+            <Modal visible={showWebView} animationType="slide" onRequestClose={cancelWebPayment}>
                 <SafeAreaView className="flex-1 bg-paper">
-                    <View className="flex-row items-center justify-center p-6 border-b border-line bg-paper">
-                        <Text className="text-ink font-display uppercase text-label">Secure Signal Processor</Text>
+                    <View className="border-b border-line bg-paper">
+                        <AppBar title="Secure Signal Processor" onBack={cancelWebPayment} />
                     </View>
                     <WebView
                         source={{ html: webViewHtml }}

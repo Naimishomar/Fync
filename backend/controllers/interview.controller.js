@@ -3,7 +3,8 @@ import { GROQ_MODEL_FAST, GROQ_MODEL_CHAT, GROQ_MODEL_REPORT, GROQ_MODEL_STT } f
 import { randomUUID } from "crypto";
 import PaymentOrder from "../models/paymentOrder.model.js";
 import { resolvePurchase } from "../utils/pricing.js";
-import { redeemPaidOrder, PaymentError } from "../utils/redeemOrder.js";
+import { PaymentError } from "../utils/redeemOrder.js";
+import { redeemInterviewOrder, findInterviewCredit, claimInterviewCredit, releaseInterviewCredit } from "../utils/interviewCredit.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import InterviewSession from "../models/interview.model.js";
@@ -77,12 +78,21 @@ const updateHistorySummary = async (history) => {
 };
 
 export const startInterview = async (req, res) => {
+    let credit = null;
     try {
-        const { domain, experience, duration } = req.body;
+        const { domain, experience } = req.body;
 
         if (!req.file) {
             return res.status(400).json({ message: "Resume file required" });
         }
+
+        // One verified payment = one session. Released below if start fails,
+        // so the student retries without paying again.
+        credit = await claimInterviewCredit(req.user.id);
+        if (!credit) {
+            return res.status(402).json({ success: false, message: "Payment required" });
+        }
+        const duration = credit.meta?.duration;
 
         let resumeText = "";
 
@@ -154,10 +164,22 @@ INTERACTION RULES:
             success: true,
             sessionId: session._id,
             question: firstQuestion,
+            duration,
         });
     } catch (error) {
         console.log("❌ Start error:", error);
-        res.status(500).json({ success: false });
+        if (credit) await releaseInterviewCredit(credit).catch((e) => console.error("Credit release failed:", e));
+        res.status(500).json({ success: false, message: "Could not start the interview. Your payment is saved, please retry." });
+    }
+};
+
+export const getInterviewCredit = async (req, res) => {
+    try {
+        const credit = await findInterviewCredit(req.user.id);
+        res.json({ success: true, credit: credit ? { duration: credit.meta?.duration } : null });
+    } catch (err) {
+        console.error("Error reading interview credit:", err);
+        res.status(500).json({ success: false, message: "Error reading interview credit" });
     }
 };
 
@@ -486,12 +508,11 @@ export const verifyInterviewPayment = async (req, res, next) => {
         // different feature worked just as well.
         let order;
         try {
-            order = await redeemPaidOrder({
+            order = await redeemInterviewOrder({
                 orderId: razorpay_order_id,
                 paymentId: razorpay_payment_id,
                 signature: razorpay_signature,
                 userId: req.user.id,
-                purpose: "interview_session",
             });
         } catch (e) {
             if (e instanceof PaymentError) {

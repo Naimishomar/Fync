@@ -35,7 +35,7 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
   useEffect(() => {
     let alive = true;
     axios.get('/user/suggestions', { params: { limit: 12 } })
-      .then((res) => { if (alive && res.data.success) setPeople(res.data.suggestions); })
+      .then((res) => { if (alive && res.data.success) setPeople(res.data.suggestions ?? []); })
       .catch(() => { /* the feed is the point; a failed row just renders nothing */ })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };

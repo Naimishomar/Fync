@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, Dimensions, RefreshControl, StatusBar, Share} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, RefreshControl, StatusBar, Share, StyleSheet} from 'react-native'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -10,14 +10,14 @@ import { useAuth } from '../../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-
-const { width } = Dimensions.get('window');
+import { AppBar, IconBtn, Empty } from '../ui/kit';
 
 const ClubHubScreen = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
-    const { clubId } = route.params;
+    const { clubId } = route.params ?? {};
     const { user } = useAuth();
+    const insets = useSafeAreaInsets();
     
     const [club, setClub] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -48,7 +48,7 @@ const ClubHubScreen = () => {
     const onShare = async () => {
         try {
             const shareUrl = `https://fync-api.duckdns.org/club?id=${club._id}`;
-            const result = await Share.share({
+            await Share.share({
                 message: `Join our exclusive campus club: ${club.name} on Fync! \n\nLink: ${shareUrl} \n\nClub ID: ${club._id}`,
             });
         } catch (error: any) {
@@ -120,6 +120,13 @@ const ClubHubScreen = () => {
         </View>
     );
 
+    if (!club) return (
+        <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
+            <AppBar onBack={() => navigation.goBack()} />
+            <Empty icon="cloud-offline-outline" title="Could not load club" hint="Go back and try again." />
+        </SafeAreaView>
+    );
+
     const isAdmin = club?.admins?.some((a: any) => (a._id || a) === user?._id);
     const isMember = club?.members?.some((m: any) => (m._id || m) === user?._id);
     const isInvited = club?.invitations?.some((i: any) => (i._id || i) === user?._id);
@@ -135,7 +142,7 @@ const ClubHubScreen = () => {
             <StatusBar barStyle="light-content" />
             <ScrollView 
                 showsVerticalScrollIndicator={false}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchClubDetails} tintColor={C.brand[500]} />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchClubDetails(); }} tintColor={C.brand[500]} />}
             >
                 {/* Banner & Header */}
                 <View className="h-80 w-full relative">
@@ -145,48 +152,29 @@ const ClubHubScreen = () => {
                     />
                     <LinearGradient 
                         colors={['transparent', 'rgba(0,0,0,0.9)']} 
-                        className="absolute inset-0"
+                        style={StyleSheet.absoluteFill}
                     />
                     
-                    <TouchableOpacity 
-                        onPress={() => navigation.goBack()}
-                        className="w-11 h-11 items-center justify-center rounded-xl top-12 left-8 backdrop-blur-md"
-                    
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="chevron-back" size={24} color="white" />
-                    </TouchableOpacity>
-
-                    <View className="absolute top-12 right-8 flex-row gap-3">
-                        <TouchableOpacity 
-                            onPress={onShare}
-                            className="w-12 h-12 rounded-card bg-black/40 items-center justify-center border border-white/20 backdrop-blur-md"
-                        >
-                            <Feather name="share-2" size={18} color="white" />
-                        </TouchableOpacity>
-                        {isAdmin && (
-                            <TouchableOpacity 
-                                onPress={() => navigation.navigate('ClubAdminPanel', { clubId })}
-                                className="w-12 h-12 rounded-card bg-black/40 items-center justify-center border border-white/20 backdrop-blur-md"
-                            >
-                                <Feather name="settings" size={18} color="white" />
-                            </TouchableOpacity>
-                        )}
-                        {hasAccess && (
-                            <TouchableOpacity 
-                                onPress={handleLeaveClub}
-                                className="w-12 h-12 rounded-card bg-black/40 items-center justify-center border border-white/20 backdrop-blur-md"
-                            >
-                                <Ionicons name="log-out-outline" size={18} color={C.danger} />
-                            </TouchableOpacity>
-                        )}
+                    <View className="absolute left-0 right-0" style={{ top: insets.top }}>
+                        <AppBar
+                            overlay
+                            onBack={() => navigation.goBack()}
+                            right={<>
+                                <IconBtn overlay name="share-social-outline" size={18} onPress={onShare} />
+                                {isAdmin && (
+                                    <IconBtn overlay name="settings-outline" size={18} onPress={() => navigation.navigate('ClubAdminPanel', { clubId })} />
+                                )}
+                                {hasAccess && (
+                                    <IconBtn overlay name="log-out-outline" size={18} color={C.danger} onPress={handleLeaveClub} />
+                                )}
+                            </>}
+                        />
                     </View>
 
-                    <View className="absolute bottom-10 left-8 flex-row items-center">
+                    <View className="absolute bottom-10 left-5 flex-row items-center">
                         <View className="relative">
                             <Image 
-                                source={{ uri: club.logo || 'https://via.placeholder.com/150' }} 
+                                source={{ uri: club.logo }} 
                                 className="w-24 h-24 rounded-sheet border-4 border-white/20 bg-card"
                             />
                             {hasAccess && <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full border-4 border-ink" />}
@@ -233,7 +221,8 @@ const ClubHubScreen = () => {
 
                             {subGroups.length > 0 ? (
                                 subGroups.map((sub: any) => {
-                                    const isSubMember = sub.members?.includes(user?._id);
+                                    // Members may come back populated or as bare ids, as everywhere else here.
+                                    const isSubMember = sub.members?.some((m: any) => (m?._id || m) === user?._id);
                                     const isPendingJoin = sub.joinRequests?.some((j: any) => (j._id || j) === user?._id);
                                     
                                     return (
@@ -248,12 +237,12 @@ const ClubHubScreen = () => {
                                                 {sub.isGeneral ? (
                                                     <MaterialCommunityIcons name="shield-check" size={28} color={C.brand[500]} />
                                                 ) : (
-                                                    <Image source={{ uri: sub.logo || 'https://via.placeholder.com/150' }} className="w-full h-full rounded-card" />
+                                                    <Image source={{ uri: sub.logo }} className="w-full h-full rounded-card" />
                                                 )}
                                             </View>
                                             
                                             <View className="flex-1 ml-5 pr-4">
-                                                <Text className={`${sub.isGeneral ? 'text-white' : 'text-ink'} font-display text-lg uppercase`}>
+                                                <Text className={`${sub.isGeneral ? 'text-white' : 'text-ink'} font-display text-lg uppercase`} numberOfLines={1}>
                                                     {sub.name}
                                                 </Text>
                                                 <Text className={`${sub.isGeneral ? 'text-ink-3' : 'text-ink-3'} text-label font-display uppercase mt-1`} numberOfLines={1}>

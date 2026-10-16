@@ -24,6 +24,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
 import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
 
 interface UserSuggestion {
   _id: string;
@@ -55,24 +56,20 @@ function CreatePost() {
   const [searchQuery, setSearchQuery] = useState('');
   const [cursorPosition, setCursorPosition] = useState(0);
 
-  const searchUsers = async (query: string) => {
-    try {
-      const res = await axios.post('/user/search', { name: query });
-      if (res.data.success) {
-        setSuggestions(res.data.users);
-      }
-    } catch (e) {
-      console.log('Error fetching users for tagging', e);
-    }
-  };
-
   useEffect(() => {
     if (showSuggestions) {
-      const delayDebounceFn = setTimeout(() => {
-        searchUsers(searchQuery);
+      // A slower response for an older query must not replace the current one.
+      let stale = false;
+      const delayDebounceFn = setTimeout(async () => {
+        try {
+          const res = await axios.post('/user/search', { name: searchQuery });
+          if (!stale && res.data.success) setSuggestions(res.data.users || []);
+        } catch (e) {
+          console.log('Error fetching users for tagging', e);
+        }
       }, 1000);
 
-      return () => clearTimeout(delayDebounceFn);
+      return () => { stale = true; clearTimeout(delayDebounceFn); };
     } else {
       setSuggestions([]);
     }
@@ -195,21 +192,9 @@ function CreatePost() {
       >
         <SafeAreaView className='flex-1'>
           {/* Header */}
-          <View className='flex-row items-center px-gutter py-4 justify-between'>
-            <Pressable onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-              <Ionicons name="arrow-back" size={22} color={C.ink} />
-            </Pressable>
-            <View className="items-center">
-              <Text className="text-ink font-display uppercase text-label">Mission Briefing</Text>
-              <Text className='text-xl font-display text-ink mt-1 uppercase'>Create <Text className="text-accent-text">Post</Text></Text>
-            </View>
-            <View className="w-11" />
-          </View>
+          <AppBar title="Create Post" subtitle="Mission Briefing" onBack={() => navigation.goBack()} />
 
-          <ScrollView className="flex-1 px-6 mt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <ScrollView className="flex-1 px-5 mt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {/* Main Input Card */}
             <View className="bg-card rounded-sheet p-6 shadow-hair border border-line min-h-[350px] relative z-50">
               <View className="flex-row items-center mb-6">
@@ -237,7 +222,7 @@ function CreatePost() {
                                 onPress={() => handleSelection(user)}
                                 className="flex-row items-center p-4 border-b border-line"
                             >
-                                <Image source={{ uri: user.avatar || 'https://ui-avatars.com/api/?name=' + user.name }} className="w-10 h-10 rounded-card bg-paper-2" />
+                                <Image source={{ uri: user.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name || '') }} className="w-10 h-10 rounded-card bg-paper-2" />
                                 <View className="ml-4">
                                     <Text className="text-sm font-display text-ink uppercase">{user.name}</Text>
                                     <Text className="text-label font-display text-accent-text uppercase mt-0.5">@{user.username}</Text>
@@ -255,6 +240,7 @@ function CreatePost() {
                       <Image source={{ uri }} className="h-24 w-24 rounded-card bg-paper-2 border border-line" />
                       <Pressable
                         onPress={() => removeImage(index)}
+                        hitSlop={10}
                         className="absolute -top-2 -right-2 bg-ink h-7 w-7 rounded-full items-center justify-center border-2 border-white shadow-hair"
                       >
                         <Ionicons name="close" size={14} color="white" />

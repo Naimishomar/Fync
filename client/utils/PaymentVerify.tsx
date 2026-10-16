@@ -33,9 +33,9 @@ export default function PaymentVerify({ route }: any) {
         razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,
-        customerName: user.name,
-        customerEmail: user.email,
-        amount: order.amount / 100,
+        customerName: user?.name,
+        customerEmail: user?.email,
+        amount: (order?.amount ?? 0) / 100,
         merchantUpiId,
         merchantName,
       },
@@ -48,7 +48,6 @@ export default function PaymentVerify({ route }: any) {
       if (res.data.success) {
         setSuccess(true);
         setReceiptUrl(res.data.receipt_url || '');
-        console.log(res.data.receipt_url || '');
       } else {
         setSuccess(false);
       }

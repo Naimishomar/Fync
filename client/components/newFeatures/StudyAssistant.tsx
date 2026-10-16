@@ -8,7 +8,8 @@ import * as Sharing from 'expo-sharing';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard } from '../ui/kit';
+import { useNavigation } from '@react-navigation/native';
+import { AppBar, StampCard } from '../ui/kit';
 import { C } from '../../constants/colors';
 const { width } = Dimensions.get('window');
 
@@ -19,6 +20,7 @@ export default function StudyAssistant() {
     const [inputText, setInputText] = useState('');
     const [history, setHistory] = useState<{ role: string, parts: { text: string }[] }[]>([]);
     const scrollViewRef = useRef<ScrollView>(null);
+    const navigation = useNavigation<any>();
 
     const handleUpload = async () => {
         const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
@@ -37,6 +39,7 @@ export default function StudyAssistant() {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 setPdfContent(response.data.text);
+                setHistory([]);
                 setChat([{ role: 'bot', text: "PDF memorised. I have indexed your notes. Ask me for a summary, key formulas, or a practice quiz!" }]);
             } catch (e) {
                 Alert.alert("Error", "Server-side extraction failed.");
@@ -50,6 +53,7 @@ export default function StudyAssistant() {
         const finalQuery = query || inputText;
         if (!pdfContent) return Alert.alert("Upload PDF first");
         if (mode === 'CHAT' && !finalQuery) return;
+        if (loading) return;
 
         setLoading(true);
         setInputText('');
@@ -76,14 +80,14 @@ export default function StudyAssistant() {
                     </style>
                     <body>
                         <h1>Fync Exam Prep Guide</h1>
-                        ${data.answer.replace(/\n/g, '<br>')}
+                        ${String(data.answer || '').replace(/\n/g, '<br>')}
                     </body>
                 `;
                 const { uri } = await Print.printToFileAsync({ html });
                 await Sharing.shareAsync(uri);
             } else {
                 setChat(prev => [...prev, { role: 'bot', text: data.answer }]);
-                setHistory(prev => [...prev, ...data.history]);
+                setHistory(prev => [...prev, ...(data.history || [])]);
             }
         } catch (e) {
             Alert.alert("Error", "AI Assistant is busy. Try again.");
@@ -98,12 +102,13 @@ export default function StudyAssistant() {
             <StatusBar barStyle="dark-content" />
 
             <SafeAreaView className="flex-1">
+                <AppBar onBack={() => navigation.goBack()} />
                 <KeyboardAvoidingView
                     behavior="padding"
                     className="flex-1 px-gutter"
                 >
                     {/* --- CUSTOM HEADER --- */}
-                    <View className="flex-row items-center justify-between py-6">
+                    <View className="flex-row items-center justify-between pb-6">
                         <View>
                             <Text className="text-ink text-3xl font-display uppercase">
                                 Study <Text className="text-accent-text">AI</Text>
@@ -117,7 +122,7 @@ export default function StudyAssistant() {
                         </View>
                         {pdfContent && (
                             <TouchableOpacity
-                                onPress={() => { setPdfContent(''); setChat([]); }}
+                                onPress={() => { setPdfContent(''); setChat([]); setHistory([]); }}
                                 className="bg-card p-3 rounded-card border border-line shadow-hair"
                             >
                                 <Ionicons name="trash-outline" size={20} color="#ff4b4b" />

@@ -90,12 +90,19 @@ const iconFor = (buttons: AlertButton[]) => {
 export const AlertHost = () => {
   const [request, setRequest] = useState<AlertRequest | null>(null);
   const queue = useRef<AlertRequest[]>([]);
+  /** An alert is on screen or closing; new ones queue behind it. */
+  const shown = useRef(false);
+  /** Set on the first tap: a fast double tap used to run the button's handler
+   *  twice (two deletes, two payments) and skip the next queued alert. */
+  const closing = useRef(false);
   const scale = useRef(new Animated.Value(0.92)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   const showNext = useCallback(() => {
-    const next = queue.current.shift();
-    setRequest(next ?? null);
+    const next = queue.current.shift() ?? null;
+    shown.current = !!next;
+    closing.current = false;
+    setRequest(next);
   }, []);
 
   useEffect(() => {
@@ -103,17 +110,17 @@ export const AlertHost = () => {
       queue.current.push(incoming);
       // Only surface immediately when nothing is already on screen; two alerts
       // fired in the same tick must not replace one another silently.
-      setRequest((current) => (current ? current : (queue.current.shift() ?? null)));
+      if (!shown.current) showNext();
     };
     // Drain anything raised before this mounted.
     if (pending.length > 0) {
       queue.current.push(...pending.splice(0, pending.length));
-      setRequest(queue.current.shift() ?? null);
+      if (!shown.current) showNext();
     }
     return () => {
       listener = null;
     };
-  }, []);
+  }, [showNext]);
 
   useEffect(() => {
     if (!request) return;
@@ -132,6 +139,8 @@ export const AlertHost = () => {
 
   const close = useCallback(
     (button?: AlertButton) => {
+      if (closing.current) return;
+      closing.current = true;
       setRequest(null);
       // Run the handler after the modal is gone, so a handler that opens
       // another alert (a common pattern here) is not swallowed by the close.
@@ -146,6 +155,8 @@ export const AlertHost = () => {
   const dismiss = useCallback(() => {
     if (!request) return;
     if (request.options.cancelable === false) return;
+    if (closing.current) return;
+    closing.current = true;
     const cancelButton = request.buttons.find((b) => b.style === 'cancel');
     setRequest(null);
     requestAnimationFrame(() => {

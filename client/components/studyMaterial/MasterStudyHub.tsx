@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 export default function MasterStudyHub() {
   const navigation = useNavigation<any>();
@@ -22,23 +23,28 @@ export default function MasterStudyHub() {
   const [resultsOpen, setResultsOpen] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  // A second search submitted before the first replies must not be
+  // overwritten by the older, slower response.
+  const requestIdRef = useRef(0);
 
   const handleSearch = async () => {
     const q = searchQuery.trim();
     if (q.length < 3) return;
 
+    const requestId = ++requestIdRef.current;
     setResultsOpen(true);
     setSearchLoading(true);
     setResults([]);
     try {
       const res = await axios.get('/notes/search', { params: { q } });
-      if (res.data.success) setResults(res.data.results);
+      if (requestId !== requestIdRef.current) return;
+      if (res.data.success) setResults(res.data.results ?? []);
     } catch {
       // The empty state already says nothing was found, which is what an
       // unreachable source looks like from here anyway.
-      setResults([]);
+      if (requestId === requestIdRef.current) setResults([]);
     } finally {
-      setSearchLoading(false);
+      if (requestId === requestIdRef.current) setSearchLoading(false);
     }
   };
 
@@ -86,25 +92,14 @@ export default function MasterStudyHub() {
       {/* HEADER DECORATION */}
 
       <SafeAreaView className="flex-1" edges={['top']}>
-        {/* TOP BAR */}
-        <View className="px-6 py-4 flex-row items-center justify-between">
-          <View>
-            <Text className="text-ink text-3xl font-display uppercase">Fync <Text className="text-fam-study">Academy</Text></Text>
-            <Text className="text-ink-3 text-label font-display uppercase mt-0.5">The Infinite Tech Protocol</Text>
-          </View>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
-            className="w-11 h-11 items-center justify-center rounded-xl"
-          
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={20} color={C.ink} />
-          </TouchableOpacity>
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-5">
+          <Text className="text-ink text-3xl font-display uppercase">Fync <Text className="text-fam-study">Academy</Text></Text>
+          <Text className="text-ink-3 text-label font-display uppercase mt-0.5">The Infinite Tech Protocol</Text>
         </View>
 
         <ScrollView 
-          className="flex-1 px-4 mt-4" 
+          className="flex-1 px-5 mt-4" 
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
         >
@@ -129,7 +124,7 @@ export default function MasterStudyHub() {
                 returnKeyType="search"
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={12} accessibilityLabel="Clear search">
                   <Ionicons name="close-circle" size={20} color={C.ink4} />
                 </TouchableOpacity>
               )}
@@ -185,7 +180,7 @@ export default function MasterStudyHub() {
               <Text className="text-ink-3 text-sm leading-relaxed font-medium">
                 Unlock the world's most comprehensive technical library. From the fundamentals of DSA to elite FAANG preparation, your journey to mastery begins here.
               </Text>
-              <TouchableOpacity className="mt-6 bg-card self-start px-6 py-3 rounded-card shadow-hair">
+              <TouchableOpacity onPress={() => navigation.navigate('DSAPrep')} className="mt-6 bg-card self-start px-6 py-3 rounded-card shadow-hair">
                 <Text className="font-semibold text-base text-ink">Start Learning</Text>
               </TouchableOpacity>
             </View>
@@ -200,21 +195,8 @@ export default function MasterStudyHub() {
           backend returns open-access PDFs as data and the list below is ours. */}
       <Modal visible={resultsOpen} animationType="slide" onRequestClose={() => setResultsOpen(false)}>
         <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-          <View className="px-5 pt-2 pb-3 border-b-2 border-ink bg-paper">
-            <TouchableOpacity
-              onPress={() => setResultsOpen(false)}
-              className="w-11 h-11 items-center justify-center rounded-xl"
-              style={{ marginLeft: -11 }}
-              accessibilityRole="button"
-              accessibilityLabel="Close results"
-            >
-              <Ionicons name="arrow-back" size={24} color={C.ink} />
-            </TouchableOpacity>
-            <Text className="font-display text-xl text-ink mt-1" numberOfLines={1}>{searchQuery}</Text>
-            <Text className="text-ink-3 font-display uppercase text-label mt-1">
-              {searchLoading ? 'Searching' : `${results.length} free PDFs`}
-            </Text>
-          </View>
+          <AppBar title={searchQuery} subtitle={searchLoading ? 'Searching' : `${results.length} free PDFs`}
+            onBack={() => setResultsOpen(false)} />
 
           {searchLoading ? (
             <View className="flex-1 items-center justify-center">
@@ -224,7 +206,7 @@ export default function MasterStudyHub() {
           ) : (
             <FlatList
               data={results}
-              keyExtractor={(r) => r.id}
+              keyExtractor={(r, i) => String(r.id ?? r.pdfUrl ?? i)}
               contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
               renderItem={({ item }) => (
                 <TouchableOpacity

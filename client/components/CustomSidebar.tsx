@@ -40,7 +40,7 @@ export default function CustomSidebar(props: any) {
                             className="flex-row items-center gap-4 flex-1 mr-4"
                         >
                             <Image
-                                source={{ uri: user?.avatar?.trim() ? user.avatar : `https://ui-avatars.com/api/?name=${user?.username || 'User'}` }}
+                                source={{ uri: user?.avatar?.trim() ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'User')}` }}
                                 className="h-14 w-14 rounded-full border-2 border-brand-500 bg-paper-2"
                             />
                             <View className="flex-1 justify-center">
@@ -55,6 +55,9 @@ export default function CustomSidebar(props: any) {
 
                         <Pressable
                             onPress={() => props.navigation.closeDrawer()}
+                            hitSlop={6}
+                            accessibilityRole="button"
+                            accessibilityLabel="Close menu"
                             className="w-9 h-9 bg-card rounded-full items-center justify-center border border-line active:opacity-70"
                         >
                             <Ionicons name="close" size={18} color={C.brand[500]} />

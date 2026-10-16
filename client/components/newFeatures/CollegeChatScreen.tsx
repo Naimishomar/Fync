@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
-import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Keyboard, Platform, Image, ActivityIndicator, Linking, TouchableOpacity, Modal} from 'react-native'
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Linking, TouchableOpacity, Modal} from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { Image } from "expo-image";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -12,6 +13,7 @@ import socket from "../../utils/socket";
 import { useAuth } from "../../context/auth.context";
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const CollegeChatScreen = ({ navigation }: any) => {
     const { user } = useAuth();
@@ -78,14 +80,16 @@ const CollegeChatScreen = ({ navigation }: any) => {
             socket.off("new_college_message", handleNewMessage);
             socket.off("delete_college_message", handleDeleteMessage);
         };
-    }, [user]);
+        // Keyed on the room, not the user object: any profile update (coins, avatar)
+        // used to leave/rejoin the room and refetch the whole history.
+    }, [user?.college]);
 
     const loadMessages = async () => {
         try {
             setLoading(true);
             const res = await axios.get("/college-chat/messages", { params: { noCache: true } });
             if (res.data.success) {
-                const sorted = res.data.messages.sort(
+                const sorted = (res.data.messages || []).sort(
                     (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                 );
                 setMessages(sorted);
@@ -178,6 +182,9 @@ const CollegeChatScreen = ({ navigation }: any) => {
         } catch (e) {
             console.log("Error sending txt", e);
             setMessages((prev) => prev.filter(m => m._id !== tempId));
+            // Give the draft back instead of losing it.
+            setText((cur) => cur || msg);
+            Alert.alert("Not Sent", "Please check your network and try again.");
         }
     };
 
@@ -248,7 +255,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
         ])
     };
 
-    const renderItem = ({ item }: { item: any }) => {
+    const renderItem = useCallback(({ item }: { item: any }) => {
         const isMe = item.senderId?._id === user?._id;
 
         return (
@@ -258,7 +265,8 @@ const CollegeChatScreen = ({ navigation }: any) => {
                         <View className="w-8 h-8 rounded-full border-2 border-white shadow-hair overflow-hidden bg-paper-2">
                             <Image
                                 source={{ uri: item.senderId?.avatar || `https://ui-avatars.com/api/?name=${item.senderId?.username}&background=f97316&color=fff` }}
-                                className="w-full h-full"
+                                style={{ width: '100%', height: '100%' }}
+                                cachePolicy="memory-disk"
                             />
                         </View>
                     </View>
@@ -285,8 +293,9 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                     "Choose an action",
                                     [
                                         { text: "Reply", onPress: () => setReplyTo(item) },
-                                        { text: "Delete", onPress: () => deleteMessage(item._id, item.senderId?._id), style: 'destructive' },
-                                        { text: "Cancel", style: 'cancel' }
+                                        // Only the sender can delete; others got a button that did nothing.
+                                        ...(isMe ? [{ text: "Delete", onPress: () => deleteMessage(item._id, item.senderId?._id), style: 'destructive' as const }] : []),
+                                        { text: "Cancel", style: 'cancel' as const }
                                     ]
                                 );
                             }}
@@ -304,7 +313,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                             )}
                             {item.messageType === "image" && (
                                 <TouchableOpacity onPress={() => setSelectedImage(item.mediaUrl)}>
-                                    <Image source={{ uri: item.mediaUrl }} className="w-48 h-48 rounded-xl" resizeMode="cover" blurRadius={item.pending ? 10 : 0} />
+                                    <Image source={{ uri: item.mediaUrl }} style={{ width: 192, height: 192, borderRadius: 12 }} contentFit="cover" cachePolicy="memory-disk" blurRadius={item.pending ? 10 : 0} />
                                 </TouchableOpacity>
                             )}
                             {item.messageType === "video" && (
@@ -335,7 +344,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                 <Pressable 
                                     onPress={(e) => {
                                         e.stopPropagation();
-                                        Linking.openURL(item.mediaUrl);
+                                        Linking.openURL(item.mediaUrl).catch(() => Alert.alert("Error", "Could not open this file."));
                                     }}
                                     onLongPress={(e) => e.stopPropagation()}
                                     className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-card/10' : 'bg-black/5'}`}
@@ -363,7 +372,9 @@ const CollegeChatScreen = ({ navigation }: any) => {
                 </View>
             </View>
         );
-    };
+        // deleteMessage only reads user._id, so the row renderer is stable per user.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?._id]);
 
     return (
         <View style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
@@ -374,24 +385,11 @@ const CollegeChatScreen = ({ navigation }: any) => {
 
             {/* HEADER */}
             <SafeAreaView edges={['top']} style={{ backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(249, 115, 22, 0.1)' }}>
-                {/* Standard app bar: the back chevron sits in a 44px touch box that
-                    overhangs by 11px, so the GLYPH lands on the 20px gutter rather
-                    than the box edge. */}
-                <View className="flex-row items-center px-gutter pt-2 pb-3" style={{ gap: 12 }}>
-                    <TouchableOpacity
-                        onPress={() => navigation.goBack()}
-                        accessibilityRole="button"
-                        accessibilityLabel="Go back"
-                        className="w-11 h-11 items-center justify-center rounded-xl"
-                        style={{ marginLeft: -11 }}
-                    >
-                        <Ionicons name="chevron-back" size={22} color={C.ink} />
-                    </TouchableOpacity>
-                    <View className="flex-1 min-w-0">
-                        <Text className="font-display text-h2 text-ink" numberOfLines={1}>{user?.college} Hub</Text>
-                        <Text className="font-sans text-sm text-ink-3" numberOfLines={1}>Vanish every 24h · Keep it real</Text>
-                    </View>
-                </View>
+                <AppBar
+                    title={`${user?.college || 'Campus'} Hub`}
+                    subtitle="Vanish every 24h · Keep it real"
+                    onBack={() => navigation.goBack()}
+                />
 
                 {/* The countdown is the point of this room, so it gets a strip of
                     its own rather than a chip fighting the title for width. */}
@@ -444,7 +442,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                             style={{
                                 marginBottom: isKeyboardVisible ? 20 : Math.max(insets.bottom, 12)
                             }}
-                            className="px-6 pt-2 flex-row items-center"
+                            className="px-5 pt-2 flex-row items-center"
                         >
                             <View className="flex-row items-center bg-paper-2 flex-1 p-1 border border-line rounded-md">
                                 <TouchableOpacity onPress={handlePickImage} className="w-9 h-9 items-center justify-center rounded-full bg-brand-50/50 ml-1" hitSlop={4}>
@@ -476,7 +474,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                 </View>
             </KeyboardAvoidingView>
             {/* FULL SCREEN IMAGE MODAL */}
-            <Modal visible={!!selectedImage} transparent={true} animationType="fade">
+            <Modal visible={!!selectedImage} transparent={true} animationType="fade" onRequestClose={() => setSelectedImage(null)}>
                 <View className="flex-1 bg-black/95 justify-center items-center">
                     <TouchableOpacity
                         onPress={() => setSelectedImage(null)}
@@ -487,8 +485,8 @@ const CollegeChatScreen = ({ navigation }: any) => {
                     {selectedImage && (
                         <Image
                             source={{ uri: selectedImage }}
-                            className="w-full h-[80%]"
-                            resizeMode="contain"
+                            style={{ width: '100%', height: '80%' }}
+                            contentFit="contain"
                         />
                     )}
                 </View>

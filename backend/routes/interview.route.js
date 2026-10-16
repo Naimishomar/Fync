@@ -1,5 +1,5 @@
 import express from 'express';
-import { startInterview, processAnswer, endInterview, cancelInterview, generateReportPDF, createInterviewOrder, verifyInterviewPayment } from '../controllers/interview.controller.js';
+import { startInterview, processAnswer, endInterview, cancelInterview, generateReportPDF, createInterviewOrder, verifyInterviewPayment, getInterviewCredit } from '../controllers/interview.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { audioUpload, resumeUpload } from '../utils/r2.js';
 import { r2UploadMiddleware } from '../utils/r2Upload.js';
@@ -58,5 +58,6 @@ router.post('/generate-pdf', authMiddleware, generateReportPDF);
 
 router.post('/create-order', authMiddleware, createInterviewOrder);
 router.post('/verify-payment', authMiddleware, verifyInterviewPayment);
+router.get('/credit', authMiddleware, getInterviewCredit);
 
 export default router;

@@ -6,6 +6,7 @@ import {View, Text, TouchableOpacity, ScrollView, TextInput} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { AppBar } from '../ui/kit';
 import QRCode from 'react-native-qrcode-svg';
 import * as Sharing from 'expo-sharing';
 // expo-file-system 19 moved documentDirectory / EncodingType /
@@ -55,16 +56,7 @@ export default function QRCodeToolScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Header */}
-        <View className="px-5 py-4 flex-row items-center border-b border-line bg-transparent">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color={C.ink} />
-          </TouchableOpacity>
-          <Text className="text-xl font-display text-ink flex-1">QR Generator</Text>
-        </View>
+        <AppBar title="QR Generator" onBack={() => navigation.goBack()} />
 
         <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-6">

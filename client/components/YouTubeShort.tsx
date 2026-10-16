@@ -4,8 +4,10 @@ import { WebView } from 'react-native-webview';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../constants/colors';
 
-const SCREEN_HEIGHT = Dimensions.get('screen').height;
 const SCREEN_WIDTH = Dimensions.get('screen').width;
+// Height comes from the parent row (the feed sizes each page); the full
+// 'screen' height includes the system bars and overflowed the row.
+const FILL = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as const;
 
 /**
  * A YouTube video playing inside the shorts feed.
@@ -98,6 +100,15 @@ export default function YouTubeShort({
 
   const html = useMemo(() => playerHtml(videoId), [videoId]);
 
+  // A new video starts unloaded; otherwise a previous error or "loaded" flag carried over.
+  const firstVideo = useRef(videoId);
+  useEffect(() => {
+    if (firstVideo.current === videoId) return;
+    firstVideo.current = videoId;
+    setLoaded(false);
+    setFailed(null);
+  }, [videoId]);
+
   useEffect(() => {
     if (!loaded) return;
     ref.current?.injectJavaScript(
@@ -138,7 +149,7 @@ export default function YouTubeShort({
       : 'This one would not play.';
 
     return (
-      <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink items-center justify-center px-10">
+      <View style={{ flex: 1, width: SCREEN_WIDTH }} className="bg-ink items-center justify-center px-10">
         <Ionicons name="cloud-offline-outline" size={48} color={C.ink3} />
         <Text className="font-sans text-sm text-night-3 mt-3 text-center">
           {reason} Swipe on.
@@ -151,11 +162,11 @@ export default function YouTubeShort({
   }
 
   return (
-    <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH }} className="bg-ink">
+    <View style={{ flex: 1, width: SCREEN_WIDTH }} className="bg-ink">
       {!loaded && !!thumbnail && (
         <Image
           source={{ uri: thumbnail }}
-          style={{ position: 'absolute', width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+          style={FILL}
           resizeMode="cover"
           blurRadius={6}
         />
@@ -165,20 +176,14 @@ export default function YouTubeShort({
           no tap-through to YouTube, no scroll capture, no long-press menu. */}
       <View
         pointerEvents="none"
-        style={{
-          position: 'absolute',
-          top: 0, left: 0,
-          width: SCREEN_WIDTH,
-          height: SCREEN_HEIGHT,
-          justifyContent: 'center',
-        }}
+        style={[FILL, { justifyContent: 'center' }]}
       >
         <WebView
           ref={ref}
           // baseUrl is not cosmetic: it gives the page an origin, which is what
           // supplies the Referer the embed requires. Without it, error 153.
           source={{ html, baseUrl: 'https://www.youtube.com' }}
-          style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT, backgroundColor: '#12100E' }}
+          style={{ flex: 1, backgroundColor: '#12100E' }}
           originWhitelist={['*']}
           onMessage={onMessage}
           javaScriptEnabled

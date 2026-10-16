@@ -25,10 +25,17 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
     const healthRef = useRef(100);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const tokenRef = useRef<string | null>(null);
+    // Exiting mid-fetch used to let the response start a 100ms interval on an
+    // unmounted screen that then ran forever.
+    const mountedRef = useRef(true);
 
     useEffect(() => {
+        mountedRef.current = true;
         restartGame();
-        return () => stopTimer();
+        return () => {
+            mountedRef.current = false;
+            stopTimer();
+        };
     }, []);
 
     const fetchMoreQuestions = async () => {
@@ -53,6 +60,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
                 res = await fetch(url);
                 data = await res.json();
             }
+            if (!mountedRef.current) return;
 
             if (data.results && data.results.length > 0) {
                 const formatted = data.results.map((q: any) => {
@@ -71,6 +79,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
                 setStatus('gameover');
             }
         } catch (e) {
+            if (!mountedRef.current) return;
             setLoading(false);
             setStatus('gameover');
         }
@@ -130,7 +139,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
     if (loading) {
         return (
-            <View className="flex-1 bg-ink justify-center items-center h-[500px] rounded-sheet">
+            <View className="grow bg-ink justify-center items-center rounded-sheet">
                 <ActivityIndicator size="large" color={C.danger} />
                 <Text className="text-white mt-4 font-display uppercase">Loading Trivia...</Text>
             </View>
@@ -139,7 +148,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
     if (status === 'gameover') {
         return (
-            <View className="flex-1 bg-ink justify-center items-center h-[500px] rounded-sheet p-6 border-2 border-danger/30">
+            <View className="grow bg-ink justify-center items-center rounded-sheet p-6 border-2 border-danger/30">
                 <Ionicons name="skull" size={80} color={C.danger} />
                 <Text className="text-white text-3xl font-display uppercase mt-4 text-center">You Died</Text>
                 
@@ -168,10 +177,10 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
     const healthColor = health > 50 ? '#047857' : health > 20 ? '#B45309' : '#DC2626';
 
     return (
-        <View className="flex-1 w-full h-[600px] rounded-sheet overflow-hidden bg-ink border border-ink">
+        <View className="grow w-full rounded-sheet overflow-hidden bg-ink border border-ink">
             {/* Top Bar - Health & Score */}
             <View className="flex-row items-center justify-between p-6 bg-ink">
-                <TouchableOpacity onPress={onClose} className="bg-card/10 p-2 rounded-full">
+                <TouchableOpacity onPress={onClose} hitSlop={8} className="bg-card/10 p-2 rounded-full">
                     <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
                 <View className="flex-1 mx-4 h-6 bg-ink rounded-full overflow-hidden border border-ink relative">

@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StatusBar, DevSettings } from 'react-native';
 import { RefreshCcw, AlertTriangle } from './ui/icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Updates from 'expo-updates';
 import { C } from '../constants/colors';
 
 interface Props {
@@ -29,7 +30,13 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleReset = () => {
-    DevSettings.reload();
+    // DevSettings.reload is a no-op in release builds, so the button did nothing
+    // in the APK. expo-updates reloads the JS bundle in production.
+    if (__DEV__) {
+      DevSettings.reload();
+      return;
+    }
+    Updates.reloadAsync().catch(() => this.setState({ hasError: false, error: null }));
   };
 
   public render() {

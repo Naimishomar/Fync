@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   View,
   Text,
   FlatList,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
   Linking,
@@ -14,10 +13,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
+import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -38,7 +39,7 @@ interface Workshop {
 
 // --- 1. MEMOIZED WORKSHOP CARD (Arena Theme) ---
 const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: string) => void }) => {
-  const imageUrl = item.organisation?.logoUrl || item.logoUrl2 || 'https://via.placeholder.com/100';
+  const imageUrl = item.organisation?.logoUrl || item.logoUrl2;
   const bannerUrl = item.banner_mobile?.url;
   const orgName = item.organisation?.name || "Global Organisation";
 
@@ -48,10 +49,11 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
       <View className="flex-row gap-4 items-center">
         {/* Organisation Logo */}
         <View className="w-16 h-16 rounded-card border border-line overflow-hidden bg-paper-2 items-center justify-center p-2">
-          <Image
+          <ExpoImage
             source={{ uri: imageUrl }}
-            className="w-12 h-12 rounded-xl"
-            resizeMode="contain"
+            style={{ width: 48, height: 48, borderRadius: 12 }}
+            contentFit="contain"
+            cachePolicy="memory-disk"
           />
         </View>
 
@@ -60,7 +62,7 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
           <Text className="text-ink text-base font-display uppercase leading-5" numberOfLines={2}>
             {item.title}
           </Text>
-          <Text className="text-ink-3 text-label font-display uppercase mt-1">
+          <Text className="text-ink-3 text-label font-display uppercase mt-1" numberOfLines={1}>
             {orgName}
           </Text>
         </View>
@@ -69,7 +71,7 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
       {/* Optional Banner */}
       {bannerUrl && (
         <View className="mt-5 w-full h-32 rounded-card overflow-hidden border border-line">
-          <Image source={{ uri: bannerUrl }} className="w-full h-full" resizeMode="cover" />
+          <ExpoImage source={{ uri: bannerUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" />
         </View>
       )}
 
@@ -144,7 +146,7 @@ export default function WorkshopList() {
         `https://unstop.com/api/public/opportunity/search-result?opportunity=workshops&page=${pageNum}&per_page=15&oppstatus=open&quickApply=true`
       );
 
-      const newWorkshops = res.data.data.data || [];
+      const newWorkshops = res.data?.data?.data || [];
 
       if (newWorkshops.length === 0) {
         setHasMore(false);
@@ -194,13 +196,14 @@ export default function WorkshopList() {
   }, []);
 
   // --- 🔍 FILTER LOGIC ---
-  const filteredWorkshops = workshops.filter((item) => {
+  const filteredWorkshops = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return (
+    if (!query) return workshops;
+    return workshops.filter((item) => (
       item.title?.toLowerCase().includes(query) ||
       item.organisation?.name?.toLowerCase().includes(query)
-    );
-  });
+    ));
+  }, [workshops, searchQuery]);
 
   const renderItem = useCallback(({ item }: { item: Workshop }) => (
     <WorkshopCard item={item} onPress={openLink} />
@@ -223,26 +226,13 @@ export default function WorkshopList() {
 
       <SafeAreaView className="flex-1" edges={['top']}>
 
-        {/* Arena Header */}
-        <View className="px-gutter pt-2">
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-1">
-              <View className="flex-row items-center">
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  className="w-11 h-11 items-center justify-center rounded-xl"
-                  accessibilityRole="button"
-                  accessibilityLabel="Go back"
-                  style={{ marginLeft: -11 }}
-                >
-                  <Ionicons name="arrow-back" size={24} color={C.ink} />
-                </TouchableOpacity>
-                <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Workshop</Text>
-                <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
-              </View>
-              <Text className="text-ink-3 text-label font-display uppercase">Industry Masterclass Archive</Text>
-            </View>
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter mb-3">
+          <View className="flex-row items-center">
+            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Workshop</Text>
+            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Hub</Text>
           </View>
+          <Text className="text-ink-3 text-label font-display uppercase">Industry Masterclass Archive</Text>
         </View>
 
         {/* 🔍 Arena Search Dock */}
@@ -257,7 +247,7 @@ export default function WorkshopList() {
               className="flex-1 ml-3 text-ink text-sm font-display uppercase"
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-paper-2 p-1.5 rounded-xl">
+              <TouchableOpacity onPress={() => setSearchQuery("")} hitSlop={10} className="bg-paper-2 p-1.5 rounded-xl">
                 <Ionicons name="close" size={16} color={C.ink3} />
               </TouchableOpacity>
             )}
@@ -268,7 +258,7 @@ export default function WorkshopList() {
         <FlatList
           data={filteredWorkshops}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, index) => (item.id != null ? String(item.id) : `fallback-${index}`)}
           contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
           showsVerticalScrollIndicator={false}
           onEndReached={loadMore}

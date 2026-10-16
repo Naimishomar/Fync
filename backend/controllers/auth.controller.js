@@ -1045,12 +1045,17 @@ export const banUser = async (req, res) => {
     }
 
     if (isBanned) {
-        const userPosts = await mongoose.model('Post').find({ user: userId }).distinct('_id');
+        // Read before the deletes below: reports on this user's shorts go too,
+        // or the admin queue keeps rows pointing at content that no longer exists.
+        const [userPosts, userShorts] = await Promise.all([
+            mongoose.model('Post').find({ user: userId }).distinct('_id'),
+            mongoose.model('Shorts').find({ user: userId }).distinct('_id'),
+        ]);
         
         await Promise.all([
             mongoose.model('Post').deleteMany({ user: userId }),
             mongoose.model('Shorts').deleteMany({ user: userId }),
-            mongoose.model('Report').deleteMany({ $or: [{ reporter: userId }, { post: { $in: userPosts } }] }),
+            mongoose.model('Report').deleteMany({ $or: [{ reporter: userId }, { post: { $in: userPosts } }, { short: { $in: userShorts } }] }),
             mongoose.model('Comment').deleteMany({ user: userId }),
             mongoose.model('Notification').deleteMany({ $or: [{ recipient: userId }, { sender: userId }] }),
             User.findByIdAndDelete(userId)

@@ -46,6 +46,8 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
       setForm({ title: '', issuer: '', issueDate: '', expiryDate: '', credentialUrl: '', credentialId: '', category: 'other' });
       setExistingImage(null);
     }
+    // A photo picked for the previous certificate must not ride along with this one.
+    setImage(null);
   }, [initial, visible]);
 
   const pickImage = async () => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { fetchPopularMovies, fetchTrendingMovies, fetchUpcomingMovies, fetchBollywoodMovies, getImageUrl } from '../../utils/tmdb';
+import { fetchPopularMovies, fetchTrendingMovies, fetchUpcomingMovies, fetchBollywoodMovies, fetchMoviesByGenre } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 const numColumns = 3;
@@ -35,10 +36,9 @@ const GENRES = [
 const MovieList = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { title, type } = route.params;
+  const { title, type, genre } = route.params ?? {};
 
   const [movies, setMovies] = useState<any[]>([]);
-  const [filteredMovies, setFilteredMovies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedGenre, setSelectedGenre] = useState('all');
 
@@ -46,18 +46,16 @@ const MovieList = () => {
     loadMovies();
   }, []);
 
-  useEffect(() => {
-    if (selectedGenre === 'all') {
-      setFilteredMovies(movies);
-    } else {
-      setFilteredMovies(movies.filter(m => m.genre_ids?.includes(selectedGenre)));
-    }
-  }, [selectedGenre, movies]);
+  const filteredMovies = useMemo(
+    () => (selectedGenre === 'all' ? movies : movies.filter(m => m.genre_ids?.includes(selectedGenre))),
+    [selectedGenre, movies],
+  );
 
   const loadMovies = async () => {
     try {
       let data;
-      if (type === 'trending') data = await fetchTrendingMovies();
+      if (genre) data = await fetchMoviesByGenre(genre);
+      else if (type === 'trending') data = await fetchTrendingMovies();
       else if (type === 'popular') data = await fetchPopularMovies();
       else if (type === 'upcoming') data = await fetchUpcomingMovies();
       else if (type === 'bollywood') data = await fetchBollywoodMovies();
@@ -73,28 +71,15 @@ const MovieList = () => {
   return (
     <SafeAreaView className="flex-1 bg-ink">
       {/* Header */}
-      <View className="px-4 py-4 flex-row items-center justify-between">
-        <View className="flex-row items-center gap-4">
-          <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text className="text-white text-xl font-display">{title}</Text>
-        </View>
-        <TouchableOpacity onPress={() => navigation.navigate('MovieSearch')}>
-          <Ionicons name="search" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
+      <AppBar night title={title} onBack={() => navigation.goBack()}
+        right={<IconBtn name="search" size={24} color="white" onPress={() => navigation.navigate('MovieSearch')} />} />
 
-      {/* Genre Filters */}
-      <View className="mb-4">
+      {/* Genre Filters — pointless on a list that is already one genre. */}
+      {!genre && <View className="mb-4">
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16 }}
+          contentContainerStyle={{ paddingHorizontal: 20 }}
         >
           {GENRES.map((genre: any) => (
             <TouchableOpacity
@@ -108,7 +93,7 @@ const MovieList = () => {
             </TouchableOpacity>
           ))}
         </ScrollView>
-      </View>
+      </View>}
 
       {loading ? (
         <View className="flex-1 justify-center items-center">
@@ -119,7 +104,7 @@ const MovieList = () => {
           <FlatList
             data={filteredMovies}
             numColumns={numColumns}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => String(item.id)}
             contentContainerStyle={{ padding: SPACING }}
             renderItem={({ item }) => (
               <View style={{ margin: SPACING / 2 }}>
@@ -127,6 +112,7 @@ const MovieList = () => {
                   item={item}
                   width={cardWidth}
                   height={cardWidth * 1.5}
+                  marginRight={0}
                   onPress={() => navigation.navigate('MovieDetail', { movieId: item.id })}
                 />
               </View>

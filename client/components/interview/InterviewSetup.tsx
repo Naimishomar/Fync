@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Pressable, Modal} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import * as DocumentPicker from 'expo-document-picker';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
@@ -11,6 +11,7 @@ import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar, IconBtn } from '../ui/kit';
 
 export default function InterviewSetup() {
   const navigation = useNavigation<any>();
@@ -22,7 +23,20 @@ export default function InterviewSetup() {
   const [loading, setLoading] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
   const [html, setHtml] = useState("");
+  // Duration of a verified-but-unused payment. While set, starting needs no
+  // new payment — this is how a failed /start is retried.
+  const [paidDuration, setPaidDuration] = useState<number | null>(null);
   const { user } = useAuth();
+
+  useFocusEffect(useCallback(() => {
+    axios.get('/interview/credit')
+      .then((res) => {
+        const d = res.data?.credit?.duration ?? null;
+        setPaidDuration(d);
+        if (d) setDuration(d);
+      })
+      .catch(() => { /* no credit info: fall back to the normal pay flow */ });
+  }, []));
 
   const pickResume = async () => {
     try {
@@ -50,6 +64,12 @@ export default function InterviewSetup() {
       return;
     }
 
+    if (paidDuration) {
+      setLoading(true);
+      await finalSubmit();
+      return;
+    }
+
     setLoading(true);
     try {
       // 1. Create Order
@@ -72,9 +92,9 @@ export default function InterviewSetup() {
                   description: "${duration} Minute Mock Interview",
                   order_id: "${order.id}",
                   prefill: {
-                    name: "${user?.name || ''}",
-                    email: "${user?.email || ''}",
-                    contact: "${user?.mobileNumber || ''}"
+                    name: ${JSON.stringify(user?.name || '')},
+                    email: ${JSON.stringify(user?.email || '')},
+                    contact: ${JSON.stringify(String(user?.mobileNumber || ''))}
                   },
                   handler: function (response) {
                     window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -99,6 +119,10 @@ export default function InterviewSetup() {
         `;
         setHtml(razorpayHtml);
         setShowWebView(true);
+      } else {
+        // Left the button spinning forever before.
+        Toast.show({ type: 'error', text1: 'Payment initiation failed', text2: resOrder.data.message });
+        setLoading(false);
       }
     } catch (err: any) {
       Toast.show({ type: 'error', text1: 'Payment initiation failed', text2: err.message });
@@ -107,7 +131,8 @@ export default function InterviewSetup() {
   };
 
   const handleWebViewMessage = async (event: any) => {
-    const msg = JSON.parse(event.nativeEvent.data);
+    let msg: any = {};
+    try { msg = JSON.parse(event.nativeEvent.data); } catch { /* treated as not completed */ }
     setShowWebView(false);
 
     if (msg.event === "SUCCESS") {
@@ -121,6 +146,10 @@ export default function InterviewSetup() {
         });
 
         if (verifyRes.data.success) {
+          // Paid from here on: a failed start is retried, never re-paid.
+          const d = verifyRes.data.duration ?? duration;
+          setPaidDuration(d);
+          setDuration(d);
           // 3. Final Step: Start interview session
           await finalSubmit();
         } else {
@@ -157,14 +186,17 @@ export default function InterviewSetup() {
       });
 
       if (res.data.success) {
+        setPaidDuration(null);
         navigation.navigate('ActiveInterview', {
           sessionId: res.data.sessionId,
           firstQuestion: res.data.question,
-          duration: duration
+          duration: res.data.duration ?? duration
         });
+      } else {
+        Alert.alert("Couldn't start", "Your payment is saved. Tap Retry to try again.");
       }
     } catch (err: any) {
-      Toast.show({ type: 'error', text1: 'Setup failed', text2: err.message });
+      Alert.alert("Couldn't start", (err.response?.data?.message || err.message) + "\n\nYour payment is saved. Tap Retry to try again — you won't be charged again.");
     } finally {
       setLoading(false);
     }
@@ -179,23 +211,9 @@ export default function InterviewSetup() {
           className="flex-1"
         >
           {/* HEADER */}
-          <View className="flex-row items-center px-6 pt-4 mb-2">
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              className="w-11 h-11 items-center justify-center rounded-xl"
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-              <Ionicons name="chevron-back" size={24} color={C.ink2} />
-            </TouchableOpacity>
-            <Text className="text-ink text-3xl font-display">
-              AI <Text className="text-accent-text">INTERVIEW</Text>
-            </Text>
-          </View>
+          <AppBar title="AI Interview" onBack={() => navigation.goBack()} />
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} className="px-6">
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} className="px-5">
 
             <Text className="text-ink-3 mb-8 mt-2 text-sm leading-5">
               Configure your AI interviewer. Upload your resume and let the system tailor the technical questions to your profile.
@@ -240,6 +258,7 @@ export default function InterviewSetup() {
                         key={min}
                         activeOpacity={0.8}
                         onPress={() => setDuration(min)}
+                        disabled={!!paidDuration}
                         className={`flex-1 p-4 rounded-card items-center border transition-all ${duration === min ? 'bg-brand-50 border-brand-500' : 'bg-paper-2 border-line' }`}
                       >
                         <Text className={`font-display text-lg ${duration === min ? 'text-accent-text' : 'text-ink-3'}`}>
@@ -285,6 +304,11 @@ export default function InterviewSetup() {
 
             {/* Start Button */}
             <View className="mt-8">
+              {paidDuration ? (
+                <Text className="text-accent-text font-semibold text-xs mb-3 text-center">
+                  You have a paid {paidDuration}-min interview. No payment needed.
+                </Text>
+              ) : null}
               <TouchableOpacity
                 onPress={startSession}
                 disabled={loading}
@@ -299,7 +323,7 @@ export default function InterviewSetup() {
                   <ActivityIndicator color={C.ink} />
                 ) : (
                   <>
-                    <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Start Interview</Text>
+                    <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>{paidDuration ? 'Retry Start' : 'Start Interview'}</Text>
                     <Ionicons name="arrow-forward" size={16} color={C.ink} />
                   </>
                 )}
@@ -311,18 +335,25 @@ export default function InterviewSetup() {
       </SafeAreaView>
 
       {/* Razorpay WebView Modal */}
-      <Modal visible={showWebView} animationType="slide" transparent={false}>
+      <Modal
+        visible={showWebView}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => {
+          setShowWebView(false);
+          setLoading(false);
+          Alert.alert("Cancelled", "Payment was cancelled.");
+        }}
+      >
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-          <View className="flex-row items-center justify-between p-4 border-b border-line bg-card">
-            <Text className="text-ink font-display text-lg">Secure Checkout</Text>
-            <Pressable onPress={() => {
+          <AppBar
+            title="Secure Checkout"
+            right={<IconBtn name="close" onPress={() => {
               setShowWebView(false);
               setLoading(false);
               Alert.alert("Cancelled", "Payment was cancelled.");
-            }}>
-              <Ionicons name="close" size={24} color={C.ink2} />
-            </Pressable>
-          </View>
+            }} />}
+          />
           {html ? (
             <WebView
               source={{ html }}

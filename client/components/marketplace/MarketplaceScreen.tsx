@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, StatusBar, Modal, TextInput, KeyboardAvoidingView, ScrollView, RefreshControl, Animated, Pressable} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -11,6 +12,38 @@ import { Alert } from '../ui/AlertModal';
 
 import { StampCard } from '../ui/kit';
 import { C } from '../../constants/colors';
+// Outside the screen so a parent re-render doesn't remount it and restart the pulse.
+const ProductSkeleton = () => {
+    const pulseAnim = useRef(new Animated.Value(0.4)).current;
+
+    useEffect(() => {
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 0.8, duration: 1200, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 0.4, duration: 1200, useNativeDriver: true }),
+            ])
+        );
+        loop.start();
+        return () => loop.stop();
+    }, [pulseAnim]);
+
+    return (
+        <Animated.View
+            style={{ opacity: pulseAnim, width: '48%' }}
+            className="bg-card rounded-card overflow-hidden mb-4 border border-line"
+        >
+            <View className="bg-paper-2 w-full" style={{ aspectRatio: 1 }} />
+            <View className="px-3 pt-3 pb-4">
+                <View className="h-4 bg-paper-2 rounded w-3/4 self-center mb-4" />
+                <View className="flex-row items-center justify-between">
+                    <View className="h-3 bg-paper-2 rounded w-1/2" />
+                    <View className="h-7 bg-paper-2 rounded-xl w-14" />
+                </View>
+            </View>
+        </Animated.View>
+    );
+};
+
 const MarketplaceScreen = () => {
     const navigation = useNavigation<any>();
     const { user, setUser } = useAuth();
@@ -31,7 +64,7 @@ const MarketplaceScreen = () => {
         try {
             const res = await axios.get('/api/marketplace');
             if (res.data.success) {
-                setProducts(res.data.products);
+                setProducts(res.data.products || []);
             }
         } catch (error) {
             console.log("Error fetching products", error);
@@ -113,11 +146,11 @@ const MarketplaceScreen = () => {
                 className="bg-card rounded-xl overflow-hidden mb-5 border border-line shadow-hair"
             >
                 <View className="bg-paper-2 w-full items-center justify-center relative" style={{ aspectRatio: 1 }}>
-                    <Image
+                    <ExpoImage
                         source={{ uri: item.product_image }}
-                        style={{ width: '85%', height: '85%' }}
-                        resizeMode="contain"
-                        className='rounded-xl'
+                        style={{ width: '85%', height: '85%', borderRadius: 12 }}
+                        contentFit="contain"
+                        cachePolicy="memory-disk"
                     />
                     {!item.is_available && (
                         <View className="absolute inset-0 bg-ink/40 items-center justify-center">
@@ -154,35 +187,6 @@ const MarketplaceScreen = () => {
                     </TouchableOpacity>
                 </View>
             </Pressable>
-        );
-    };
-
-    const ProductSkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.4)).current;
-
-        useEffect(() => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.8, duration: 1200, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.4, duration: 1200, useNativeDriver: true }),
-                ])
-            ).start();
-        }, []);
-
-        return (
-            <Animated.View
-                style={{ opacity: pulseAnim, width: '48%' }}
-                className="bg-card rounded-card overflow-hidden mb-4 border border-line"
-            >
-                <View className="bg-paper-2 w-full" style={{ aspectRatio: 1 }} />
-                <View className="px-3 pt-3 pb-4">
-                    <View className="h-4 bg-paper-2 rounded w-3/4 self-center mb-4" />
-                    <View className="flex-row items-center justify-between">
-                        <View className="h-3 bg-paper-2 rounded w-1/2" />
-                        <View className="h-7 bg-paper-2 rounded-xl w-14" />
-                    </View>
-                </View>
-            </Animated.View>
         );
     };
 
@@ -246,7 +250,7 @@ const MarketplaceScreen = () => {
                 )}
 
                 {/* Checkout Modal (Bottom Sheet Style) */}
-                <Modal visible={buyModalVisible} animationType="slide" transparent={true}>
+                <Modal visible={buyModalVisible} animationType="slide" transparent={true} onRequestClose={() => setBuyModalVisible(false)}>
                     <View className="flex-1 justify-end bg-ink/60">
                         <TouchableOpacity activeOpacity={1} style={{ flex: 1 }} onPress={() => setBuyModalVisible(false)} />
 

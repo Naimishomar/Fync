@@ -32,7 +32,10 @@ export const CATALOG = {
       if (mins === 15) return RUPEES(7);
       throw new Error("Invalid duration");
     },
-    meta: ({ duration }) => ({ duration: Number(duration) }),
+    // `credit` marks orders created since /start began spending them. Older
+    // paid orders were already used by sessions that never recorded it, so
+    // without the marker every past purchase would read as an unused credit.
+    meta: ({ duration }) => ({ duration: Number(duration), credit: true }),
   },
 
   community_creation: {

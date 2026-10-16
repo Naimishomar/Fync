@@ -296,12 +296,16 @@ const TIER_SIZE = 0.05;
  *
  * @returns {{ items: Array, hasMore: boolean, mode: string }}
  */
-export function rankFeed({ candidates, seenIds = [], interestProfile, page = 1, limit = 10, seed = '' }) {
-    const seenSet = new Set(seenIds.map(String));
+export function rankFeed({ candidates, seenIds = [], isSeen, interestProfile, page = 1, limit = 10, seed = '' }) {
+    // `isSeen` (a Bloom filter from utils/bloom.js) wins over the legacy id list.
+    if (!isSeen) {
+        const seenSet = new Set(seenIds.map(String));
+        isSeen = (id) => seenSet.has(id);
+    }
     const keywords = interestProfile?.keywords || [];
 
     // ── Filter unseen ─────────────────────────────────────────
-    let pool = candidates.filter(item => !seenSet.has(item._id?.toString()));
+    let pool = candidates.filter(item => !isSeen(item._id?.toString()));
 
     let mode = 'fresh';
     if (pool.length === 0) {

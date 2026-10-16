@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, ActivityIndicator, TouchableOpacity, ScrollView, StatusBar, Image, Dimensions, Animated, Vibration} from 'react-native'
+import {View, Text, ActivityIndicator, TouchableOpacity, ScrollView, StatusBar, Dimensions, Animated, Vibration} from 'react-native'
+import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -11,6 +12,7 @@ import axios from '../../context/axiosConfig';
 import Avatar from '../Avatar';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { AppBar } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -33,12 +35,16 @@ const OneVsOneSetup = () => {
 
     // UI Animations
     const pulseAnim = useRef(new Animated.Value(1)).current;
+    // cancel_1v1_match races with the matcher, so a match can still arrive
+    // after the user aborted. Only act on it while we're actually searching.
+    const searchingRef = useRef(false);
+    searchingRef.current = searching;
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
                 const res = await axios.get('/quiz/arena-stats');
-                setStats(res.data);
+                setStats({ points: res.data?.points ?? 0, rank: res.data?.rank ?? 0 });
             } catch (err) {
                 console.log("Fetch Stats error:", err);
             }
@@ -47,7 +53,7 @@ const OneVsOneSetup = () => {
         const fetchLeaderboard = async () => {
             try {
                 const res = await axios.get('/quiz/top-gladiators');
-                setLeaderboard(res.data);
+                setLeaderboard(Array.isArray(res.data) ? res.data : []);
             } catch (err) {
                 console.log("Fetch Leaderboard error:", err);
             }
@@ -59,6 +65,7 @@ const OneVsOneSetup = () => {
 
     useEffect(() => {
         const onMatchFound = (data: any) => {
+            if (!searchingRef.current) return;
             const { matchRoomId, questions, opponent, endTime } = data;
             setSearching(false);
 
@@ -82,24 +89,47 @@ const OneVsOneSetup = () => {
             }
         };
 
+        // The server answers with "error" when matchmaking is down; without
+        // this the searching screen spun forever.
+        const onError = (msg: any) => {
+            if (!searchingRef.current) return;
+            setSearching(false);
+            Alert.alert("Arena Unavailable", typeof msg === 'string' ? msg : "Please try again later.");
+        };
+
         socket.on("match_found", onMatchFound);
+        socket.on("error", onError);
         return () => {
             socket.off("match_found", onMatchFound);
+            socket.off("error", onError);
         };
     }, []);
 
     useEffect(() => {
-        if (searching) {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 1.1, duration: 800, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true })
-                ])
-            ).start();
-        } else {
+        if (!searching) {
             pulseAnim.setValue(1);
+            return;
         }
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 1.1, duration: 800, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true })
+            ])
+        );
+        loop.start();
+        return () => loop.stop();
     }, [searching]);
+
+    // Leave the queue whenever searching ends (abort, match found — a no-op
+    // server-side then), the screen blurs, or it unmounts.
+    useEffect(() => {
+        if (!searching) return;
+        const unsubBlur = navigation.addListener('blur', () => setSearching(false));
+        return () => {
+            unsubBlur();
+            socket.emit("cancel_1v1_match", { domain });
+        };
+    }, [searching, domain, navigation]);
 
     const findMatch = () => {
         if (!user?._id) return Alert.alert("Join Fync", "Please register to participate in the Arena.");
@@ -151,25 +181,18 @@ const OneVsOneSetup = () => {
             <StatusBar barStyle="dark-content" />
 
             <SafeAreaView className="flex-1">
-                {/* Header Profile */}
-                <View className="px-gutter py-4 flex-row justify-between items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                        <Ionicons name="chevron-back" size={24} color={C.ink} />
-                    </TouchableOpacity>
-
+                <AppBar onBack={() => navigation.goBack()} right={
                     <TouchableOpacity
                         onPress={() => navigation.navigate("Profile", { userId: user?._id })}
                         className="flex-row items-center bg-card pr-4 pl-1 py-1 rounded-full border border-line shadow-hair"
+                        style={{ marginRight: 11 }}
                     >
                         <Avatar user={user as any} size={30} />
                         <View className="ml-2">
                             <Text className="text-ink text-label font-display uppercase">RANK #{stats.rank}</Text>
                         </View>
                     </TouchableOpacity>
-                </View>
+                } />
 
                 <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-gutter">
                     <View className="mt-6 mb-10">
@@ -212,12 +235,12 @@ const OneVsOneSetup = () => {
                         </View>
 
                         {leaderboard.slice(0, 5).map((player, index) => (
-                            <View key={player._id} className="bg-card p-4 rounded-card border border-line flex-row items-center mb-2 shadow-hair">
+                            <View key={player._id ?? index} className="bg-card p-4 rounded-card border border-line flex-row items-center mb-2 shadow-hair">
                                 <Text className={`w-8 font-display text-xs ${index === 0 ? 'text-warning' : 'text-ink-3'}`}>#{index + 1}</Text>
-                                <Image source={{ uri: player.avatar || `https://ui-avatars.com/api/?name=${player.username}` }} className="w-10 h-10 rounded-xl mr-3 border border-line" />
-                                <View className="flex-1">
-                                    <Text className="font-semibold text-base text-ink">{player.name || player.username}</Text>
-                                    <Text className="text-ink-3 text-label font-semibold uppercase">@{player.username}</Text>
+                                <Image source={{ uri: player.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(player.username || '')}` }} style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12, borderWidth: 1, borderColor: C.line }} cachePolicy="memory-disk" />
+                                <View className="flex-1" style={{ minWidth: 0 }}>
+                                    <Text className="font-semibold text-base text-ink" numberOfLines={1}>{player.name || player.username}</Text>
+                                    <Text className="text-ink-3 text-label font-semibold uppercase" numberOfLines={1}>@{player.username}</Text>
                                 </View>
                                 <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
                                     <Text className="text-accent-text font-display text-label uppercase">{player.oneVsOnePoints} PTS</Text>

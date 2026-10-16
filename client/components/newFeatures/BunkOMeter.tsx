@@ -5,7 +5,8 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard } from '../ui/kit';
+import { useNavigation } from '@react-navigation/native';
+import { AppBar, StampCard } from '../ui/kit';
 import { C } from '../../constants/colors';
 // --- 🌌 BACKGROUND IMAGE ---
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -15,6 +16,7 @@ export default function BunkOMeter() {
     const [total, setTotal] = useState('');
     const [targetInput, setTargetInput] = useState('');
     const [result, setResult] = useState<any>(null);
+    const navigation = useNavigation<any>();
 
     const calculateAttendance = () => {
         Keyboard.dismiss();
@@ -22,7 +24,7 @@ export default function BunkOMeter() {
         const held = parseInt(total);
         const target = parseFloat(targetInput) || 75;
 
-        if (isNaN(present) || isNaN(held) || held === 0) {
+        if (isNaN(present) || isNaN(held) || held <= 0 || present < 0) {
             Alert.alert("Invalid Input", "Please enter valid class numbers.");
             return;
         }
@@ -97,6 +99,7 @@ export default function BunkOMeter() {
             {/* HEADER DECORATION */}
 
             <SafeAreaView className="flex-1" edges={['top']}>
+                <AppBar onBack={() => navigation.goBack()} />
                 <KeyboardAvoidingView
                     behavior="padding"
                     className="flex-1"

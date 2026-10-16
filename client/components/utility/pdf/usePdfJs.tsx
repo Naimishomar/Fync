@@ -95,7 +95,12 @@ export function usePdfJs() {
   const run = useCallback(
     (b64: string, mode: 'pages' | 'text', scale = 1.5) =>
       new Promise<PdfJsResult>(async (resolve) => {
-        await ensure();
+        try {
+          await ensure();
+        } catch {
+          resolve({ kind: 'error', message: 'The PDF reader could not be loaded.' });
+          return;
+        }
         resolver.current = resolve;
         const fire = () => ref.current?.injectJavaScript(
           `window.__run(${JSON.stringify(b64)}, ${JSON.stringify(mode)}, ${scale}); true;`,
@@ -103,8 +108,15 @@ export function usePdfJs() {
         // the WebView may not have finished parsing 1.5MB of inlined library yet
         if (ready.current) fire();
         else {
-          const t = setInterval(() => { if (ready.current) { clearInterval(t); fire(); } }, 120);
-          setTimeout(() => clearInterval(t), 20000);
+          const t = setInterval(() => { if (ready.current) { clearInterval(t); clearTimeout(giveUp); fire(); } }, 120);
+          // Without this the caller's spinner waited forever on a WebView that never loaded.
+          const giveUp = setTimeout(() => {
+            clearInterval(t);
+            if (resolver.current === resolve) {
+              resolver.current = null;
+              resolve({ kind: 'error', message: 'The PDF reader did not start. Try again.' });
+            }
+          }, 20000);
         }
       }),
     [ensure],

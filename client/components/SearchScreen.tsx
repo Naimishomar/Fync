@@ -1,5 +1,5 @@
 import { View, Text, TextInput, FlatList, Image, ActivityIndicator, TouchableOpacity, StatusBar } from "react-native";
-import { useTabBarAutoHide } from '../constants/layout';
+import { useTabBarAutoHide, useTabBarClearance } from '../constants/layout';
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
@@ -8,6 +8,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Avatar from "./Avatar";
 import { C } from '../constants/colors';
+import { AppBar } from './ui/kit';
 
 interface User {
   _id: string;
@@ -19,6 +20,8 @@ interface User {
 
 const SearchScreen = () => {
   const autoHideTabBar = useTabBarAutoHide();
+  // Also mounted as the recruiter "Find Talent" tab, under the floating bar.
+  const tabBarClearance = useTabBarClearance();
   const navigation = useNavigation<any>();
   const [query, setQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
@@ -111,11 +114,11 @@ const SearchScreen = () => {
           size={34}
         />
 
-        <View className="ml-4">
-          <Text className="font-semibold text-base text-ink">
+        <View className="ml-4 flex-1" style={{ minWidth: 0 }}>
+          <Text className="font-semibold text-base text-ink" numberOfLines={1}>
             {item.username}
           </Text>
-          <Text className="font-sans text-sm text-ink-3">
+          <Text className="font-sans text-sm text-ink-3" numberOfLines={1}>
             {item.name}
           </Text>
         </View>
@@ -142,25 +145,13 @@ const SearchScreen = () => {
       <SafeAreaView className="flex-1" edges={['top']}>
 
         {/* Arena Header */}
-        <View className="px-gutter pt-4 bg-transparent">
-          <View className="flex-row items-center justify-between mb-5">
-            <View className="flex-1">
-              <View className="flex-row items-center">
-                <TouchableOpacity
-                  onPress={() => navigation.goBack()}
-                  className="w-11 h-11 items-center justify-center rounded-xl"
-                  accessibilityRole="button"
-                  accessibilityLabel="Go back"
-                  style={{ marginLeft: -11 }}
-                >
-                  <Ionicons name="arrow-back" size={24} color={C.ink} />
-                </TouchableOpacity>
-                <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
-                  Find <Text className="text-accent-text">Friends</Text>
-                </Text>
-              </View>
-              <Text className="font-display text-label text-ink-3 uppercase">Global Campus Directory</Text>
-            </View>
+        <AppBar onBack={() => navigation.goBack()} />
+        <View className="px-gutter bg-transparent">
+          <View className="mb-5">
+            <Text className="font-display text-ink uppercase text-display" style={{ letterSpacing: -1.2 }}>
+              Find <Text className="text-accent-text">Friends</Text>
+            </Text>
+            <Text className="font-display text-label text-ink-3 uppercase">Global Campus Directory</Text>
           </View>
 
           {/* SEARCH DOCK */}
@@ -192,13 +183,14 @@ const SearchScreen = () => {
             keyExtractor={(item) => item._id}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => renderUserItem({ item, isRecent: false })}
-            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
-            ListHeaderComponent={() => (
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: tabBarClearance }}
+            keyboardShouldPersistTaps="handled"
+            ListHeaderComponent={
               <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
                 <Text className="text-ink-3 text-label font-display uppercase">Registry results</Text>
                 <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
               </View>
-            )}
+            }
             ListEmptyComponent={
               !loading && searchResults.length === 0 ? (
                 <View className="items-center mt-12 px-gutter">
@@ -232,7 +224,8 @@ const SearchScreen = () => {
               keyExtractor={(item) => item._id}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => renderUserItem({ item, isRecent: true })}
-              contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+              contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: tabBarClearance }}
+              keyboardShouldPersistTaps="handled"
               ListEmptyComponent={
                 <View className="items-center mt-12 px-gutter">
                   <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">

@@ -7,6 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { checkClubStatus, formatCountdown } from '../../utils/nightClub';
 import { C } from '../../constants/colors';
+import { AppBar, GUTTER } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -63,23 +64,20 @@ export default function TwelveAMLockScreen() {
       <SafeAreaView className="flex-1 justify-between mx-gutter my-4">
         
         {/* --- HEADER --- */}
-        <View className="flex-row justify-between items-center mt-2">
-            <TouchableOpacity 
-                onPress={() => navigation.goBack()}
-                className="w-11 h-11 items-center justify-center rounded-xl"
-            
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-
-            <View className={`px-4 py-2 rounded-full border flex-row items-center ${ isOpen ? 'bg-success/20 border-success' : 'bg-card/10 border-white/10' }`}>
-              <View key={isOpen ? "live" : "offline"} className={`w-2 h-2 rounded-full mr-2 ${isOpen ? 'bg-success animate-pulse' : 'bg-ink-4'}`} />
+        {/* AppBar brings its own gutter; cancel the container's mx-gutter. */}
+        <View className="mt-2" style={{ marginHorizontal: -GUTTER }}>
+          <AppBar
+            night
+            onBack={() => navigation.goBack()}
+            right={
+              <View className={`px-4 py-2 rounded-full border flex-row items-center ${ isOpen ? 'bg-success/20 border-success' : 'bg-card/10 border-white/10' }`} style={{ marginRight: 11 }}>
+                <View key={isOpen ? "live" : "offline"} className={`w-2 h-2 rounded-full mr-2 ${isOpen ? 'bg-success animate-pulse' : 'bg-ink-4'}`} />
                 <Text className={`text-xs font-semibold ${isOpen ? 'text-violet' : 'text-night-3'}`}>
                     {isOpen ? 'LIVE' : 'OFFLINE'}
                 </Text>
-            </View>
+              </View>
+            }
+          />
         </View>
 
         {/* --- CENTER CONTENT (Timer) --- */}

@@ -10,7 +10,9 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Checkbox from 'expo-checkbox';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
@@ -23,6 +25,7 @@ import { C } from '../constants/colors';
 
 export default function AlumniSignup() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
 
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -104,7 +107,8 @@ export default function AlumniSignup() {
           positioned View wrapping an unbounded ScrollView — so it could not
           scroll and the keyboard simply covered the fields. */}
       <KeyboardAvoidingView
-        behavior="padding"
+        // Android already resizes the window for the keyboard; padding on top of that doubled the shift.
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
         className="bg-paper"
       >
@@ -119,7 +123,7 @@ export default function AlumniSignup() {
 
             <View
               className="bg-paper rounded-t-sheet px-6"
-              style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 }}
+              style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 + insets.bottom }}
             >
               <View style={{ width: 72, height: 72, alignSelf: 'center', marginTop: 18 }}>
                 <View
@@ -183,7 +187,7 @@ export default function AlumniSignup() {
 
                   <Pressable
                     className="bg-brand-500 py-4 items-center justify-center border-2 border-ink rounded-xl"
-                    style={{ minHeight: 52 }}
+                    style={{ minHeight: 52, opacity: !agreeTerms ? 0.5 : 1 }}
                     onPress={sendOtpToWorkEmail}
                     disabled={isLoading || !agreeTerms}
                   >

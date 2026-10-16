@@ -16,6 +16,7 @@ import { getFullUrl } from '../utils/imageUtils';
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import CommentsSheet from './ui/CommentsSheet';
+import { AppBar, IconBtn, Empty, Button } from './ui/kit';
 import RepostModal from './ui/RepostModal';
 import { C } from '../constants/colors';
 
@@ -53,7 +54,8 @@ const CommentItem = memo(({
         <View className="flex-row">
             <ExpoImage 
                 source={{ uri: getFullUrl(comment.commentor?.avatar) || 'https://ui-avatars.com/api/?name=User' }} 
-                className={`${isReply ? 'h-7 w-7' : 'h-9 w-9'} rounded-full mr-3 bg-paper-2`} 
+                // expo-image ignores className (not registered with NativeWind).
+                style={{ width: isReply ? 28 : 36, height: isReply ? 28 : 36, borderRadius: 999, marginRight: 12, backgroundColor: C.paper2 }}
                 cachePolicy="disk"
             />
             <View className="flex-1">
@@ -175,7 +177,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         // posted in the sheet shows up behind it.
         inlineRefreshRef.current?.();
     }, []);
-    const { postId, shortId } = route.params;
+    const { postId, shortId } = route.params ?? {};
     const isShort = !!shortId;
     const id = shortId || postId;
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -229,6 +231,22 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
     };
 
     const [menuVisible, setMenuVisible] = useState(false);
+    const reportingRef = useRef(false);
+    const reportContent = async () => {
+        if (reportingRef.current) return;
+        reportingRef.current = true;
+        try {
+            await axios.post(
+                isShort ? '/shorts/report' : '/post/report',
+                isShort ? { shortId: id, reason: 'Inappropriate content' } : { postId: id, reason: 'Inappropriate content' },
+            );
+            Toast.show({ type: 'success', text1: 'Reported. We will take a look.' });
+        } catch {
+            Toast.show({ type: 'error', text1: 'Could not send report', text2: 'Please try again.' });
+        } finally {
+            reportingRef.current = false;
+        }
+    };
     const [isEditing, setIsEditing] = useState(false);
     const [editDescription, setEditDescription] = useState('');
     /** The author's other posts and shorts, so the screen keeps going the way
@@ -362,7 +380,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         const previousCount = likeCount;
 
         setIsLiked(!isLiked);
-        setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+        setLikeCount(isLiked ? Math.max(0, likeCount - 1) : likeCount + 1);
 
         try {
             await axios.post(endpoints.like);
@@ -415,14 +433,31 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
     };
 
     if (loading) {
+        // Posts render on paper; a black flash before them reads as a glitch.
         return (
-            <View className="flex-1 bg-night justify-center items-center">
-                <ActivityIndicator size="large" color="#fff" />
+            <View className={`flex-1 justify-center items-center ${isShort ? 'bg-night' : 'bg-paper'}`}>
+                <ActivityIndicator size="large" color={isShort ? '#fff' : C.ink} />
             </View>
         );
     }
 
-    if (!data) return null;
+    // A failed load used to render nothing at all: a blank screen with no way back.
+    if (!data) {
+        return (
+            <SafeAreaView className="bg-paper flex-1">
+                <AppBar onBack={() => navigation.goBack()} />
+                <Empty
+                    icon="alert-circle-outline"
+                    title="Could not load this"
+                    hint="It may have been deleted, or the connection dropped."
+                    action={<Button title="Try again" onPress={loadData} />}
+                />
+            </SafeAreaView>
+        );
+    }
+
+    const title: string = data.title || '';
+    const description: string = data.description || '';
 
     // --- RENDER SHORT (Same UI as your Shorts.tsx) ---    // --- FINAL RENDER ---
     return (
@@ -474,17 +509,17 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             {/* Truncated Title & Description */}
                             <View className="mb-1">
                                 <Text className="text-white text-sm font-semibold shadow-hair">
-                                    {(!showFullText && data.title.length > 50) 
-                                        ? data.title.substring(0, 50) + "..." 
-                                        : data.title}
+                                    {(!showFullText && title.length > 50)
+                                        ? title.substring(0, 50) + "..."
+                                        : title}
                                 </Text>
                                 <Text className="text-ink-4 text-xs shadow-hair mt-1">
-                                    {(!showFullText && data.description.length > 50) 
-                                        ? data.description.substring(0, 50) + "..." 
-                                        : data.description}
+                                    {(!showFullText && description.length > 50)
+                                        ? description.substring(0, 50) + "..."
+                                        : description}
                                 </Text>
 
-                                {(data.title.length > 50 || data.description.length > 50) && (
+                                {(title.length > 50 || description.length > 50) && (
                                     <Pressable onPress={() => setShowFullText(!showFullText)} className="mt-1">
                                         <Text className="text-accent-text font-semibold text-label">
                                             {showFullText ? "SHOW LESS" : "SHOW MORE"}
@@ -517,22 +552,9 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             ) : (
                 /* --- POST VIEW --- */
                 <SafeAreaView className="bg-paper flex-1">
-                    <View className="flex-row items-center justify-between px-4 py-3">
-                        <View className="flex-row items-center gap-3">
-                            <Pressable onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}><Ionicons name="arrow-back" size={24} color="black" /></Pressable>
-                            <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data?.user })} className="flex-row items-center">
-                                <Avatar user={data.user as any} size={36} />
-                                <View className="ml-3">
-                                    <Text className="text-ink font-semibold text-sm">{data.user?.username}</Text>
-                                    {data.college && <Text className="text-ink-3 text-label uppercase">{data.college}</Text>}
-                                </View>
-                            </Pressable>
-                        </View>
-                        <Pressable onPress={() => {
+                    <AppBar
+                        onBack={() => navigation.goBack()}
+                        right={<IconBtn name="ellipsis-horizontal" size={20} color="gray" onPress={() => {
                             const isOwner = data.user?._id === currentUser?._id;
                             if (isOwner) {
                                 setMenuVisible(true);
@@ -558,8 +580,16 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     }
                                 ]);
                             }
-                        }}><Ionicons name="ellipsis-horizontal" size={20} color="gray" /></Pressable>
-                    </View>
+                        }} />}
+                    >
+                            <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data?.user })} className="flex-row items-center">
+                                <Avatar user={data.user as any} size={36} />
+                                <View className="ml-3">
+                                    <Text className="text-ink font-semibold text-sm">{data.user?.username}</Text>
+                                    {data.college && <Text className="text-ink-3 text-label uppercase">{data.college}</Text>}
+                                </View>
+                            </Pressable>
+                    </AppBar>
 
                     <ScrollView showsVerticalScrollIndicator={false}>
                         <View className="relative">
@@ -567,7 +597,8 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 data={data.image || []}
                                 horizontal pagingEnabled showsHorizontalScrollIndicator={false}
                                 keyExtractor={(item, index) => `${item}-${index}`}
-                                onScroll={(e) => setCurrentImageIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
+                                // Settled page only: setting state on every scroll frame re-rendered the whole screen mid-swipe.
+                                onMomentumScrollEnd={(e) => setCurrentImageIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
                                 renderItem={({ item }) => (
                                     <Pressable onPress={() => setResizeMode(prev => !prev)}>
                                         <ExpoImage source={{ uri: getFullUrl(item) || '' }} style={{ width: width, height: width }} contentFit={resizeMode ? "contain" : "cover"} cachePolicy="disk" transition={300} />
@@ -624,7 +655,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             {/* INLINE COMMENTS FOR POSTS */}
                             <View className="border-t-2 border-ink pt-4 mt-2">
                                 <Text className="text-ink font-semibold text-sm mb-4">Comments ({commentCount})</Text>
-                                {inlineCommentsLoading ? (
+                                {inlineCommentsLoading && inlineComments.length === 0 ? (
                                     <ActivityIndicator size="small" color={C.ink} />
                                 ) : inlineComments.length > 0 ? (
                                     inlineComments.map(comment => (
@@ -803,7 +834,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 destructive
                                 onPress={() => {
                                     setMenuVisible(false);
-                                    Toast.show({ type: 'success', text1: 'Reported. We will take a look.' });
+                                    reportContent();
                                 }}
                             />
                         )}
@@ -821,7 +852,12 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 </View>
             </Modal>
 
-            <Modal visible={isEditing} transparent animationType="slide">
+            <Modal
+                visible={isEditing}
+                transparent
+                animationType="slide"
+                onRequestClose={() => { if (!isUpdating) { setIsEditing(false); setNewVideo(null); setNewImages([]); } }}
+            >
                 <KeyboardAvoidingView behavior="padding" className="flex-1" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
                     <View className="flex-1" />
                     <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-6">
