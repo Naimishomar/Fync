@@ -7,6 +7,7 @@ import { deleteFromR2 } from "../../utils/r2.js";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
 import PaymentOrder from "../../models/paymentOrder.model.js";
+import { findOpenOrder } from "../../utils/redeemOrder.js";
 import { istDayStart } from "../../utils/eventTime.js";
 dotenv.config({ quiet: true });
 
@@ -229,48 +230,59 @@ export const registerSpeakerSession = async(req,res)=>{
             return res.status(400).json({ success: false, message: "Organizers have full access and do not need to register." });
         }
 
-        // Check participation limit
-        const registeredCount = await RegisterSpeakerSession.countDocuments({ eventId: session._id });
-        if (session.userLimit && registeredCount >= session.userLimit) {
-            return res.status(400).json({ success: false, message: "Participation limit reached for this session" });
-        }
-
         if (session.isCollegeSpecific && session.college !== req.user.college) {
             return res.status(403).json({ success: false, message: `This event is restricted to ${session.college} students` });
         }
 
-        const existingRegistration = await RegisterSpeakerSession.findOne({ 
+        let registration = await RegisterSpeakerSession.findOne({ 
             eventId: session._id, 
             userId: req.user.id 
         });
 
-        if (existingRegistration) {
-            if (existingRegistration.isPaid) {
-                return res.status(400).json({ success: false, message: "You are already registered for this session" });
-            }
-            // Payment was never completed. Delete and start fresh so the user can re-register.
-            await RegisterSpeakerSession.deleteOne({ _id: existingRegistration._id });
+        if (registration?.isPaid) {
+            return res.status(400).json({ success: false, message: "You are already registered for this session" });
         }
 
-        let registration = await RegisterSpeakerSession.create({
-            eventId: session._id,
-            userId: req.user.id,
-            isPaid: session.fee === 0 ? true : false,
-            qrCode: "pending" // Placeholder
-        })
+        // An unpaid registration is resumed, not deleted: its order may still be
+        // paid, and deleting it left that payment with nothing to unlock.
+        if (!registration) {
+            // Check participation limit
+            const registeredCount = await RegisterSpeakerSession.countDocuments({ eventId: session._id });
+            if (session.userLimit && registeredCount >= session.userLimit) {
+                return res.status(400).json({ success: false, message: "Participation limit reached for this session" });
+            }
 
-        const qrData = JSON.stringify({
-            registrationId: registration._id,
-            eventId: session.eventId,
-            email: req.user.email,
-        });
-        const qrCode = await QRCode.toDataURL(qrData);
-        
-        registration.qrCode = qrCode;
+            registration = await RegisterSpeakerSession.create({
+                eventId: session._id,
+                userId: req.user.id,
+                isPaid: session.fee === 0 ? true : false,
+                qrCode: "pending" // Placeholder
+            })
+        } else if (session.fee === 0) {
+            // The organiser made it free since.
+            registration.isPaid = true;
+        }
+
+        if (!registration.qrCode || registration.qrCode === "pending") {
+            registration.qrCode = await QRCode.toDataURL(JSON.stringify({
+                registrationId: registration._id,
+                eventId: session.eventId,
+                email: req.user.email,
+            }));
+        }
         await registration.save();
 
         let order = null;
-        if (session.fee > 0) {
+        if (!registration.isPaid && session.fee > 0) {
+            order = await findOpenOrder({
+                purpose: 'speaker_session', userId: req.user.id,
+                registrationId: registration._id, amount: session.fee * 100,
+            });
+            if (order?.status === 'paid') {
+                return res.status(409).json({ success: false, message: "Your payment is being confirmed. Check My Tickets in a minute." });
+            }
+        }
+        if (!order && !registration.isPaid && session.fee > 0) {
             const options = {
                 amount: session.fee * 100,
                 currency: "INR",
@@ -296,10 +308,14 @@ export const registerSpeakerSession = async(req,res)=>{
             });
         }
 
+        // The pass is only handed out once it is paid for.
+        const out = registration.toObject();
+        if (!registration.isPaid) delete out.qrCode;
+
         return res.status(200).json({ 
             success: true, 
             message: "Registered for speaker session successfully", 
-            registration, 
+            registration: out, 
             order,
             admin_upi_id: session.admin_upi_id, 
             fee: session.fee 
@@ -694,6 +710,9 @@ export const markAttendance = async (req, res) => {
 
         if (!isAuthorized) {
             return res.status(403).json({ success: false, message: "Unauthorized to mark attendance for this event" });
+        }
+        if (!registration.isPaid && session.fee > 0) {
+            return res.status(402).json({ success: false, message: "This pass has not been paid for" });
         }
 
         // Time Validation Check - ONLY for NON-ADMINS (Wait, admins are the ones SCANNING)

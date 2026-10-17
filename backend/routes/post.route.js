@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPost, updatePost, getPosts, deletePost, likePost, votePost, addComment, deleteComment, updateComment, getComments, getFeed, getFollowingPosts, getPostsByUserId, getPostByPostId, getSmartFeed, reportPost, getReports, adminDeletePost } from '../controllers/post.controller.js';
+import { createPost, updatePost, getPosts, deletePost, likePost, votePost, addComment, deleteComment, updateComment, getComments, getFeed, getFollowingPosts, getPostsByUserId, getPostByPostId, getSmartFeed, reportPost, getReports, adminDeletePost, resolveReport } from '../controllers/post.controller.js';
 import { authMiddleware, isAdmin } from '../middlewares/auth.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
 import { createLimiter, feedLimiter } from '../middlewares/rateLimit.middleware.js';
@@ -44,6 +44,7 @@ router.post('/:id/tag/respond', authMiddleware, respondToTag);
 router.get('/tags/pending', authMiddleware, getPendingTags);
 router.get('/tags/user/:userId', authMiddleware, getTaggedPosts);
 router.get('/admin/reports', authMiddleware, isAdmin, getReports);
+router.patch('/admin/reports/:id', authMiddleware, isAdmin, resolveReport);
 router.post('/admin/delete-post', authMiddleware, isAdmin, adminDeletePost);
 
 

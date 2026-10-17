@@ -8,6 +8,7 @@ import { redeemInterviewOrder, findInterviewCredit, claimInterviewCredit, releas
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import InterviewSession from "../models/interview.model.js";
+import mongoose from "mongoose";
 import { deleteFromR2 } from "../utils/r2.js";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
@@ -183,14 +184,31 @@ export const getInterviewCredit = async (req, res) => {
     }
 };
 
+// Only the owner's live session, so one paid session cannot be driven (or
+// ended, or cancelled) by anyone else, or kept talking after its paid time.
+const ANSWER_GRACE_MS = 3 * 60 * 1000;
+const findActiveSession = (sessionId, userId) =>
+    mongoose.isValidObjectId(sessionId)
+        ? InterviewSession.findOne({ _id: sessionId, user: userId, status: "active" })
+        : null;
+const sessionOver = (session) =>
+    Date.now() > new Date(session.createdAt).getTime() + (session.duration || 10) * 60000 + ANSWER_GRACE_MS;
+
 export const processAnswer = async (req, res) => {
     try {
         const { sessionId } = req.body;
 
-        const session = await InterviewSession.findById(sessionId);
-
         if (!req.file) {
             return res.status(400).json({ message: "Audio required" });
+        }
+
+        const session = await findActiveSession(sessionId, req.user.id);
+        if (!session || sessionOver(session)) {
+            // The clip is already in R2; nothing will ever reference it.
+            deleteFromR2(req.file.path).catch(() => {});
+            return session
+                ? res.status(410).json({ success: false, message: "Interview time is over" })
+                : res.status(404).json({ success: false, message: "Session not found" });
         }
 
         let userText = "(audio unclear)";
@@ -338,7 +356,7 @@ export const endInterview = async (req, res) => {
     try {
         const { sessionId } = req.body;
 
-        const session = await InterviewSession.findById(sessionId);
+        const session = await findActiveSession(sessionId, req.user.id);
 
         if (!session) {
             return res.status(404).json({ message: "Session not found" });
@@ -389,7 +407,7 @@ summary
 export const cancelInterview = async (req, res) => {
     try {
         const { sessionId } = req.body;
-        const session = await InterviewSession.findById(sessionId);
+        const session = await findActiveSession(sessionId, req.user.id);
 
         if (session) {
             await deleteInterviewAssets(session);

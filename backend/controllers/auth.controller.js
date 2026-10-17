@@ -2,12 +2,14 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import User from '../models/user.model.js';
-import redisClient from '../utils/redis.js';
+import User, { PUBLIC_PROFILE_FIELDS } from '../models/user.model.js';
+import redisClient, { cacheGet, cacheSet } from '../utils/redis.js';
 import { filterBusy } from '../utils/callState.js';
 import jwt from 'jsonwebtoken';
 import { customAlphabet } from 'nanoid';
-import sendMail from '../utils/emailOtp.js';
+import sendMail, { isValidEmail } from '../utils/emailOtp.js';
+import { escapeRegExp } from '../utils/escapeRegExp.js';
+import { isOtpLocked, recordOtpFail, clearOtpFails } from '../middlewares/otpLimiter.js';
 import OTP from '../models/otp.model.js';
 import Notification from '../models/notification.model.js';
 import Post from '../models/post.model.js';
@@ -28,7 +30,50 @@ const sanitizeUser = (user) => {
   return obj;
 };
 
-const escapeRegExp = (str = '') => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// What a followers/following row needs: the list renders avatar, username and
+// name, and `followers` drives the Follow/Following button.
+const FOLLOW_LIST_FIELDS = 'name username avatar college year user_access followers';
+
+// ─── Email verification proof ────────────────────────────────────────────────
+// verify-*-otp used to answer only {success:true}, and register* never checked
+// that anything had been verified, so anyone could register any address by
+// skipping the OTP screens. Verifying now hands back a short-lived signed proof
+// bound to the email, and register* check it.
+const EMAIL_PROOF_PURPOSE = 'email-verified';
+
+export const signEmailProof = (email) =>
+  jwt.sign({ purpose: EMAIL_PROOF_PURPOSE, email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+// null when the request may register `email`, else the reason it may not.
+// ALLOW_UNVERIFIED_REGISTER defaults on so installed apps (which do not send the
+// proof yet) keep working; set it to 'false' once the new app has shipped.
+export const checkEmailProof = (token, email) => {
+  if (!token) {
+    if (process.env.ALLOW_UNVERIFIED_REGISTER === 'false') return 'Please verify your email first';
+    console.warn('register without verificationToken (allowed: ALLOW_UNVERIFIED_REGISTER is not false)');
+    return null;
+  }
+  try {
+    const p = jwt.verify(String(token), process.env.JWT_SECRET);
+    if (p.purpose === EMAIL_PROOF_PURPOSE && p.email === String(email || '').toLowerCase().trim()) return null;
+  } catch {
+    // Expired or forged: same answer as a mismatch.
+  }
+  return 'Email verification expired, please verify again';
+};
+
+// Shared by every verify-*-otp: per-email lockout, single use.
+const consumeOtp = async (email, otp, purpose) => {
+  if (await isOtpLocked(email)) return 'Too many wrong codes. Try again in 15 minutes.';
+  const otpDoc = await OTP.findOne({ email, otp, purpose });
+  if (!otpDoc) {
+    await recordOtpFail(email);
+    return 'Invalid or expired OTP';
+  }
+  await OTP.deleteMany({ email, purpose });
+  await clearOtpFails(email);
+  return null;
+};
 
 export const sendOTP = async (req, res) => {
   try {
@@ -38,11 +83,13 @@ export const sendOTP = async (req, res) => {
     if (mobileNumber) mobileNumber = mobileNumber.trim();
 
     if (!email || !username || !mobileNumber) {
-      console.log(`DEBUG: Missing fields - email: ${!!email}, username: ${!!username}, mobileNumber: ${!!mobileNumber}`);
       return res.status(400).json({
         success: false,
         message: "Email & username or mobile number are required"
       });
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: "Enter a valid email address" });
     }
     const existingUser = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }] });
     if (existingUser) {
@@ -63,7 +110,6 @@ export const sendOTP = async (req, res) => {
       otp,
       purpose: "register"
     });
-    console.log(`DEBUG: OTP created in DB for ${email}`);
     await sendMail(email, otp, username);
     return res.status(200).json({
       success: true,
@@ -81,7 +127,6 @@ export const sendOTP = async (req, res) => {
 
 export const sendAlumniOTP = async (req, res) => {
   try {
-    console.log("DEBUG: sendAlumniOTP body:", req.body);
     let { email, username } = req.body;
     if (email) email = email.toLowerCase().trim();
     if (username) username = username.trim();
@@ -91,6 +136,9 @@ export const sendAlumniOTP = async (req, res) => {
         success: false,
         message: "Work email and username are required"
       });
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: "Enter a valid email address" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -110,7 +158,6 @@ export const sendAlumniOTP = async (req, res) => {
       otp,
       purpose: "alumni-register"
     });
-    console.log(`DEBUG: Alumni OTP created in DB for ${email}`);
     await sendMail(email, otp, username);
 
     return res.status(200).json({
@@ -138,17 +185,14 @@ export const verifyAlumniOTP = async (req, res) => {
         message: "Email and OTP are required"
       });
     }
-    const otpDoc = await OTP.findOne({ email, otp, purpose: "alumni-register" });
-    if (!otpDoc) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired OTP"
-      });
+    const failure = await consumeOtp(email, otp, "alumni-register");
+    if (failure) {
+      return res.status(400).json({ success: false, message: failure });
     }
-    await OTP.deleteMany({ email, purpose: "alumni-register" });
     return res.status(200).json({
       success: true,
-      message: "Work email verified successfully"
+      message: "Work email verified successfully",
+      verificationToken: signEmailProof(email)
     });
   } catch (error) {
     console.error("Verify Alumni OTP Error:", error);
@@ -170,6 +214,10 @@ export const sendRecruiterOTP = async (req, res) => {
         success: false,
         message: "Work email and username are required"
       });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: "Enter a valid email address" });
     }
 
     // Work Email Domain Validation
@@ -227,17 +275,14 @@ export const verifyRecruiterOTP = async (req, res) => {
         message: "Email and OTP are required"
       });
     }
-    const otpDoc = await OTP.findOne({ email, otp, purpose: "recruiter-register" });
-    if (!otpDoc) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired OTP"
-      });
+    const failure = await consumeOtp(email, otp, "recruiter-register");
+    if (failure) {
+      return res.status(400).json({ success: false, message: failure });
     }
-    await OTP.deleteMany({ email, purpose: "recruiter-register" });
     return res.status(200).json({
       success: true,
-      message: "Work email verified successfully"
+      message: "Work email verified successfully",
+      verificationToken: signEmailProof(email)
     });
   } catch (error) {
     console.error("Verify Recruiter OTP Error:", error);
@@ -250,24 +295,25 @@ export const verifyRecruiterOTP = async (req, res) => {
 
 export const verifyEmailOTP = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    let { email, otp } = req.body;
+    if (email) email = String(email).toLowerCase().trim();
+    if (otp) otp = String(otp).trim();
     if (!email || !otp) {
       return res.status(400).json({
         success: false,
         message: "Email and OTP are required"
       });
     }
-    const otpDoc = await OTP.findOne({ email, otp });
-    if (!otpDoc) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired OTP"
-      });
+    // sendOTP stores the email lowercased with purpose "register"; this looked
+    // up the raw email with no purpose.
+    const failure = await consumeOtp(email, otp, "register");
+    if (failure) {
+      return res.status(400).json({ success: false, message: failure });
     }
-    await OTP.deleteMany({ email });
     return res.status(200).json({
       success: true,
-      message: "OTP verified successfully"
+      message: "OTP verified successfully",
+      verificationToken: signEmailProof(email)
     });
   } catch (error) {
     console.error("Verify OTP Error:", error);
@@ -306,6 +352,10 @@ export const register = async (req, res) => {
 
     if (!email || !username || !mobileNumber || !password || !name || !dob || !college || !year || !gender || !major) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+    const proofError = checkEmailProof(req.body.verificationToken, email);
+    if (proofError) {
+      return res.status(403).json({ success: false, message: proofError });
     }
     const existing = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }] });
     if (existing) {
@@ -354,6 +404,10 @@ export const registerAlumni = async (req, res) => {
     if (!email || !username || !mobileNumber || !password || !name || !college || !graduationYear || !company || !role || !experienceLevel) {
       return res.status(400).json({ success: false, message: "Missing required alumni fields" });
     }
+    const proofError = checkEmailProof(req.body.verificationToken, email);
+    if (proofError) {
+      return res.status(403).json({ success: false, message: proofError });
+    }
 
     const existing = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }] });
     if (existing) {
@@ -379,8 +433,8 @@ export const registerAlumni = async (req, res) => {
       domains: domains || [],
       linkedIn: linkedIn || null, 
       user_access: 'alumni',
-      isVerifiedAlumni: true,
-      is_subscribed: true,
+      // Not set here: a verified work email is not a verified alumnus, and
+      // is_subscribed is only ever earned through a payment.
       deviceId: deviceId || null,
       deviceModel: deviceModel || "another device",
       avatar: req.file?.path || ""
@@ -410,10 +464,12 @@ export const registerRecruiter = async (req, res) => {
     if (username) username = username.trim();
     if (professionalEmail) professionalEmail = professionalEmail.toLowerCase().trim();
 
-    console.log("DEBUG: Incoming Recruiter payload:", { email, username, mobileNumber });
-
     if (!email || !username || !mobileNumber || !password || !name || !company || !role || !professionalEmail) {
       return res.status(400).json({ success: false, message: "Missing required recruiter fields" });
+    }
+    const proofError = checkEmailProof(req.body.verificationToken, email);
+    if (proofError) {
+      return res.status(403).json({ success: false, message: proofError });
     }
 
     const existing = await User.findOne({ $or: [{ email }, { username }, { mobileNumber }] });
@@ -437,12 +493,10 @@ export const registerRecruiter = async (req, res) => {
       companySize: companySize || null,
       linkedIn: linkedIn || null, 
       user_access: 'recruiter',
-      is_subscribed: true,
+      // No is_subscribed: recruiters get access by role (getSubscriptionStatus).
       deviceId: deviceId || null,
       deviceModel: deviceModel || "another device"
     });
-
-    console.log("DEBUG: Recruiter Created Successfully:", newUser.email);
 
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
     return res.status(200).json({ success: true, message: "Recruiter registered successfully", token, user: sanitizeUser(newUser) });
@@ -454,6 +508,17 @@ export const registerRecruiter = async (req, res) => {
     });
   }
 };
+
+// Students are held to one device; these roles (and so the web app) may be
+// signed in on several at once.
+const isDeviceBound = (user) => !['recruiter', 'alumni', 'admin'].includes(user.user_access);
+
+// Password reset revokes refresh tokens issued before it. Kept in Redis because
+// non-device-bound accounts have no single stored token to clear.
+// ponytail: Redis down = reset does not revoke those sessions; move to a
+// tokenVersion field on User if that matters.
+const REFRESH_TTL_SECONDS = 7 * 24 * 3600;
+const refreshEpochKey = (id) => `refresh_epoch:${id}`;
 
 export const login = async (req, res) => {
   try {
@@ -468,7 +533,7 @@ export const login = async (req, res) => {
         { mobileNumber: email },
         { professionalEmail: { $regex: new RegExp("^" + escape + "$", "i") } }
       ]
-    });
+    }).select('+password');
     if (!user) {
       return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
@@ -478,7 +543,7 @@ export const login = async (req, res) => {
     }
 
     // STRICT DEVICE BINDING CHECK (Exempt recruiters, alumni, and admin)
-    if (user.user_access !== 'recruiter' && user.user_access !== 'alumni' && user.user_access !== 'admin' && user.deviceId) {
+    if (isDeviceBound(user) && user.deviceId) {
       if (!deviceId || user.deviceId !== deviceId) {
         return res.status(400).json({
           success: false,
@@ -723,7 +788,12 @@ export const getUserProfile = async (req, res) => {
     if (!id) {
       return res.status(400).json({ success: false, message: 'Missing user identifier' });
     }
-    let user = await User.findById(id);
+    // Anyone but the owner gets the public allow-list. This used to return the
+    // whole document: email, phone, dob, push tokens, addresses, UPI id.
+    const isOwner = String(req.user?.id) === String(id);
+    const query = User.findById(id);
+    if (!isOwner) query.select(PUBLIC_PROFILE_FIELDS);
+    let user = await query;
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
@@ -756,7 +826,8 @@ export const followUser = async (req, res) => {
     );
     const isNewFollow = edge.modifiedCount > 0;
 
-    const targetUser = await User.findById(targetUserId);
+    // Projected: this is echoed back to the follower.
+    const targetUser = await User.findById(targetUserId).select(FOLLOW_LIST_FIELDS);
     if (!targetUser) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
@@ -799,7 +870,7 @@ export const unfollowUser = async (req, res) => {
       targetUserId,
       { $pull: { followers: currentUserId } },
       { new: true }
-    );
+    ).select(FOLLOW_LIST_FIELDS);
     if (!targetUser) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
@@ -830,7 +901,7 @@ export const unfollowUser = async (req, res) => {
 
 export const getFollowers = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate('followers', '-password');
+    const user = await User.findById(req.params.id).populate('followers', FOLLOW_LIST_FIELDS);
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
     return res.status(200).json({ success: true, followers: user.followers });
@@ -842,7 +913,7 @@ export const getFollowers = async (req, res) => {
 
 export const getFollowing = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate('following', '-password');
+    const user = await User.findById(req.params.id).populate('following', FOLLOW_LIST_FIELDS);
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
     return res.status(200).json({ success: true, following: user.following });
@@ -878,8 +949,15 @@ export const refreshToken = async (req, res) => {
       return res.status(401).json({ success: false });
     }
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user) {
+    const user = await User.findById(decoded.id).select('+refreshToken');
+    // Device-bound (student) accounts: only the token issued at the latest
+    // login is live. Logout, a password reset or a login elsewhere
+    // clears/replaces it, and the old one dies here instead of minting access
+    // tokens for its full 7 days. Other roles keep every device signed in;
+    // only a password reset (refresh epoch) ends their sessions.
+    const epoch = user && !isDeviceBound(user) ? Number(await cacheGet(refreshEpochKey(user._id))) : 0;
+    if (!user || user.isBanned ||
+        (isDeviceBound(user) ? user.refreshToken !== refreshToken : decoded.iat <= epoch)) {
       return res.status(401).json({
         success: false,
         message: "Logged in on another device",
@@ -900,9 +978,12 @@ export const resetPassword = async (req, res) => {
     if (!email) {
       return res.status(400).json({ success: false, message: "Email is required" });
     }
+    // Same answer whether or not the account exists, so this cannot be used to
+    // check who is registered.
+    const sent = { success: true, message: "If an account exists for this email, an OTP has been sent" };
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(200).json(sent);
     }
     await OTP.deleteMany({ email, purpose: "reset-password" });
     const otp = customAlphabet("1234567890", 6)();
@@ -913,7 +994,7 @@ export const resetPassword = async (req, res) => {
       otp: hashedOtp,
       purpose: "reset-password"
     });
-    return res.status(200).json({ success: true, message: "OTP sent successfully" });
+    return res.status(200).json(sent);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -922,27 +1003,37 @@ export const resetPassword = async (req, res) => {
 
 export const verifyResetPassword = async (req, res) => {
   try {
-    const { email, otp, password } = req.body;
+    let { email, otp, password } = req.body;
+    if (email) email = String(email).toLowerCase().trim();
     if (!email || !otp || !password) {
       return res.status(400).json({ success: false, message: "Email, OTP and password are required" });
     }
     if (password.length < 5) {
       return res.status(400).json({ success: false, message: "Password must be at least 5 characters long" });
     }
+    if (await isOtpLocked(email)) {
+      return res.status(429).json({ success: false, message: "Too many wrong codes. Try again in 15 minutes." });
+    }
     const otpDoc = await OTP.findOne({ email, purpose: "reset-password" });
     if (!otpDoc) {
+      await recordOtpFail(email);
       return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
     }
-    const isValidOtp = await bcrypt.compare(otp, otpDoc.otp);
+    const isValidOtp = await bcrypt.compare(String(otp), otpDoc.otp);
     if (!isValidOtp) {
+      await recordOtpFail(email);
       return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    await User.findOneAndUpdate(
+    // A reset is what you do when someone else may have your password, so it
+    // also ends every existing session.
+    const reset = await User.findOneAndUpdate(
       { email },
-      { password: hashedPassword }
+      { password: hashedPassword, refreshToken: null }
     );
+    if (reset) await cacheSet(refreshEpochKey(reset._id), REFRESH_TTL_SECONDS, String(Math.floor(Date.now() / 1000)));
     await OTP.deleteMany({ email, purpose: "reset-password" });
+    await clearOtpFails(email);
     return res.status(200).json({ success: true, message: "Password reset successfully" });
   } catch (error) {
     console.error(error);
@@ -1011,7 +1102,8 @@ export const getUsersForAdmin = async (req, res) => {
         return res.status(200).json({ success: true, users: [] });
     }
 
-    const query = { $or: [{ name: { $regex: search, $options: "i" } }, { username: { $regex: search, $options: "i" } }, { email: { $regex: search, $options: "i" } }] };
+    const safe = escapeRegExp(search.trim());
+    const query = { $or: [{ name: { $regex: safe, $options: "i" } }, { username: { $regex: safe, $options: "i" } }, { email: { $regex: safe, $options: "i" } }] };
     
     const users = await User.find(query)
       .select('name username email avatar isBanned user_access createdAt')
@@ -1021,6 +1113,74 @@ export const getUsersForAdmin = async (req, res) => {
     return res.status(200).json({ success: true, users });
   } catch (error) {
     console.error("Get Users Admin Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// Removes a user and what they made. Shared by an admin ban and by the owner
+// deleting their own account (Play Store requirement), so both stay complete.
+// findByIdAndDelete (not deleteOne) so the model hook drops the auth cache and
+// a still-valid access token stops working at once.
+// ponytail: chats (Supabase), projects/certs, interviews, marketplace and
+// community rows are not swept yet; add them here when they need to go.
+//
+// selfDelete keeps reports filed *against* the user (and their content): a
+// user deleting their account must not wipe the evidence. Only the reports
+// they filed go. An admin ban has already acted on them, so it clears all.
+export const purgeUser = async (user, { selfDelete = false } = {}) => {
+    const userId = user._id;
+    // Read before the deletes below: reports on this user's shorts go too,
+    // or the admin queue keeps rows pointing at content that no longer exists.
+    const [userPosts, userShorts] = await Promise.all([
+        mongoose.model('Post').find({ user: userId }).distinct('_id'),
+        mongoose.model('Shorts').find({ user: userId }).distinct('_id'),
+    ]);
+    const reports = selfDelete
+        ? { reporter: userId }
+        : { $or: [{ reporter: userId }, { targetUser: userId }, { post: { $in: userPosts } }, { short: { $in: userShorts } }] };
+
+    // Content first, the User last: if any of these fails the account still
+    // exists and the delete can simply be retried.
+    await Promise.all([
+        mongoose.model('Post').deleteMany({ user: userId }),
+        mongoose.model('Shorts').deleteMany({ user: userId }),
+        mongoose.model('Report').deleteMany(reports),
+        // The author field is `commentor`; this filtered on `user`, which does
+        // not exist, so it never deleted a single comment. Also sweeps the
+        // threads under the posts/shorts being deleted.
+        // ponytail: comment counters on other people's posts are not decremented.
+        mongoose.model('Comment').deleteMany({ $or: [{ commentor: userId }, { post: { $in: [...userPosts, ...userShorts] } }] }),
+        mongoose.model('Notification').deleteMany({ $or: [{ recipient: userId }, { sender: userId }] }),
+        // Otherwise every follower count still includes a user who is gone.
+        User.updateMany(
+            { $or: [{ followers: userId }, { following: userId }] },
+            { $pull: { followers: userId, following: userId } }
+        ),
+    ]);
+    await User.findByIdAndDelete(userId);
+
+    // Skip the schema defaults: shared placeholder URLs, not this user's files.
+    const owned = ['avatar', 'banner', 'resumeUrl']
+        .filter((f) => user[f] && user[f] !== User.schema.path(f).defaultValue)
+        .map((f) => user[f]);
+    await Promise.all(owned.map((u) => deleteFromR2(u)));
+    clearCacheTags([`profile:${userId}`, 'posts', 'shorts']).catch(() => { });
+};
+
+// DELETE /user/me  body {confirm:"DELETE"}
+export const deleteAccount = async (req, res) => {
+  try {
+    if (req.body?.confirm !== 'DELETE') {
+      return res.status(400).json({ success: false, message: 'Send confirm: "DELETE" to delete your account' });
+    }
+    const user = await User.findById(req.user.id).select('avatar banner resumeUrl');
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    await purgeUser(user, { selfDelete: true });
+    return res.status(200).json({ success: true, message: "Your account and its data have been deleted." });
+  } catch (error) {
+    console.error("Delete Account Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -1045,21 +1205,7 @@ export const banUser = async (req, res) => {
     }
 
     if (isBanned) {
-        // Read before the deletes below: reports on this user's shorts go too,
-        // or the admin queue keeps rows pointing at content that no longer exists.
-        const [userPosts, userShorts] = await Promise.all([
-            mongoose.model('Post').find({ user: userId }).distinct('_id'),
-            mongoose.model('Shorts').find({ user: userId }).distinct('_id'),
-        ]);
-        
-        await Promise.all([
-            mongoose.model('Post').deleteMany({ user: userId }),
-            mongoose.model('Shorts').deleteMany({ user: userId }),
-            mongoose.model('Report').deleteMany({ $or: [{ reporter: userId }, { post: { $in: userPosts } }, { short: { $in: userShorts } }] }),
-            mongoose.model('Comment').deleteMany({ user: userId }),
-            mongoose.model('Notification').deleteMany({ $or: [{ recipient: userId }, { sender: userId }] }),
-            User.findByIdAndDelete(userId)
-        ]);
+        await purgeUser(user);
 
         return res.status(200).json({ 
             success: true, 

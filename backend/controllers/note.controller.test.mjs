@@ -8,7 +8,7 @@ await mongoose.connect(mem.getUri('fync_notes'));
 const User = (await import('../models/user.model.js')).default;
 const Note = (await import('../models/note.model.js')).default;
 const NoteDownload = (await import('../models/noteDownload.model.js')).default;
-const { unlockNote } = await import('./note.controller.js');
+const { unlockNote, uploadNote, deleteNote } = await import('./note.controller.js');
 await Promise.all([Note.syncIndexes(), NoteDownload.syncIndexes()]);
 
 const mkRes = () => { const o = { code: 0, body: null };
@@ -165,6 +165,34 @@ await Note.create({ uploader: author._id, college: 'Test College', title: 'legac
 await Note.create({ uploader: author._id, college: 'Test College', title: 'legacy b',
   subject: 'DSA', fileUrl: 'https://r2/b.pdf' });
 console.log('T hashless legacy notes: do not collide');
+
+// --- delete + re-upload is not a coin printer ---
+const farmer = await mkUser('farmer', 0);
+const farmHash = 'f'.repeat(64);
+const upload = async () => { const m = mkRes();
+  await uploadNote({ user: { id: String(farmer._id) }, file: { path: 'https://r2/f.pdf', size: 1 },
+    noteMeta: { fileHash: farmHash }, body: { title: 'Farm', subject: 'DSA' } }, m.res); return m.o; };
+for (let i = 0; i < 6; i++) {
+  const up = await upload();
+  assert.equal(up.code, 201);
+  const del = mkRes();
+  await deleteNote({ params: { id: String(up.body.note._id) }, user: { id: String(farmer._id) } }, del.res);
+  assert.equal(del.o.code, 200);
+}
+assert.equal(await coinsOf(farmer._id), 3, 'only 3 rewarded uploads per IST day, deletes do not reset it');
+console.log('T delete/re-upload: daily cap holds');
+
+// Same file under a fresh note id pays the uploader once per reader.
+const reshare = async () => Note.create({ uploader: farmer._id, college: 'Test College', title: 'Farm',
+  subject: 'DSA', fileUrl: 'https://r2/f.pdf', fileHash: farmHash });
+let n1 = await reshare();
+await call(reader._id, n1._id);
+await Note.deleteOne({ _id: n1._id });
+n1 = await reshare();
+await call(reader._id, n1._id);
+await new Promise((res) => setTimeout(res, 100));
+assert.equal(await coinsOf(farmer._id), 4, 'one download reward per (reader, file)');
+console.log('T re-uploaded file: download reward once per reader');
 
 await mongoose.disconnect(); await mem.stop();
 console.log('notes: all assertions passed');

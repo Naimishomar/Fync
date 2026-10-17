@@ -13,6 +13,12 @@ import { getPresenceAudience, filterOnline, broadcastStatus } from "../utils/pre
 import { checkClubStatus, nightPseudonym } from "../utils/nightClub.js";
 import { claimCall, confirmCall, endCall as endCallState, releaseIfPeer, getPeer } from "../utils/callState.js";
 import { removeFromQueue } from "../utils/quizQueue.js";
+import SubGroup from "../models/club/subGroup.model.js";
+import SubCommunity from "../models/community/subCommunity.model.js";
+import { notifyChatPeer } from "./chat.controller.js";
+import {
+  isObjectId, isBlockedPair, popNightPartner, rememberNightMessage, fileReport, nightPartnerKey,
+} from "./safety.controller.js";
 
 // 12 AM Club data must not outlive one night even if the sunrise sweep misses.
 const NIGHT_KEY_TTL_SECONDS = 8 * 60 * 60;
@@ -25,6 +31,15 @@ const calculateScore = (userAnswers, correctQuestions) => {
   });
   return score;
 };
+
+// Questions as the players see them. correctAnswer used to ride along in
+// match_found / start_quiz, so anyone could read the answers off the socket;
+// grading already happens server-side in calculateScore.
+const publicQuestions = (questions = []) =>
+  questions.map(({ question, options }) => ({ question, options }));
+
+const RESULT_MESSAGE = { WIN: "Victory! +1 Point awarded. 🎉", LOSE: "Defeat 😢", DRAW: "It's a Tie! 🤝" };
+const outcome = (mine, theirs) => (mine > theirs ? "WIN" : mine < theirs ? "LOSE" : "DRAW");
 
 // Presence keys are refreshed on every (re)connect; anything older than this
 // belongs to a socket whose worker died without cleaning up.
@@ -76,9 +91,18 @@ export const socketController = (io) => {
     });
 
 
-    socket.on("join", ({ conversationId }) => {
-      if (!conversationId) return;
-      socket.join(conversationId);
+    // Every room name used to come straight from the payload, so a socket could
+    // join `user:<anyone>` and receive their calls, badges and notifications, or
+    // any conversation/club room. Each join now checks membership first.
+    socket.on("join", async ({ conversationId } = {}) => {
+      if (!socket.userId || !isObjectId(conversationId)) return;
+      try {
+        if (await Conversation.exists({ _id: conversationId, participants: socket.userId })) {
+          socket.join(conversationId);
+        }
+      } catch (err) {
+        console.error("Conversation join error:", err.message);
+      }
     });
 
     socket.on("join_college_room", ({ collegeName }) => {
@@ -91,10 +115,17 @@ export const socketController = (io) => {
       socket.leave(`college_${collegeName}`);
     });
 
-    socket.on("join_alumni_room", ({ college, graduationYear }) => {
-      if (!college || !graduationYear) return;
-      const roomName = `alumni_${college.replace(/\s+/g, '_')}_${graduationYear}`;
-      socket.join(roomName);
+    // The room is the caller's own batch from the database, never the payload,
+    // and only for alumni — the same rule the alumni REST endpoints apply.
+    socket.on("join_alumni_room", async () => {
+      if (!socket.userId) return;
+      try {
+        const me = await User.findById(socket.userId).select("college graduationYear user_access").lean();
+        if (me?.user_access !== "alumni" || !me.college || !me.graduationYear) return;
+        socket.join(`alumni_${me.college.replace(/\s+/g, '_')}_${me.graduationYear}`);
+      } catch (err) {
+        console.error("Alumni join error:", err.message);
+      }
     });
 
     socket.on("leave_alumni_room", ({ college, graduationYear }) => {
@@ -152,30 +183,25 @@ export const socketController = (io) => {
       socket.to(conversationId).emit("user_stop_typing", { conversationId, username });
     });
 
-    socket.on("chat_notify", async ({ receiverId, title, body }) => {
+    // title is ignored: the server names the sender. See notifyChatPeer.
+    socket.on("chat_notify", async ({ receiverId, body } = {}) => {
       try {
-        const receiver = await User.findById(receiverId).select('fcmTokens');
-        if (receiver && receiver.fcmTokens && receiver.fcmTokens.length > 0) {
-          const { sendPushNotification } = await import('../services/push.service.js');
-          sendPushNotification(receiver.fcmTokens, {
-            title: title || "New Message",
-            body: body || "You have received a new message.",
-            data: { type: "chat" }
-          });
-        }
-        // Nudge any of the receiver's foregrounded sessions so the header badge
-        // moves without waiting for them to navigate back to the feed.
-        io.to(`user:${receiverId}`).emit("chat_badge");
+        await notifyChatPeer(socket.userId, receiverId, body, io);
       } catch (err) {
         console.error("Chat notify error", err);
       }
     });
     
     // --- ECHO COMMUNITIES ---
-    socket.on("join_echo_room", ({ subId }) => {
-      if (!subId) return;
-      socket.join(subId);
-      console.log(`👤 User joined Echo room: ${subId}`);
+    // Echo rooms are readable by anyone over REST, so existence is the check;
+    // the ObjectId shape alone rules out reserved names like `user:<id>`.
+    socket.on("join_echo_room", async ({ subId } = {}) => {
+      if (!isObjectId(subId)) return;
+      try {
+        if (await SubCommunity.exists({ _id: subId })) socket.join(subId);
+      } catch (err) {
+        console.error("Echo join error:", err.message);
+      }
     });
 
     socket.on("leave_echo_room", ({ subId }) => {
@@ -184,10 +210,22 @@ export const socketController = (io) => {
     });
 
     // --- CLUB MANAGEMENT SYSTEM ---
-    socket.on("join_club_room", ({ subGroupId }) => {
-      if (!subGroupId) return;
-      socket.join(subGroupId);
-      console.log(`♣️ User joined Club room: ${subGroupId}`);
+    // Same membership rule as getClubMessages / postClubMessage.
+    socket.on("join_club_room", async ({ subGroupId } = {}) => {
+      if (!socket.userId || !isObjectId(subGroupId)) return;
+      try {
+        const subGroup = await SubGroup.findById(subGroupId)
+          .select("members admins clubId")
+          .populate("clubId", "admins")
+          .lean();
+        if (!subGroup) return;
+        const has = (arr) => (arr || []).some((id) => String(id) === socket.userId);
+        if (has(subGroup.members) || has(subGroup.admins) || has(subGroup.clubId?.admins)) {
+          socket.join(subGroupId);
+        }
+      } catch (err) {
+        console.error("Club join error:", err.message);
+      }
     });
 
     socket.on("leave_club_room", ({ subGroupId }) => {
@@ -206,8 +244,15 @@ export const socketController = (io) => {
       socket.leave(`community_${eventId}`);
     });
 
-    socket.on("watch_leaderboard", ({ roomId }) => {
-      socket.join(roomId);
+    // Only real custom-quiz room codes; the room only ever carries
+    // `leaderboard_updated`.
+    socket.on("watch_leaderboard", async ({ roomId } = {}) => {
+      if (typeof roomId !== "string" || !roomId) return;
+      try {
+        if (await Room.exists({ roomId })) socket.join(roomId);
+      } catch (err) {
+        console.error("Leaderboard join error:", err.message);
+      }
     });
 
     // --- 🚀 HACKATHON ECOSYSTEM ---
@@ -285,13 +330,13 @@ export const socketController = (io) => {
 
         if (delay <= 0) {
           socket.emit("start_quiz", {
-            questions: room.questions,
+            questions: publicQuestions(room.questions),
             endTime: endTime.toISOString()
           });
         } else {
           setTimeout(() => {
             io.to(roomId).emit("start_quiz", {
-              questions: room.questions,
+              questions: publicQuestions(room.questions),
               endTime: endTime.toISOString()
             });
           }, delay);
@@ -391,7 +436,7 @@ export const socketController = (io) => {
 
         socket.emit("match_found", {
           matchRoomId,
-          questions,
+          questions: publicQuestions(questions),
           endTime,
           opponent: {
             username: opponent.username,
@@ -402,7 +447,7 @@ export const socketController = (io) => {
 
         opponentSocket.emit("match_found", {
           matchRoomId,
-          questions,
+          questions: publicQuestions(questions),
           endTime,
           opponent: {
             username: user.username,
@@ -425,60 +470,48 @@ export const socketController = (io) => {
       }
     });
 
-    socket.on("submit_1v1", async ({ matchRoomId, answers, userId }) => {
+    socket.on("submit_1v1", async ({ matchRoomId, answers } = {}) => {
+      const userId = socket.userId;
       try {
+        if (typeof matchRoomId !== "string" || !matchRoomId.startsWith("match:")) return;
         const dataString = await redisClient.get(matchRoomId);
         if (!dataString) return;
 
         const match = JSON.parse(dataString);
-        const score = calculateScore(answers, match.questions);
-
-        if (match.participants[userId]) {
-          match.participants[userId].score = score;
-        }
-
-        const participantIds = Object.keys(match.participants);
-        const opponentId = participantIds.find(id => id !== userId);
-
+        if (!match.participants[userId]) return;
+        const opponentId = Object.keys(match.participants).find(id => id !== userId);
         if (!opponentId) return;
-        const opponentData = match.participants[opponentId];
 
-        if (opponentData && opponentData.score !== null) {
-          const myScore = score;
-          const opScore = opponentData.score;
-
-          let result = "DRAW";
-          if (myScore > opScore) {
-            result = "WIN";
-            await User.findByIdAndUpdate(userId, { $inc: { oneVsOnePoints: 1 } });
-          }
-          if (myScore < opScore) result = "LOSE";
-
-          let opResult = "DRAW";
-          if (opScore > myScore) {
-            opResult = "WIN";
-            await User.findByIdAndUpdate(opponentId, { $inc: { oneVsOnePoints: 1 } });
-          }
-          if (opScore < myScore) opResult = "LOSE";
-
-          socket.emit("1v1_result", {
-            result, myScore, opScore,
-            message: result === "WIN" ? "Victory! +1 Point awarded. 🎉" : result === "LOSE" ? "Defeat 😢" : "It's a Tie! 🤝"
-          });
-
-          if (opponentData.socketId) {
-            io.to(opponentData.socketId).emit("1v1_result", {
-              result: opResult,
-              myScore: opScore,
-              opScore: myScore,
-              message: opResult === "WIN" ? "Victory! +1 Point awarded. 🎉" : opResult === "LOSE" ? "Defeat 😢" : "It's a Tie! 🤝"
-            });
-          }
-          await redisClient.del(matchRoomId);
-        } else {
-          await redisClient.set(matchRoomId, JSON.stringify(match), { EX: 900 });
+        // One score key per player, first write wins. The old code rewrote the
+        // shared match blob, so simultaneous submits lost each other's score,
+        // and a resubmit after the opponent finished awarded the point again.
+        const scoreKey = (id) => `${matchRoomId}:score:${id}`;
+        await redisClient.set(scoreKey(userId), String(calculateScore(answers, match.questions)), { NX: true, EX: 900 });
+        const [mine, theirs] = await redisClient.mGet([scoreKey(userId), scoreKey(opponentId)]);
+        if (theirs === null) {
           socket.emit("waiting_for_opponent");
+          return;
         }
+
+        // Both scores are in. Exactly one submit wins this claim and settles.
+        const claimed = await redisClient.set(`${matchRoomId}:settled`, "1", { NX: true, EX: 900 });
+        if (!claimed) return;
+
+        const myScore = Number(mine);
+        const opScore = Number(theirs);
+        const result = outcome(myScore, opScore);
+        const opResult = outcome(opScore, myScore);
+        if (result === "WIN") await User.findByIdAndUpdate(userId, { $inc: { oneVsOnePoints: 1 } });
+        if (opResult === "WIN") await User.findByIdAndUpdate(opponentId, { $inc: { oneVsOnePoints: 1 } });
+
+        socket.emit("1v1_result", { result, myScore, opScore, message: RESULT_MESSAGE[result] });
+        const opponentSocketId = match.participants[opponentId].socketId;
+        if (opponentSocketId) {
+          io.to(opponentSocketId).emit("1v1_result", {
+            result: opResult, myScore: opScore, opScore: myScore, message: RESULT_MESSAGE[opResult]
+          });
+        }
+        await redisClient.del(matchRoomId);
       } catch (err) {
         console.error("Redis Error in Submit:", err);
       }
@@ -560,6 +593,8 @@ export const socketController = (io) => {
         io.to("night_club_global").emit("new_night_message", msgObj);
 
         try {
+          // Who really sent it, so a report can reach them. Never broadcast.
+          await rememberNightMessage(msgObj._id, senderId, msgObj.message, msgObj.fileUrl);
           await redisClient.lPush("night_club:history", JSON.stringify(msgObj));
           await redisClient.lTrim("night_club:history", 0, 99);
           // Backstop TTL. If the 06:00 sweep does not run — cron worker down,
@@ -605,52 +640,48 @@ export const socketController = (io) => {
         await redisClient.del(`user:night_1v1:${userId}`);
       }
 
-      let matchFound = false;
+      // Blocked pairs (explicit, or a 1v1 partner one of them reported) are
+      // skipped and keep their place in the queue for someone else.
+      const found = await popNightPartner(redisClient, queueKey, userId, {
+        isAlive: (opponent) => getSocketAcrossCluster(io, opponent.socketId),
+        isBlocked: isBlockedPair,
+      });
 
-      while (!matchFound) {
-        const opponentStr = await redisClient.rPop(queueKey);
-
-        if (!opponentStr) {
-          // Queue is empty, add current user to queue
-          await redisClient.lPush(queueKey, JSON.stringify({ userId, socketId: socket.id }));
-          socket.emit("night_1v1_searching");
-          return;
-        }
-
-        const opponent = JSON.parse(opponentStr);
-
-        // 1. Don't match with self (even if different socket)
-        if (opponent.userId === userId) {
-          continue; // Skip and try to find someone else or empty the queue
-        }
-
-        // 2. Check if opponent is still online
-        const opponentSocket = await getSocketAcrossCluster(io, opponent.socketId);
-        if (!opponentSocket) {
-          continue; // Opponent left, skip to next in queue
-        }
-
-        // Match found!
-        matchFound = true;
-        const roomId = `night_1v1:${nanoid(8)}`;
-        socket.join(roomId);
-        opponentSocket.join(roomId);
-
-        await redisClient.set(`user:night_1v1:${userId}`, roomId, { EX: 21600 });
-        await redisClient.set(`user:night_1v1:${opponent.userId}`, roomId, { EX: 21600 });
-
-        io.to(roomId).emit("night_1v1_found", { roomId });
+      if (!found) {
+        // Queue is empty, add current user to queue
+        await redisClient.lPush(queueKey, JSON.stringify({ userId, socketId: socket.id }));
+        socket.emit("night_1v1_searching");
+        return;
       }
+
+      const { opponent, socket: opponentSocket } = found;
+      const roomId = `night_1v1:${nanoid(8)}`;
+      socket.join(roomId);
+      opponentSocket.join(roomId);
+
+      await redisClient.set(`user:night_1v1:${userId}`, roomId, { EX: 21600 });
+      await redisClient.set(`user:night_1v1:${opponent.userId}`, roomId, { EX: 21600 });
+      // Who each side was last paired with, so `report_night_partner` works
+      // even after the partner skipped. Overwritten by the next match.
+      await redisClient.set(nightPartnerKey(userId), String(opponent.userId), { EX: 21600 });
+      await redisClient.set(nightPartnerKey(opponent.userId), String(userId), { EX: 21600 });
+
+      io.to(roomId).emit("night_1v1_found", { roomId });
     });
 
-    socket.on("send_night_1v1_message", async ({ roomId, text, type, mediaUrl }) => {
+    socket.on("send_night_1v1_message", async ({ roomId, text, type, mediaUrl } = {}) => {
       const { isOpen } = checkClubStatus();
       if (!isOpen) return;
       if (!socket.userId) return;
+      // Only into the room the server paired this user into, never any room name.
+      if (!roomId || roomId !== (await redisClient.get(`user:night_1v1:${socket.userId}`))) return;
+
+      const messageId = nanoid(10);
+      await rememberNightMessage(messageId, socket.userId, text, mediaUrl);
 
       // Broadcast to partner in the private room with a unique ID for flatlist performance
       socket.to(roomId).emit("new_night_1v1_message", {
-        _id: nanoid(10), // Required for heavily optimized FlatList rendering on frontend
+        _id: messageId, // Required for heavily optimized FlatList rendering on frontend
         // Pseudonym, not the account id — this is the "Secret 1v1" mode.
         senderId: nightPseudonym(socket.userId),
         message: text,
@@ -672,6 +703,44 @@ export const socketController = (io) => {
       socket.leave(roomId);
       socket.to(roomId).emit("night_1v1_partner_left");
       await redisClient.del(`user:night_1v1:${userId}`);
+    });
+
+    // --- 🚩 12 AM CLUB REPORTS ---
+    // Senders are pseudonymous, so the reporter names a message id or "my
+    // partner" and the server resolves the real account. Answers via the
+    // socket.io ack callback when given, else a `night_report_ack` event.
+    const replyReport = (ack, targetType, r) => {
+      const payload = { ok: r.ok, targetType, message: r.message };
+      if (typeof ack === "function") ack(payload);
+      else socket.emit("night_report_ack", payload);
+    };
+
+    socket.on("report_night_message", async ({ messageId, reason } = {}, ack) => {
+      try {
+        const r = await fileReport({ reporterId: socket.userId, targetType: "night_message", targetId: messageId, reason });
+        replyReport(ack, "night_message", r);
+      } catch (err) {
+        console.error("Night message report error:", err.message);
+        replyReport(ack, "night_message", { ok: false, message: "Could not submit report" });
+      }
+    });
+
+    socket.on("report_night_partner", async ({ reason } = {}, ack) => {
+      try {
+        const r = await fileReport({ reporterId: socket.userId, targetType: "night_user", reason });
+        replyReport(ack, "night_user", r);
+        if (!r.ok) return;
+        // Reporting ends the conversation, like a skip.
+        const roomId = await redisClient.get(`user:night_1v1:${socket.userId}`);
+        if (roomId) {
+          socket.to(roomId).emit("night_1v1_partner_left");
+          socket.leave(roomId);
+          await redisClient.del(`user:night_1v1:${socket.userId}`);
+        }
+      } catch (err) {
+        console.error("Night partner report error:", err.message);
+        replyReport(ack, "night_user", { ok: false, message: "Could not submit report" });
+      }
     });
 
     // --- 📞 WEBRTC AUDIO CALL SIGNALING ---
@@ -730,7 +799,16 @@ export const socketController = (io) => {
       }
     });
 
-    socket.on("call:offer", async ({ targetUserId, sdp, callerInfo }) => {
+    // The caller's first ICE candidates are emitted milliseconds after the
+    // offer, before claimCall has stored the pairing. isPairedWith waits for
+    // this socket's in-flight offer so those candidates are not dropped.
+    let offerInFlight = Promise.resolve();
+    socket.on("call:offer", (payload) => {
+      offerInFlight = handleOffer(payload || {}).catch((err) => console.error("call:offer error:", err.message));
+      return offerInFlight;
+    });
+
+    const handleOffer = async ({ targetUserId, sdp }) => {
       const callerId = socket.userId;
       if (!callerId || !targetUserId) return;
 
@@ -773,17 +851,25 @@ export const socketController = (io) => {
           college: profile?.college || "",
         },
       });
-    });
+    };
 
-    socket.on("call:answer", async ({ targetUserId, sdp }) => {
-      if (!socket.userId || !targetUserId) return;
+    // Signalling relays only between the two users callState paired. Before,
+    // any socket could push answers / ICE candidates / busy into anyone's call.
+    const isPairedWith = async (targetUserId) => {
+      if (!socket.userId || !targetUserId) return false;
+      await offerInFlight;
+      return String(await getPeer(socket.userId)) === String(targetUserId);
+    };
+
+    socket.on("call:answer", async ({ targetUserId, sdp } = {}) => {
+      if (!(await isPairedWith(targetUserId))) return;
       // Ringing keys expire in a minute; a live call needs the long lease.
       await confirmCall(socket.userId, targetUserId);
       io.to(callRoom(targetUserId)).emit("call:answered", { sdp });
     });
 
-    socket.on("call:ice-candidate", ({ targetUserId, candidate }) => {
-      if (!targetUserId) return;
+    socket.on("call:ice-candidate", async ({ targetUserId, candidate } = {}) => {
+      if (!(await isPairedWith(targetUserId))) return;
       io.to(callRoom(targetUserId)).emit("call:ice-candidate", { candidate });
     });
 
@@ -814,8 +900,8 @@ export const socketController = (io) => {
       await releaseBothSides(socket.userId, peer);
     });
 
-    socket.on("call:busy", async ({ targetUserId }) => {
-      if (!targetUserId) return;
+    socket.on("call:busy", async ({ targetUserId } = {}) => {
+      if (!(await isPairedWith(targetUserId))) return;
       io.to(callRoom(targetUserId)).emit("call:busy", { reason: "User is on another call" });
     });
 

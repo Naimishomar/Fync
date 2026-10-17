@@ -837,6 +837,7 @@ export const getReports = async (req, res) => {
         }
         const reports = await Report.find({ status: 'pending' })
             .populate("reporter", "name username avatar")
+            .populate("targetUser", "name username avatar")
             .populate({
                 path: "post",
                 populate: { path: "user", select: "name username avatar" }
@@ -883,5 +884,20 @@ export const adminDeletePost = async (req, res) => {
     } catch (error) {
         console.error("Admin Delete Error:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+// Close a report that has no post to delete (night chat, confessions, users, DMs).
+export const resolveReport = async (req, res) => {
+    try {
+        const { status } = req.body || {};
+        if (!['resolved', 'dismissed'].includes(status)) {
+            return res.status(400).json({ success: false, message: "status must be resolved or dismissed" });
+        }
+        const report = await Report.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        if (!report) return res.status(404).json({ success: false, message: "Report not found" });
+        return res.status(200).json({ success: true, message: `Report ${status}` });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Could not update report" });
     }
 };

@@ -1,6 +1,6 @@
 import Razorpay from "razorpay";
 import Subscription from "../models/subscription.model.js";
-import { verifySignature } from "../utils/redeemOrder.js";
+import { verifySignature, ensureCaptured } from "../utils/redeemOrder.js";
 import User from "../models/user.model.js";
 import SystemConfig from "../models/systemConfig.model.js";
 import dotenv from "dotenv";
@@ -120,9 +120,9 @@ export const verifySubscriptionPayment = async (req, res) => {
         // money was actually captured, for the amount this order was created
         // at, before handing out a month of access.
         const payment = await razorpay.payments.fetch(razorpay_payment_id);
-        const captured = payment.status === "captured" || payment.status === "authorized";
         const expectedPaise = Number(subscription.amount) * 100;
-        if (!captured || String(payment.order_id) !== String(razorpay_order_id) || Number(payment.amount) !== expectedPaise) {
+        if (String(payment.order_id) !== String(razorpay_order_id) || Number(payment.amount) !== expectedPaise ||
+            !(await ensureCaptured(payment))) {
             return res.status(400).json({ success: false, message: "Payment not captured for the expected amount" });
         }
 

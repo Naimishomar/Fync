@@ -4,6 +4,7 @@ import User from "../models/user.model.js";
 import Conversation from "../models/conversation.model.js";
 import { uploadToR2 } from "../utils/r2.js";
 import { mintSupabaseToken, isSupabaseAuthConfigured, supabaseTokenTtlSeconds } from "../utils/supabaseToken.js";
+import { isExplicitlyBlocked, isObjectId } from "./safety.controller.js";
 
 /**
  * Hands the client a Supabase-signed JWT carrying its Fync user id, so
@@ -45,6 +46,11 @@ export const sendMedia = async (req, res) => {
     // Only participants may send media to a conversation
     if (!(conversation.participants || []).some(p => String(p) === String(senderId))) {
       return res.status(403).json({ success: false, message: "Not a participant" });
+    }
+
+    const peer = conversation.participants.find(p => String(p) !== String(senderId));
+    if (peer && await isExplicitlyBlocked(senderId, peer)) {
+      return res.status(403).json({ success: false, message: "You can't message this user" });
     }
 
     // Upload to R2 and hand the URL back. Since the chat moved to Supabase the
@@ -146,22 +152,47 @@ export const searchUsers = async (req, res) => {
 
 import { sendPushNotification } from "../services/push.service.js";
 
-export const notifyUser = async (req, res) => {
-  try {
-    const { receiverId, title, body, data } = req.body;
-    if (!receiverId) return res.status(400).json({ success: false, message: "receiverId is required" });
+/**
+ * Push + badge nudge for a DM the sender just wrote to Supabase.
+ *
+ * Used to take title and body from the client and send them to any receiverId,
+ * so anyone could push arbitrary text under any name to any user. Now the title
+ * is the sender's real name, and nothing is sent unless the two actually share
+ * a conversation and neither has blocked the other. The body stays the
+ * client's preview: a participant can already put that text in the chat.
+ */
+export const notifyChatPeer = async (senderId, receiverId, body, ioRef = io) => {
+  if (!senderId || !isObjectId(String(receiverId)) || String(senderId) === String(receiverId)) return false;
 
-    const receiver = await User.findById(receiverId).select('fcmTokens');
-    if (!receiver || !receiver.fcmTokens || receiver.fcmTokens.length === 0) {
-      return res.status(200).json({ success: true, message: "User has no active devices for push" });
-    }
+  const [shared, sender, receiver, blocked] = await Promise.all([
+    Conversation.exists({ participants: { $all: [senderId, receiverId] } }),
+    User.findById(senderId).select('name').lean(),
+    User.findById(receiverId).select('fcmTokens').lean(),
+    isExplicitlyBlocked(senderId, receiverId),
+  ]);
+  if (!shared || !receiver || blocked) return false;
 
+  if (receiver.fcmTokens?.length) {
     // Fire and forget (Zero backend load)
     sendPushNotification(receiver.fcmTokens, {
-      title: title || "New Message",
-      body: body || "You have received a new message.",
-      data: data || {}
+      title: sender?.name || "New Message",
+      body: String(body || "").slice(0, 140) || "You have received a new message.",
+      data: { type: "chat" }
     });
+  }
+  // Nudge any of the receiver's foregrounded sessions so the header badge
+  // moves without waiting for them to navigate back to the feed.
+  ioRef?.to(`user:${receiverId}`).emit("chat_badge");
+  return true;
+};
+
+export const notifyUser = async (req, res) => {
+  try {
+    const { receiverId, body } = req.body;
+    if (!receiverId) return res.status(400).json({ success: false, message: "receiverId is required" });
+
+    const sent = await notifyChatPeer(req.user.id, receiverId, body);
+    if (!sent) return res.status(403).json({ success: false, message: "Cannot notify this user" });
 
     return res.status(200).json({ success: true, message: "Notification dispatched" });
   } catch (error) {
@@ -184,6 +215,12 @@ export const startChat = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "You cannot chat with yourself"
+      });
+    }
+    if (await isExplicitlyBlocked(myId, userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "You can't message this user"
       });
     }
     let conversation = await Conversation.findOne({

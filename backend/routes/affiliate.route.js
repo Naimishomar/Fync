@@ -26,7 +26,11 @@ router.post('/track', authMiddleware, trackAffiliateClick);
 
 // Sale confirmation. The controller requires either an admin caller or a valid
 // HMAC signature; authMiddleware alone let any logged-in user settle any sale.
-router.post('/complete', authMiddleware, completeAffiliateSale);
+// A signed call is machine-to-machine and carries no user token, so it skips
+// auth and is judged on its signature alone; unsigned calls must be an admin.
+router.post('/complete',
+    (req, res, next) => (req.get('x-affiliate-signature') ? next() : authMiddleware(req, res, next)),
+    completeAffiliateSale);
 
 // Share & Earn — attribution only for now; no money is computed or paid here.
 router.post('/share', authMiddleware, createShareLink);

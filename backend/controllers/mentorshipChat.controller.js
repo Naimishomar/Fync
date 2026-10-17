@@ -48,7 +48,7 @@ export const sendMessage = async (req, res) => {
 
                     // Emit to specific user if online
                     if (ioInstance) {
-                        ioInstance.emit(`notification_${mentionedUser._id}`, {
+                        ioInstance.to(`user:${mentionedUser._id}`).emit(`notification_${mentionedUser._id}`, {
                             success: true,
                             notification: notif
                         });

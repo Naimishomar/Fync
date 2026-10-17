@@ -6,9 +6,20 @@ import User from '../../models/user.model.js';
 import { clearCacheTags } from '../../middlewares/cache.middleware.js';
 import { getCommentThread } from "../../utils/comments.js";
 import { toggleLike } from "../../utils/likeToggle.js";
+import escapeRegExp from "../../utils/escapeRegExp.js";
 
 // Fixed color for all confessions as per requirement
 const FIXED_CONFESSION_COLOR = '#FFFFFF';
+
+// Confessions are anonymous, so the author never leaves the server. The feed
+// used to populate user name + gender (and the client only "masked" the name),
+// which let anyone read the author straight off the response. The one thing
+// the client needs, whether the viewer may edit/delete, is computed here.
+const TAGGED_FIELDS = 'name username avatar user_access';
+const toPublic = (doc, viewerId) => {
+    const { user, ...rest } = typeof doc?.toObject === 'function' ? doc.toObject() : doc;
+    return { ...rest, canManage: String(user?._id ?? user) === String(viewerId) };
+};
 
 export const createConfession = async (req, res) => {
     try {
@@ -31,7 +42,10 @@ export const createConfession = async (req, res) => {
         if (taggedUserId) {
             await Notification.create({
                 recipient: taggedUserId,
-                sender: userId,
+                // sender is required and the notification list populates it, so
+                // the real author would be shown to the very person tagged.
+                // Self-addressed keeps the schema happy without naming anyone.
+                sender: taggedUserId,
                 type: 'tag',
                 confession: confession._id,
                 commentText: content.substring(0, 50) // Preview
@@ -39,13 +53,10 @@ export const createConfession = async (req, res) => {
         }
 
         const populatedConfessions = await Confession.findById(confession._id)
-            .populate('user', 'name gender')
-            .populate('taggedUser', 'name username avatar user_access');
+            .populate('taggedUser', TAGGED_FIELDS)
+            .lean();
 
-        const confessionWithFlag = {
-            ...populatedConfessions._doc,
-            canManage: true // Author can always manage their new post
-        };
+        const confessionWithFlag = toPublic(populatedConfessions, userId);
 
         clearCacheTags(['confessions']).catch(() => { });
         return res.status(201).json({ success: true, message: 'Confession posted!', confession: confessionWithFlag });
@@ -63,17 +74,14 @@ export const getConfessions = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const confessions = await Confession.find({ college })
-            .populate('user', 'name gender')
-            .populate('taggedUser', 'name username avatar user_access')
+            .populate('taggedUser', TAGGED_FIELDS)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
             .lean();
 
-        const confessionsWithFlags = confessions.map(c => ({
-            ...c._doc,
-            canManage: c.user?._id?.toString() === req.user.id.toString() || c.user?.toString() === req.user.id.toString()
-        }));
+        // .lean() results have no _doc; spreading it returned only canManage.
+        const confessionsWithFlags = confessions.map(c => toPublic(c, req.user.id));
 
         return res.status(200).json({ success: true, confessions: confessionsWithFlags, hasMore: confessions.length === limit });
     } catch (error) {
@@ -88,10 +96,10 @@ export const likeConfession = async (req, res) => {
         if (!result) return res.status(404).json({ success: false, message: "Confession not found" });
 
         const populatedConfession = await Confession.findById(result.doc._id)
-            .populate('user', 'name gender')
-            .populate('taggedUser', 'name username avatar user_access');
+            .populate('taggedUser', TAGGED_FIELDS)
+            .lean();
 
-        return res.status(200).json({ success: true, confession: populatedConfession });
+        return res.status(200).json({ success: true, confession: toPublic(populatedConfession, req.user.id) });
     } catch (error) {
         console.error("Like confession error:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -181,12 +189,9 @@ export const updateConfession = async (req, res) => {
                 } 
             },
             { new: true }
-        ).populate('user', 'name gender').populate('taggedUser', 'name username avatar user_access');
+        ).populate('taggedUser', TAGGED_FIELDS).lean();
 
-        const updatedWithFlag = {
-            ...updated._doc,
-            canManage: true
-        };
+        const updatedWithFlag = toPublic(updated, req.user.id);
 
         clearCacheTags(['confessions']).catch(() => { });
         return res.status(200).json({ success: true, message: "Confession updated", confession: updatedWithFlag });
@@ -227,12 +232,13 @@ export const searchUsersForTag = async (req, res) => {
         const { query } = req.query;
         if (!query) return res.json({ success: true, users: [] });
 
+        const safeQuery = escapeRegExp(query);
         const users = await User.find({
             college: req.user.college,
             user_access: { $ne: 'alumni' },
             $or: [
-                { username: { $regex: query, $options: 'i' } },
-                { name: { $regex: query, $options: 'i' } }
+                { username: { $regex: safeQuery, $options: 'i' } },
+                { name: { $regex: safeQuery, $options: 'i' } }
             ]
         })
         .select('name username avatar user_access')

@@ -15,7 +15,7 @@ export const authCacheKey = (id) => `auth:user:${id}`;
 // Every authenticated request used to cost one full Mongo round-trip plus
 // hydration of the whole user document. Cache the projected doc in Redis so the
 // common case is a single sub-millisecond GET.
-const loadUser = async (id) => {
+export const loadUser = async (id) => {
   const key = authCacheKey(id);
   try {
     const cached = await redisClient.get(key);

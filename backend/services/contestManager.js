@@ -21,7 +21,10 @@ class ContestManager {
   async recordSubmission({ contestId, userId, problemId, accepted }) {
     if (!contestId || !accepted) return null;
 
-    const contest = await Contest.findById(contestId).select('startTime penaltyPerWrongSubmission');
+    // Only the contest's own problems score; any other accepted solve used to
+    // count toward the standings too.
+    const contest = await Contest.findOne({ _id: contestId, problems: problemId })
+      .select('startTime penaltyPerWrongSubmission');
     if (!contest) return null;
 
     const problem = await Problem.findById(problemId).select('points');

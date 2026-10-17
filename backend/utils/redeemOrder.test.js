@@ -97,8 +97,8 @@ await expectFail('an underpaid capture is rejected', {
   orderId: 'order_short', paymentId: 'pay_5', signature: sign('order_short', 'pay_5'),
   userId: USER, purpose: 'funding_listing', fetchPayment: captured(100, 'order_short'),
 }, 400);
-check('an underpaid order is marked failed, not left claimable',
-  (await PaymentOrder.findOne({ razorpayOrderId: 'order_short' }).lean())?.status === 'failed');
+check('an underpaid order is not claimed',
+  (await PaymentOrder.findOne({ razorpayOrderId: 'order_short' }).lean())?.status === 'created');
 
 await mkOrder('order_uncaptured', 'funding_listing', 24900);
 await expectFail('an uncaptured payment is rejected', {
@@ -122,13 +122,89 @@ const claimed = await redeemPaidOrder({
 });
 await releaseOrder(claimed);
 const released = await PaymentOrder.findOne({ razorpayOrderId: 'order_release' }).lean();
-check('a released order is claimable again', released?.status === 'created' && !released?.razorpayPaymentId);
+check('a released order stays paid but unconsumed', released?.status === 'paid' && !released?.meta?.consumedAt);
 
 const retried = await redeemPaidOrder({
   orderId: 'order_release', paymentId: 'pay_8', signature: sign('order_release', 'pay_8'),
   userId: USER, purpose: 'funding_listing', fetchPayment: captured(24900, 'order_release'),
 });
 check('and the student can retry without paying twice', retried?.status === 'paid');
+
+// ── webhook settled it first: the create endpoint still redeems, once ──────
+await mkOrder('order_wh', 'notice_boost', 4900);
+await PaymentOrder.updateOne({ razorpayOrderId: 'order_wh' },
+  { status: 'paid', razorpayPaymentId: 'pay_wh', paidAt: new Date(), 'meta.settledBy': 'webhook' }); // what settleOrder does
+const whArgs = {
+  orderId: 'order_wh', paymentId: 'pay_wh', signature: sign('order_wh', 'pay_wh'),
+  userId: USER, purpose: 'notice_boost', fetchPayment: captured(4900, 'order_wh'),
+};
+const race = await Promise.allSettled([redeemPaidOrder(whArgs), redeemPaidOrder(whArgs), redeemPaidOrder(whArgs)]);
+check('a webhook-settled order is redeemed exactly once under a race',
+  race.filter((r) => r.status === 'fulfilled').length === 1 &&
+  race.filter((r) => r.reason?.status === 409).length === 2);
+await expectFail('/payment/verify (no purpose) does not redeem a webhook-settled order', { ...whArgs, purpose: undefined }, 409);
+
+await mkOrder('order_wh2', 'notice_boost', 4900);
+await PaymentOrder.updateOne({ razorpayOrderId: 'order_wh2' }, { status: 'paid', razorpayPaymentId: 'pay_a', 'meta.settledBy': 'webhook' });
+await expectFail('a webhook-settled order cannot be redeemed with a different payment', {
+  orderId: 'order_wh2', paymentId: 'pay_b', signature: sign('order_wh2', 'pay_b'),
+  userId: USER, purpose: 'notice_boost', fetchPayment: captured(4900, 'order_wh2'),
+}, 409);
+
+// ── legacy: delivered before the settledBy marker existed, same shape otherwise ─
+await mkOrder('order_legacy', 'funding_listing', 24900);
+await PaymentOrder.updateOne({ razorpayOrderId: 'order_legacy' },
+  { status: 'paid', razorpayPaymentId: 'pay_old', paidAt: new Date() });
+await expectFail('a legacy paid order (no settledBy) cannot be re-posted for a second listing', {
+  orderId: 'order_legacy', paymentId: 'pay_old', signature: sign('order_legacy', 'pay_old'),
+  userId: USER, purpose: 'funding_listing', fetchPayment: captured(24900, 'order_legacy'),
+}, 409);
+
+// ── payment.failed for one attempt, then a successful retry on the same order ─
+await mkOrder('order_retry', 'funding_listing', 24900);
+await PaymentOrder.updateOne({ razorpayOrderId: 'order_retry' }, { status: 'failed' });
+const recovered = await redeemPaidOrder({
+  orderId: 'order_retry', paymentId: 'pay_9', signature: sign('order_retry', 'pay_9'),
+  userId: USER, purpose: 'funding_listing', fetchPayment: captured(24900, 'order_retry'),
+});
+check('a failed order can still be paid by a later attempt', recovered?.status === 'paid');
+
+// ── authorized is captured first; a failed capture is not paid ──────────────
+await mkOrder('order_auth', 'notice_boost', 4900);
+let captureCalls = 0;
+const authorized = await redeemPaidOrder({
+  orderId: 'order_auth', paymentId: 'pay_10', signature: sign('order_auth', 'pay_10'),
+  userId: USER, purpose: 'notice_boost',
+  fetchPayment: async () => ({ id: 'pay_10', status: 'authorized', amount: 4900, order_id: 'order_auth' }),
+  capturePayment: async () => { captureCalls++; return { status: 'captured' }; },
+});
+check('an authorized payment is captured before it counts', authorized?.status === 'paid' && captureCalls === 1);
+await mkOrder('order_auth2', 'notice_boost', 4900);
+await expectFail('an authorized payment whose capture fails is rejected', {
+  orderId: 'order_auth2', paymentId: 'pay_11', signature: sign('order_auth2', 'pay_11'),
+  userId: USER, purpose: 'notice_boost',
+  fetchPayment: async () => ({ id: 'pay_11', status: 'authorized', amount: 4900, order_id: 'order_auth2' }),
+  capturePayment: async () => ({ status: 'authorized' }),
+}, 400);
+
+// ── Razorpay down: nothing is left half-claimed ─────────────────────────────
+await mkOrder('order_down', 'notice_boost', 4900);
+try {
+  await redeemPaidOrder({
+    orderId: 'order_down', paymentId: 'pay_12', signature: sign('order_down', 'pay_12'),
+    userId: USER, purpose: 'notice_boost', fetchPayment: async () => { throw new Error('ECONNRESET'); },
+  });
+} catch {}
+check('a Razorpay outage leaves the order claimable',
+  (await PaymentOrder.findOne({ razorpayOrderId: 'order_down' }).lean())?.status === 'created');
+
+// ── interview credits are paid here but consumed by /start ──────────────────
+await PaymentOrder.create({ razorpayOrderId: 'order_credit', user: USER, purpose: 'interview_session', amount: 500, meta: { credit: true } });
+const credit = await redeemPaidOrder({
+  orderId: 'order_credit', paymentId: 'pay_13', signature: sign('order_credit', 'pay_13'),
+  userId: USER, purpose: 'interview_session', fetchPayment: captured(500, 'order_credit'),
+});
+check('a credit order is paid but not consumed', credit?.status === 'paid' && !credit.meta?.consumedAt);
 
 // ── missing fields ──────────────────────────────────────────────────────────
 await expectFail('missing details are rejected', { orderId: 'x', userId: USER }, 400);

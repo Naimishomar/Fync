@@ -1,4 +1,5 @@
 import User from '../models/user.model.js';
+import escapeRegExp from '../utils/escapeRegExp.js';
 
 export const getDevelopers = async (req, res) => {
     try {
@@ -19,7 +20,7 @@ export const getDevelopers = async (req, res) => {
                     message: "Update your profile with your college name first." 
                 });
             }
-            query.college = { $regex: new RegExp(`^${currentUser.college}$`, "i") };
+            query.college = { $regex: new RegExp(`^${escapeRegExp(currentUser.college)}$`, "i") };
         }
 
         // Was a flat .limit(50) with no offset, so the client had no way to reach

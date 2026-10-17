@@ -7,6 +7,7 @@ import { deleteFromR2 } from "../../utils/r2.js";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
 import PaymentOrder from "../../models/paymentOrder.model.js";
+import { findOpenOrder } from "../../utils/redeemOrder.js";
 import { istDateKey, istInstant, toDateKey } from "../../utils/eventTime.js";
 dotenv.config({ quiet: true });
 
@@ -149,86 +150,92 @@ export const registerBootcamp = async(req,res)=>{
             return res.status(403).json({ success: false, message: `This event is restricted to ${session.college} students` });
         }
 
-        const existing = await RegisterBootcamp.findOne({ eventId: session._id, userId: req.user.id });
-        if (existing) {
-            if (existing.isPaid) {
-                return res.status(400).json({ success: false, message: "Already registered" });
+        let registration = await RegisterBootcamp.findOne({ eventId: session._id, userId: req.user.id });
+        if (registration?.isPaid) {
+            return res.status(400).json({ success: false, message: "Already registered" });
+        }
+        // An unpaid registration is resumed, not deleted: its order may still be
+        // paid, and deleting it left that payment with nothing to unlock.
+        if (!registration) {
+            // Build base attendance array
+            const start = new Date(session.startDate);
+            const end = new Date(session.endDate);
+            const attendance = [];
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                attendance.push({ date: formatDate(d), isPresent: false });
             }
-            // Payment was never completed. Delete and start fresh so the user can re-register.
-            await RegisterBootcamp.deleteOne({ _id: existing._id });
-            await Bootcamp.updateOne(
-                { _id: session._id, seatsTaken: { $gt: 0 } },
-                { $inc: { seatsTaken: -1 } }
-            ).catch(() => {});
-        }
 
-        // Build base attendance array
-        const start = new Date(session.startDate);
-        const end = new Date(session.endDate);
-        const attendance = [];
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            attendance.push({ date: formatDate(d), isPresent: false });
-        }
+            if (session.seatsTaken === undefined || session.seatsTaken === null) {
+                const existingCount = await RegisterBootcamp.countDocuments({ eventId: session._id });
+                await Bootcamp.updateOne(
+                    { _id: session._id, seatsTaken: { $exists: false } },
+                    { $set: { seatsTaken: existingCount } }
+                );
+            }
 
-        if (session.seatsTaken === undefined || session.seatsTaken === null) {
-            const existingCount = await RegisterBootcamp.countDocuments({ eventId: session._id });
-            await Bootcamp.updateOne(
-                { _id: session._id, seatsTaken: { $exists: false } },
-                { $set: { seatsTaken: existingCount } }
+            // Capacity is claimed with a conditional update on the bootcamp itself,
+            // not a count-then-insert. The old check read the count and inserted a
+            // moment later, so simultaneous registrations all saw a seat free and
+            // the event overbooked. $expr compares against the row's own userLimit
+            // inside a single atomic update, so exactly one request wins the last
+            // seat. seatsTaken is only a reservation counter -- the registration
+            // documents remain the record of who is in.
+            const claimed = await Bootcamp.findOneAndUpdate(
+                {
+                    _id: session._id,
+                    $expr: {
+                        $lt: [
+                            { $ifNull: ["$seatsTaken", 0] },
+                            { $ifNull: ["$userLimit", Number.MAX_SAFE_INTEGER] }
+                        ]
+                    }
+                },
+                { $inc: { seatsTaken: 1 } },
+                { new: true }
             );
+
+            if (!claimed) {
+                return res.status(409).json({ success: false, message: "Bootcamp is at full capacity" });
+            }
+
+            try {
+                registration = await RegisterBootcamp.create({
+                    eventId: session._id,
+                    userId: req.user.id,
+                    isPaid: session.fee === 0,
+                    attendance
+                });
+            } catch (err) {
+                // Give the seat back rather than leaking it on a failed insert.
+                await Bootcamp.updateOne({ _id: session._id }, { $inc: { seatsTaken: -1 } }).catch(() => {});
+                throw err;
+            }
+        } else if (session.fee === 0) {
+            // The organiser made it free since.
+            registration.isPaid = true;
         }
 
-        // Capacity is claimed with a conditional update on the bootcamp itself,
-        // not a count-then-insert. The old check read the count and inserted a
-        // moment later, so simultaneous registrations all saw a seat free and
-        // the event overbooked. $expr compares against the row's own userLimit
-        // inside a single atomic update, so exactly one request wins the last
-        // seat. seatsTaken is only a reservation counter -- the registration
-        // documents remain the record of who is in.
-        const claimed = await Bootcamp.findOneAndUpdate(
-            {
-                _id: session._id,
-                $expr: {
-                    $lt: [
-                        { $ifNull: ["$seatsTaken", 0] },
-                        { $ifNull: ["$userLimit", Number.MAX_SAFE_INTEGER] }
-                    ]
-                }
-            },
-            { $inc: { seatsTaken: 1 } },
-            { new: true }
-        );
-
-        if (!claimed) {
-            return res.status(409).json({ success: false, message: "Bootcamp is at full capacity" });
+        if (!registration.qrCode || registration.qrCode === "pending") {
+            registration.qrCode = await QRCode.toDataURL(JSON.stringify({
+                registrationId: registration._id,
+                type: 'bootcamp',
+                eventId: session.eventId,
+                email: req.user.email
+            }));
         }
-
-        let registration;
-        try {
-            registration = await RegisterBootcamp.create({
-                eventId: session._id,
-                userId: req.user.id,
-                isPaid: session.fee === 0,
-                attendance
-            });
-        } catch (err) {
-            // Give the seat back rather than leaking it on a failed insert.
-            await Bootcamp.updateOne({ _id: session._id }, { $inc: { seatsTaken: -1 } }).catch(() => {});
-            throw err;
-        }
-
-        const qrCode = await QRCode.toDataURL(JSON.stringify({
-            registrationId: registration._id,
-            type: 'bootcamp',
-            eventId: session.eventId,
-            email: req.user.email
-        }));
-        
-        registration.qrCode = qrCode;
         await registration.save();
 
         let order = null;
-        if (session.fee > 0) {
+        if (!registration.isPaid && session.fee > 0) {
+            order = await findOpenOrder({
+                purpose: 'bootcamp', userId: req.user.id,
+                registrationId: registration._id, amount: session.fee * 100,
+            });
+            if (order?.status === 'paid') {
+                return res.status(409).json({ success: false, message: "Your payment is being confirmed. Check My Tickets in a minute." });
+            }
+        }
+        if (!order && !registration.isPaid && session.fee > 0) {
             order = await razorpay.orders.create({
                 amount: session.fee * 100,
                 currency: "INR",
@@ -247,7 +254,10 @@ export const registerBootcamp = async(req,res)=>{
             });
         }
 
-        return res.status(200).json({ success: true, registration, order });
+        // The pass is only handed out once it is paid for.
+        const out = registration.toObject();
+        if (!registration.isPaid) delete out.qrCode;
+        return res.status(200).json({ success: true, registration: out, order });
     } catch (error) {
         // Two taps race the findOne-then-create above; the unique
         // {eventId, userId} index rejects the second with E11000, which used to
@@ -303,6 +313,9 @@ export const markBootcampAttendance = async (req, res) => {
 
         if (!isAuthorized) {
             return res.status(403).json({ success: false, message: "Unauthorized" });
+        }
+        if (!registration.isPaid && session.fee > 0) {
+            return res.status(402).json({ success: false, message: "This pass has not been paid for" });
         }
 
         // --- Daily Time Window Validation ---

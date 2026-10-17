@@ -30,33 +30,34 @@ import {
   verifyAdminPassword,
   updateFcmToken,
   getUserStatus,
-  getOnlineUsers
+  getOnlineUsers,
+  deleteAccount
 } from '../controllers/auth.controller.js';
 import { getStreakLeaderboard } from '../controllers/streak.controller.js';
 import { getDevelopers } from '../controllers/developer.controller.js'
 import { otpLimiter } from '../middlewares/otpLimiter.js';
 import { authMiddleware, isAdmin } from '../middlewares/auth.middleware.js';
-import { authLimiter } from '../middlewares/rateLimit.middleware.js';
+import { authLimiter, refreshLimiter, otpIpLimiter, loginIpLimiter } from '../middlewares/rateLimit.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
 import { getFollowSuggestions } from '../controllers/suggestion.controller.js';
 import { upload } from '../utils/r2.js';
 import { r2UploadMiddleware } from '../utils/r2Upload.js';
 const router = express.Router();
 
-router.post('/send-email-otp', otpLimiter, sendOTP);
-router.post('/send-alumni-otp', otpLimiter, sendAlumniOTP);
-router.post('/send-recruiter-otp', otpLimiter, sendRecruiterOTP);
+router.post('/send-email-otp', otpIpLimiter, otpLimiter, sendOTP);
+router.post('/send-alumni-otp', otpIpLimiter, otpLimiter, sendAlumniOTP);
+router.post('/send-recruiter-otp', otpIpLimiter, otpLimiter, sendRecruiterOTP);
 // router.post('/send-phone-otp', sendnumberOTP);
 router.post('/verify-email-otp', otpLimiter, verifyEmailOTP);
 router.post('/verify-alumni-otp', otpLimiter, verifyAlumniOTP);
 router.post('/verify-recruiter-otp', otpLimiter, verifyRecruiterOTP);
-router.post('/reset-password', otpLimiter, resetPassword);
+router.post('/reset-password', otpIpLimiter, otpLimiter, resetPassword);
 router.post('/verify-reset-password', otpLimiter, verifyResetPassword);
 router.post('/register', otpLimiter, upload.single('avatar'), r2UploadMiddleware({ __single__: 'avatar' }), register);
 router.post('/register-alumni', otpLimiter, upload.single('avatar'), r2UploadMiddleware({ __single__: 'avatar' }), registerAlumni);
 router.post('/register-recruiter', otpLimiter, upload.single('avatar'), r2UploadMiddleware({ __single__: 'avatar' }), registerRecruiter);
-router.post('/refresh-token', authLimiter, refreshToken);
-router.post('/login', authLimiter, login);
+router.post('/refresh-token', refreshLimiter, refreshToken);
+router.post('/login', loginIpLimiter, authLimiter, login);
 router.post('/update', authMiddleware, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'banner', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), r2UploadMiddleware({ avatar: 'avatar', banner: 'banner', resume: 'resumes' }), updateUser);
 // Per-user by construction — the list excludes whoever you already follow —
 // so this is cached per user, never shared.
@@ -71,6 +72,7 @@ router.post('/unfollow/:id', authMiddleware, unfollowUser);
 router.get('/followers/:id', authMiddleware, cacheMiddleware(3600, { tags: (req) => [`followers:${req.params.id}`] }), getFollowers);
 router.get('/following/:id', authMiddleware, cacheMiddleware(3600, { tags: (req) => [`following:${req.params.id}`] }), getFollowing);
 router.get('/logout', authMiddleware, logout);
+router.delete('/me', authMiddleware, deleteAccount);
 router.get('/streak-leaderboard', authMiddleware, getStreakLeaderboard);
 router.post('/save-push-token', authMiddleware, savePushToken);
 router.post('/fcm-token', authMiddleware, updateFcmToken);

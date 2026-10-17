@@ -118,9 +118,8 @@ export const buyProduct = async(req,res)=>{
         if(!product){
             return res.status(404).json({message: "Product not found", success: false});
         }
-        const user = await User.findById(req.user.id);
-        if(!user){
-            return res.status(404).json({message: "User not found", success: false});
+        if (product.is_available === false) {
+            return res.status(400).json({message: "Product is not available", success: false});
         }
 
         const { address, mobileNumber, pincode } = req.body;
@@ -128,22 +127,37 @@ export const buyProduct = async(req,res)=>{
             return res.status(400).json({ message: "Address, mobile number, and pincode are required", success: false });
         }
 
-        if(user.coins < product.coins_required){
-            return res.status(400).json({message: "Insufficient coins", success: false});
+        const cost = Number(product.coins_required);
+        if (!Number.isFinite(cost) || cost < 0) {
+            return res.status(400).json({message: "Product is not available", success: false});
         }
-        
-        user.coins -= product.coins_required;
-        user.redeemedItems.push({
-            item: product._id,
-            product_name: product.product_name,
-            coins_required: product.coins_required,
-            address: address,
-            pincode: pincode,
-            mobileNumber: mobileNumber,
-            redeemDate: new Date()
-        });
 
-        await user.save();
+        // One conditional update: the balance check, the debit and the record
+        // land together. Read-then-save let parallel taps each pass the check
+        // and buy several items with coins for one.
+        const user = await User.findOneAndUpdate(
+            { _id: req.user.id, coins: { $gte: cost } },
+            {
+                $inc: { coins: -cost },
+                $push: { redeemedItems: {
+                    item: product._id,
+                    product_name: product.product_name,
+                    coins_required: cost,
+                    address: String(address),
+                    pincode: String(pincode),
+                    mobileNumber: String(mobileNumber),
+                    redeemDate: new Date()
+                } },
+            },
+            { new: true, projection: { coins: 1 } }
+        );
+        if(!user){
+            const exists = await User.exists({ _id: req.user.id });
+            return exists
+                ? res.status(400).json({message: "Insufficient coins", success: false})
+                : res.status(404).json({message: "User not found", success: false});
+        }
+
         return res.status(200).json({message: "Product bought successfully", success: true, remaining_coins: user.coins});
     } catch (error) {
         console.log("Internal server error in buyProduct:", error);

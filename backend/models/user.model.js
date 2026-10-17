@@ -30,13 +30,18 @@ const userSchema = new mongoose.Schema({
         unique: true,
         sparse: true
     },
+    // select:false: never leaves Mongo unless a query asks with '+password' /
+    // '+refreshToken' (login, refresh). A populate or findById that forgets to
+    // exclude them can no longer leak them.
     password: {
         type: String,
-        required: true
+        required: true,
+        select: false
     },
     refreshToken: {
         type: String,
-        default: null
+        default: null,
+        select: false
     },
     dob: {
         type: Date,
@@ -81,6 +86,11 @@ const userSchema = new mongoose.Schema({
         ref: "User"
     }],
     following: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }],
+    // Users this account blocked (DMs refused both ways). See controllers/safety.controller.js.
+    blockedUsers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     }],
@@ -444,6 +454,18 @@ userSchema.post(['updateOne', 'updateMany'], async function () {
     const id = this.getFilter?.()?._id;
     if (id) await dropAuthCache(id);
 });
+
+// What anyone but the owner may see of a profile. An allow-list, so a field
+// added to the schema later stays private until someone decides otherwise.
+// Not here on purpose: email, mobileNumber, dob, gender, tokens, device,
+// location, coins, redeemedItems (addresses), upiId, resume, subscription.
+export const PUBLIC_PROFILE_FIELDS =
+    'name username avatar banner about college year major user_access graduationYear ' +
+    'followers following interest hobbies skills experience linkedIn_id github_id linkedIn ' +
+    'codingProfiles codingStats company role experienceLevel domains industry companySize ' +
+    'companyWebsite education githubUsername githubStats fyncScore fyncBadge codingRating ' +
+    'contestHistory streakCount highestStreak lastPostDate oneVsOnePoints isVerifiedAlumni ' +
+    'portfolioVisibility profileBuilderCompleted createdAt';
 
 const User = mongoose.model('User', userSchema);
 export default User;

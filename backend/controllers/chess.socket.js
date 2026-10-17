@@ -200,13 +200,9 @@ export const setChessIo = (io) => {
         }
     });
 
-    socket.on("bot_win", async ({ userId }) => {
-        try {
-            await User.findByIdAndUpdate(userId, { $inc: { fyncCoins: 5 } }).exec();
-        } catch (err) {
-            console.error("Error awarding bot win coins:", err);
-        }
-    });
+    // No "bot_win" handler: a bot game is played entirely on the client, so a
+    // reward for it was free coins for anyone who emitted the event, for any
+    // userId. Old clients still emit it; it is simply ignored.
 
     socket.on("disconnect", async () => {
         // If the user had an active chess match, clean it up

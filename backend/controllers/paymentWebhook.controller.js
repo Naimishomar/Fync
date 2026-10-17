@@ -3,6 +3,9 @@ import PaymentOrder from "../models/paymentOrder.model.js";
 import Subscription from "../models/subscription.model.js";
 import { grantEntitlement } from "./payment.controller.js";
 import { activateSubscription } from "./subscription.controller.js";
+import User from "../models/user.model.js";
+import RegisterSpeakerSession from "../models/events/registerSpeakerSession.model.js";
+import RegisterBootcamp from "../models/events/registerBootcamp.model.js";
 
 /**
  * Razorpay webhook — the safety net under every payment.
@@ -40,9 +43,24 @@ const signatureMatches = (rawBody, signature) => {
 
 /** Settle a PaymentOrder from a captured payment, exactly once. */
 const settleOrder = async (orderId, payment) => {
+  const order = await PaymentOrder.findOne({ razorpayOrderId: orderId }).lean();
+  if (!order) return { handled: false };
+
+  // Trust the amount we recorded at creation, not the one in the payload.
+  if (Number(payment.amount) !== order.amount) {
+    await PaymentOrder.updateOne({ _id: order._id, status: "created" }, { status: "failed" });
+    console.error(
+      `Webhook: amount mismatch on ${orderId} — expected ${order.amount}, got ${payment.amount}`
+    );
+    return { handled: true, mismatch: true };
+  }
+
+  // 'failed' too: an earlier attempt's payment.failed does not cancel a later
+  // attempt on the same order that went through.
   const claimed = await PaymentOrder.findOneAndUpdate(
-    { razorpayOrderId: orderId, status: "created" },
-    { status: "paid", razorpayPaymentId: payment.id, paidAt: new Date() },
+    { _id: order._id, status: { $in: ["created", "failed"] } },
+    // settledBy: lets the create endpoint (redeemPaidOrder) still redeem it once.
+    { status: "paid", razorpayPaymentId: payment.id, paidAt: new Date(), "meta.settledBy": "webhook" },
     { new: true }
   );
 
@@ -50,17 +68,47 @@ const settleOrder = async (orderId, payment) => {
   // this same webhook. Nothing to do, and that is a success.
   if (!claimed) return { handled: true, duplicate: true };
 
-  // Trust the amount we recorded at creation, not the one in the payload.
-  if (Number(payment.amount) !== claimed.amount) {
-    await PaymentOrder.updateOne({ _id: claimed._id }, { status: "failed" });
-    console.error(
-      `Webhook: amount mismatch on ${orderId} — expected ${claimed.amount}, got ${payment.amount}`
-    );
-    return { handled: true, mismatch: true };
-  }
-
   await grantEntitlement(claimed);
   return { handled: true, granted: claimed.purpose };
+};
+
+/**
+ * A refund takes back what the money bought, where that is a simple flip;
+ * everything else is flagged on the order (meta.refundedAt) for the admin
+ * ledger. Partial refunds are only flagged.
+ */
+const handleRefund = async (refund, payment) => {
+  const paymentId = refund?.payment_id || payment?.id;
+  if (!paymentId) return { handled: false };
+  const full = payment
+    ? Number(payment.amount_refunded) >= Number(payment.amount)
+    : false;
+
+  const order = await PaymentOrder.findOneAndUpdate(
+    { razorpayPaymentId: paymentId },
+    { $set: { "meta.refundedAt": new Date(), "meta.refundId": refund?.id, "meta.refundFull": full } },
+    { new: true }
+  );
+  if (order && full) {
+    if (order.purpose === "speaker_session" && order.meta?.registrationId) {
+      await RegisterSpeakerSession.findByIdAndUpdate(order.meta.registrationId, { isPaid: false });
+    }
+    if (order.purpose === "bootcamp" && order.meta?.registrationId) {
+      await RegisterBootcamp.findByIdAndUpdate(order.meta.registrationId, { isPaid: false });
+    }
+  }
+
+  if (full) {
+    const sub = await Subscription.findOneAndUpdate(
+      { razorpayPaymentId: paymentId, status: "active" },
+      { status: "expired", endDate: new Date() },
+      { new: true }
+    );
+    if (sub && !(await Subscription.exists({ user: sub.user, status: "active", endDate: { $gt: new Date() } }))) {
+      await User.findByIdAndUpdate(sub.user, { is_subscribed: false });
+    }
+  }
+  return { handled: true, refunded: Boolean(order) || full };
 };
 
 /** Subscriptions live in their own collection, keyed by the same order id. */
@@ -120,6 +168,11 @@ export const razorpayWebhook = async (req, res) => {
         );
       }
       return res.status(200).json({ success: true });
+    }
+
+    if (type === "refund.processed") {
+      const result = await handleRefund(event.payload?.refund?.entity, payment);
+      return res.status(200).json({ success: true, ...result });
     }
 
     // Everything else is acknowledged so Razorpay stops retrying it.

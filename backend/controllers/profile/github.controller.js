@@ -1,23 +1,42 @@
+import crypto from "crypto";
 import User from "../../models/user.model.js";
+import redisClient from "../../utils/redis.js";
 import { exchangeGitHubCode, getGitHubUser, fetchGitHubStats } from "../../services/github.service.js";
 import { calculateFyncScore } from "../../services/fyncScore.service.js";
 
 // ─── Step 1: Get GitHub OAuth URL ─────────────────────────────────────────────
 // Frontend opens this URL in a WebBrowser/InAppBrowser
-export const getGitHubOAuthUrl = (req, res) => {
-    const clientId = process.env.GITHUB_CLIENT_ID;
-    const redirectUri = encodeURIComponent(process.env.GITHUB_REDIRECT_URI);
-    const scope = "read:user,public_repo";
-    const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${req.user._id}`;
-    return res.json({ success: true, url });
+// `state` used to be the raw user id, so anyone could craft a link that bound
+// their GitHub account to someone else's Fync profile. It is now a random,
+// single-use nonce that maps to the user who asked for the link.
+const OAUTH_STATE_TTL_SECONDS = 10 * 60;
+const oauthStateKey = (nonce) => `gh_oauth:${nonce}`;
+
+export const getGitHubOAuthUrl = async (req, res) => {
+    try {
+        const clientId = process.env.GITHUB_CLIENT_ID;
+        const redirectUri = encodeURIComponent(process.env.GITHUB_REDIRECT_URI);
+        // Public repos and contributions are readable without any repo scope.
+        const scope = "read:user";
+        const state = crypto.randomBytes(16).toString("hex");
+        await redisClient.setEx(oauthStateKey(state), OAUTH_STATE_TTL_SECONDS, String(req.user._id));
+        const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
+        return res.json({ success: true, url });
+    } catch (error) {
+        console.error("getGitHubOAuthUrl error:", error.message);
+        return res.status(503).json({ success: false, message: "Could not start GitHub connect. Try again." });
+    }
 };
 
 // ─── Step 2: GitHub OAuth Callback ────────────────────────────────────────────
 // GitHub redirects here with ?code=XXX&state=userId
 export const githubOAuthCallback = async (req, res) => {
     try {
-        const { code, state: userId } = req.query;
-        if (!code || !userId) return res.status(400).json({ success: false, message: "Missing code or state" });
+        const { code, state } = req.query;
+        if (!code || !state) return res.status(400).json({ success: false, message: "Missing code or state" });
+        // getDel: single use, so a leaked callback URL cannot be replayed.
+        const userId = await redisClient.getDel(oauthStateKey(String(state)));
+        if (!userId) return res.status(400).json({ success: false, message: "GitHub link expired. Start connect again from the app." });
 
         // Exchange code for token
         const tokenData = await exchangeGitHubCode(code);
@@ -52,10 +71,10 @@ export const githubOAuthCallback = async (req, res) => {
         }
 
         // Redirect back to app deep link (adjust scheme to your Expo app)
-        return res.redirect(`${process.env.APP_DEEP_LINK_SCHEME}://github-connected?username=${ghUser.login}`);
+        return res.redirect(`${process.env.APP_DEEP_LINK_SCHEME}://github-connected?username=${encodeURIComponent(ghUser.login)}`);
     } catch (error) {
         console.error("githubOAuthCallback error:", error.message);
-        return res.status(500).json({ success: false, message: "GitHub OAuth error", error: error.message });
+        return res.status(500).json({ success: false, message: "GitHub OAuth error" });
     }
 };
 

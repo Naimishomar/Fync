@@ -1,6 +1,7 @@
 import AlumniMessage from "../models/alumniMessage.model.js";
 import User from "../models/user.model.js";
 import { deleteFromR2 } from "../utils/r2.js";
+import escapeRegExp from "../utils/escapeRegExp.js";
 
 let ioInstance = null;
 
@@ -107,14 +108,15 @@ export const searchAlumni = async (req, res) => {
             return res.status(403).json({ success: false, message: "Access restricted to alumni only." });
         }
 
+        const safeQ = escapeRegExp(q);
         const query = {
             college,
             graduationYear,
             user_access: 'alumni',
             $or: [
-                { name: { $regex: q, $options: 'i' } },
-                { username: { $regex: q, $options: 'i' } },
-                { company: { $regex: q, $options: 'i' } }
+                { name: { $regex: safeQ, $options: 'i' } },
+                { username: { $regex: safeQ, $options: 'i' } },
+                { company: { $regex: safeQ, $options: 'i' } }
             ]
         };
 

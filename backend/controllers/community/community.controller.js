@@ -5,6 +5,7 @@ import CommunityPost from '../../models/community/communityPost.model.js';
 import Comment from '../../models/comment.model.js';
 import { deleteFromR2 } from '../../utils/r2.js';
 import redis from '../../utils/redis.js';
+import { redeemPaidOrder, releaseOrder, PaymentError } from '../../utils/redeemOrder.js';
 
 const hasId = (arr, id) => Array.isArray(arr) && id != null && arr.some(x => String(x) === String(id));
 const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -16,26 +17,50 @@ export const setCommunityIo = (io) => {
 
 export const createCommunity = async (req, res) => {
     try {
-        const { name, description, socialLinks, plan } = req.body;
+        const { description, socialLinks, orderId, paymentId, signature } = req.body;
         const creatorId = req.user?.id || req.user?._id;
-        if (!creatorId) {
-            if (req.files?.logo?.[0]?.path) await deleteFromR2(req.files.logo[0].path);
-            if (req.files?.banner?.[0]?.path) await deleteFromR2(req.files.banner[0].path);
-            return res.status(401).json({ success: false, message: "Unauthorized" });
-        }
         const logo = req.files?.logo?.[0]?.path;
         const banner = req.files?.banner?.[0]?.path;
-
-        if (!name || !creatorId) {
+        const dropUploads = async () => {
             if (logo) await deleteFromR2(logo);
             if (banner) await deleteFromR2(banner);
-            return res.status(400).json({ success: false, message: "Name and Creator ID are required" });
+        };
+        if (!creatorId) {
+            await dropUploads();
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+
+        // Creating a hub is paid. This used to grant a year of it to anyone who
+        // posted the form, payment or not.
+        let paidOrder;
+        try {
+            paidOrder = await redeemPaidOrder({
+                orderId, paymentId, signature,
+                userId: creatorId,
+                purpose: 'community_creation',
+            });
+        } catch (e) {
+            await dropUploads();
+            if (e instanceof PaymentError) {
+                return res.status(e.status).json({ success: false, message: e.message });
+            }
+            throw e;
+        }
+
+        // What was paid for, not what the form says now.
+        const plan = paidOrder.meta?.plan || req.body.plan;
+        const name = paidOrder.meta?.name || req.body.name;
+
+        if (!name) {
+            await releaseOrder(paidOrder);
+            await dropUploads();
+            return res.status(400).json({ success: false, message: "Name is required" });
         }
 
         const existing = await Community.findOne({ name });
         if (existing) {
-            if (logo) await deleteFromR2(logo);
-            if (banner) await deleteFromR2(banner);
+            await releaseOrder(paidOrder);
+            await dropUploads();
             return res.status(400).json({ success: false, message: "Community name already exists" });
         }
 
@@ -49,20 +74,27 @@ export const createCommunity = async (req, res) => {
         const days = plan === 'yearly' ? 365 : 30;
         const expiryDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
-        const community = await Community.create({
-            name,
-            description,
-            creator: creatorId,
-            logo,
-            banner,
-            members: [creatorId],
-            socialLinks: parsedSocial,
-            subscription: {
-                status: 'active',
-                expiryDate,
-                lastPaymentDate: new Date()
-            }
-        });
+        let community;
+        try {
+            community = await Community.create({
+                name,
+                description,
+                creator: creatorId,
+                logo,
+                banner,
+                members: [creatorId],
+                socialLinks: parsedSocial,
+                subscription: {
+                    status: 'active',
+                    expiryDate,
+                    lastPaymentDate: new Date()
+                }
+            });
+        } catch (e) {
+            // They paid and got nothing — hand the receipt back for a retry.
+            await releaseOrder(paidOrder);
+            throw e;
+        }
 
         // Create mandatory initial sub-communities
         await SubCommunity.create([

@@ -67,10 +67,18 @@ export const getR2PublicUrl = (key) => {
   return `${base}/${key}`;
 };
 
+// Types a browser renders inertly. The bucket is served from a public origin,
+// so a stored text/html or image/svg+xml is a script someone else's browser
+// runs; anything outside this list is stored as a download instead.
+const INERT_TYPE = /^(image\/(jpeg|jpg|png|webp|gif|heic|heif|bmp)|video\/(mp4|quicktime)|audio\/[\w.+-]+|application\/pdf)$/i;
+
 export const uploadToR2 = async (buffer, folder, originalname, mimetype) => {
+  mimetype = String(mimetype || "");
   let uploadBuffer = buffer;
-  let uploadMime = mimetype;
-  let uploadExt = path.extname(originalname) || "";
+  const inert = INERT_TYPE.test(mimetype);
+  let uploadMime = inert ? mimetype : "application/octet-stream";
+  // The header, not the extension, decides how a browser treats the object.
+  let uploadExt = (path.extname(String(originalname || "")) || "").replace(/[^.\w]/g, "").slice(0, 8);
 
   /**
    * One decode, two outputs.
@@ -88,7 +96,7 @@ export const uploadToR2 = async (buffer, folder, originalname, mimetype) => {
    * convention blindly.
    */
   let smallBuffer = null;
-  if (mimetype.startsWith("image/") && mimetype !== "image/gif") {
+  if (inert && mimetype.startsWith("image/") && mimetype !== "image/gif") {
     try {
       const decoded = sharp(buffer).rotate();
       const [full, small] = await Promise.all([
@@ -134,6 +142,7 @@ export const uploadToR2 = async (buffer, folder, originalname, mimetype) => {
         Key: key,
         Body: uploadBuffer,
         ContentType: uploadMime,
+        ...(inert ? {} : { ContentDisposition: "attachment" }),
         CacheControl: "public, max-age=2592000, stale-while-revalidate=86400", // 30 days cache, 1 day stale grace
       })
     );
@@ -191,7 +200,8 @@ const memoryStorage = multer.memoryStorage();
 /** General images + PDFs — 10 MB */
 export const upload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 1024 * 1024 * 10 },
+  // files: a ceiling for every upload.array() without its own maxCount.
+  limits: { fileSize: 1024 * 1024 * 10, files: 10 },
   fileFilter: (_req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/jpg", "application/pdf", "image/webp"];
     cb(null, allowed.includes(file.mimetype));
@@ -235,16 +245,24 @@ export const audioUpload = multer({
   },
 });
 
+/** Chat attachments: photos, mp4, voice notes and PDFs — never html/svg. */
+const chatFileFilter = (_req, file, cb) => {
+  const ok = /^(image\/(jpeg|jpg|png|webp|gif|heic|heif)|video\/mp4|audio\/(mp4|m4a|x-m4a|mpeg|aac)|application\/pdf)$/i;
+  cb(null, ok.test(file.mimetype));
+};
+
 /** College chat / WhatsApp-like — 20 MB, images/videos/files */
 export const collegeChatUpload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 1024 * 1024 * 20 },
+  limits: { fileSize: 1024 * 1024 * 20, files: 1 },
+  fileFilter: chatFileFilter,
 });
 
 /** Mentorship chat — 10 MB */
 export const mentorshipUpload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 1024 * 1024 * 10 },
+  limits: { fileSize: 1024 * 1024 * 10, files: 1 },
+  fileFilter: chatFileFilter,
 });
 
 /** Resume PDF — 50 MB */

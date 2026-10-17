@@ -1,5 +1,9 @@
 import GameScore from "../models/gameScore.model.js";
 
+// Scores are client-reported, so each game has a ceiling a real run can't
+// pass. DrawAndGuess sends a flat 100 per win; FlappyBird is one point a pipe.
+const MAX_SCORE = { FlappyBird: 1000, DrawAndGuess: 100 };
+
 export const submitScore = async (req, res) => {
   try {
     const { gameName, score } = req.body;
@@ -8,24 +12,18 @@ export const submitScore = async (req, res) => {
     if (!gameName || score === undefined) {
       return res.status(400).json({ success: false, message: "Missing fields" });
     }
-
-    // Find existing score
-    let gameScore = await GameScore.findOne({ user: userId, gameName });
-
-    if (!gameScore) {
-      // Create new
-      gameScore = await GameScore.create({
-        user: userId,
-        gameName,
-        highScore: score,
-      });
-    } else {
-      // Update if higher
-      if (score > gameScore.highScore) {
-        gameScore.highScore = score;
-        await gameScore.save();
-      }
+    const max = Object.hasOwn(MAX_SCORE, gameName) ? MAX_SCORE[gameName] : undefined;
+    if (!max) return res.status(400).json({ success: false, message: "Unknown game" });
+    if (!Number.isInteger(score) || score < 0 || score > max) {
+      return res.status(400).json({ success: false, message: "Invalid score" });
     }
+
+    // Keep the higher of the stored and the new score, in one atomic upsert.
+    const gameScore = await GameScore.findOneAndUpdate(
+      { user: userId, gameName },
+      { $max: { highScore: score } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     res.status(200).json({ success: true, message: "Score submitted successfully", data: gameScore });
   } catch (error) {

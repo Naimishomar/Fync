@@ -13,6 +13,8 @@ const unused = (userId) => ({
   status: "paid",
   "meta.credit": true,
   "meta.consumedAt": { $exists: false },
+  // Refunded in full by the webhook: the money went back, so no credit.
+  "meta.refundFull": { $ne: true },
 });
 
 /**

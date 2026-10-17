@@ -10,8 +10,16 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// One plain address. nodemailer reads "a@x.com, b@y.com" as two recipients,
+// so an unchecked field let one OTP request mail anyone.
+export const isValidEmail = (email) =>
+  typeof email === 'string' && email.length <= 254 && /^[^\s@,;<>()"']+@[^\s@,;<>()"']+\.[^\s@,;<>()"']+$/.test(email);
+
+const escapeHtml = (s = '') =>
+  String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 const sendMail = async (email, otp, username) => {
-  console.log(`DEBUG: Attempting to send mail to ${email} for ${username}, OTP: ${otp}`);
+  if (!isValidEmail(email)) throw new Error('Invalid email address');
   try {
     const info = await transporter.sendMail({
       from: `"Fync" <${process.env.ETHEREAL_USERNAME}>`,
@@ -26,7 +34,7 @@ const sendMail = async (email, otp, username) => {
               <p style="color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-top: 4px;">Security Verification</p>
             </div>
             
-            <h2 style="color: #1e293b; font-size: 20px; font-weight: 700; margin-bottom: 12px;">Hello ${username},</h2>
+            <h2 style="color: #1e293b; font-size: 20px; font-weight: 700; margin-bottom: 12px;">Hello ${escapeHtml(username)},</h2>
             <p style="color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
               You recently requested a one-time password to verify your account. Please use the secure code below.
             </p>
@@ -37,7 +45,7 @@ const sendMail = async (email, otp, username) => {
             </div>
             
             <p style="color: #94a3b8; font-size: 13px; line-height: 1.5; margin-bottom: 0;">
-              This code is only valid for 10 minutes. If you did not request this, please ignore this email.
+              This code is only valid for 5 minutes. If you did not request this, please ignore this email.
             </p>
           </div>
           
@@ -49,10 +57,9 @@ const sendMail = async (email, otp, username) => {
         </div>
       `,
     });
-    console.log("DEBUG: Mail sent successfully:", info.messageId);
     return info;
   } catch (error) {
-    console.error("DEBUG: nodemailer Error:", error);
+    console.error("nodemailer error:", error.message);
     throw error;
   }
 };

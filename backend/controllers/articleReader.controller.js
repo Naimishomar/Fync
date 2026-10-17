@@ -13,6 +13,11 @@ import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
 import dns from 'node:dns/promises';
 import net from 'node:net';
+import http from 'node:http';
+import https from 'node:https';
+
+/** A message meant for the student; anything else is reported generically. */
+class ReaderError extends Error {}
 
 const UA = 'Mozilla/5.0 (compatible; FyncBot/1.0; +https://fync-api.duckdns.org)';
 const MAX_BYTES = 3_000_000;
@@ -41,45 +46,73 @@ const isPrivateAddress = (ip) => {
          v.startsWith('fe80') || v.startsWith('::ffff:');
 };
 
+/** Resolve once and check; the caller connects to exactly this address. */
 async function assertPublicUrl(raw) {
   let u;
-  try { u = new URL(raw); } catch { throw new Error('That is not a valid link.'); }
-  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('Unsupported link type.');
+  try { u = new URL(raw); } catch { throw new ReaderError('That is not a valid link.'); }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new ReaderError('Unsupported link type.');
 
-  const { address } = await dns.lookup(u.hostname).catch(() => ({ address: null }));
-  if (!address) throw new Error('That site could not be reached.');
-  if (isPrivateAddress(address)) throw new Error('That link is not allowed.');
-  return u;
+  const resolved = await dns.lookup(u.hostname).catch(() => null);
+  if (!resolved?.address) throw new ReaderError('That site could not be reached.');
+  if (isPrivateAddress(resolved.address)) throw new ReaderError('That link is not allowed.');
+  return { url: u, ...resolved };
 }
+
+/**
+ * GET pinned to the address assertPublicUrl checked. fetch() would resolve the
+ * name again at connect time, and a rebinding DNS server can answer that second
+ * lookup with 127.0.0.1. TLS still verifies against the hostname.
+ */
+const pinnedGet = ({ url, address, family }) =>
+  new Promise((resolve, reject) => {
+    const lib = url.protocol === 'https:' ? https : http;
+    const req = lib.get(url, {
+      headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' },
+      lookup: (_host, opts, cb) =>
+        opts?.all ? cb(null, [{ address, family }]) : cb(null, address, family),
+      signal: AbortSignal.timeout(12000),
+    }, resolve);
+    req.on('error', reject);
+  });
 
 /** Follows redirects by hand so each hop can be re-checked before it is fetched. */
 async function fetchArticleHtml(startUrl) {
-  let url = await assertPublicUrl(startUrl);
+  let target = await assertPublicUrl(startUrl);
 
   for (let hop = 0; hop < MAX_HOPS; hop++) {
-    const res = await fetch(url, {
-      headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' },
-      redirect: 'manual',
-      signal: AbortSignal.timeout(12000),
-    });
+    const res = await pinnedGet(target);
+    const { url } = target;
 
-    if (res.status >= 300 && res.status < 400) {
-      const next = res.headers.get('location');
-      if (!next) throw new Error('That article could not be opened.');
-      url = await assertPublicUrl(new URL(next, url).href);
+    if (res.statusCode >= 300 && res.statusCode < 400) {
+      res.resume();
+      const next = res.headers.location;
+      if (!next) throw new ReaderError('That article could not be opened.');
+      target = await assertPublicUrl(new URL(next, url).href);
       continue;
     }
-    if (!res.ok) throw new Error(`The publisher returned ${res.status}.`);
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      res.resume();
+      throw new ReaderError(`The publisher returned ${res.statusCode}.`);
+    }
 
-    const type = res.headers.get('content-type') || '';
-    if (!type.includes('html')) throw new Error('That link is not an article.');
+    const type = res.headers['content-type'] || '';
+    if (!type.includes('html')) { res.destroy(); throw new ReaderError('That link is not an article.'); }
 
-    // Guard against a multi-hundred-megabyte body starving the box.
-    const buf = await res.arrayBuffer();
-    if (buf.byteLength > MAX_BYTES) throw new Error('That article is too large to open here.');
-    return { html: Buffer.from(buf).toString('utf8'), finalUrl: res.url || url.href };
+    // Guard against a multi-hundred-megabyte body starving the box: refuse a
+    // declared oversize body outright, and count bytes as they stream in for
+    // one that does not say (or lies).
+    const tooLarge = () => { res.destroy(); return new ReaderError('That article is too large to open here.'); };
+    if (Number(res.headers['content-length']) > MAX_BYTES) throw tooLarge();
+    const chunks = [];
+    let size = 0;
+    for await (const chunk of res) {
+      size += chunk.length;
+      if (size > MAX_BYTES) throw tooLarge();
+      chunks.push(chunk);
+    }
+    return { html: Buffer.concat(chunks).toString('utf8'), finalUrl: url.href };
   }
-  throw new Error('That article redirected too many times.');
+  throw new ReaderError('That article redirected too many times.');
 }
 
 /** Readability returns HTML; the app renders native views, so it becomes blocks. */
@@ -197,7 +230,8 @@ export const getArticle = async (req, res) => {
     const timedOut = error?.name === 'TimeoutError' || error?.name === 'AbortError';
     return res.status(502).json({
       success: false,
-      message: timedOut ? 'The publisher timed out.' : (error?.message ?? 'Could not open that article.'),
+      message: timedOut ? 'The publisher timed out.'
+        : error instanceof ReaderError ? error.message : 'Could not open that article.',
     });
   }
 };

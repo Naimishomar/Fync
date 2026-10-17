@@ -128,7 +128,9 @@ export const trackAffiliateClick = async (req, res) => {
  * to create a Pending sale, call this, get paid for a purchase that never
  * happened. Locking it now, before money is attached, not after.
  *
- * Signature: HMAC-SHA256 over `saleId|transactionId`, hex, in x-affiliate-signature.
+ * Signature: HMAC-SHA256 over `saleId|transactionId|orderValue|commission`
+ * (absent amounts as empty strings), hex, in x-affiliate-signature. The amounts
+ * are signed too, so a captured signature cannot be replayed with new figures.
  */
 export const completeAffiliateSale = async (req, res) => {
     try {
@@ -155,7 +157,7 @@ export const completeAffiliateSale = async (req, res) => {
             }
             const expected = crypto
                 .createHmac('sha256', secret)
-                .update(`${saleId}|${transactionId}`)
+                .update(`${saleId}|${transactionId}|${orderValue ?? ''}|${commission ?? ''}`)
                 .digest();
 
             // Constant-time compare; timingSafeEqual throws on a length mismatch.

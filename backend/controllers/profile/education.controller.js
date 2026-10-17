@@ -72,23 +72,35 @@ export const updateCodingStats = async (req, res) => {
             codechef  // username
         } = req.body;
 
-        const updateFields = { "codingStats.lastUpdated": new Date() };
-        if (leetcodeSolved  !== undefined) updateFields["codingStats.leetcodeSolved"]  = Number(leetcodeSolved);
-        if (leetcodeRating  !== undefined) updateFields["codingStats.leetcodeRating"]  = Number(leetcodeRating);
-        if (gfgSolved       !== undefined) updateFields["codingStats.gfgSolved"]       = Number(gfgSolved);
-        if (gfgRating       !== undefined) updateFields["codingStats.gfgRating"]        = Number(gfgRating);
-        if (codechefSolved  !== undefined) updateFields["codingStats.codechefSolved"]  = Number(codechefSolved);
-        if (codechefRating  !== undefined) updateFields["codingStats.codechefRating"]  = Number(codechefRating);
-        if (codechef        !== undefined) updateFields["codingProfiles.codechef"]     = codechef;
-
-        // Recompute totalSolved
-        const user = await User.findById(req.user._id);
+        const user = await User.findById(req.user._id).select("codingStats codingProfiles");
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-        const lc = leetcodeSolved !== undefined ? Number(leetcodeSolved) : (user.codingStats?.leetcodeSolved || 0);
-        const gfg = gfgSolved !== undefined ? Number(gfgSolved) : (user.codingStats?.gfgSolved || 0);
-        const cc = codechefSolved !== undefined ? Number(codechefSolved) : (user.codingStats?.codechefSolved || 0);
-        updateFields["codingStats.totalSolved"] = lc + gfg + cc;
+        // Self-reported numbers feed the leaderboard, so they are clamped to
+        // something a human could have solved, and a platform with a linked
+        // username keeps its synced value — typing over it no longer wins.
+        const clamp = (v, max) => {
+            const n = Math.trunc(Number(v));
+            return Number.isFinite(n) ? Math.min(max, Math.max(0, n)) : undefined;
+        };
+        const leetcodeLinked = Boolean(user.codingProfiles?.leetcode);
+        const gfgLinked = Boolean(user.codingProfiles?.gfg);
+
+        const updateFields = { "codingStats.lastUpdated": new Date() };
+        const set = (field, value, max) => {
+            const n = clamp(value, max);
+            if (value !== undefined && n !== undefined) updateFields[`codingStats.${field}`] = n;
+        };
+        if (!leetcodeLinked) { set("leetcodeSolved", leetcodeSolved, 5000); set("leetcodeRating", leetcodeRating, 5000); }
+        if (!gfgLinked)      { set("gfgSolved", gfgSolved, 5000);           set("gfgRating", gfgRating, 50000); }
+        set("codechefSolved", codechefSolved, 5000);
+        set("codechefRating", codechefRating, 5000);
+        if (codechef !== undefined) updateFields["codingProfiles.codechef"] = String(codechef).trim().slice(0, 50);
+
+        // Recompute totalSolved
+        const pick = (field) => updateFields[`codingStats.${field}`] ?? (user.codingStats?.[field] || 0);
+        updateFields["codingStats.totalSolved"] =
+            pick("leetcodeSolved") + pick("gfgSolved") + pick("codechefSolved") +
+            (user.codingStats?.codeforcesSolved || 0) + (user.codingStats?.hackerrankSolved || 0);
 
         const updated = await User.findByIdAndUpdate(req.user._id, { $set: updateFields }, { new: true });
         return res.json({ success: true, codingStats: updated.codingStats, codingProfiles: updated.codingProfiles });

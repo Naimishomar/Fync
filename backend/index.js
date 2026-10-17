@@ -12,6 +12,7 @@ import cookieParser from 'cookie-parser';
 import connectDB from './db/db.js';
 import authRoute from './routes/auth.route.js';
 import postRoute from './routes/post.route.js';
+import safetyRoute from './routes/safety.route.js';
 import chatRoute from './routes/chat.route.js';
 import paymentRoute from './routes/payment.route.js';
 import shortRoute from './routes/short.route.js';
@@ -94,6 +95,8 @@ import compression from 'compression';
 import helmet from 'helmet';
 import { monitoringMiddleware, latencyReport, resetLatency } from './middlewares/monitoring.middleware.js';
 import { generalLimiter } from './middlewares/rateLimit.middleware.js';
+import { loadUser } from './middlewares/auth.middleware.js';
+import { privacyPage, deleteAccountPage } from './utils/legalPages.js';
 import { mongoSanitize } from './middlewares/mongoSanitize.js';
 import { validateConfig } from './utils/validateConfig.js';
 
@@ -155,16 +158,31 @@ const io = new Server(server, {
 
 // Authenticate the socket handshake. Without this any client could emit
 // `register` with someone else's id and join their private `user:<id>` room.
-io.use((socket, next) => {
-  const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+// Token from handshake.auth only (client/utils/socket.ts sends it there): a
+// query-string token ends up in proxy access logs.
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth?.token;
   if (!token) return next(new Error('Unauthorized'));
+  let id;
   try {
-    const { id } = jwt.verify(token, process.env.JWT_SECRET);
-    socket.userId = String(id);
-    next();
+    ({ id } = jwt.verify(token, process.env.JWT_SECRET));
   } catch {
-    next(new Error('Unauthorized'));
+    return next(new Error('Unauthorized'));
   }
+  // The email-verification proof is signed with the same secret but carries no id.
+  if (!id) return next(new Error('Unauthorized'));
+  // Banned or deleted accounts keep a valid JWT for hours; same cached lookup
+  // as authMiddleware. A Mongo/Redis failure lets the verified token through:
+  // a middleware rejection is final for socket.io, so failing closed on an
+  // outage would leave every client without realtime until it restarts.
+  try {
+    const user = await loadUser(id);
+    if (!user || user.isBanned) return next(new Error('Forbidden'));
+  } catch (err) {
+    console.error('Socket auth lookup failed:', err.message);
+  }
+  socket.userId = String(id);
+  next();
 });
 
 const pubClient = redisClient.duplicate();
@@ -225,6 +243,7 @@ app.use(cookieParser());
 
 app.use('/user', authRoute);
 app.use('/post', postRoute);
+app.use('/safety', safetyRoute);
 app.use('/opportunity', opportunityRoute);
 app.use('/chat', chatRoute);
 app.use('/payment', paymentRoute);
@@ -445,6 +464,10 @@ app.get('/.well-known/apple-app-site-association', (req, res) => {
     }
   });
 });
+
+// Public legal pages (Play Store listing links here). Static HTML strings.
+app.get('/privacy', (req, res) => res.type('html').send(privacyPage));
+app.get('/delete-account', (req, res) => res.type('html').send(deleteAccountPage));
 
 // Sharing Redirect Routes (Handles cases where app is not installed)
 const SHARING_PATHS = ['/view', '/movie', '/community', '/club', '/product', '/fync-media'];

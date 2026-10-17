@@ -28,10 +28,30 @@ const userOrIpKey = (req, res) => {
       // Fall through to IP for expired/invalid tokens.
     }
   }
-  return ipKeyGenerator(req, res);
+  return ipKeyGenerator(req.ip);
 };
 
-const createRedisStore = (prefix) => new RedisStore({
+// Login and OTP routes are anonymous, so the campus-NAT problem above applies
+// to them too: key by the account being targeted plus the address. Brute force
+// against one account is still capped; a classmate on the same NAT is not.
+export const identifierIpKey = (req) => {
+  const id = String(req.body?.email || req.body?.identifier || '').toLowerCase().trim();
+  return `${ipKeyGenerator(req.ip)}:${id}`;
+};
+
+// Refresh is a background call every app open makes, so it must not share
+// the login bucket. Keyed by the refresh token's user when it verifies.
+const refreshKey = (req) => {
+  try {
+    const { id } = jwt.verify(String(req.body?.refreshToken || ''), process.env.JWT_REFRESH_SECRET);
+    if (id) return `u:${id}`;
+  } catch {
+    // Invalid/expired: fall through to IP.
+  }
+  return ipKeyGenerator(req.ip);
+};
+
+export const createRedisStore = (prefix) => new RedisStore({
   sendCommand: async (...args) => {
     // isReady, not isOpen: isOpen stays true for the whole reconnect loop, so a
     // dead Redis fell through to the 3s race below on every single request
@@ -71,14 +91,42 @@ export const createLimiter = rateLimit({
 });
 
 export const authLimiter = rateLimit({
+    keyGenerator: identifierIpKey,
     store: createRedisStore('rl_auth:'),
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10, // Limit each IP to 10 login attempts
+    max: 10, // 10 login attempts per account per address
+    // Fail open: closed turned every login into a 500 whenever Redis blipped.
     passOnStoreError: true,
     message: {
         success: false,
         message: "Too many login attempts. Please try again later for security."
     },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// The two above key by (address, account), so one address rotating through
+// accounts or emails had no ceiling at all. A coarse per-address cap on top,
+// loose enough for a campus NAT.
+const ipCeiling = (prefix, windowMs, max) => rateLimit({
+    keyGenerator: (req) => ipKeyGenerator(req.ip),
+    store: createRedisStore(prefix),
+    windowMs,
+    max,
+    passOnStoreError: true,
+    message: { success: false, message: "Too many requests from this network. Try again later." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+export const otpIpLimiter = ipCeiling('rl_otp_ip:', 5 * 60 * 1000, 30);
+export const loginIpLimiter = ipCeiling('rl_login_ip:', 60 * 60 * 1000, 60);
+
+export const refreshLimiter = rateLimit({
+    keyGenerator: refreshKey,
+    store: createRedisStore('rl_refresh:'),
+    windowMs: 60 * 60 * 1000,
+    max: 120,
+    passOnStoreError: true,
     standardHeaders: true,
     legacyHeaders: false,
 });

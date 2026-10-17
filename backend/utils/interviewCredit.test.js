@@ -68,6 +68,12 @@ await PaymentOrder.create({
 });
 check('a pre-marker paid order is not a credit', (await claimInterviewCredit(USER)) === null);
 
+await PaymentOrder.create({
+  razorpayOrderId: 'order_refunded', user: USER, purpose: 'interview_session', amount: 500,
+  status: 'paid', paidAt: new Date(), razorpayPaymentId: 'pay_refunded', meta: { credit: true, refundFull: true },
+});
+check('a fully refunded order is not a credit', (await claimInterviewCredit(USER)) === null);
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
 

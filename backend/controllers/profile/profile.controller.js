@@ -1,4 +1,4 @@
-import User from "../../models/user.model.js";
+import User, { PUBLIC_PROFILE_FIELDS } from "../../models/user.model.js";
 import UserProject from "../../models/profile/project.model.js";
 import Internship from "../../models/profile/internship.model.js";
 import Certificate from "../../models/profile/certificate.model.js";
@@ -22,7 +22,11 @@ export const getFullProfile = async (req, res) => {
         // on the fetched document; nothing private can leak by starting early.
         const [user, allProjects, allInternships, allCerts, scoreDoc] = await Promise.all([
             User.findById(targetUserId)
-                .select("-password -refreshToken -githubAccessToken -deviceId -deviceModel -location -redeemedItems -otp -otpExpires -otpAttempts")
+                // Visitors get the shared public allow-list; the deny-list only
+                // ever applies to the owner looking at their own portfolio.
+                .select(isOwner
+                    ? "-password -refreshToken -githubAccessToken -deviceId -deviceModel -location -redeemedItems -otp -otpExpires -otpAttempts"
+                    : PUBLIC_PROFILE_FIELDS)
                 .lean(),
             UserProject.find({ user: targetUserId })
                 .populate("collaborators.user", "name username avatar")

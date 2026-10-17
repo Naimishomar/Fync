@@ -13,12 +13,44 @@ import mongoose from "mongoose";
 import Note from "../models/note.model.js";
 import NoteDownload from "../models/noteDownload.model.js";
 import User from "../models/user.model.js";
-import { istDayStart } from "../utils/eventTime.js";
+import { istDateKey } from "../utils/eventTime.js";
 
 const UPLOAD_REWARD = 1;
 const DOWNLOAD_REWARD = 1;      // to the uploader, each time someone opens it
 const REWARDED_UPLOADS_PER_DAY = 3;
 const MAX_LIMIT = 30;
+
+/**
+ * Append-only reward ledger. Counting live Note rows let a student delete and
+ * re-upload the same file for a fresh reward each time (and readers re-open it
+ * as a "new" note); these rows outlive the note, so neither pays twice.
+ *   up:<user>:<IST day>  -> { n }   uploads rewarded that day
+ *   dl:<reader>:<file>   -> {}      this reader already paid out for this file
+ */
+// ponytail: grows forever (tiny rows); add a TTL on up:* rows if it ever matters.
+const rewards = () => mongoose.connection.collection("noterewards");
+
+/** Atomically count this upload against today's allowance. */
+const takeUploadReward = async (userId) => {
+  const row = await rewards().findOneAndUpdate(
+    { _id: `up:${userId}:${istDateKey()}` },
+    { $inc: { n: 1 } },
+    { upsert: true, returnDocument: "after" }
+  );
+  // driver v6 returns the doc; v5 wraps it in { value }.
+  return ((row?.value ?? row)?.n ?? Infinity) <= REWARDED_UPLOADS_PER_DAY;
+};
+
+/** True the first time this reader opens this file, under any note id. */
+const firstOpenOfFile = async (readerId, fileKey) => {
+  try {
+    await rewards().insertOne({ _id: `dl:${readerId}:${fileKey}`, at: new Date() });
+    return true;
+  } catch (err) {
+    if (err?.code === 11000) return false;
+    throw err;
+  }
+};
 
 /**
  * Share a file. The reward is capped per day because a flat per-upload payout
@@ -69,13 +101,8 @@ export const uploadNote = async (req, res) => {
       throw err;
     }
 
-    const rewardedToday = await Note.countDocuments({
-      uploader: req.user.id,
-      createdAt: { $gte: istDayStart() },
-    });
-
     let earned = 0;
-    if (rewardedToday <= REWARDED_UPLOADS_PER_DAY) {
+    if (await takeUploadReward(req.user.id)) {
       earned = UPLOAD_REWARD;
       await User.updateOne({ _id: req.user.id }, { $inc: { coins: earned } });
     }
@@ -155,7 +182,7 @@ export const unlockNote = async (req, res) => {
 
   try {
     const note = await Note.findById(id)
-      .select("fileUrl uploader hidden expired college title")
+      .select("fileUrl fileHash uploader hidden expired college title")
       .lean();
     if (!note || note.hidden) return res.status(404).json({ success: false, message: "Note not found." });
 
@@ -185,7 +212,9 @@ export const unlockNote = async (req, res) => {
         // Best effort: the reader already has the file, and failing to record a
         // count must not take it away from them.
         Note.updateOne({ _id: id }, { $inc: { downloads: 1 } }).catch(() => {});
-        User.updateOne({ _id: note.uploader }, { $inc: { coins: DOWNLOAD_REWARD } }).catch(() => {});
+        firstOpenOfFile(req.user.id, note.fileHash || id)
+          .then((pay) => pay && User.updateOne({ _id: note.uploader }, { $inc: { coins: DOWNLOAD_REWARD } }))
+          .catch(() => {});
       }
     }
 
