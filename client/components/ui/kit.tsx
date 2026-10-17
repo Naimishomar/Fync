@@ -134,12 +134,16 @@ export function IconBtn({
       onPress={onPress}
       accessibilityRole="button"
       hitSlop={6}
-      style={({ pressed }) => [
-        s.iconbtn, boxed && s.iconbtnBoxed, overlay && s.iconbtnOverlay, pressed && { opacity: 0.6 }, style,
-      ]}
+      // Static style, pressed state in children: NativeWind's Pressable wrapper
+      // can drop a style *function*, which left this box 22px instead of 44px.
+      style={[s.iconbtn, boxed && s.iconbtnBoxed, overlay && s.iconbtnOverlay, style]}
     >
-      <Ionicons name={name} size={size} color={color ?? (overlay ? C.nightInk : C.ink)} />
-      {badge != null && badge !== 0 ? <Badge value={badge} /> : null}
+      {({ pressed }) => (
+        <>
+          <Ionicons name={name} size={size} color={color ?? (overlay ? C.nightInk : C.ink)} style={pressed && { opacity: 0.6 }} />
+          {badge != null && badge !== 0 ? <Badge value={badge} /> : null}
+        </>
+      )}
     </Pressable>
   );
 }
@@ -318,7 +322,7 @@ export function Button({
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
-      style={({ pressed }) => [
+      style={[
         s.btn,
         small && s.btnSm,
         { backgroundColor: bg },
@@ -327,12 +331,15 @@ export function Button({
         variant === 'primary' && !inCard && s.btnStamp,
         block && { alignSelf: 'stretch' },
         disabled && { opacity: 0.45 },
-        pressed && { opacity: 0.85, transform: [{ scale: 0.985 }] },
         style,
       ]}
     >
-      {icon ? <Ionicons name={icon} size={small ? 15 : 17} color={fg} style={{ marginRight: 7 }} /> : null}
-      <Text style={[s.btnText, small && { fontSize: 12 }, { color: fg }]}>{title}</Text>
+      {({ pressed }) => (
+        <>
+          {icon ? <Ionicons name={icon} size={small ? 15 : 17} color={fg} style={[{ marginRight: 7 }, pressed && { opacity: 0.7 }]} /> : null}
+          <Text style={[s.btnText, small && { fontSize: 12 }, { color: fg }, pressed && { opacity: 0.7 }]}>{title}</Text>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -351,13 +358,14 @@ export function Chip({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: !!active }}
-      style={({ pressed }) => [
-        s.chip, active && { backgroundColor: C.ink, borderColor: C.ink },
-        pressed && { opacity: 0.7 }, style,
-      ]}
+      style={[s.chip, active && { backgroundColor: C.ink, borderColor: C.ink }, style]}
     >
-      {icon ? <Ionicons name={icon} size={15} color={fg} style={label ? { marginRight: 6 } : undefined} /> : null}
-      {label ? <Text style={[s.chipText, { color: fg }]}>{label}</Text> : null}
+      {({ pressed }) => (
+        <>
+          {icon ? <Ionicons name={icon} size={15} color={fg} style={[label ? { marginRight: 6 } : undefined, pressed && { opacity: 0.6 }]} /> : null}
+          {label ? <Text style={[s.chipText, { color: fg }, pressed && { opacity: 0.6 }]}>{label}</Text> : null}
+        </>
+      )}
     </Pressable>
   );
 }
