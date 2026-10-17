@@ -59,6 +59,7 @@ import gameRoute from './routes/game.route.js';
 import batchRoute from './routes/batch.route.js';
 import noteRoutes from "./routes/note.route.js";
 import ContestManager from './services/contestManager.js';
+import { mediaUrlMiddleware } from './utils/mediaUrl.js';
 
 import { setCollegeChatIo } from './controllers/collegeChat.controller.js';
 import { setAlumniChatIo } from './controllers/alumniChat.controller.js';
@@ -194,6 +195,8 @@ app.use(helmet({
   crossOriginResourcePolicy: false, 
 }));
 app.use(compression());
+// Image URLs leave via the nginx /media/ cache, not r2.dev (see utils/mediaUrl.js).
+app.use(mediaUrlMiddleware());
 
 app.use(cors({
   origin: corsOrigins === '*' ? '*' : corsOrigins,

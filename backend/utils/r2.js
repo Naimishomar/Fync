@@ -54,6 +54,8 @@ export const getR2KeyFromUrl = (url) => {
     if (key.startsWith(`${bucketName}/`)) {
       key = key.slice(bucketName.length + 1);
     }
+    // Clients get images as <api>/media/<key> (utils/mediaUrl.js) and can send that back.
+    if (key.startsWith("media/")) key = key.slice(6);
     return key || null;
   } catch {
     return null;
