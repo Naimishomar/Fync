@@ -3,7 +3,7 @@ import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, Ke
 import { FlashList, useRecyclingState } from '@shopify/flash-list';
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppBar, Body, IconBtn } from './ui/kit';
+import { AppBar, H2, IconBtn } from './ui/kit';
 import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -838,9 +838,9 @@ export default function HomeScreen() {
 
 
 
-  // Greeting + drawer avatar live in the content now; the screen title is the AppBar's.
-  const renderGreeting = () => (
-    <View className="flex-row items-center px-4 pt-1 pb-3 gap-2">
+  // Drawer avatar sits beside the title, inside the AppBar row.
+  const appBarTitle = (
+    <View className="flex-row items-center gap-2">
       <Pressable onPress={() => navigation.openDrawer()} accessibilityRole="button" accessibilityLabel="Open menu">
         {/* mockup .av.ring-student: box-shadow 0 0 0 2px card, 0 0 0 4px student.
             RN has no spread shadow, so the two rings are a 2px card-coloured
@@ -848,12 +848,12 @@ export default function HomeScreen() {
         <View className="rounded-full border-2 border-brand-500 bg-card" style={{ padding: 2 }}>
           <ExpoImage
             source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
-            style={{ width: 30, height: 30, borderRadius: 999 }}
+            style={{ width: 28, height: 28, borderRadius: 999 }}
             cachePolicy="disk"
           />
         </View>
       </Pressable>
-      <Body style={{ flexShrink: 1 }} numberOfLines={1}>{`Hi, ${user?.name?.split(" ")[0] || user?.username || ''}`}</Body>
+      <H2 style={{ flexShrink: 1 }} numberOfLines={1}>Fync</H2>
     </View>
   );
 
@@ -985,7 +985,6 @@ export default function HomeScreen() {
   const showSkeleton = loading && feed.length === 0;
   const listHeader = useMemo(() => (
     <View>
-      {renderGreeting()}
       {renderTabBar()}
       <View className="bg-transparent">
         <AdCarousel />
@@ -999,13 +998,13 @@ export default function HomeScreen() {
       </View>
     </View>
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [activeTab, quickFeatures, openQuick, showSkeleton, user, profileImage]);
+  ), [activeTab, quickFeatures, openQuick, showSkeleton]);
 
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle="dark-content" />
       
-      <AppBar title="Fync" right={appBarRight} />
+      <AppBar right={appBarRight}>{appBarTitle}</AppBar>
 
       {/* FlashList recycles cells instead of keeping every mounted row alive,
           which is what stops the blank-cell flash on a fast scroll once the

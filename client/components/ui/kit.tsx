@@ -538,7 +538,7 @@ const s = StyleSheet.create({
   num: { fontFamily: 'SpaceGrotesk_700Bold', letterSpacing: -0.5, color: C.ink, fontVariant: ['tabular-nums'] },
 
   appbar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: GUTTER, height: APPBAR_HEIGHT },
-  appbarActions: { flexDirection: 'row', alignItems: 'center', marginRight: -11 },
+  appbarActions: { flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: -11 },
 
   iconbtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
   iconbtnBoxed: { borderWidth: 1, borderColor: C.line, backgroundColor: C.card },
