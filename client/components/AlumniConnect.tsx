@@ -473,7 +473,7 @@ const AlumniConnect = ({ navigation }: any) => {
                             </View>
                         </View>
 
-                        <FlatList
+                        <FlatList keyboardShouldPersistTaps="handled"
                             data={searchQuery.length > 0 ? searchResults : members}
                             keyExtractor={(item) => item._id}
                             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}

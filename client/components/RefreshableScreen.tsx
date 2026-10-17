@@ -21,7 +21,7 @@ const RefreshableScreen = ({ onRefresh, children, style }: Props) => {
   };
 
   return (
-    <ScrollView
+    <ScrollView keyboardShouldPersistTaps="handled"
       contentContainerStyle={{ flexGrow: 1 }}
       style={style}
       refreshControl={

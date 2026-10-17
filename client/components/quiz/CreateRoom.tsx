@@ -144,7 +144,7 @@ const CreateRoom = () => {
             <Text className="text-ink-3 font-display text-label uppercase">Select Specialization</Text>
             <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8 p-1">
+          <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mb-8 p-1">
             {DOMAINS.map((d) => (
               <TouchableOpacity
                 key={d}

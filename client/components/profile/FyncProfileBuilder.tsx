@@ -624,7 +624,7 @@ export default function FyncProfileBuilder() {
           ))}
         </View>
 
-        <ScrollView
+        <ScrollView keyboardShouldPersistTaps="handled"
           className="flex-1"
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}

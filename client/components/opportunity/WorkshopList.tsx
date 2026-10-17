@@ -244,7 +244,7 @@ export default function WorkshopList() {
         </View>
 
         {/* List */}
-        <FlatList
+        <FlatList keyboardShouldPersistTaps="handled"
           data={filteredWorkshops}
           renderItem={renderItem}
           keyExtractor={(item, index) => (item.id != null ? String(item.id) : `fallback-${index}`)}

@@ -45,7 +45,7 @@ export default function PdfToTextScreen() {
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Extract Text" onBack={() => navigation.goBack()} />
 
-        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
           <Text className="text-ink-2 text-sm mb-5">Pull the text out of a PDF so you can paste it into notes. Scanned pages will not work — they are images.</Text>
 
           <TouchableOpacity onPress={choose}
@@ -81,7 +81,7 @@ export default function PdfToTextScreen() {
                 <Text className="text-ink-3 font-mono text-label">{text.length}</Text>
               </View>
               <View className="bg-card rounded-card p-card-pad border border-line mb-4" style={{ maxHeight: 320 }}>
-                <ScrollView nestedScrollEnabled>
+                <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled>
                   <Text className="text-ink-2 text-sm" selectable>{text}</Text>
                 </ScrollView>
               </View>

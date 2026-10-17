@@ -155,7 +155,7 @@ export default function StudyAssistant() {
                         <View className="flex-1">
                             {/* Quick Action Pills */}
                             <View>
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row py-4">
+                                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="flex-row py-4">
                                     {['Summarize', 'Key Formulas', 'Practice Quiz', 'Simplify'].map((item) => (
                                         <TouchableOpacity
                                             key={item}
@@ -185,7 +185,7 @@ export default function StudyAssistant() {
                             </View>
 
                             {/* Chat Interface */}
-                            <ScrollView
+                            <ScrollView keyboardShouldPersistTaps="handled"
                                 ref={scrollViewRef}
                                 className="flex-1 mt-8"
                                 showsVerticalScrollIndicator={false}

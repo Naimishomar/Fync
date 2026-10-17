@@ -43,7 +43,7 @@ function KitSheet() {
           Avatar, Tile, TileGrid, Display, H1, H2, Body, Sm, Meta, Label, Num,
           Strong, Divider, Empty, RoleSticker, C } = Kit as any;
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: C.paper }} contentContainerStyle={{ padding: 20 }}>
+    <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1, backgroundColor: C.paper }} contentContainerStyle={{ padding: 20 }}>
       <Display>Campus Press</Display>
       <Label style={{ marginTop: 12 }}>Type scale</Label>
       <H1 style={{ marginTop: 8 }}>Heading one</H1>

@@ -138,7 +138,7 @@ const ClubHubScreen = () => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="light-content" />
-            <ScrollView 
+            <ScrollView keyboardShouldPersistTaps="handled" 
                 showsVerticalScrollIndicator={false}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchClubDetails(); }} tintColor={C.brand[500]} />}
             >

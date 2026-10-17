@@ -62,7 +62,7 @@ export default function UtilityHubScreen() {
         <AppBar title="Utility Hub" onBack={() => navigation.goBack()}
           right={<Ionicons name="construct-outline" size={24} color={C.brand[500]} style={{ marginRight: 11 }} />} />
 
-      <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+      <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <StampCard style={{ marginBottom: 24 }}>
           <View className="p-card-pad flex-row items-start" style={{ gap: 12 }}>
             <Ionicons name="lock-closed-outline" size={26} color={C.success} />

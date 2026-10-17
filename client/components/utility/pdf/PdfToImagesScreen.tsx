@@ -60,7 +60,7 @@ export default function PdfToImagesScreen() {
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="PDF to Images" onBack={() => navigation.goBack()} />
 
-        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
           <Text className="text-ink-2 text-sm mb-5">Turn each page into a JPG you can drop into slides or share on chat.</Text>
 
           <TouchableOpacity onPress={choose}

@@ -291,7 +291,7 @@ const PlacementHub = () => {
 
                 {/* The feed itself is the scroller; it used to be a scrollEnabled={false}
                     FlatList inside a ScrollView, which renders every card up front. */}
-                <FlatList
+                <FlatList keyboardShouldPersistTaps="handled"
                     data={loading && !refreshing ? [] : questions}
                     keyExtractor={(item) => item._id}
                     renderItem={renderQuestionCard}
@@ -333,7 +333,7 @@ const PlacementHub = () => {
                           <Text className="text-ink-3 font-display text-label uppercase">Strategic Targets</Text>
                           <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                         </View>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
+                        <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
                             {COMPANIES.map((c, i) => (
                                 <TouchableOpacity key={i} onPress={() => setSearch(c.name)} className="mr-6 items-center">
                                     <View className="bg-card w-16 h-16 rounded-card items-center justify-center border border-line shadow-hair">
@@ -347,7 +347,7 @@ const PlacementHub = () => {
 
                     {/* Filters */}
                     <View className="px-gutter mb-8">
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false}>
                             {['All', ...QUESTION_TYPES].map((type, i) => (
                                 <TouchableOpacity
                                     key={i}
@@ -364,7 +364,7 @@ const PlacementHub = () => {
                     {trending.length > 0 && (
                         <View className="mb-10">
                             <Text className="font-display text-label text-ink uppercase ml-gutter mb-4">Trending <Text className="text-fam-career">Signals</Text></Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
+                            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
                                 {trending.map((item, i) => (
                                     <TouchableOpacity
                                         key={i}
@@ -410,7 +410,7 @@ const PlacementHub = () => {
                         />
 
                         <KeyboardAvoidingView behavior="padding" className="flex-1">
-                            <ScrollView className="p-card-pad" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+                            <ScrollView keyboardShouldPersistTaps="handled" className="p-card-pad" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
                                 <Text className="text-ink-3 text-label font-display uppercase mb-4">Core Context</Text>
                                 <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mb-8">
                                     <TextInput
@@ -434,7 +434,7 @@ const PlacementHub = () => {
                                   <Text className="text-ink-3 text-label font-display uppercase">Categorization</Text>
                                   <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                                 </View>
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-8">
+                                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-8">
                                     {QUESTION_TYPES.map(t => (
                                         <TouchableOpacity
                                             key={t} onPress={() => setForm({ ...form, type: t })}

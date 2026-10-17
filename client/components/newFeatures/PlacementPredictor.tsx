@@ -71,7 +71,7 @@ const PlacementPredictor = () => {
                 <SafeAreaView className="flex-1" edges={['bottom']}>
                     <AppBar title="Analysis Report" onBack={() => setResult(null)} />
 
-                    <ScrollView className="flex-1 px-5 mt-6 pb-20" showsVerticalScrollIndicator={false}>
+                    <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 mt-6 pb-20" showsVerticalScrollIndicator={false}>
                         {/* Probability & ATS Score */}
                         <View className="flex-row items-center justify-between gap-4 mb-8">
                             <StampCard style={{ flex: 1 }}>
@@ -175,7 +175,7 @@ const PlacementPredictor = () => {
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar title="Placement Predictor" onBack={() => navigation.goBack()} />
 
-                <ScrollView className="flex-1 px-5 mt-10">
+                <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 mt-10">
                     <Text className="font-semibold text-base text-ink mb-4">Enter Academic Details</Text>
 
                     {/* GPA Input */}

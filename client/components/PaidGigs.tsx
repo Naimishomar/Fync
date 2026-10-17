@@ -449,7 +449,7 @@ export default function PaidGigs({ navigation }: any) {
                 {loading && !refreshing ? (
                     <View>{[1, 2, 3].map(i => <GigSkeleton key={i} />)}</View>
                 ) : (
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={gigs}
                         keyExtractor={(item) => item._id}
                         showsVerticalScrollIndicator={false}

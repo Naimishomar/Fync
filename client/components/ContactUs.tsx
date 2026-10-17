@@ -164,7 +164,7 @@ const ContactUs = () => {
                 behavior="padding"
                 className="flex-1"
             >
-                <ScrollView 
+                <ScrollView keyboardShouldPersistTaps="handled" 
                     showsVerticalScrollIndicator={false} 
                     contentContainerStyle={{ paddingBottom: 100 }}
                 >

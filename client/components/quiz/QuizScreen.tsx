@@ -198,7 +198,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
         </View>
 
         {/* --- CURRENT QUESTION --- */}
-        <ScrollView className="flex-1 px-gutter pt-10" showsVerticalScrollIndicator={false}>
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-gutter pt-10" showsVerticalScrollIndicator={false}>
           <View className="mb-10 bg-card p-card-pad rounded-sheet border border-line shadow-hair">
             <Text className="text-2xl font-display text-ink mb-10 leading-8 uppercase">
               {currentQuestion.question}

@@ -186,7 +186,7 @@ const ReelItem = React.memo(function ReelItem({
       </View>
 
       {/* Content Container */}
-      <ScrollView className="flex-1 px-6 pt-8">
+      <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-6 pt-8">
         <View className="flex-row justify-between items-start mb-6">
           <View className="flex-1 mr-4">
             <Text className="text-white text-3xl font-display uppercase mb-2">
@@ -351,7 +351,7 @@ const TrailerReels = () => {
   return (
     <View className="flex-1 bg-ink" onLayout={(e) => setPageHeight(Math.round(e.nativeEvent.layout.height))}>
       {pageHeight > 0 && (
-      <FlatList
+      <FlatList keyboardShouldPersistTaps="handled"
         data={movies}
         pagingEnabled
         showsVerticalScrollIndicator={false}

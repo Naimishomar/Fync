@@ -401,7 +401,7 @@ const HackathonCreate = () => {
         <AppBar title="Host Mission" onBack={() => navigation.goBack()} />
 
         <KeyboardAvoidingView behavior="padding" className="flex-1">
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 150 }}>
+          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 150 }}>
 
             {/* Visual Assets */}
             <View className="flex-row gap-4 mt-8">

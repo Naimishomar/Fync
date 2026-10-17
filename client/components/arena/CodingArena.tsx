@@ -339,7 +339,7 @@ export default function CodingArena() {
           <ActivityIndicator size="large" color={C.brand[500]} />
         </View>
       ) : (
-        <FlatList
+        <FlatList keyboardShouldPersistTaps="handled"
           data={board}
           keyExtractor={(r) => String(r._id)}
           renderItem={renderRow}

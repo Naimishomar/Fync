@@ -229,7 +229,7 @@ const CommunityListScreen = () => {
                 {loading && !refreshing ? (
                     <View>{[1, 2, 3].map(i => <CommunitySkeleton key={i} />)}</View>
                 ) : (
-                    <FlatList 
+                    <FlatList keyboardShouldPersistTaps="handled" 
                         data={filtered}
                         keyExtractor={(item) => item._id}
                         renderItem={({ item, index }) => (

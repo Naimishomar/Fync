@@ -198,7 +198,7 @@ export const AlertHost = () => {
               )}
 
               {!!request.message && (
-                <ScrollView
+                <ScrollView keyboardShouldPersistTaps="handled"
                   style={{ maxHeight: 220 }}
                   showsVerticalScrollIndicator={false}
                   className="mt-2 w-full"

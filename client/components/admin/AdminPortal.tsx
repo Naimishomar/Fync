@@ -774,7 +774,7 @@ const AdminPortal = ({ navigation }: any) => {
 
 
     const HubView = () => (
-        <ScrollView 
+        <ScrollView keyboardShouldPersistTaps="handled" 
             className="flex-1 px-gutter pt-4"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
@@ -1222,7 +1222,7 @@ const AdminPortal = ({ navigation }: any) => {
                         <ActivityIndicator color={C.brand[500]} size="large" />
                     </View>
                 ) : (
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={
                             activeTab === 'ads' ? ads : 
                             activeTab === 'marketplace' ? products : 
@@ -1346,7 +1346,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 </TouchableOpacity>
                             </View>
 
-                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                                 <TouchableOpacity
                                     onPress={pickImage}
                                     className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-paper-2 rounded-card border-2 border-dashed border-line items-center justify-center mb-4 overflow-hidden`}

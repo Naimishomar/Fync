@@ -101,7 +101,7 @@ export default function BunkOMeter() {
                     behavior="padding"
                     className="flex-1"
                 >
-                    <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
 
                         {/* --- INPUT CARD (Arena Style) --- */}
                         <View className="bg-card mx-gutter mt-4 p-card-pad rounded-xl border border-line shadow-hair">

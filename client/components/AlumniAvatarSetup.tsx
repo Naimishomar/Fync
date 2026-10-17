@@ -120,7 +120,7 @@ export default function AlumniAvatarSetup() {
 
   return (
     <View className="flex-1 bg-paper">
-      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 20 }} showsVerticalScrollIndicator={false}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 20 }} showsVerticalScrollIndicator={false}>
         <Image
           source={{ uri: 'https://i.pinimg.com/736x/a2/05/60/a205602210656db27579657ba25f57a4.jpg' }}
           style={{ width: '100%', height: 400 }}

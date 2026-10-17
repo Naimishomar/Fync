@@ -219,7 +219,7 @@ const MarketplaceScreen = () => {
                         </View>
                     </View>
                 ) : (
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={products}
                         keyExtractor={(item) => item._id}
                         renderItem={renderProduct}
@@ -259,7 +259,7 @@ const MarketplaceScreen = () => {
                                     </TouchableOpacity>
                                 </View>
 
-                                <ScrollView className="flex-1 p-card-pad" showsVerticalScrollIndicator={false}>
+                                <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 p-card-pad" showsVerticalScrollIndicator={false}>
                                     <View className="flex-row items-center bg-paper-2 p-5 rounded-card mb-8 border border-line">
                                         <Image source={{ uri: selectedProduct?.product_image }} className="w-20 h-20 rounded-card bg-card border border-line" resizeMode="contain" />
                                         <View className="ml-5 flex-1">

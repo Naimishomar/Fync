@@ -118,7 +118,7 @@ const AffiliateProductDetail = () => {
 
     return (
         <View style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 <View style={styles.imageContainer}>
                     <Image source={{ uri: product.image }} style={styles.productImage} contentFit="cover" cachePolicy="memory-disk" />
                 </View>

@@ -107,7 +107,7 @@ export default function ArticleScreen() {
             </TouchableOpacity>
           </View>
         ) : article ? (
-          <ScrollView className="flex-1 px-gutter" showsVerticalScrollIndicator={false}>
+          <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-gutter" showsVerticalScrollIndicator={false}>
             <Text className="font-display text-ink uppercase mt-5" style={{ fontSize: 26, lineHeight: 30, letterSpacing: -0.8 }}>
               {article.title}
             </Text>

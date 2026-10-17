@@ -356,7 +356,7 @@ const MAX_CHAR_LIMIT = 150;
         {images.length === 1 ? (
           renderImage({ item: images[0] })
         ) : (
-          <FlatList
+          <FlatList keyboardShouldPersistTaps="handled"
             key={item._id}
             data={images}
             keyExtractor={(url, index) => `${item._id}-img-${index}`}
@@ -1010,7 +1010,7 @@ export default function HomeScreen() {
           which is what stops the blank-cell flash on a fast scroll once the
           feed is thousands of posts long. v2 sizes cells itself, so the
           FlatList windowing props it replaces are gone. */}
-      <FlashList
+      <FlashList keyboardShouldPersistTaps="handled"
         data={feedWithSuggestions}
         {...autoHideTabBar}
         keyExtractor={(item) => item._id}

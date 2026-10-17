@@ -213,7 +213,7 @@ export default function InterviewSetup() {
           {/* HEADER */}
           <AppBar title="AI Interview" onBack={() => navigation.goBack()} />
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} className="px-5">
+          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} className="px-5">
 
             <Text className="text-ink-3 mb-8 mt-2 text-sm leading-5">
               Configure your AI interviewer. Upload your resume and let the system tailor the technical questions to your profile.

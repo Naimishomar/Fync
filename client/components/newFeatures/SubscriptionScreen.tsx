@@ -165,7 +165,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                     </Text>
                 </View>
 
-                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+                <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
                     <StampCard radius={20} style={{ width: '100%' }}>
                     <View className="w-full bg-ink p-5 overflow-hidden rounded-card">
                         <View className="flex-row justify-between items-start mb-6">

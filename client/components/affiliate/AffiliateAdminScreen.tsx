@@ -164,7 +164,7 @@ export default function AffiliateAdminScreen() {
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Store Admin" onBack={() => navigation.goBack()} />
 
-        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand[500]} colors={['#F97316']} />}>
 
           {/* the one stamped card on this screen */}

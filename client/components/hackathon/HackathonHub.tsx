@@ -367,7 +367,7 @@ const ListHeader = memo(
       {/* Status filters — hidden in "mine", where they did nothing but sat at
           30% opacity taking up a row of vertical space. */}
       {view === 'discover' ? (
-        <ScrollView
+        <ScrollView keyboardShouldPersistTaps="handled"
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 8, paddingBottom: 12 }}

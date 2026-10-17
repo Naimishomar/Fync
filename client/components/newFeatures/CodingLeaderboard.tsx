@@ -288,7 +288,7 @@ export default function CodingLeaderboard() {
                     {/* Header with Back Button */}
                     <AppBar title="Coding Rank" onBack={() => navigation.goBack()} />
 
-                    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingBottom: 50 }}>
+                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingBottom: 50 }}>
                         <View className="items-center mb-10">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-8">
                                 <MaterialCommunityIcons name="shield-lock" size={48} color={C.brand[500]} />
@@ -412,7 +412,7 @@ export default function CodingLeaderboard() {
                         {[1, 2, 3, 4, 5].map(i => <LeaderboardSkeleton key={i} />)}
                     </View>
                 ) : (
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={users} keyExtractor={(item) => item._id} renderItem={renderItem}
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
@@ -441,7 +441,7 @@ export default function CodingLeaderboard() {
                             ) : !lcData ? (
                                 <Text className="text-ink-3 text-center mt-20">{"Couldn't load this profile. Try again."}</Text>
                             ) : (
-                                <ScrollView showsVerticalScrollIndicator={false}>
+                                <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
                                     {/* 1. Header Profile */}
                                     <View className="items-center mb-10">
@@ -537,7 +537,7 @@ export default function CodingLeaderboard() {
                                     {lcData.badges && lcData.badges.length > 0 && (
                                         <View className="mb-8">
                                             <Text className="text-ink-3 font-display text-label uppercase mb-4 ml-1">Elite Badges ({lcData.badges.length})</Text>
-                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-1">
+                                            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="px-1">
                                                 {lcData.badges.map((badge: any, i: number) => (
                                                     <View key={i} className="mr-6 items-center w-24 bg-card p-4 rounded-card border border-line shadow-hair">
                                                         <Image

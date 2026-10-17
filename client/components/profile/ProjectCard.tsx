@@ -48,7 +48,7 @@ export default function ProjectCard({
     <View className="mx-4 mb-6 bg-card rounded-card border border-line overflow-hidden shadow-hair">
       {/* Images Slider */}
       {project.images && project.images.length > 0 ? (
-        <ScrollView 
+        <ScrollView keyboardShouldPersistTaps="handled" 
           horizontal 
           showsHorizontalScrollIndicator={false} 
           className="bg-paper-2"

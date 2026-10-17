@@ -244,7 +244,7 @@ const LeaderboardScreen = () => {
         {loading ? (
           <ActivityIndicator size="large" color={C.brand[500]} className="mt-20" />
         ) : (
-          <FlatList
+          <FlatList keyboardShouldPersistTaps="handled"
             data={leaders}
             keyExtractor={(item, i) => item._id ?? String(i)}
             renderItem={renderItem}

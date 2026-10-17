@@ -86,7 +86,7 @@ const PartyPoolHub = () => {
             )}
           </View>
         ) : (
-        <ScrollView 
+        <ScrollView keyboardShouldPersistTaps="handled" 
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomInset + 24 }}
           showsVerticalScrollIndicator={false}
         >

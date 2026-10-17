@@ -591,9 +591,9 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             </Pressable>
                     </AppBar>
 
-                    <ScrollView showsVerticalScrollIndicator={false}>
+                    <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                         <View className="relative">
-                            <FlatList
+                            <FlatList keyboardShouldPersistTaps="handled"
                                 data={data.image || []}
                                 horizontal pagingEnabled showsHorizontalScrollIndicator={false}
                                 keyExtractor={(item, index) => `${item}-${index}`}
@@ -896,7 +896,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     )
                                 ) : (
                                     newImages.length > 0 ? (
-                                        <ScrollView horizontal className="w-full">
+                                        <ScrollView keyboardShouldPersistTaps="handled" horizontal className="w-full">
                                             {newImages.map((img, i) => (
                                                 <RNImage key={i} source={{ uri: img.uri }} className="w-40 h-40 rounded-xl m-2" />
                                             ))}

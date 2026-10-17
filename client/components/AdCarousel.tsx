@@ -67,7 +67,7 @@ const AdCarousel = () => {
 
   return (
     <View>
-      <FlatList
+      <FlatList keyboardShouldPersistTaps="handled"
         ref={flatListRef}
         data={ads}
         horizontal

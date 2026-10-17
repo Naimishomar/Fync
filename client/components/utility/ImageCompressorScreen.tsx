@@ -109,7 +109,7 @@ export default function ImageCompressorScreen() {
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Compress Image" onBack={() => navigation.goBack()} />
 
-        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
           {!originalUri ? (
             <TouchableOpacity
               onPress={pickImage}

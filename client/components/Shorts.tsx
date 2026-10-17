@@ -784,7 +784,7 @@ export default function Shorts() {
 
   return (
     <>
-      <FlatList
+      <FlatList keyboardShouldPersistTaps="handled"
         data={shorts}
         renderItem={renderItem}
         keyExtractor={item => item._id}

@@ -229,7 +229,7 @@ export default function CommunityFeed() {
                 {loading ? (
                     <ActivityIndicator size="large" color={C.brand[500]} className="mt-10" />
                 ) : (
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={posts}
                         keyExtractor={(p) => p._id}
                         renderItem={renderPost}

@@ -49,7 +49,7 @@ export default function ScanToPdfScreen() {
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Scan to PDF" onBack={() => navigation.goBack()} />
 
-        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
           <Text className="text-ink-2 text-sm mb-5">Photograph notes or handouts page by page, then save them as one PDF.</Text>
 
           <TouchableOpacity onPress={capture}

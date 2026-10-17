@@ -153,7 +153,7 @@ export default function RecruiterEditProfile() {
         }
       />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView keyboardShouldPersistTaps="handled" className="flex-1" showsVerticalScrollIndicator={false}>
 
         {/* Banner Section */}
         <TouchableOpacity onPress={() => pickImage('banner')} className="w-full h-40 bg-paper-2 relative">

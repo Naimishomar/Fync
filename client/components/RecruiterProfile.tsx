@@ -243,7 +243,7 @@ const RecruiterProfile = () => {
                     </>
                 }
             />
-            <ScrollView
+            <ScrollView keyboardShouldPersistTaps="handled"
                 {...autoHideTabBar}
                 contentContainerStyle={{ paddingBottom: tabBarClearance }}
                 refreshControl={

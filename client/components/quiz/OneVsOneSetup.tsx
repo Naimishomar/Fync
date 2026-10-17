@@ -194,7 +194,7 @@ const OneVsOneSetup = () => {
                     </TouchableOpacity>
                 } />
 
-                <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-gutter">
+                <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1 px-gutter">
                     <View className="mt-2 mb-8">
                         <Text className="text-ink-3 uppercase text-label font-semibold">Select your combat domain</Text>
                     </View>

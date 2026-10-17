@@ -77,7 +77,7 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
         <View className="h-[2px] flex-1 bg-ink ml-3" style={{ maxWidth: 60 }} />
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
         {shown.map((p) => (
           <View
             key={p._id}

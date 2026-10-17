@@ -228,7 +228,7 @@ export default function AlumniJobs() {
                     onBack={() => navigation.goBack()}
                     right={isAlumni ? <IconBtn name="add" boxed onPress={() => setPostModalVisible(true)} /> : undefined}
                 />
-                <FlatList
+                <FlatList keyboardShouldPersistTaps="handled"
                     data={jobs}
                     keyExtractor={(item) => item._id}
                     renderItem={renderJob}

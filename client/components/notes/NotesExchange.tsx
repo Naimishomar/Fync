@@ -185,7 +185,7 @@ export default function NotesExchange() {
       </View>
 
       <View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
+        <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
           {KINDS.map((k) => (
             <TouchableOpacity
               key={k.id || 'all'}
@@ -214,7 +214,7 @@ export default function NotesExchange() {
           <ActivityIndicator size="large" color={C.brand[500]} />
         </View>
       ) : (
-        <FlatList
+        <FlatList keyboardShouldPersistTaps="handled"
           data={notes}
           renderItem={renderNote}
           keyExtractor={(n) => n._id}
@@ -367,7 +367,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
             />
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+          <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mb-4">
             {(['notes', 'pyq', 'lab', 'syllabus'] as const).map((k) => (
               <TouchableOpacity
                 key={k}

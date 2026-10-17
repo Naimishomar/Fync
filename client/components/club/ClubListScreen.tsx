@@ -162,7 +162,7 @@ const ClubListScreen = () => {
                     onBack={() => navigation.goBack()}
                     right={<IconBtn name="qr-code-outline" boxed onPress={() => setShowCodeModal(true)} />}
                 />
-                <FlatList
+                <FlatList keyboardShouldPersistTaps="handled"
                     ListHeaderComponent={
                         <TouchableOpacity
                             onPress={() => navigation.navigate('CreateClub')}

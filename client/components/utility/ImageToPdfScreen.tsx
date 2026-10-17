@@ -132,7 +132,7 @@ export default function ImageToPdfScreen() {
         <AppBar title="Image to PDF" onBack={() => navigation.goBack()}
           right={<IconBtn name="trash-outline" color={C.ink3} onPress={() => setImages([])} />} />
 
-      <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+      <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <TouchableOpacity
           onPress={pickImages}
           className="w-full bg-card border-2 border-dashed border-ink-4 rounded-card p-card-pad items-center justify-center mb-6 shadow-hair"

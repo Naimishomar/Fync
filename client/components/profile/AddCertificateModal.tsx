@@ -134,7 +134,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
                 <Feather name="tag" size={12} color={C.ink3} />
                 <Text className="text-ink-3 font-display uppercase text-label">Specialization Field</Text>
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2 pr-6">
                   {CATEGORIES.map(c => (
                     <Pressable key={c} onPress={() => setForm(p => ({ ...p, category: c }))}

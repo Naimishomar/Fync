@@ -108,7 +108,7 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                         </View>
                     </View>
                 ) : (
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={filteredItems}
                         keyExtractor={(item: any) => item.id}
                         showsVerticalScrollIndicator={false}

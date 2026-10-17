@@ -330,7 +330,7 @@ const LostAndFound = () => {
                 {loading && !refreshing ? (
                     <View>{[1, 2, 3, 4].map(i => <ItemSkeleton key={i} />)}</View>
                 ) : (
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={items}
                         keyExtractor={item => item._id}
                         renderItem={renderItem}
@@ -366,7 +366,7 @@ const LostAndFound = () => {
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView className="p-card-pad" showsVerticalScrollIndicator={false}>
+                        <ScrollView keyboardShouldPersistTaps="handled" className="p-card-pad" showsVerticalScrollIndicator={false}>
                             <Text className="text-ink-3 text-label font-display uppercase mb-4">Identification</Text>
                             <TextInput
                                 value={newItemName}

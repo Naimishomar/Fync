@@ -116,7 +116,7 @@ export default function SolveProblem() {
         <Text className="font-display text-xl text-ink" numberOfLines={3}>{problem?.title}</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
         <Text className="font-sans text-ink leading-6" style={{ fontSize: 14 }}>
           {problem?.description}
         </Text>

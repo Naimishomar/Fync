@@ -375,7 +375,7 @@ const HackathonDetail = () => {
         />
       </View>
 
-      <Animated.ScrollView
+      <Animated.ScrollView keyboardShouldPersistTaps="handled"
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -480,7 +480,7 @@ const HackathonDetail = () => {
 
           {/* Tabs */}
           <View className="mt-6">
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 14 }}>
+            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 14 }}>
               {TABS.map((tab, i) => {
                 const on = activeTab === i;
                 return (

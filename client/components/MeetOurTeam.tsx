@@ -107,7 +107,7 @@ const MeetOurTeam = () => {
             {/* App bar */}
             <AppBar title="Meet the Team" onBack={() => navigation.goBack()} />
 
-            <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-gutter">
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1 px-gutter">
                 <View className="flex-row items-center mt-2 mb-3" style={{ gap: 12 }}>
                     <Text className="text-ink text-label font-display uppercase">Core</Text>
                     <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />

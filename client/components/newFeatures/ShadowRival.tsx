@@ -164,7 +164,7 @@ export default function ShadowRival() {
 
             <View className="flex-1">
                 <AppBar title="Shadow Rival" onBack={() => navigation.goBack()} />
-                <ScrollView
+                <ScrollView keyboardShouldPersistTaps="handled"
                     contentContainerStyle={{ paddingBottom: 40 }}
                     showsVerticalScrollIndicator={false}
                     refreshControl={

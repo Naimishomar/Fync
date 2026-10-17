@@ -397,7 +397,7 @@ const ProfessionalHub = ({ navigation }: any) => {
 
                     {showMentions && mentionResults.length > 0 && (
                         <View className="max-h-48 bg-card border-t border-line shadow-hair">
-                            <FlatList
+                            <FlatList keyboardShouldPersistTaps="handled"
                                 data={mentionResults}
                                 keyExtractor={(item) => item._id}
                                 renderItem={({ item }) => (

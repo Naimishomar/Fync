@@ -75,7 +75,7 @@ const MovieDetail = () => {
 
   return (
     <View className="flex-1 bg-ink">
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1">
         {/* Banner Section */}
         <View className="h-[450px] relative">
           <Image
@@ -125,7 +125,7 @@ const MovieDetail = () => {
           {/* More Like This */}
           <View className="mb-10">
             <Text className="text-white text-xl font-display mb-4">More Like This</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false}>
               {movie.similar?.results?.map((item: any) => (
                 <MovieCard
                   key={item.id}

@@ -308,7 +308,7 @@ const Notification = () => {
             ))}
           </View>
         ) : (
-          <FlatList
+          <FlatList keyboardShouldPersistTaps="handled"
             data={notifications}
             keyExtractor={(item) => item._id}
             renderItem={renderItem}

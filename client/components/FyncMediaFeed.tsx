@@ -564,12 +564,12 @@ const MediaDetailView = React.memo(({
           onClose={onClose}
         />
 
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="p-card-pad">
             <Text className="text-ink text-2xl font-display uppercase leading-tight mb-6">{item.title}</Text>
 
             {/* Action Row - Arena Pill Style */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8">
+            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mb-8">
               <View className="flex-row items-center gap-4">
                 <View className="flex-row items-center bg-card rounded-card h-12 px-1 border border-line shadow-hair">
                   <TouchableOpacity onPress={handleLike} className="flex-row items-center gap-2 pl-4 pr-5 border-r border-line">
@@ -926,7 +926,7 @@ export default function FyncMediaFeed() {
               <Text className="font-sans text-sm text-ink-4 mt-2 text-center">No broadcast records found in the registry.</Text>
             </View>
           ) : (
-            <FlatList
+            <FlatList keyboardShouldPersistTaps="handled"
               data={media}
               renderItem={renderItem}
               keyExtractor={item => item._id}
@@ -989,7 +989,7 @@ export default function FyncMediaFeed() {
                   </TouchableOpacity>
                 </View>
 
-                <ScrollView className="flex-1 p-5 space-y-5" contentContainerStyle={{ paddingBottom: 100 }}>
+                <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 p-5 space-y-5" contentContainerStyle={{ paddingBottom: 100 }}>
                   <View>
                     <Text className="text-xs font-semibold text-ink-3 uppercase mb-2">Title</Text>
                     <TextInput

@@ -115,7 +115,7 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
             </Pressable>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-gutter pt-6">
+          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1 px-gutter pt-6">
             <ProfileInput 
               label="LeetCode" 
               value={leetcode} 

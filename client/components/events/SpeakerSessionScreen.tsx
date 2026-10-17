@@ -179,7 +179,7 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                             </TouchableOpacity>
                         )}
                     </View>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                    <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="flex-row">
                         {item.speakers && item.speakers.length > 0 ? (
                             item.speakers.map((speaker, idx) => (
                                 <TouchableOpacity
@@ -1034,7 +1034,7 @@ export default function SpeakerSessionScreen() {
                             setting only the data here reopened a previous edit as "Update". */}
                         <IconBtn name="add" size={24} color="white" style={{ backgroundColor: C.ink, marginLeft: 12 }} onPress={() => openSessionModal()} />
                     </>} />
-                <FlatList
+                <FlatList keyboardShouldPersistTaps="handled"
                     data={sessions}
                     keyExtractor={(item: any) => item._id}
                     contentContainerStyle={{ paddingBottom: 120 }}
@@ -1173,7 +1173,7 @@ export default function SpeakerSessionScreen() {
                                 />
                             </View>
                         </View>
-                        <FlatList
+                        <FlatList keyboardShouldPersistTaps="handled"
                             data={filteredColleges}
                             keyExtractor={(item) => item}
                             renderItem={({ item }) => (
@@ -1202,7 +1202,7 @@ export default function SpeakerSessionScreen() {
                 <View className="absolute top-0 left-0 right-0 bottom-0 bg-black/60 justify-end z-[1000]">
                     <KeyboardAvoidingView behavior="padding" className="h-[85%]">
                         <View className="bg-paper rounded-t-sheet p-card-pad h-full">
-                            <ScrollView showsVerticalScrollIndicator={false}>
+                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                                 <View className="flex-row justify-between items-center mb-8">
                                     <Text className="text-ink font-display uppercase text-h1">{isEditingSession ? 'Update Session' : 'New Session'}</Text>
                                     <View className="flex-row items-center gap-3">
@@ -1270,7 +1270,7 @@ export default function SpeakerSessionScreen() {
                                         </View>
 
                                         {localSpeakers.length > 0 ? (
-                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                                            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="flex-row">
                                                 {localSpeakers.map((s, i) => (
                                                     <View key={s.id} className="bg-paper-2 p-4 rounded-card border border-line items-center mr-4 w-28 relative">
                                                         <Image source={{ uri: s.image }} className="w-16 h-16 rounded-full bg-card border border-line mb-3" />
@@ -1607,7 +1607,7 @@ export default function SpeakerSessionScreen() {
                                 <Text className="mt-4 text-ink-3 font-display uppercase text-label">Syncing records...</Text>
                             </View>
                         ) : (
-                            <FlatList
+                            <FlatList keyboardShouldPersistTaps="handled"
                                 data={attendees} keyExtractor={(item) => item._id}
                                 renderItem={({ item, index }) => {
                                     const u = (item.userId && typeof item.userId === 'object' ? item.userId : {}) as User;
@@ -1681,7 +1681,7 @@ export default function SpeakerSessionScreen() {
                                 </TouchableOpacity>
                             </View>
 
-                            <FlatList
+                            <FlatList keyboardShouldPersistTaps="handled"
                                 data={myRegistrations} keyExtractor={(item) => item._id}
                                 renderItem={({ item }) => (
                                     <JoinedSessionCard item={item} onShowQR={(reg) => { setSelectedReg(reg); setQrModalVisible(true); }} onRefresh={onRefresh} />

@@ -217,7 +217,7 @@ const HackathonList = () => {
         </View>
 
         {/* List */}
-        <FlatList
+        <FlatList keyboardShouldPersistTaps="handled"
           data={filteredHackathons}
           keyExtractor={(item, index) => item.id?.toString() || `fallback-${index}`}
           renderItem={renderItem}

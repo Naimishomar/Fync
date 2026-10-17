@@ -349,7 +349,7 @@ export default function FocusProductivity() {
 
                 <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}><Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>Recent Sessions</Text><View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} /></View>
 
-                <FlatList
+                <FlatList keyboardShouldPersistTaps="handled"
                     data={forestHistory}
                     keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}

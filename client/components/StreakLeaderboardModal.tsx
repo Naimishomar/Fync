@@ -155,7 +155,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                 <ActivityIndicator size="large" color={C.brand[500]} />
               </View>
             ) : (
-              <FlatList
+              <FlatList keyboardShouldPersistTaps="handled"
                 data={data}
                 renderItem={({ item, index }) => (
                   <View 

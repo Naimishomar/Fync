@@ -353,7 +353,7 @@ const ProjectCard = memo(({
       {/* Media Slider */}
       {mediaData.length > 0 ? (
         <View onLayout={(e) => setMediaWidth(e.nativeEvent.layout.width)}>
-          <FlatList
+          <FlatList keyboardShouldPersistTaps="handled"
             horizontal
             data={mediaData}
             keyExtractor={(_, index) => index.toString()}
@@ -586,7 +586,7 @@ export default function FundingFeed() {
               {[1, 2].map(i => <ProjectSkeleton key={i} />)}
             </View>
           ) : (
-            <FlatList
+            <FlatList keyboardShouldPersistTaps="handled"
               data={projects}
               renderItem={({ item, index }) => (
                 <ProjectCard

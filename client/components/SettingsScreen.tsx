@@ -144,7 +144,7 @@ export default function SettingsScreen() {
           </Text>
         </View>
 
-        <ScrollView className="flex-1 px-gutter" showsVerticalScrollIndicator={false}>
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-gutter" showsVerticalScrollIndicator={false}>
           {sections.map((sec) => (
             <View key={sec.title}>
               <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>

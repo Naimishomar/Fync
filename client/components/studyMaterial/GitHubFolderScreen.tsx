@@ -125,7 +125,7 @@ const GitHubFolderScreen = () => {
             <Text className="mt-4 text-ink-3 font-display text-label uppercase">Fetching Protocol...</Text>
           </View>
         ) : (
-          <FlatList
+          <FlatList keyboardShouldPersistTaps="handled"
             data={filteredItems}
             keyExtractor={(item) => item.path}
             showsVerticalScrollIndicator={false}

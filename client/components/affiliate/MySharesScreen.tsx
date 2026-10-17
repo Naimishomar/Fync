@@ -74,7 +74,7 @@ export default function MySharesScreen() {
         {loading ? (
           <ActivityIndicator color={C.brand[500]} style={{ marginTop: 40 }} />
         ) : (
-          <FlatList
+          <FlatList keyboardShouldPersistTaps="handled"
             data={rows}
             keyExtractor={(r) => r._id}
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60 }}

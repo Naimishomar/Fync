@@ -168,7 +168,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
                 <Feather name="layers" size={12} color={C.ink3} />
                 <Text className="text-ink-3 font-display uppercase text-label">Engagement Type</Text>
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2 pr-6">
                   {TYPES.map(t => (
                     <Pressable key={t} onPress={() => setForm(p => ({ ...p, type: t }))}

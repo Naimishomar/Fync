@@ -225,7 +225,7 @@ const FindAlumni = ({ navigation }: any) => {
                         {[1, 2, 3, 4].map(i => <TeammateSkeleton key={i} />)}
                     </View>
                 ) : (
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={alumni}
                         keyExtractor={(item) => item._id}
                         renderItem={renderAlumniItem}
@@ -292,7 +292,7 @@ const FindAlumni = ({ navigation }: any) => {
                           <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                         </View>
 
-                        <ScrollView className="max-h-[350px]" showsVerticalScrollIndicator={false}>
+                        <ScrollView keyboardShouldPersistTaps="handled" className="max-h-[350px]" showsVerticalScrollIndicator={false}>
                             <View className="flex-row flex-wrap gap-3">
                                 {batches.map((batch: string) => (
                                     <TouchableOpacity

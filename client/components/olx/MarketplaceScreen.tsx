@@ -96,7 +96,7 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
                           <Text className="text-ink-3 text-label font-display uppercase">Visual Documentation</Text>
                           <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                         </View>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8">
+                        <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mb-8">
                             <TouchableOpacity onPress={pickImage} className="w-28 h-28 bg-card border border-dashed border-line rounded-card items-center justify-center mr-4 shadow-hair">
                                 <Ionicons name="camera-outline" size={24} color={C.brand[500]} />
                                 <Text className="text-ink-3 text-label font-display uppercase mt-2">Add Assets</Text>
@@ -112,7 +112,7 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
                           <Text className="text-ink-3 text-label font-display uppercase">Classification</Text>
                           <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                         </View>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-8">
+                        <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-8">
                             {['electronics', 'books', 'fashion', 'others'].map(cat => (
                                 <TouchableOpacity
                                     key={cat}
@@ -149,7 +149,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                 <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={onClose} />
                 <View className="bg-paper rounded-t-sheet overflow-hidden max-h-[90%] w-full shadow-hair">
                     <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
-                    <ScrollView showsVerticalScrollIndicator={false}>
+                    <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                         <View className="relative">
                             <ExpoImage source={{ uri: product.product_image?.[0] }} style={{ width: '100%', height: 384, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
                         </View>
@@ -397,7 +397,7 @@ const MarketplaceScreen = () => {
                     </View>
 
                     {/* CATEGORY CHIPS */}
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-6">
+                    <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-6">
                         {['all', 'electronics', 'books', 'fashion', 'others'].map(tab => (
                             <TouchableOpacity
                                 key={tab}
@@ -416,7 +416,7 @@ const MarketplaceScreen = () => {
                         <Text className="font-sans text-sm text-ink-3 text-center mt-4">Syncing Marketplace Indices...</Text>
                     </View>
                 ) : (
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={filteredProducts}
                         renderItem={renderProductItem}
                         keyExtractor={(item) => item._id}

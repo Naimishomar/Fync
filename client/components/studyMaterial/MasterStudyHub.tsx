@@ -93,7 +93,7 @@ export default function MasterStudyHub() {
       <View className="flex-1">
         <AppBar title="Fync Academy" onBack={() => navigation.goBack()} />
 
-        <ScrollView 
+        <ScrollView keyboardShouldPersistTaps="handled" 
           className="flex-1 px-5 pt-2" 
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
@@ -199,7 +199,7 @@ export default function MasterStudyHub() {
               <Text className="font-semibold text-base text-ink mt-4">Finding PDFs...</Text>
             </View>
           ) : (
-            <FlatList
+            <FlatList keyboardShouldPersistTaps="handled"
               data={results}
               keyExtractor={(r, i) => String(r.id ?? r.pdfUrl ?? i)}
               contentContainerStyle={{ padding: 20, paddingBottom: 40 }}

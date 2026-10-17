@@ -94,7 +94,7 @@ export default function CommunityPostDetail() {
                 <View className="flex-1">
                     <AppBar title={subName} onBack={() => navigation.goBack()} />
 
-                    <ScrollView
+                    <ScrollView keyboardShouldPersistTaps="handled"
                         contentContainerStyle={{ paddingBottom: 24 }}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchPost(); }} tintColor={C.brand[500]} />}
                     >

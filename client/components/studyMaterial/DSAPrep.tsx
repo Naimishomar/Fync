@@ -65,7 +65,7 @@ const DSAPrep = () => {
 
       <View className="flex-1">
         <AppBar title="DSA Prep" onBack={() => navigation.goBack()} />
-        <FlatList
+        <FlatList keyboardShouldPersistTaps="handled"
           data={filteredTopics}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
@@ -86,7 +86,7 @@ const DSAPrep = () => {
 
               {/* CATEGORY FILTERS */}
               <View className="mb-6">
-                <FlatList
+                <FlatList keyboardShouldPersistTaps="handled"
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   data={categories}

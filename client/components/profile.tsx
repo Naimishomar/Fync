@@ -824,7 +824,7 @@ function Profile() {
       <AppBar title="Profile" />
       {/* key={activeTab} forces a remount when the column count changes,
           which both list implementations require. */}
-      <FlashList
+      <FlashList keyboardShouldPersistTaps="handled"
         key={activeTab}
         {...autoHideTabBar}
         data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : activeTab === 'reposts' ? reposts : (['ABOUT'] as any)}

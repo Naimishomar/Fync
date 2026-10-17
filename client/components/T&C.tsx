@@ -28,7 +28,7 @@ export default function TermsAndCondition() {
 
         <AppBar title="Terms & Conditions" onBack={() => navigation.goBack()} />
 
-        <ScrollView
+        <ScrollView keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
         >

@@ -32,7 +32,7 @@ export default function CustomSidebar(props: any) {
 
     return (
         <View className="flex-1 bg-paper">
-            <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false} bounces={false}>
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false} bounces={false}>
                 <View className="pt-16 pb-6 px-6 w-full">
                     <View className="flex-row justify-between items-start mb-5">
                         <Pressable

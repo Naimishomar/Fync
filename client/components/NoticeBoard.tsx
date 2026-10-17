@@ -400,7 +400,7 @@ const NoticeBoard = () => {
           )}
 
           {item.image && item.image.length > 0 && (
-            <FlatList
+            <FlatList keyboardShouldPersistTaps="handled"
               horizontal
               showsHorizontalScrollIndicator={false}
               data={item.image}
@@ -496,7 +496,7 @@ const NoticeBoard = () => {
         {loading && !refreshing ? (
           <View>{[1, 2, 3].map(i => <NoticeSkeleton key={i} />)}</View>
         ) : (
-            <FlatList
+            <FlatList keyboardShouldPersistTaps="handled"
               data={notices}
               keyExtractor={item => item._id}
               renderItem={renderNotice}
@@ -545,7 +545,7 @@ const NoticeBoard = () => {
               title={activeTab === 'global' ? 'New Global Intel' : 'New Campus Intel'}
               right={<IconBtn name="close" onPress={() => setCreateModalVisible(false)} />}
             />
-            <ScrollView className="px-gutter py-card-pad" contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+            <ScrollView keyboardShouldPersistTaps="handled" className="px-gutter py-card-pad" contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
 
               <Text className="text-ink-3 text-label font-display uppercase mb-4">Intel Subject</Text>
               <TextInput
@@ -595,7 +595,7 @@ const NoticeBoard = () => {
               </TouchableOpacity>
 
               {images.length > 0 && (
-                <ScrollView horizontal className="mb-8" showsHorizontalScrollIndicator={false}>
+                <ScrollView keyboardShouldPersistTaps="handled" horizontal className="mb-8" showsHorizontalScrollIndicator={false}>
                   {images.map((img, i) => <Image key={i} source={{ uri: img.uri }} className="w-24 h-24 rounded-card mr-4 border border-line" />)}
                 </ScrollView>
               )}

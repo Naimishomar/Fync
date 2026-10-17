@@ -332,7 +332,7 @@ const InternshipList = () => {
         )}
 
         {/* List */}
-        <FlatList
+        <FlatList keyboardShouldPersistTaps="handled"
           data={activeTab === 'all' ? internships : shortlistedItems}
           keyExtractor={(item, index) => item._id || `fallback-${index}`}
           renderItem={renderItem}

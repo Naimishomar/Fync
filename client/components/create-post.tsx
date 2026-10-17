@@ -233,7 +233,7 @@ function CreatePost() {
               )}
 
               {images.length > 0 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3 pt-4">
+                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mt-3 pt-4">
                   {images.map((uri, index) => (
                     <View key={index} className="mr-4 relative">
                       <Image source={{ uri }} className="h-24 w-24 rounded-card bg-paper-2 border border-line" />

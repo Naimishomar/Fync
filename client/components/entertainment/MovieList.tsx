@@ -76,7 +76,7 @@ const MovieList = () => {
 
       {/* Genre Filters — pointless on a list that is already one genre. */}
       {!genre && <View className="mb-4">
-        <ScrollView 
+        <ScrollView keyboardShouldPersistTaps="handled" 
           horizontal 
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20 }}
@@ -101,7 +101,7 @@ const MovieList = () => {
         </View>
       ) : (
         <View className="flex-1">
-          <FlatList
+          <FlatList keyboardShouldPersistTaps="handled"
             data={filteredMovies}
             numColumns={numColumns}
             keyExtractor={(item) => String(item.id)}

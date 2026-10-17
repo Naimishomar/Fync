@@ -54,7 +54,7 @@ const GameLeaderboard = () => {
           <Text className="text-ink-3">No scores yet. Be the first!</Text>
         </View>
       ) : (
-        <FlatList
+        <FlatList keyboardShouldPersistTaps="handled"
           data={leaderboard}
           keyExtractor={(item) => item._id}
           contentContainerStyle={{ padding: 20, paddingBottom: 20 + bottomInset }}

@@ -182,7 +182,7 @@ export const ReportItem = ({ item, onDelete }: any) => (
             </View>
             <Text className="text-ink text-sm leading-5" numberOfLines={3}>{item.post?.description}</Text>
             {item.post?.image && item.post.image.length > 0 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mt-3">
                     {item.post.image.map((img: string, i: number) => (
                         <Image key={i} source={{ uri: img }} className="w-20 h-20 rounded-lg mr-2" />
                     ))}

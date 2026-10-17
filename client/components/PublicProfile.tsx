@@ -467,7 +467,7 @@ const PublicProfile = () => {
             <View className="absolute left-0 right-0 top-0 z-20" pointerEvents="box-none">
                 <AppBar overlay onBack={() => navigation.goBack()} />
             </View>
-            <ScrollView className="flex-1 bg-paper" showsVerticalScrollIndicator={false}>
+            <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 bg-paper" showsVerticalScrollIndicator={false}>
                 {/* Banner & Actions */}
                 <View className="h-48 w-full relative">
                     <ExpoImage
@@ -596,7 +596,7 @@ const PublicProfile = () => {
                 <AppBar overlay onBack={() => navigation.goBack()} />
             </View>
 
-            <FlashList
+            <FlashList keyboardShouldPersistTaps="handled"
                 key={activeTab} // Reset list when tab changes
                 data={activeTab === 'tags' ? ['ABOUT'] : activeTab === 'posts' ? posts : shorts}
                 numColumns={activeTab === 'tags' ? 1 : 3}

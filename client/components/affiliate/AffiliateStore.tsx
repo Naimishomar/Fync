@@ -118,7 +118,7 @@ const AffiliateStore = () => {
             </View>
 
             <View style={styles.categoriesContainer}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesScroll}>
+                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesScroll}>
                     {CATEGORIES.map((cat) => (
                         <TouchableOpacity 
                             key={cat}
@@ -145,7 +145,7 @@ const AffiliateStore = () => {
                     <Text style={styles.loadingText}>Loading curated deals...</Text>
                 </View>
             ) : (
-                <FlatList
+                <FlatList keyboardShouldPersistTaps="handled"
                     data={products}
                     renderItem={renderProductItem}
                     keyExtractor={(item) => item._id}

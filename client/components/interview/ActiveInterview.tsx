@@ -355,7 +355,7 @@ export default function ActiveInterview() {
           <Text className="text-ink-3 mt-2">Evaluation results are ready</Text>
         </View>
 
-        <ScrollView className="flex-1 mb-6" showsVerticalScrollIndicator={false}>
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 mb-6" showsVerticalScrollIndicator={false}>
           {/* Score Row */}
           <View className="flex-row gap-4 mb-6">
             <View className="flex-1 bg-paper p-5 border border-line items-center rounded-md">

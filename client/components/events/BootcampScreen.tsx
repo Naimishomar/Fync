@@ -698,7 +698,7 @@ export default function BootcampScreen() {
                             setSessionModalVisible(true);
                         }} />
                     </>} />
-                <FlatList
+                <FlatList keyboardShouldPersistTaps="handled"
                     data={sessions}
                     keyExtractor={(item) => item._id}
                     contentContainerStyle={{ paddingBottom: 120 }}
@@ -771,7 +771,7 @@ export default function BootcampScreen() {
                                 </View>
 
                                 {/* Daily Attendance Date Selector */}
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="flex-row">
                                     {(() => {
                                         const activeSession = sessions.find(s => s.eventId === currentEventForAttendees);
                                         if (!activeSession) return null;
@@ -801,7 +801,7 @@ export default function BootcampScreen() {
                                 </Text>
                             </View>
 
-                            <FlatList
+                            <FlatList keyboardShouldPersistTaps="handled"
                                 data={attendees}
                                 keyExtractor={(it) => it._id}
                                 renderItem={({ item, index }) => {
@@ -1298,7 +1298,7 @@ export default function BootcampScreen() {
                                     </TouchableOpacity>
                                 </View>
 
-                                <FlatList
+                                <FlatList keyboardShouldPersistTaps="handled"
                                     data={userRegistrations}
                                     keyExtractor={(item) => item._id}
                                     renderItem={({ item }) => (
@@ -1366,7 +1366,7 @@ export default function BootcampScreen() {
                                     />
                                 </View>
                             </View>
-                            <FlatList
+                            <FlatList keyboardShouldPersistTaps="handled"
                                 data={filteredColleges}
                                 keyExtractor={(it) => it}
                                 renderItem={({ item }) => (

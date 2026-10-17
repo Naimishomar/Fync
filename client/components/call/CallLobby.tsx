@@ -360,7 +360,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
             <ActivityIndicator size="large" color={C.brand[500]} />
           </View>
         ) : (
-          <FlatList
+          <FlatList keyboardShouldPersistTaps="handled"
             data={onlineUsers}
             keyExtractor={(item) => item._id}
             renderItem={renderUser}

@@ -196,7 +196,7 @@ export default function ProfileSetup1() {
                 />
               )}
 
-              <ScrollView>
+              <ScrollView keyboardShouldPersistTaps="handled">
                 {(dropdownType === 'gender'
                   ? genderOptions
                   : dropdownType === 'passout year'

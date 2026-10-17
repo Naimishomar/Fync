@@ -386,7 +386,7 @@ export const TagRow = ({ style, ...p }: ViewProps) => (
 /** Horizontal filter scroller. Bleeds to the screen edge so the last chip reads
  *  as scrollable rather than as clipped by a bug. */
 export const ChipRow = ({ children, style }: { children: React.ReactNode; style?: any }) => (
-  <ScrollView
+  <ScrollView keyboardShouldPersistTaps="handled"
     horizontal
     showsHorizontalScrollIndicator={false}
     contentContainerStyle={{ paddingHorizontal: GUTTER, gap: 8 }}

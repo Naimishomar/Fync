@@ -268,7 +268,7 @@ export default function CreateFundingFeed() {
           {(images.length > 0 || video || oldImages.length > 0 || oldVideo) && (
             <View className="mb-4">
               {images.length > 0 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2 flex-grow-0">
+                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mb-2 flex-grow-0">
                   {images.map((img, index) => (
                     <View key={index} className="mr-3 relative">
                       <Image source={{ uri: img.uri }} className="h-20 w-20 rounded-xl bg-paper-2" />
@@ -296,7 +296,7 @@ export default function CreateFundingFeed() {
               {images.length === 0 && oldImages.length > 0 && (
                 <View className="mb-4">
                   <Text className="text-ink text-label font-semibold mb-2 uppercase">Active Images:</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false}>
                     {oldImages.map((uri, idx) => (
                       <Image key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} className="h-20 w-20 rounded-card bg-paper-2 mr-2 border border-line" />
                     ))}

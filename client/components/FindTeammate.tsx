@@ -303,7 +303,7 @@ export default function FindTeammate() {
                         {[1, 2, 3, 4].map(i => <TeammateSkeleton key={i} />)}
                     </View>
                 ) : (
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={searchQuery.length > 0 ? filteredDevelopers : developers}
                         keyExtractor={(item) => item._id}
                         renderItem={renderCard}

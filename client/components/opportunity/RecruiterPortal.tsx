@@ -718,7 +718,7 @@ const RecruiterPortal = () => {
                 its own row and carries the counts — no need to switch to find
                 out how many are in each pile. */}
             <View className="pb-2">
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
+                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
                     {([
                         { key: 'new',         label: 'To review' },
                         { key: 'shortlisted', label: 'Shortlisted' },
@@ -882,7 +882,7 @@ const RecruiterPortal = () => {
                             <ActivityIndicator size="large" color={C.brand[500]} />
                         </View>
                     ) : (
-                        <FlatList
+                        <FlatList keyboardShouldPersistTaps="handled"
                             data={posts}
                             {...autoHideTabBar}
                             keyExtractor={item => item._id}
@@ -916,7 +916,7 @@ const RecruiterPortal = () => {
             ) : (
                 <>
                     {renderSubHeader()}
-                    <FlatList
+                    <FlatList keyboardShouldPersistTaps="handled"
                         data={visibleApplications}
                         {...autoHideTabBar}
                         keyExtractor={item => item._id}

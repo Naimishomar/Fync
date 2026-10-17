@@ -144,7 +144,7 @@ const FollowersAndFollowing = () => {
                 {[1, 2, 3, 4, 5, 6].map(i => <ItemSkeleton key={i} />)}
             </View>
         ) : (
-            <FlatList
+            <FlatList keyboardShouldPersistTaps="handled"
                 data={users}
                 keyExtractor={(item) => item._id}
                 renderItem={renderItem}

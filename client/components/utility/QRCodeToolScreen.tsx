@@ -58,7 +58,7 @@ export default function QRCodeToolScreen() {
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="QR Generator" onBack={() => navigation.goBack()} />
 
-        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-6">
           <Text className="text-sm font-semibold text-ink mb-2">Content or URL</Text>
           <TextInput

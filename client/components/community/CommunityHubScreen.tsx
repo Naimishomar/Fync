@@ -445,7 +445,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 {/* Cinematic Header */}
                 <View className="h-72 w-full relative">
                     <Image source={{ uri: community.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} className="w-full h-full" resizeMode="cover" />
@@ -721,7 +721,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                 </TouchableOpacity>
                             </View>
 
-                            <ScrollView showsVerticalScrollIndicator={false}>
+                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                                 <TouchableOpacity 
                                     onPress={() => pickImage(setSubLogo, false)}
                                     className="w-28 h-28 bg-paper-2 rounded-sheet border border-dashed border-line items-center justify-center overflow-hidden self-center mb-8 shadow-hair"
@@ -790,7 +790,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                 </TouchableOpacity>
                             </View>
 
-                            <ScrollView showsVerticalScrollIndicator={false}>
+                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                                 <TouchableOpacity 
                                     onPress={() => pickImage(setSubLogo, false)}
                                     className="w-28 h-28 bg-paper-2 rounded-sheet border border-dashed border-line items-center justify-center overflow-hidden self-center mb-8 shadow-hair"
@@ -843,7 +843,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                 </TouchableOpacity>
                             </View>
 
-                            <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1">
                                 <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
                                   <Text className="text-ink-3 font-display uppercase text-label">Authority Specs</Text>
                                   <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />

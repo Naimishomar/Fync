@@ -80,7 +80,7 @@ const EntertainmentHome = () => {
           <Text className="text-danger font-medium">See All</Text>
         </TouchableOpacity>
       </View>
-      <FlatList
+      <FlatList keyboardShouldPersistTaps="handled"
         data={data}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -102,7 +102,7 @@ const EntertainmentHome = () => {
       <AppBar night title="Fync Cinema" onBack={() => navigation.goBack()}
         right={<IconBtn name="search-outline" color="white" onPress={() => navigation.navigate('MovieSearch')} />} />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
         {/* Hero Banner */}
         {featuredMovie && (
@@ -158,7 +158,7 @@ const EntertainmentHome = () => {
         )}
 
         {/* Categories / Moods (Quick filter) */}
-        <ScrollView
+        <ScrollView keyboardShouldPersistTaps="handled"
           horizontal
           showsHorizontalScrollIndicator={false}
           className="px-5 mb-8"

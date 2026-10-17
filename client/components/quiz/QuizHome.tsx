@@ -67,7 +67,7 @@ const QuizHome = () => {
 
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar title="Quiz Arena" onBack={() => navigation.goBack()} />
-                <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingTop: 8 }} showsVerticalScrollIndicator={false}>
+                <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5" contentContainerStyle={{ paddingTop: 8 }} showsVerticalScrollIndicator={false}>
 
                     {/* --- CARDS GRID --- */}
                     <View className="flex-1">

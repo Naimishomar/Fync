@@ -229,7 +229,7 @@ const CreateCommunityScreen = () => {
                     right={<IconBtn name="close" size={20} onPress={() => navigation.goBack()} />}
                 />
 
-                <ScrollView showsVerticalScrollIndicator={false} className="px-gutter flex-1">
+                <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="px-gutter flex-1">
                     <View className="flex-row items-center mt-4 mb-4" style={{ gap: 12 }}>
                       <Text className="text-ink-3 font-display uppercase text-label">Visual Identity</Text>
                       <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />

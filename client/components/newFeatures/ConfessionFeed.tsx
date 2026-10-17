@@ -384,7 +384,7 @@ const ConfessionFeed = () => {
                     right={<IconBtn name="megaphone" color={C.brand[500]} boxed onPress={() => setIsPostModalOpen(true)} />}
                 />
 
-                <FlatList
+                <FlatList keyboardShouldPersistTaps="handled"
                     data={confessions}
                     keyExtractor={(item: any) => item._id}
                     renderItem={renderConfession}

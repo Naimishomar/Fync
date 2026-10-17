@@ -151,7 +151,7 @@ export default function RecruiterProfileSetup() {
     >
       <AppBar title="Company Profile" onBack={() => navigation.goBack()}
         right={<Text className="text-ink-3 font-semibold text-xs uppercase" style={{ marginRight: 11 }}>Step 2 of 2</Text>} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 50 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 50 }}>
         <View className="px-5 pt-2 pb-6 bg-paper">
           <Text className="text-ink-3 text-sm font-medium">Complete your recruiter profile.</Text>
         </View>

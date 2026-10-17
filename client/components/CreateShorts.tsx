@@ -310,7 +310,7 @@ const CreateShorts = () => {
               <Text className="text-ink-3 mt-4 font-display uppercase text-label">Indexing Assets...</Text>
           </View>
         ) : (
-          <FlatList
+          <FlatList keyboardShouldPersistTaps="handled"
               data={assets}
               numColumns={COLUMN_COUNT}
               showsVerticalScrollIndicator={false}
