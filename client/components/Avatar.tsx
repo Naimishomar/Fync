@@ -1,8 +1,8 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { getFullUrl } from '../utils/imageUtils';
+import { getFullUrl, getThumbUrl } from '../utils/imageUtils';
 import { C } from '../constants/colors';
 
 interface AvatarProps {
@@ -19,7 +19,11 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
   const isAlumni = user?.user_access === 'alumni';
   const isRecruiter = user?.user_access === 'recruiter';
   
-  const avatarUrl = getFullUrl(user?.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=random&color=fff`;
+  // Small `_sm` twin first; uploads older than the twin fall back to the full file.
+  // Keyed by path rather than a boolean so a recycled list cell doesn't inherit it.
+  const [failedPath, setFailedPath] = useState<string | undefined>();
+  const src = failedPath === user?.avatar ? getFullUrl(user?.avatar) : getThumbUrl(user?.avatar);
+  const avatarUrl = src || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=random&color=fff`;
 
   return (
     <View style={{ width: size, height: size }}>
@@ -32,6 +36,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
         ]}
         className="rounded-full"
         cachePolicy="memory-disk"
+        onError={() => { if (user?.avatar && failedPath !== user.avatar) setFailedPath(user.avatar); }}
       />
       {isAlumni && showBadge && (
         <View 

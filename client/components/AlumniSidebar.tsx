@@ -13,6 +13,7 @@ import { DrawerContentScrollView } from '@react-navigation/drawer';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
 import { C } from '../constants/colors';
+import { isFeatureOn } from '../constants/features';
 
 // Enable LayoutAnimation for Android
 if (
@@ -125,27 +126,31 @@ export default function AlumniSidebar(props: any) {
                                 <Ionicons name="business-outline" size={20} color={C.ink4} />
                                 <Text className="text-ink-4 text-base ml-3 font-medium">Jobs</Text>
                             </Pressable>
-                            <Pressable
-                                onPress={() => go('WorkshopList')}
-                                className="flex-row items-center px-4 py-3 rounded-xl mb-1 active:bg-ink"
-                            >
-                                <Ionicons name="book-outline" size={20} color={C.ink4} />
-                                <Text className="text-ink-4 text-base ml-3 font-medium">Workshops</Text>
-                            </Pressable>
+                            {isFeatureOn('workshops') && (
+                                <Pressable
+                                    onPress={() => go('WorkshopList')}
+                                    className="flex-row items-center px-4 py-3 rounded-xl mb-1 active:bg-ink"
+                                >
+                                    <Ionicons name="book-outline" size={20} color={C.ink4} />
+                                    <Text className="text-ink-4 text-base ml-3 font-medium">Workshops</Text>
+                                </Pressable>
+                            )}
                         </View>
                     )}
 
                     {/* Alumni Connect (Exclusive) */}
-                    <Pressable
-                        onPress={() => go('AlumniConnect')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
-                    >
-                        <Ionicons name="chatbubbles-outline" size={24} color={C.recruiter} />
-                        <Text className="text-white text-lg ml-4 font-medium">Alumni Connect</Text>
-                        <View className="ml-2 bg-recruiter px-2 py-0.5 rounded-full">
-                            <Text className="text-label text-white font-semibold">Exclusive</Text>
-                        </View>
-                    </Pressable>
+                    {isFeatureOn('alumniConnect') && (
+                        <Pressable
+                            onPress={() => go('AlumniConnect')}
+                            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
+                        >
+                            <Ionicons name="chatbubbles-outline" size={24} color={C.recruiter} />
+                            <Text className="text-white text-lg ml-4 font-medium">Alumni Connect</Text>
+                            <View className="ml-2 bg-recruiter px-2 py-0.5 rounded-full">
+                                <Text className="text-label text-white font-semibold">Exclusive</Text>
+                            </View>
+                        </Pressable>
+                    )}
 
                     {/* Utility Hub */}
                     <Pressable
@@ -160,22 +165,26 @@ export default function AlumniSidebar(props: any) {
                     </Pressable>
 
                     {/* Campus Alumni */}
-                    <Pressable
-                        onPress={() => go('FindAlumni')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
-                    >
-                        <Ionicons name="people-outline" size={24} color={C.recruiter} />
-                        <Text className="text-white text-lg ml-4 font-medium">Campus Alumni</Text>
-                    </Pressable>
+                    {isFeatureOn('alumni') && (
+                        <Pressable
+                            onPress={() => go('FindAlumni')}
+                            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
+                        >
+                            <Ionicons name="people-outline" size={24} color={C.recruiter} />
+                            <Text className="text-white text-lg ml-4 font-medium">Campus Alumni</Text>
+                        </Pressable>
+                    )}
 
                     {/* Professional Hub */}
-                    <Pressable
-                        onPress={() => go('ProfessionalHub')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
-                    >
-                        <Ionicons name="briefcase-outline" size={24} color={C.recruiter} />
-                        <Text className="text-white text-lg ml-4 font-medium">Professional Hub</Text>
-                    </Pressable>
+                    {isFeatureOn('proHub') && (
+                        <Pressable
+                            onPress={() => go('ProfessionalHub')}
+                            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
+                        >
+                            <Ionicons name="briefcase-outline" size={24} color={C.recruiter} />
+                            <Text className="text-white text-lg ml-4 font-medium">Professional Hub</Text>
+                        </Pressable>
+                    )}
 
                     {/* Notice Board */}
                     <Pressable
@@ -187,13 +196,15 @@ export default function AlumniSidebar(props: any) {
                     </Pressable>
 
                     {/* Echo Hubs */}
-                    <Pressable
-                        onPress={() => go('CommunityList')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
-                    >
-                        <Ionicons name="megaphone-outline" size={24} color={C.recruiter} />
-                        <Text className="text-white text-lg ml-4 font-medium">Echo Hubs</Text>
-                    </Pressable>
+                    {isFeatureOn('communities') && (
+                        <Pressable
+                            onPress={() => go('CommunityList')}
+                            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
+                        >
+                            <Ionicons name="megaphone-outline" size={24} color={C.recruiter} />
+                            <Text className="text-white text-lg ml-4 font-medium">Echo Hubs</Text>
+                        </Pressable>
+                    )}
 
                     {/* Paid Gigs */}
                     <Pressable
@@ -205,13 +216,15 @@ export default function AlumniSidebar(props: any) {
                     </Pressable>
 
                     {/* Placement Hub */}
-                    <Pressable
-                        onPress={() => go('PlacementHub')}
-                        className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
-                    >
-                        <Ionicons name="business-outline" size={24} color={C.recruiter} />
-                        <Text className="text-white text-lg ml-4 font-medium">Placement Hub</Text>
-                    </Pressable>
+                    {isFeatureOn('placement') && (
+                        <Pressable
+                            onPress={() => go('PlacementHub')}
+                            className="flex-row items-center px-4 py-4 rounded-xl mb-1 active:bg-ink"
+                        >
+                            <Ionicons name="business-outline" size={24} color={C.recruiter} />
+                            <Text className="text-white text-lg ml-4 font-medium">Placement Hub</Text>
+                        </Pressable>
+                    )}
 
                     {/* Contact Us */}
                     <Pressable

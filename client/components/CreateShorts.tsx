@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {View, Text, Pressable, TextInput, FlatList, Dimensions, ActivityIndicator, KeyboardAvoidingView, TouchableOpacity, StatusBar, Modal} from 'react-native'
+import {View, Text, Pressable, TextInput, FlatList, Dimensions, ActivityIndicator, KeyboardAvoidingView, TouchableOpacity, StatusBar, Modal, ScrollView} from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode } from "expo-av";
 import * as MediaLibrary from 'expo-media-library';
@@ -17,6 +17,7 @@ import { compressVideo } from "../utils/mediaUpload";
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
 import { AppBar, IconBtn } from './ui/kit';
+import { useBottomInset } from '../constants/layout';
 
 const { width, height } = Dimensions.get("window");
 const COLUMN_COUNT = 3;
@@ -84,6 +85,7 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
 });
 
 const CreateShorts = () => {
+  const bottomInset = useBottomInset();
   const { setUser } = useAuth();
   const navigation = useNavigation<any>();
   const videoRef = useRef<Video>(null);
@@ -350,12 +352,13 @@ const CreateShorts = () => {
             onPress={() => setShowDetailsModal(false)} 
           />
           <View 
-            style={{ height: height * 0.5 }} 
+            // Content-sized up to 90%: a fixed half-height clipped the Post button on small phones.
+            style={{ maxHeight: height * 0.9 }}
             className="bg-paper rounded-t-sheet shadow-hair overflow-hidden"
           >
             <KeyboardAvoidingView 
               behavior="padding" 
-              className="flex-1"
+              style={{ flexShrink: 1 }}
             >
               {/* Grab Handle */}
               <View className="items-center pt-4 pb-2">
@@ -374,7 +377,11 @@ const CreateShorts = () => {
                 </TouchableOpacity>
               </View>
 
-              <View className="flex-1 px-gutter pt-6">
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                className="px-gutter"
+                contentContainerStyle={{ paddingTop: 24, paddingBottom: bottomInset }}
+              >
                 <View className="mb-8">
                   <Text className="text-ink-3 font-display text-label mb-1 ml-1 uppercase">Title</Text>
                   <View className="bg-paper-2 rounded-xl border border-line px-3 justify-center shadow-hair">
@@ -433,7 +440,7 @@ const CreateShorts = () => {
                 <Text className="font-sans text-sm text-ink-4 text-center mt-2 px-gutter">
                   By posting, you agree to Fync's community guidelines and protocol standards.
                 </Text>
-              </View>
+              </ScrollView>
             </KeyboardAvoidingView>
           </View>
         </View>

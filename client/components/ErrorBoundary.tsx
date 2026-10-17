@@ -4,6 +4,7 @@ import { RefreshCcw, AlertTriangle } from './ui/icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Updates from 'expo-updates';
 import { C } from '../constants/colors';
+import { getCrashlytics, log, recordError } from '@react-native-firebase/crashlytics';
 
 interface Props {
   children: ReactNode;
@@ -26,7 +27,13 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('CRITICAL APP ERROR:', error, errorInfo);
-    // You could send this to Sentry or another logging service here
+    // A caught render error never becomes a native fatal, so Crashlytics would
+    // not see it on its own.
+    try {
+      const c = getCrashlytics();
+      if (errorInfo.componentStack) log(c, errorInfo.componentStack.slice(0, 1000));
+      recordError(c, error, 'ErrorBoundary');
+    } catch { /* reporting must never break the fallback screen */ }
   }
 
   private handleReset = () => {

@@ -3,7 +3,7 @@ import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, Ke
 import { FlashList, useRecyclingState } from '@shopify/flash-list';
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppBar, H2, IconBtn } from './ui/kit';
+import { AppBar, H2, IconBtn, Button } from './ui/kit';
 import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -269,7 +269,7 @@ const MAX_CHAR_LIMIT = 150;
 
       {/* Top Header Row (Reddit Style) */}
       <View className="flex-row items-center justify-between mb-3 px-3">
-        <View className="flex-row items-center">
+        <View className="flex-row items-center flex-1 min-w-0 mr-2">
           <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })}>
             {item.user?.avatar ? (
               <Avatar user={item.user as any} size={28} />
@@ -279,18 +279,18 @@ const MAX_CHAR_LIMIT = 150;
               </View>
             )}
           </Pressable>
-          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-2 flex-row items-center">
-            <View>
+          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-2 flex-row items-center" style={{ flexShrink: 1, minWidth: 0 }}>
+            <View style={{ flexShrink: 1, minWidth: 0 }}>
               {/* Explicit line heights: the default leading on two stacked
                   14px lines opens a gap wide enough to read as two rows. */}
-              <Text className="font-semibold text-sm text-ink" style={{ lineHeight: 16 }}>{item.user?.name || "Unknown"}</Text>
-              <Text className="text-xs text-ink-3" style={{ lineHeight: 14 }}>{item.user?.username || "Unknown"}</Text>
+              <Text className="font-semibold text-sm text-ink" style={{ lineHeight: 16 }} numberOfLines={1}>{item.user?.name || "Unknown"}</Text>
+              <Text className="text-xs text-ink-3" style={{ lineHeight: 14 }} numberOfLines={1}>{item.user?.username || "Unknown"}</Text>
             </View>
             <Text className="text-ink-3 text-sm mx-1">·</Text>
             <Text className="text-ink-3 text-sm">{timeAgo(item.createdAt)}</Text>
           </Pressable>
           {!!item.location && (
-            <View className="flex-row items-center ml-2 min-w-0">
+            <View className="flex-row items-center ml-2 min-w-0" style={{ flexShrink: 1 }}>
               <Ionicons name="location" size={11} color={C.brand[600]} />
               <Text className="text-ink-2 text-xs ml-0.5" numberOfLines={1}>{item.location}</Text>
             </View>
@@ -537,6 +537,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [feedError, setFeedError] = useState(false);
 
   const [unreadCount, setUnreadCount] = useState(0);
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
@@ -609,6 +610,7 @@ export default function HomeScreen() {
       }
 
       prefetchPostImages(newPosts);
+      if (pageNum === 1 && isCurrent()) setFeedError(false);
 
       // Update the specific tab state and the active feed
       if (activeTab === 'forYou') {
@@ -641,6 +643,7 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.log('Failed to load feed', error);
+      if (pageNum === 1 && isCurrent()) setFeedError(true);
     } finally {
       if (pageNum > 1) loadingMoreRef.current = false;
       setLoading(false);
@@ -650,9 +653,11 @@ export default function HomeScreen() {
   }, [activeTab, forYouFeed, followingFeed, forYouHasMore, followingHasMore]);
 
   useEffect(() => {
-    if (user) {
-      setProfileImage(user.avatar);
-      
+    setProfileImage(user?.avatar);
+  }, [user?.avatar]);
+
+  useEffect(() => {
+    if (user?._id) {
       // Smart Tab Switching Logic
       if (activeTab === 'following' && !followingLoadedOnce) {
         // First time switching to Following - Load it
@@ -675,7 +680,7 @@ export default function HomeScreen() {
         fetchFeed(1);
       }
     }
-  }, [user, activeTab]);
+  }, [user?._id, activeTab]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -822,19 +827,22 @@ export default function HomeScreen() {
     return out;
   }, [feed]);
 
+  // PostItem only reads the id; a fresh object per setUser would re-render every row.
+  const currentUser = useMemo(() => (user?._id ? { _id: user._id } : null), [user?._id]);
+
   const renderPostItem = useCallback(({ item, index }: { item: any, index: number }) => {
     if (item.__suggestions) return <FollowSuggestions offset={item.offset} />;
     return (
       <PostItem
         item={item}
         index={index}
-        currentUser={user}
+        currentUser={currentUser}
         openComments={handleOpenComments}
         onDeletePost={handleDeletePost}
         onRequestRepost={handleRequestRepost}
       />
     );
-  }, [user, handleOpenComments, handleDeletePost, handleRequestRepost]);
+  }, [currentUser, handleOpenComments, handleDeletePost, handleRequestRepost]);
 
 
 
@@ -1015,6 +1023,7 @@ export default function HomeScreen() {
         {...autoHideTabBar}
         keyExtractor={(item) => item._id}
         renderItem={renderPostItem}
+        getItemType={(item) => (item.__suggestions ? 'suggestions' : item.image?.length ? 'media' : 'text')}
         ListHeaderComponent={listHeader}
 
         refreshControl={
@@ -1024,7 +1033,12 @@ export default function HomeScreen() {
         onEndReachedThreshold={0.5}
         ListFooterComponent={listFooter}
         ListEmptyComponent={
-          !loading && !refreshing ? (
+          !loading && !refreshing ? (feedError ? (
+            <View className="mt-20 flex-1 items-center px-gutter">
+              <Text className="text-ink-2 text-center mb-4">{"Couldn't load your feed."}</Text>
+              <Button title="Try again" onPress={onRefresh} />
+            </View>
+          ) : (
             <View className="mt-20 flex-1 items-center px-4">
               <ExpoImage
                 source={no_post}
@@ -1037,7 +1051,7 @@ export default function HomeScreen() {
                 Your feed is empty. Start following people or create a post to see updates here.
               </Text>
             </View>
-          ) : null
+          )) : null
         }
         contentContainerStyle={{ paddingBottom: tabBarClearance }}
         showsVerticalScrollIndicator={false}

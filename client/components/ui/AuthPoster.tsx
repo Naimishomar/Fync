@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Dimensions } from 'react-native';
+import { View, Text, Dimensions, StatusBar } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from './kit';
 
@@ -87,6 +88,9 @@ export default function AuthPoster({
   grow?: boolean;
 }) {
   const copy = COPY[mode];
+  // Top of every auth screen, and none of them add a top inset: the ticker sat
+  // under the notch / status bar.
+  const insets = useSafeAreaInsets();
   // #4F46E5 is only 3.02:1 on ink, so the recruiter accent is lightened for
   // text and kept at full strength only where it is a solid fill.
   // The dark-surface variants, not the on-paper ones. The audience tokens are
@@ -109,12 +113,14 @@ export default function AuthPoster({
         {
           backgroundColor: C.ink,
           paddingHorizontal: 20,
-          paddingTop: 26,
+          paddingTop: 26 + insets.top,
           paddingBottom: 22,
         },
         grow && { flexGrow: 1, maxHeight: SCREEN_HEIGHT * 0.62, justifyContent: 'center' },
       ]}
     >
+      {/* Dark masthead: dark status-bar glyphs were invisible on it. */}
+      <StatusBar barStyle="light-content" />
       {/* Ticker: the running strip along the top of a Campus Press page. */}
       <View className="flex-row items-center mb-5" style={{ opacity: 0.85 }}>
         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: accent }} />

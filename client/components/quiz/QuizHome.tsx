@@ -24,12 +24,12 @@ const LightCard = ({ title, subtitle, onPress, iconName, neonColor }: CyberCardP
         <Pressable
             onPress={onPress}
             className="w-full mb-5"
-            style={({ pressed }) => ({
-                transform: [{ scale: pressed ? 0.98 : 1 }],
-            })}
         >
+            {/* Pressed state in children: NativeWind can drop a style function. */}
+            {({ pressed }) => (
             <View
                 className="bg-card rounded-sheet p-5 shadow-hair border border-line flex-row items-center"
+                style={{ transform: [{ scale: pressed ? 0.98 : 1 }] }}
             >
                 {/* Left Box Icon */}
                 <View
@@ -54,6 +54,7 @@ const LightCard = ({ title, subtitle, onPress, iconName, neonColor }: CyberCardP
                     <MaterialCommunityIcons name="chevron-right" size={24} color={C.ink4} />
                 </View>
             </View>
+            )}
         </Pressable>
     );
 };

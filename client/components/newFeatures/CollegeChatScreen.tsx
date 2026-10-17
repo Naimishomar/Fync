@@ -397,7 +397,9 @@ const CollegeChatScreen = ({ navigation }: any) => {
             <KeyboardAvoidingView
                 behavior="padding"
                 style={{ flex: 1 }}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
+                // 0: the KAV's own frame already starts below the AppBar and strip
+                // (its parent is the full-screen root at y=0); an offset counted them twice.
+                keyboardVerticalOffset={0}
             >
                 <View style={{ flex: 1 }}>
 

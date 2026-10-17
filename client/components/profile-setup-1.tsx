@@ -30,7 +30,7 @@ type ProfileSetup1NavigationProp = NativeStackNavigationProp<
 export default function ProfileSetup1() {
   const navigation = useNavigation<ProfileSetup1NavigationProp>();
   const route = useRoute<ProfileSetup1RouteProp>();
-  const { email, username, phoneNumber, password } = route.params ?? ({} as ProfileSetup1RouteProp['params']);
+  const { email, username, phoneNumber, password, verificationToken } = route.params ?? ({} as ProfileSetup1RouteProp['params']);
 
   const [fullName, setFullName] = useState('');
   const [birthday, setBirthday] = useState('');
@@ -151,6 +151,7 @@ export default function ProfileSetup1() {
                       college,
                       major,
                       year,
+                      verificationToken,
                     })
                   }
                 >

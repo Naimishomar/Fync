@@ -16,7 +16,7 @@ import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import { NotificationSkeleton } from './Skeleton';
 import { C } from '../constants/colors';
-import { AppBar } from './ui/kit';
+import { AppBar, Button, Empty } from './ui/kit';
 
 // --- TYPES ---
 interface NotificationItem {
@@ -39,6 +39,8 @@ interface NotificationItem {
   commentText?: string;
   hackathon?: string;
   imageUrl?: string;
+  /** Set on a confession tag; the sender is then the recipient themself. */
+  confession?: string;
   isRead: boolean;
   createdAt: string;
 }
@@ -51,6 +53,7 @@ const Notification = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   // Cursor paging: onEndReached fires repeatedly while the list settles, and
   // state updates land a render too late to stop the second call. A ref does.
@@ -70,6 +73,7 @@ const Notification = () => {
       });
 
       if (response.data.success) {
+        if (!append) setLoadError(false);
         const incoming: NotificationItem[] = response.data.notifications || [];
         cursorRef.current = response.data.nextCursor ?? null;
         setHasMore(Boolean(response.data.hasMore));
@@ -88,6 +92,7 @@ const Notification = () => {
       }
     } catch (error) {
       console.error("Error fetching notifications:", error);
+      if (!append) setLoadError(true);
     } finally {
       inFlightRef.current = false;
       setLoading(false);
@@ -128,6 +133,10 @@ const Notification = () => {
 
   // --- HANDLERS ---
   const handlePress = (item: NotificationItem) => {
+    if (item.type === 'tag' && item.confession) {
+      navigation.navigate('ConfessionFeed');
+      return;
+    }
     if (item.type === 'follow') {
       navigation.navigate('PublicProfile', { userId: item.sender?._id, user: item.sender });
       return;
@@ -153,6 +162,8 @@ const Notification = () => {
     let iconName: any = 'notifications';
     let iconColor = '#fff';
     let iconBg = '#EDE8E0';
+    // Anonymous: never name or picture the sender of a confession tag.
+    const anonymous = item.type === 'tag' && !!item.confession;
 
     switch (item.type) {
       case 'follow':
@@ -162,7 +173,7 @@ const Notification = () => {
         iconBg = 'rgba(96, 165, 250, 0.2)';
         break;
       case 'tag':
-        message = 'tagged you in a post.';
+        message = anonymous ? 'Someone confessed about you' : 'tagged you in a post.';
         iconName = 'at';
         iconColor = '#7C3AED'; // purple-500
         iconBg = 'rgba(168, 85, 247, 0.2)';
@@ -244,6 +255,11 @@ const Notification = () => {
       >
         {/* Avatar Section */}
         <View className="relative mr-3">
+          {anonymous ? (
+            <View style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="person" size={18} color={C.ink3} />
+            </View>
+          ) : (
           <ExpoImage
             source={{
               uri: item.sender?.avatar || `https://ui-avatars.com/api/?name=${item.sender?.username || 'Fync'}`
@@ -251,6 +267,7 @@ const Notification = () => {
             style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line }}
             cachePolicy="memory-disk"
           />
+          )}
           {!item.isRead && (
             <View className="absolute -top-1 -right-1 w-3 h-3 bg-brand-500 rounded-full border-2 border-card" />
           )}
@@ -258,8 +275,9 @@ const Notification = () => {
 
         {/* Text Section */}
         <View className="flex-1">
-          <Text className="font-sans text-sm text-ink-2">
-            {item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
+          {/* Capped: a long comment used to stretch one row over half the screen. */}
+          <Text className="font-sans text-sm text-ink-2" numberOfLines={3}>
+            {anonymous || item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
               // Opportunity notifications: show full message without username prefix
               <Text className="font-semibold text-base text-ink">{message}</Text>
             ) : (
@@ -334,15 +352,23 @@ const Notification = () => {
                 </View>
               ) : <View className="h-20" />
             }
-            ListEmptyComponent={
+            ListEmptyComponent={loadError ? (
+              <View className="mt-10">
+                <Empty
+                  icon="cloud-offline-outline"
+                  title="Couldn't load notifications"
+                  action={<Button title="Try again" onPress={onRefresh} />}
+                />
+              </View>
+            ) : (
               <View className="items-center justify-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                   <Ionicons name="notifications-off-outline" size={32} color={C.ink4} />
                 </View>
                 <Text className="font-semibold text-base text-ink text-center">Sync Complete</Text>
-                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">No active signals found in the registry.</Text>
+                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">No active signals found in the registry.</Text>
               </View>
-            }
+            )}
             contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10 }}
             showsVerticalScrollIndicator={false}
           />

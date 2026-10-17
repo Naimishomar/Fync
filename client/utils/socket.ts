@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { io } from "socket.io-client";
+import { refreshAccessToken } from "../context/axiosConfig";
 const SOCKET_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 // The server now authenticates the handshake with the access token, so the
@@ -23,7 +24,14 @@ const attachToken = async () => {
   return true;
 };
 
+// Auth rejections stop socket.io's own reconnection, so we retry ourselves
+// after a token refresh, with backoff and a cap.
+const MAX_AUTH_RETRIES = 5;
+let authRetries = 0;
+let authRetryTimer: ReturnType<typeof setTimeout> | null = null;
+
 socket.on("connect", () => {
+  authRetries = 0;
   if (trackedUserId) {
     // The server derives identity from the token; these emits only ask it to
     // join the rooms for this session.
@@ -32,12 +40,23 @@ socket.on("connect", () => {
   }
 });
 
-socket.on("connect_error", async (err) => {
-  // axios refreshes the access token in the background; pick up the new one
-  // before socket.io's next reconnection attempt so we don't loop on a stale JWT.
-  if (err.message === "Unauthorized") {
-    await attachToken();
-  }
+socket.on("connect_error", (err) => {
+  // A middleware rejection ("Unauthorized") is final for socket.io: it will not
+  // reconnect on its own. Get a fresh token (sharing axios's refresh) and retry.
+  if (err.message !== "Unauthorized" || !trackedUserId) return;
+  if (authRetryTimer || authRetries >= MAX_AUTH_RETRIES) return;
+  const delay = Math.min(1000 * 2 ** authRetries, 30000);
+  authRetries++;
+  authRetryTimer = setTimeout(async () => {
+    authRetryTimer = null;
+    if (!trackedUserId) return;
+    try {
+      await refreshAccessToken();
+    } catch {
+      // Refresh failed; fall back to whatever token storage has now.
+    }
+    if (trackedUserId && (await attachToken())) socket.connect();
+  }, delay);
 });
 
 // Call once auth is ready so the user is always present (online status,
@@ -45,6 +64,7 @@ socket.on("connect_error", async (err) => {
 export const trackUser = async (userId: string | null | undefined) => {
   if (!userId) return;
   trackedUserId = userId;
+  authRetries = 0;
   if (!(await attachToken())) return;
   if (socket.connected) {
     socket.emit("register");
@@ -56,6 +76,9 @@ export const trackUser = async (userId: string | null | undefined) => {
 
 export const untrackUser = () => {
   trackedUserId = null;
+  authRetries = 0;
+  if (authRetryTimer) clearTimeout(authRetryTimer);
+  authRetryTimer = null;
   socket.auth = {};
   socket.disconnect();
 };

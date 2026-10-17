@@ -68,167 +68,24 @@ import AlumniSidebar from "./components/AlumniSidebar";
 import RecruiterTabLayout from "./components/RecruiterTabLayout";
 import Profile from "./components/profile";
 import RecruiterProfile from "./components/RecruiterProfile";
-import EditProfile from "./components/EditProfile";
-import RecruiterEditProfile from "./components/RecruiterEditProfile";
 import CreatePost from "./components/create-post";
 import Shorts from "./components/Shorts";
 import SearchScreen from "./components/SearchScreen";
 import ChatList from "./components/ChatList";
 import PublicProfile from "./components/PublicProfile";
 import Chat from "./components/Chat";
-import FollowersAndFollowing from "./components/FollowersAndFollowing";
 
-// Utils
-import RazorpayWebView from "./utils/RazorpayWebView";
-import PaymentVerify from "./utils/PaymentVerify";
-import ReceiptWebview from "./utils/ReceiptWebview";
-
-// Quiz & Opportunities
-import CreateRoom from "./components/quiz/CreateRoom";
-import JoinRoomInput from "./components/quiz/JoinRoomInput";
-import WaitingRoom from "./components/quiz/WaitingRoom";
-import OneVsOneSetup from "./components/quiz/OneVsOneSetup";
-import QuizScreen from "./components/quiz/QuizScreen";
-import QuizHome from "./components/quiz/QuizHome";
-import LeaderboardScreen from "./components/quiz/LeaderboardScreen";
-import HackathonList from "./components/opportunity/HackathonList";
-import InternshipList from "./components/opportunity/InternshipList";
-import JobList from "./components/opportunity/JobList";
-import WorkshopList from './components/opportunity/WorkshopList';
-import CreateOpportunity from './components/opportunity/CreateOpportunity';
+// Startup / first-tap screens stay static. Every other screen loads through
+// getComponent so its module (pdf-lib, WebView, webrtc, games...) isn't
+// evaluated before first paint.
+/* eslint-disable @typescript-eslint/no-require-imports */
 import RecruiterPortal from './components/opportunity/RecruiterPortal';
 import IndividualPostOrShort from './components/IndividualPostOrShort';
-
-//Interview
-import InterviewSetup from "./components/interview/InterviewSetup";
-import ActiveInterview from "./components/interview/ActiveInterview";
-
-// Find Teammate
-import FindTeammate from "./components/FindTeammate";
-import FindAlumni from "./components/FindAlumni";
-
-// New Features
-import BunkOMeter from "./components/newFeatures/BunkOMeter";
-import ConfessionFeed from "./components/newFeatures/ConfessionFeed";
-import TwelveAMHomeCard from "./components/newFeatures/TwelveAMHomeCard";
-import TwelveAMClub from "./components/newFeatures/TwelveAMClub";
-import CodingLeaderboard from './components/newFeatures/CodingLeaderboard';
-import ShadowRival from './components/newFeatures/ShadowRival';
-import StudyAssistant from './components/newFeatures/StudyAssistant';
-import CollegeChatScreen from './components/newFeatures/CollegeChatScreen';
-import AlumniConnect from './components/AlumniConnect';
-import PlacementHub from './components/newFeatures/PlacementHub';
-import ProfessionalHub from './components/ProfessionalHub';
-import AlumniJobs from './components/newFeatures/AlumniJobs';
-
-// Notification
 import Notification from "./components/Notification";
-
-//SplashScreen
 import SplashScreen from "./components/SplashScreen";
-
-// Study Material
-import DriveFolderScreen from './components/studyMaterial/DriveFolderScreen';
-import PDFViewerScreen from './components/studyMaterial/PDFViewerScreen';
-import DSAPrep from './components/studyMaterial/DSAPrep';
-import GitHubFolderScreen from './components/studyMaterial/GitHubFolderScreen';
-import MarkdownViewerScreen from './components/studyMaterial/MarkdownViewerScreen';
-import CodeViewerScreen from './components/studyMaterial/CodeViewerScreen';
-import MasterStudyHub from './components/studyMaterial/MasterStudyHub';
-
-// OLX & Notice Board
-import OLXMarketplaceScreen from './components/olx/MarketplaceScreen';
-import RewardsMarketplaceScreen from './components/marketplace/MarketplaceScreen';
-import LostAndFound from './components/LostAndFound';
-import NoticeBoard from './components/NoticeBoard';
-
-// Paid Gigs
-import PaidGigs from './components/PaidGigs';
 import CreateShorts from 'components/CreateShorts';
-import CreateFundingFeed from './components/CreateFundingFeed';
-import FundingFeed from './components/FundingFeed';
-import SpeakerSessionScreen from './components/events/SpeakerSessionScreen';
-import BootcampScreen from './components/events/BootcampScreen';
-import EventCommunityChat from './components/events/EventCommunityChat';
-import CommunityListScreen from './components/community/CommunityListScreen';
-import CreateCommunityScreen from './components/community/CreateCommunityScreen';
-import CommunityHubScreen from './components/community/CommunityHubScreen';
-import FlappyBird from './components/games/FlappyBird';
-import DrawAndGuess from './components/games/DrawAndGuess';
-import GameLeaderboard from './components/games/GameLeaderboard';
-import SubCommunityChat from './components/community/SubCommunityChat';
-import CommunityFeed from './components/community/CommunityFeed';
-import CommunityPostDetail from './components/community/CommunityPostDetail';
-import ClubListScreen from './components/club/ClubListScreen';
-import ClubHubScreen from './components/club/ClubHubScreen';
-import CreateClubScreen from './components/club/CreateClubScreen'; 
-import CreateSubGroupScreen from './components/club/CreateSubGroupScreen';
-import EditSubGroupScreen from './components/club/EditSubGroupScreen';
-import SubGroupChat from './components/club/SubGroupChat';
-import ClubAdminPanel from './components/club/ClubAdminPanel';
-import FyncMediaFeed from './components/FyncMediaFeed';
-import FocusProductivity from './components/focus/FocusProductivity';
 import SubscriptionGuard from './components/newFeatures/SubscriptionGuard';
-import PlacementPredictor from './components/newFeatures/PlacementPredictor';
-
-// Profile Builder
-import FyncProfileBuilder from './components/profile/FyncProfileBuilder';
-
-// Hackathon Ecosystem
-import HackathonHub from './components/hackathon/HackathonHub';
-import HackathonCreate from './components/hackathon/HackathonCreate';
-import HackathonDetail from './components/hackathon/HackathonDetail';
-import HackathonWinners from './components/hackathon/HackathonWinners';
-
-// Entertainment Module
-import EntertainmentHome from './components/entertainment/EntertainmentHome';
-import MovieDetail from './components/entertainment/MovieDetail';
-import TrailerReels from './components/entertainment/TrailerReels';
-import MovieSearch from './components/entertainment/MovieSearch';
-import MovieList from './components/entertainment/MovieList';
-import PartyPoolHub from './components/partyPool/PartyPoolHub';
-import SubscriptionScreen from './components/newFeatures/SubscriptionScreen';
-
-// Secondary Screens
 import TermsAndCondition from './components/T&C';
-import ContactUs from './components/ContactUs';
-import MeetOurTeam from './components/MeetOurTeam';
-// Admin & Tools
-import AdminPortal from './components/admin/AdminPortal';
-import AudioCallLobby from './components/audioCall/AudioCallLobby';
-import VideoCallLobby from './components/videoCall/VideoCallLobby';
-
-// Daily Hub Utilities
-import UtilityHubScreen from './components/utility/UtilityHubScreen';
-import ImageToPdfScreen from './components/utility/ImageToPdfScreen';
-import ImageCompressorScreen from './components/utility/ImageCompressorScreen';
-import QRCodeToolScreen from './components/utility/QRCodeToolScreen';
-import AffiliateStore from './components/affiliate/AffiliateStore';
-import AffiliateProductDetail from './components/affiliate/AffiliateProductDetail';
-import AffiliateWebView from './components/affiliate/AffiliateWebView';
-import AffiliateAdminScreen from './components/affiliate/AffiliateAdminScreen';
-import TechPulseScreen from './components/news/TechPulseScreen';
-import ArticleScreen from './components/news/ArticleScreen';
-import SettingsScreen from './components/SettingsScreen';
-import MySharesScreen from './components/affiliate/MySharesScreen';
-import ShareLinkResolver from './components/affiliate/ShareLinkResolver';
-import MergePdfScreen from './components/utility/pdf/MergePdfScreen';
-import SplitPdfScreen from './components/utility/pdf/SplitPdfScreen';
-import ExtractPagesScreen from './components/utility/pdf/ExtractPagesScreen';
-import RemovePagesScreen from './components/utility/pdf/RemovePagesScreen';
-import OrganizePagesScreen from './components/utility/pdf/OrganizePagesScreen';
-import RotatePdfScreen from './components/utility/pdf/RotatePdfScreen';
-import PageNumbersScreen from './components/utility/pdf/PageNumbersScreen';
-import WatermarkPdfScreen from './components/utility/pdf/WatermarkPdfScreen';
-import CropPdfScreen from './components/utility/pdf/CropPdfScreen';
-import ScanToPdfScreen from './components/utility/pdf/ScanToPdfScreen';
-import UrlToPdfScreen from './components/utility/pdf/UrlToPdfScreen';
-import PdfToImagesScreen from './components/utility/pdf/PdfToImagesScreen';
-import PdfToTextScreen from './components/utility/pdf/PdfToTextScreen';
-import NotesExchange from './components/notes/NotesExchange';
-import ArenaAdminScreen from './components/admin/ArenaAdminScreen';
-import CodingArena from './components/arena/CodingArena';
-import SolveProblem from './components/arena/SolveProblem';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -252,13 +109,14 @@ export type RootStackParamList = {
   ForgotPassword: { email?: string };
   AlumniSignup: undefined;
   RecruiterSignup: undefined;
-  RecruiterProfileSetup: { email: string; phoneNumber: string; username: string };
+  RecruiterProfileSetup: { email: string; phoneNumber: string; username: string; verificationToken?: string };
   AlumniProfileSetup: { 
     email: string; 
     username: string; 
     phoneNumber: string; 
     password: string; 
     name: string; 
+    verificationToken?: string;
   };
   AlumniAvatarSetup: {
     email: string;
@@ -273,9 +131,10 @@ export type RootStackParamList = {
     experienceLevel: string;
     domains: string;
     linkedIn: string;
+    verificationToken?: string;
   };
-  ProfileSetup1: { email: any; username: any; phoneNumber: any; password: any; };
-  ProfileSetup2: { email: any; username: any; phoneNumber: any; password: any; fullName: any; birthday: any; gender: any; college: any; major: any; year: any };
+  ProfileSetup1: { email: any; username: any; phoneNumber: any; password: any; verificationToken?: string };
+  ProfileSetup2: { email: any; username: any; phoneNumber: any; password: any; fullName: any; birthday: any; gender: any; college: any; major: any; year: any; verificationToken?: string };
   Profile: undefined;
   EditProfile: undefined;
   CreatePost: undefined;
@@ -411,6 +270,7 @@ export type RootStackParamList = {
   SolveProblem: { problemId: string; title?: string };
   SettingsScreen: undefined;
   MySharesScreen: undefined;
+  BlockedUsersScreen: undefined;
   ShareLinkResolver: { code: string };
   MergePdfScreen: undefined;
   SplitPdfScreen: undefined;
@@ -498,143 +358,144 @@ function AppStack() {
     <Stack.Navigator screenOptions={{ headerShown: false, animation: "simple_push" }}>
       <Stack.Screen name="Tabs" component={isRecruiter ? RecruiterTabLayout : HomeDrawer} />
       <Stack.Screen name="Profile" component={isRecruiter ? RecruiterProfile : Profile} />
-      <Stack.Screen name="EditProfile" component={isRecruiter ? RecruiterEditProfile : EditProfile} />
+      <Stack.Screen name="EditProfile" getComponent={() => isRecruiter ? require('./components/RecruiterEditProfile').default : require('./components/EditProfile').default} />
       <Stack.Screen name="CreatePost" component={CreatePost} />
       <Stack.Screen name="CreateShorts" component={CreateShorts} />
-      <Stack.Screen name="RazorpayWebView" component={RazorpayWebView} />
-      <Stack.Screen name="PaymentVerify" component={PaymentVerify} />
-      <Stack.Screen name="ReceiptWebview" component={ReceiptWebview} />
+      <Stack.Screen name="RazorpayWebView" getComponent={() => require('./utils/RazorpayWebView').default} />
+      <Stack.Screen name="PaymentVerify" getComponent={() => require('./utils/PaymentVerify').default} />
+      <Stack.Screen name="ReceiptWebview" getComponent={() => require('./utils/ReceiptWebview').default} />
       <Stack.Screen name="Shorts" component={Shorts} />
       <Stack.Screen name="SearchScreen" component={SearchScreen} />
       <Stack.Screen name="PublicProfile" component={PublicProfile} />
-      <Stack.Screen name="FollowersAndFollowing" component={FollowersAndFollowing} />
+      <Stack.Screen name="FollowersAndFollowing" getComponent={() => require('./components/FollowersAndFollowing').default} />
       <Stack.Screen name="Chat" component={Chat} />
       <Stack.Screen name="ChatList" component={ChatList} />
-      <Stack.Screen name="CreateRoom" component={CreateRoom} />
-      <Stack.Screen name="JoinRoomInput" component={JoinRoomInput} />
-      <Stack.Screen name="WaitingRoom" component={WaitingRoom} />
-      <Stack.Screen name="OneVsOneSetup" component={OneVsOneSetup} />
-      <Stack.Screen name="QuizScreen" component={QuizScreen} />
-      <Stack.Screen name="QuizHome" component={QuizHome} />
-      <Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} />
-      <Stack.Screen name="HackathonList" component={HackathonList} />
-      <Stack.Screen name="InternshipList" component={InternshipList} />
-      <Stack.Screen name="JobList" component={JobList} />
-      <Stack.Screen name="WorkshopList" component={WorkshopList} />
-      <Stack.Screen name="CreateOpportunity" component={CreateOpportunity} />
+      <Stack.Screen name="CreateRoom" getComponent={() => require('./components/quiz/CreateRoom').default} />
+      <Stack.Screen name="JoinRoomInput" getComponent={() => require('./components/quiz/JoinRoomInput').default} />
+      <Stack.Screen name="WaitingRoom" getComponent={() => require('./components/quiz/WaitingRoom').default} />
+      <Stack.Screen name="OneVsOneSetup" getComponent={() => require('./components/quiz/OneVsOneSetup').default} />
+      <Stack.Screen name="QuizScreen" getComponent={() => require('./components/quiz/QuizScreen').default} />
+      <Stack.Screen name="QuizHome" getComponent={() => require('./components/quiz/QuizHome').default} />
+      <Stack.Screen name="LeaderboardScreen" getComponent={() => require('./components/quiz/LeaderboardScreen').default} />
+      <Stack.Screen name="HackathonList" getComponent={() => require('./components/opportunity/HackathonList').default} />
+      <Stack.Screen name="InternshipList" getComponent={() => require('./components/opportunity/InternshipList').default} />
+      <Stack.Screen name="JobList" getComponent={() => require('./components/opportunity/JobList').default} />
+      <Stack.Screen name="WorkshopList" getComponent={() => require('./components/opportunity/WorkshopList').default} />
+      <Stack.Screen name="CreateOpportunity" getComponent={() => require('./components/opportunity/CreateOpportunity').default} />
       <Stack.Screen name="RecruiterPortal" component={RecruiterPortal} />
-      <Stack.Screen name="InterviewSetup" component={InterviewSetup} />
-      <Stack.Screen name="ActiveInterview" component={ActiveInterview} />
-      <Stack.Screen name="BunkOMeter" component={BunkOMeter} />
-      <Stack.Screen name="ConfessionFeed" component={ConfessionFeed} />
-      <Stack.Screen name="TwelveAMHomeCard" component={TwelveAMHomeCard} />
-      <Stack.Screen name="TwelveAMClub" component={TwelveAMClub} />
-      <Stack.Screen name="FindTeammate" component={FindTeammate} />
+      <Stack.Screen name="InterviewSetup" getComponent={() => require('./components/interview/InterviewSetup').default} />
+      <Stack.Screen name="ActiveInterview" getComponent={() => require('./components/interview/ActiveInterview').default} />
+      <Stack.Screen name="BunkOMeter" getComponent={() => require('./components/newFeatures/BunkOMeter').default} />
+      <Stack.Screen name="ConfessionFeed" getComponent={() => require('./components/newFeatures/ConfessionFeed').default} />
+      <Stack.Screen name="TwelveAMHomeCard" getComponent={() => require('./components/newFeatures/TwelveAMHomeCard').default} />
+      <Stack.Screen name="TwelveAMClub" getComponent={() => require('./components/newFeatures/TwelveAMClub').default} />
+      <Stack.Screen name="FindTeammate" getComponent={() => require('./components/FindTeammate').default} />
       <Stack.Screen name="Notification" component={Notification} />
-      <Stack.Screen name="CodingLeaderboard" component={CodingLeaderboard} />
-      <Stack.Screen name="ShadowRival" component={ShadowRival} />
-      <Stack.Screen name="DriveFolderScreen" component={DriveFolderScreen} />
-      <Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
-      <Stack.Screen name="DSAPrep" component={DSAPrep} />
-      <Stack.Screen name="GitHubFolderScreen" component={GitHubFolderScreen} />
-      <Stack.Screen name="MarkdownViewerScreen" component={MarkdownViewerScreen} />
-      <Stack.Screen name="CodeViewerScreen" component={CodeViewerScreen} />
-      <Stack.Screen name="MasterStudyHub" component={MasterStudyHub} />
+      <Stack.Screen name="CodingLeaderboard" getComponent={() => require('./components/newFeatures/CodingLeaderboard').default} />
+      <Stack.Screen name="ShadowRival" getComponent={() => require('./components/newFeatures/ShadowRival').default} />
+      <Stack.Screen name="DriveFolderScreen" getComponent={() => require('./components/studyMaterial/DriveFolderScreen').default} />
+      <Stack.Screen name="PDFViewerScreen" getComponent={() => require('./components/studyMaterial/PDFViewerScreen').default} />
+      <Stack.Screen name="DSAPrep" getComponent={() => require('./components/studyMaterial/DSAPrep').default} />
+      <Stack.Screen name="GitHubFolderScreen" getComponent={() => require('./components/studyMaterial/GitHubFolderScreen').default} />
+      <Stack.Screen name="MarkdownViewerScreen" getComponent={() => require('./components/studyMaterial/MarkdownViewerScreen').default} />
+      <Stack.Screen name="CodeViewerScreen" getComponent={() => require('./components/studyMaterial/CodeViewerScreen').default} />
+      <Stack.Screen name="MasterStudyHub" getComponent={() => require('./components/studyMaterial/MasterStudyHub').default} />
       <Stack.Screen name="IndividualPostOrShort" component={IndividualPostOrShort} />
-      <Stack.Screen name="RewardsMarketplace" component={RewardsMarketplaceScreen} />
-      <Stack.Screen name="OLXMarketplace" component={OLXMarketplaceScreen} />
-      <Stack.Screen name="LostAndFound" component={LostAndFound} />
-      <Stack.Screen name="NoticeBoard" component={NoticeBoard} />
-      <Stack.Screen name="PaidGigs" component={PaidGigs} />
-      <Stack.Screen name="StudyAssistant" component={StudyAssistant} />
-      <Stack.Screen name="CollegeChatScreen" component={CollegeChatScreen} />
-      <Stack.Screen name="AlumniConnect" component={AlumniConnect} />
-      <Stack.Screen name="ProfessionalHub" component={ProfessionalHub} />
-      <Stack.Screen name="FindAlumni" component={FindAlumni} />
-      <Stack.Screen name="PlacementHub" component={PlacementHub} />
-      <Stack.Screen name="AlumniJobs" component={AlumniJobs} />
-      <Stack.Screen name="PlacementPredictor" component={PlacementPredictor} />
-      <Stack.Screen name="SpeakerSessionScreen" component={SpeakerSessionScreen} />
-      <Stack.Screen name="BootcampScreen" component={BootcampScreen} />
-      <Stack.Screen name="AudioCallLobby" component={AudioCallLobby} />
-      <Stack.Screen name="VideoCallLobby" component={VideoCallLobby} />
+      <Stack.Screen name="RewardsMarketplace" getComponent={() => require('./components/marketplace/MarketplaceScreen').default} />
+      <Stack.Screen name="OLXMarketplace" getComponent={() => require('./components/olx/MarketplaceScreen').default} />
+      <Stack.Screen name="LostAndFound" getComponent={() => require('./components/LostAndFound').default} />
+      <Stack.Screen name="NoticeBoard" getComponent={() => require('./components/NoticeBoard').default} />
+      <Stack.Screen name="PaidGigs" getComponent={() => require('./components/PaidGigs').default} />
+      <Stack.Screen name="StudyAssistant" getComponent={() => require('./components/newFeatures/StudyAssistant').default} />
+      <Stack.Screen name="CollegeChatScreen" getComponent={() => require('./components/newFeatures/CollegeChatScreen').default} />
+      <Stack.Screen name="AlumniConnect" getComponent={() => require('./components/AlumniConnect').default} />
+      <Stack.Screen name="ProfessionalHub" getComponent={() => require('./components/ProfessionalHub').default} />
+      <Stack.Screen name="FindAlumni" getComponent={() => require('./components/FindAlumni').default} />
+      <Stack.Screen name="PlacementHub" getComponent={() => require('./components/newFeatures/PlacementHub').default} />
+      <Stack.Screen name="AlumniJobs" getComponent={() => require('./components/newFeatures/AlumniJobs').default} />
+      <Stack.Screen name="PlacementPredictor" getComponent={() => require('./components/newFeatures/PlacementPredictor').default} />
+      <Stack.Screen name="SpeakerSessionScreen" getComponent={() => require('./components/events/SpeakerSessionScreen').default} />
+      <Stack.Screen name="BootcampScreen" getComponent={() => require('./components/events/BootcampScreen').default} />
+      <Stack.Screen name="AudioCallLobby" getComponent={() => require('./components/audioCall/AudioCallLobby').default} />
+      <Stack.Screen name="VideoCallLobby" getComponent={() => require('./components/videoCall/VideoCallLobby').default} />
       
       {/* Utility Hub */}
-      <Stack.Screen name="UtilityHubScreen" component={UtilityHubScreen} />
-      <Stack.Screen name="ImageToPdfScreen" component={ImageToPdfScreen} />
-      <Stack.Screen name="ImageCompressorScreen" component={ImageCompressorScreen} />
-      <Stack.Screen name="QRCodeToolScreen" component={QRCodeToolScreen} />
-      <Stack.Screen name="AffiliateStore" component={AffiliateStore} />
-      <Stack.Screen name="AffiliateProductDetail" component={AffiliateProductDetail} />
-      <Stack.Screen name="AffiliateWebView" component={AffiliateWebView} />
-      <Stack.Screen name="AffiliateAdminScreen" component={AffiliateAdminScreen} />
-      <Stack.Screen name="TechPulseScreen" component={TechPulseScreen} />
-      <Stack.Screen name="ArticleScreen" component={ArticleScreen} />
-      <Stack.Screen name="NotesExchange" component={NotesExchange} />
-      <Stack.Screen name="ArenaAdminScreen" component={ArenaAdminScreen} />
-      <Stack.Screen name="CodingArena" component={CodingArena} />
-      <Stack.Screen name="SolveProblem" component={SolveProblem} />
-      <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
-      <Stack.Screen name="MySharesScreen" component={MySharesScreen} />
-      <Stack.Screen name="ShareLinkResolver" component={ShareLinkResolver} />
-      <Stack.Screen name="MergePdfScreen" component={MergePdfScreen} />
-      <Stack.Screen name="SplitPdfScreen" component={SplitPdfScreen} />
-      <Stack.Screen name="ExtractPagesScreen" component={ExtractPagesScreen} />
-      <Stack.Screen name="RemovePagesScreen" component={RemovePagesScreen} />
-      <Stack.Screen name="OrganizePagesScreen" component={OrganizePagesScreen} />
-      <Stack.Screen name="RotatePdfScreen" component={RotatePdfScreen} />
-      <Stack.Screen name="PageNumbersScreen" component={PageNumbersScreen} />
-      <Stack.Screen name="WatermarkPdfScreen" component={WatermarkPdfScreen} />
-      <Stack.Screen name="CropPdfScreen" component={CropPdfScreen} />
-      <Stack.Screen name="ScanToPdfScreen" component={ScanToPdfScreen} />
-      <Stack.Screen name="UrlToPdfScreen" component={UrlToPdfScreen} />
-      <Stack.Screen name="PdfToImagesScreen" component={PdfToImagesScreen} />
-      <Stack.Screen name="PdfToTextScreen" component={PdfToTextScreen} />
+      <Stack.Screen name="UtilityHubScreen" getComponent={() => require('./components/utility/UtilityHubScreen').default} />
+      <Stack.Screen name="ImageToPdfScreen" getComponent={() => require('./components/utility/ImageToPdfScreen').default} />
+      <Stack.Screen name="ImageCompressorScreen" getComponent={() => require('./components/utility/ImageCompressorScreen').default} />
+      <Stack.Screen name="QRCodeToolScreen" getComponent={() => require('./components/utility/QRCodeToolScreen').default} />
+      <Stack.Screen name="AffiliateStore" getComponent={() => require('./components/affiliate/AffiliateStore').default} />
+      <Stack.Screen name="AffiliateProductDetail" getComponent={() => require('./components/affiliate/AffiliateProductDetail').default} />
+      <Stack.Screen name="AffiliateWebView" getComponent={() => require('./components/affiliate/AffiliateWebView').default} />
+      <Stack.Screen name="AffiliateAdminScreen" getComponent={() => require('./components/affiliate/AffiliateAdminScreen').default} />
+      <Stack.Screen name="TechPulseScreen" getComponent={() => require('./components/news/TechPulseScreen').default} />
+      <Stack.Screen name="ArticleScreen" getComponent={() => require('./components/news/ArticleScreen').default} />
+      <Stack.Screen name="NotesExchange" getComponent={() => require('./components/notes/NotesExchange').default} />
+      <Stack.Screen name="ArenaAdminScreen" getComponent={() => require('./components/admin/ArenaAdminScreen').default} />
+      <Stack.Screen name="CodingArena" getComponent={() => require('./components/arena/CodingArena').default} />
+      <Stack.Screen name="SolveProblem" getComponent={() => require('./components/arena/SolveProblem').default} />
+      <Stack.Screen name="SettingsScreen" getComponent={() => require('./components/SettingsScreen').default} />
+      <Stack.Screen name="MySharesScreen" getComponent={() => require('./components/affiliate/MySharesScreen').default} />
+      <Stack.Screen name="BlockedUsersScreen" getComponent={() => require('./components/BlockedUsersScreen').default} />
+      <Stack.Screen name="ShareLinkResolver" getComponent={() => require('./components/affiliate/ShareLinkResolver').default} />
+      <Stack.Screen name="MergePdfScreen" getComponent={() => require('./components/utility/pdf/MergePdfScreen').default} />
+      <Stack.Screen name="SplitPdfScreen" getComponent={() => require('./components/utility/pdf/SplitPdfScreen').default} />
+      <Stack.Screen name="ExtractPagesScreen" getComponent={() => require('./components/utility/pdf/ExtractPagesScreen').default} />
+      <Stack.Screen name="RemovePagesScreen" getComponent={() => require('./components/utility/pdf/RemovePagesScreen').default} />
+      <Stack.Screen name="OrganizePagesScreen" getComponent={() => require('./components/utility/pdf/OrganizePagesScreen').default} />
+      <Stack.Screen name="RotatePdfScreen" getComponent={() => require('./components/utility/pdf/RotatePdfScreen').default} />
+      <Stack.Screen name="PageNumbersScreen" getComponent={() => require('./components/utility/pdf/PageNumbersScreen').default} />
+      <Stack.Screen name="WatermarkPdfScreen" getComponent={() => require('./components/utility/pdf/WatermarkPdfScreen').default} />
+      <Stack.Screen name="CropPdfScreen" getComponent={() => require('./components/utility/pdf/CropPdfScreen').default} />
+      <Stack.Screen name="ScanToPdfScreen" getComponent={() => require('./components/utility/pdf/ScanToPdfScreen').default} />
+      <Stack.Screen name="UrlToPdfScreen" getComponent={() => require('./components/utility/pdf/UrlToPdfScreen').default} />
+      <Stack.Screen name="PdfToImagesScreen" getComponent={() => require('./components/utility/pdf/PdfToImagesScreen').default} />
+      <Stack.Screen name="PdfToTextScreen" getComponent={() => require('./components/utility/pdf/PdfToTextScreen').default} />
 
-      <Stack.Screen name="EventCommunityChat" component={EventCommunityChat} />
-      <Stack.Screen name="CommunityList" component={CommunityListScreen} />
-      <Stack.Screen name="CreateCommunity" component={CreateCommunityScreen} options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
-      <Stack.Screen name="CommunityHub" component={CommunityHubScreen} />
-      <Stack.Screen name="SubCommunityChat" component={SubCommunityChat} />
-      <Stack.Screen name="CommunityFeed" component={CommunityFeed} />
-      <Stack.Screen name="CommunityPostDetail" component={CommunityPostDetail} />
-      <Stack.Screen name="ClubList" component={ClubListScreen} />
-      <Stack.Screen name="ClubHub" component={ClubHubScreen} />
-      <Stack.Screen name="CreateClub" component={CreateClubScreen} options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
-      <Stack.Screen name="CreateSubGroup" component={CreateSubGroupScreen} />
-      <Stack.Screen name="EditSubGroup" component={EditSubGroupScreen} />
-      <Stack.Screen name="SubGroupChat" component={SubGroupChat} />
-      <Stack.Screen name="ClubAdminPanel" component={ClubAdminPanel} />
-      <Stack.Screen name="FocusProductivity" component={FocusProductivity} />
+      <Stack.Screen name="EventCommunityChat" getComponent={() => require('./components/events/EventCommunityChat').default} />
+      <Stack.Screen name="CommunityList" getComponent={() => require('./components/community/CommunityListScreen').default} />
+      <Stack.Screen name="CreateCommunity" getComponent={() => require('./components/community/CreateCommunityScreen').default} options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="CommunityHub" getComponent={() => require('./components/community/CommunityHubScreen').default} />
+      <Stack.Screen name="SubCommunityChat" getComponent={() => require('./components/community/SubCommunityChat').default} />
+      <Stack.Screen name="CommunityFeed" getComponent={() => require('./components/community/CommunityFeed').default} />
+      <Stack.Screen name="CommunityPostDetail" getComponent={() => require('./components/community/CommunityPostDetail').default} />
+      <Stack.Screen name="ClubList" getComponent={() => require('./components/club/ClubListScreen').default} />
+      <Stack.Screen name="ClubHub" getComponent={() => require('./components/club/ClubHubScreen').default} />
+      <Stack.Screen name="CreateClub" getComponent={() => require('./components/club/CreateClubScreen').default} options={{ presentation: 'transparentModal', animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="CreateSubGroup" getComponent={() => require('./components/club/CreateSubGroupScreen').default} />
+      <Stack.Screen name="EditSubGroup" getComponent={() => require('./components/club/EditSubGroupScreen').default} />
+      <Stack.Screen name="SubGroupChat" getComponent={() => require('./components/club/SubGroupChat').default} />
+      <Stack.Screen name="ClubAdminPanel" getComponent={() => require('./components/club/ClubAdminPanel').default} />
+      <Stack.Screen name="FocusProductivity" getComponent={() => require('./components/focus/FocusProductivity').default} />
       <Stack.Screen name="TermsAndCondition" component={TermsAndCondition} />
-      <Stack.Screen name="FyncMediaFeed" component={FyncMediaFeed} />
-      <Stack.Screen name="CreateFundingFeed" component={CreateFundingFeed} />
-      <Stack.Screen name="FundingFeed" component={FundingFeed} />
-      <Stack.Screen name="AdminPortal" component={AdminPortal} />
-      <Stack.Screen name="ContactUs" component={ContactUs} />
-      <Stack.Screen name="MeetOurTeam" component={MeetOurTeam} />
+      <Stack.Screen name="FyncMediaFeed" getComponent={() => require('./components/FyncMediaFeed').default} />
+      <Stack.Screen name="CreateFundingFeed" getComponent={() => require('./components/CreateFundingFeed').default} />
+      <Stack.Screen name="FundingFeed" getComponent={() => require('./components/FundingFeed').default} />
+      <Stack.Screen name="AdminPortal" getComponent={() => require('./components/admin/AdminPortal').default} />
+      <Stack.Screen name="ContactUs" getComponent={() => require('./components/ContactUs').default} />
+      <Stack.Screen name="MeetOurTeam" getComponent={() => require('./components/MeetOurTeam').default} />
       
       {/* GAMES */}
-      <Stack.Screen name="FlappyBird" component={FlappyBird} options={{ headerShown: false }} />
-      <Stack.Screen name="DrawAndGuess" component={DrawAndGuess} options={{ headerShown: false }} />
-      <Stack.Screen name="GameLeaderboard" component={GameLeaderboard} options={{ headerShown: false }} />
+      <Stack.Screen name="FlappyBird" getComponent={() => require('./components/games/FlappyBird').default} options={{ headerShown: false }} />
+      <Stack.Screen name="DrawAndGuess" getComponent={() => require('./components/games/DrawAndGuess').default} options={{ headerShown: false }} />
+      <Stack.Screen name="GameLeaderboard" getComponent={() => require('./components/games/GameLeaderboard').default} options={{ headerShown: false }} />
       
       {/* Hackathon Ecosystem */}
-      <Stack.Screen name="HackathonHub" component={HackathonHub} />
-      <Stack.Screen name="HackathonCreate" component={HackathonCreate} />
-      <Stack.Screen name="HackathonDetail" component={HackathonDetail} />
-      <Stack.Screen name="HackathonWinners" component={HackathonWinners} />
+      <Stack.Screen name="HackathonHub" getComponent={() => require('./components/hackathon/HackathonHub').default} />
+      <Stack.Screen name="HackathonCreate" getComponent={() => require('./components/hackathon/HackathonCreate').default} />
+      <Stack.Screen name="HackathonDetail" getComponent={() => require('./components/hackathon/HackathonDetail').default} />
+      <Stack.Screen name="HackathonWinners" getComponent={() => require('./components/hackathon/HackathonWinners').default} />
       {/* Profile Builder */}
-      <Stack.Screen name="FyncProfileBuilder" component={FyncProfileBuilder} />
+      <Stack.Screen name="FyncProfileBuilder" getComponent={() => require('./components/profile/FyncProfileBuilder').default} />
       
       {/* Entertainment Module */}
-      <Stack.Screen name="EntertainmentHome" component={EntertainmentHome} />
-      <Stack.Screen name="MovieDetail" component={MovieDetail} />
-      <Stack.Screen name="TrailerReels" component={TrailerReels} />
-      <Stack.Screen name="MovieSearch" component={MovieSearch} />
-      <Stack.Screen name="MovieList" component={MovieList} />
-      <Stack.Screen name="PartyPool" component={PartyPoolHub} />
-      <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen as any} />
+      <Stack.Screen name="EntertainmentHome" getComponent={() => require('./components/entertainment/EntertainmentHome').default} />
+      <Stack.Screen name="MovieDetail" getComponent={() => require('./components/entertainment/MovieDetail').default} />
+      <Stack.Screen name="TrailerReels" getComponent={() => require('./components/entertainment/TrailerReels').default} />
+      <Stack.Screen name="MovieSearch" getComponent={() => require('./components/entertainment/MovieSearch').default} />
+      <Stack.Screen name="MovieList" getComponent={() => require('./components/entertainment/MovieList').default} />
+      <Stack.Screen name="PartyPool" getComponent={() => require('./components/partyPool/PartyPoolHub').default} />
+      <Stack.Screen name="SubscriptionScreen" getComponent={() => require('./components/newFeatures/SubscriptionScreen').default} />
       
 
     </Stack.Navigator>

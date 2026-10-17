@@ -97,6 +97,8 @@ export default function RecruiterSignup() {
           email,
           phoneNumber,
           username,
+          // Proof of the verified email; /user/register-recruiter requires it.
+          verificationToken: res.data.verificationToken,
         });
       }
     } catch (error: any) {

@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // Import the xhr adapter directly for React Native/Expo
 // @ts-ignore - no declaration file for internal axios module
 import xhrAdapter from "axios/lib/adapters/xhr.js";
+import { cachedPathOf, isCacheBusted, isReadPost, pathMatches, relatedPrefixes } from "../utils/cacheMatch";
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 console.log("🌐 Axios Base URL:", BACKEND_URL);
@@ -73,6 +74,10 @@ const SWR_GRACE_SECONDS = 600;
 // same stale key fire ten identical requests.
 const inFlight = new Map<string, Promise<any>>();
 
+// Bumped by clearApiCache so a request already in flight at logout cannot
+// write the previous account's response back into the cache.
+let cacheGeneration = 0;
+
 // ── Auth token, held in memory ────────────────────────────────────────────────
 // This used to be an `AsyncStorage.getItem` on EVERY request — a bridge
 // round-trip in front of every call the app makes, cache hits included.
@@ -111,7 +116,9 @@ function cacheKeyFor(config: AxiosRequestConfig): string | null {
 }
 
 function isSkipCache(config: AxiosRequestConfig): boolean {
-  return config.params?.noCache === true || isNoCacheUrl(config.url || "");
+  const url = config.url || "";
+  // getUri includes params, so `{ params: { t } }` counts as busted too.
+  return config.params?.noCache === true || isNoCacheUrl(url) || isCacheBusted(axios.getUri(config));
 }
 
 async function readCache(key: string): Promise<CachedEntry | null> {
@@ -165,6 +172,11 @@ axios.defaults.adapter = async (config: AxiosRequestConfig): Promise<AxiosRespon
   const url = config.url || "";
   const isGet = method === "get";
   const skipCache = isSkipCache(config);
+  // noCache is a client-side flag; don't send it to the server.
+  if (config.params && "noCache" in config.params) {
+    const { noCache, ...rest } = config.params;
+    config.params = rest;
+  }
 
   const cacheKey = isGet && !skipCache ? cacheKeyFor(config) : null;
 
@@ -185,10 +197,13 @@ axios.defaults.adapter = async (config: AxiosRequestConfig): Promise<AxiosRespon
     if (!key) return defaultAdapter(config);
     const existing = inFlight.get(key);
     if (existing) return existing;
+    const generation = cacheGeneration;
     const promise = (async () => {
       try {
         const response = await defaultAdapter(config);
-        if (response.status === 200) await writeCache(key, response.data);
+        if (response.status === 200 && generation === cacheGeneration) {
+          await writeCache(key, response.data);
+        }
         return response;
       } finally {
         inFlight.delete(key);
@@ -244,58 +259,90 @@ axios.defaults.adapter = async (config: AxiosRequestConfig): Promise<AxiosRespon
 
 // ── Invalidation: hit the server only when the user actually changes data ─────
 async function invalidateCacheFor(mutatedUrl: string) {
+  // Keys hold the full URL (baseURL included); compare on the relative path.
+  const prefixes = relatedPrefixes(mutatedUrl);
+  const stale = (key: string) =>
+    key.startsWith(LEGACY_PREFIX) ||
+    (key.startsWith(CACHE_PREFIX) &&
+      pathMatches(cachedPathOf(key, CACHE_PREFIX, BACKEND_URL), prefixes));
+  forgetInMemory(stale);
   try {
-    const allKeys = await AsyncStorage.getAllKeys();
-    const cacheKeys = allKeys.filter(
-      (k) => k.startsWith(CACHE_PREFIX) || k.startsWith(LEGACY_PREFIX)
-    );
-    if (cacheKeys.length === 0) return;
-
-    // First path segment of the mutated URL, e.g. "/post" from "/post/like/:id"
-    const parts = mutatedUrl.split("/").filter(Boolean);
-    const segment = parts.length > 0 ? `/${parts[0]}` : mutatedUrl;
-
-    // Cross-cutting relationships: a change under one section invalidates feeds
-    // and the cached profile too (e.g. liking a post changes feed + score).
-    const related = new Set<string>([segment]);
-    if (segment === "/post" || segment === "/shorts") {
-      related.add("/post/feed");
-      related.add("/shorts");
-      related.add("/user");
-    }
-    if (segment === "/user") {
-      related.add("/post/feed");
-      related.add("/shorts");
-    }
-
-    const toRemove: string[] = [];
-    for (const key of cacheKeys) {
-      const cachedUrl = key.startsWith(CACHE_PREFIX)
-        ? key.slice(CACHE_PREFIX.length)
-        : key.slice(LEGACY_PREFIX.length);
-      for (const seg of related) {
-        if (cachedUrl === seg || cachedUrl.startsWith(`${seg}/`)) {
-          toRemove.push(key);
-          break;
-        }
-      }
-    }
-
-    forgetInMemory((key) => toRemove.includes(key));
-
-    if (toRemove.length > 0) {
-      await AsyncStorage.multiRemove(toRemove);
-    }
+    const toRemove = (await AsyncStorage.getAllKeys()).filter(stale);
+    if (toRemove.length > 0) await AsyncStorage.multiRemove(toRemove);
   } catch (e) {
     // Ignore invalidation failures
   }
 }
+
+/** Drop every cached response. Call on login/logout so one account never sees
+ *  another's data. */
+export async function clearApiCache() {
+  cacheGeneration++;
+  memCache.clear();
+  inFlight.clear();
+  try {
+    const keys = (await AsyncStorage.getAllKeys()).filter(
+      (k) =>
+        k.startsWith(CACHE_PREFIX) ||
+        k.startsWith(LEGACY_PREFIX) ||
+        k === "fync_feed_forYou" ||
+        k === "fync_feed_following"
+    );
+    if (keys.length > 0) await AsyncStorage.multiRemove(keys);
+  } catch (e) {
+    // Storage unavailable; the memory tier is already clear
+  }
+}
+
+// ── Session loss ──────────────────────────────────────────────────────────────
+// AuthProvider registers this so a dead refresh token returns the app to login.
+let onAuthLost: (() => void) | null = null;
+export const setOnAuthLost = (fn: (() => void) | null) => {
+  onAuthLost = fn;
+};
+
+// One refresh shared by every concurrent 401; resolves to the new access token.
+let refreshPromise: Promise<string> | null = null;
+
+export const refreshAccessToken = (): Promise<string> => {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const refreshToken = await AsyncStorage.getItem("refreshToken");
+      if (!refreshToken) throw Object.assign(new Error("No refresh token"), { noRefreshToken: true });
+      try {
+        const res = await axios.post("/user/refresh-token", { refreshToken });
+        const newAccessToken = res.data.token;
+        await AsyncStorage.setItem("accessToken", newAccessToken);
+        setAuthToken(newAccessToken);
+        return newAccessToken as string;
+      } catch (err: any) {
+        // Only the server rejecting the refresh token ends the session. A network
+        // error, timeout or 429 keeps the tokens for the next attempt.
+        const status = err?.response?.status;
+        if (status === 401 || status === 403) {
+          await AsyncStorage.multiRemove(["accessToken", "refreshToken"]);
+          setAuthToken(null);
+          onAuthLost?.();
+        }
+        throw err;
+      }
+    })().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+};
 
 axios.interceptors.request.use(
   async (config) => {
     const token = await getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    // 20s ceiling for ordinary calls. Not a global default: FormData uploads
+    // (video, large images) and calls that set their own timeout keep theirs.
+    if (!config.timeout && !(config.data instanceof FormData)) {
+      config.timeout = 20000;
     }
     return config;
   },
@@ -305,8 +352,9 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
   (response) => {
     const method = (response.config.method || "get").toLowerCase();
-    if (method !== "get" && response.status >= 200 && response.status < 300) {
-      invalidateCacheFor(response.config.url || "");
+    const url = response.config.url || "";
+    if (method !== "get" && response.status >= 200 && response.status < 300 && !isReadPost(url)) {
+      invalidateCacheFor(url);
     }
     return response;
   },
@@ -325,28 +373,12 @@ axios.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = await AsyncStorage.getItem("refreshToken");
-        if (!refreshToken) {
-          return Promise.reject(error);
-        }
-
-        const res = await axios.post("/user/refresh-token", {
-          refreshToken,
-        });
-
-        const newAccessToken = res.data.token;
-
-        await AsyncStorage.setItem("accessToken", newAccessToken);
-        setAuthToken(newAccessToken);
-
-        axios.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
+        const newAccessToken = await refreshAccessToken();
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
         return axios(originalRequest);
-      } catch (refreshError) {
-        await AsyncStorage.multiRemove(["accessToken", "refreshToken"]);
-        setAuthToken(null);
-        return Promise.reject(refreshError);
+      } catch (refreshError: any) {
+        // No refresh token stored: surface the original 401, as before.
+        return Promise.reject(refreshError?.noRefreshToken ? error : refreshError);
       }
     }
 

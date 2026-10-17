@@ -23,6 +23,7 @@ import { Alert } from './ui/AlertModal';
 
 import { AppBar, StampCard, StampNumber } from './ui/kit';
 import { C } from '../constants/colors';
+import { isFeatureOn } from '../constants/features';
 const { width } = Dimensions.get('window');
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -135,6 +136,10 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <KeyboardAvoidingView className="flex-1 bg-paper" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        {/* Android draws the "pageSheet" modal full-screen, so the header sat under
+            the status bar. The native SafeAreaView measures its real window, so on
+            an iOS sheet (already below the bar) this resolves to 0. */}
+        <SafeAreaView edges={['top']}>
         <View className="flex-row items-center justify-between px-4 py-4 border-b border-line">
           <Pressable onPress={onClose} hitSlop={10}><Ionicons name="close" size={24} color={C.ink2} /></Pressable>
           <Text className="font-display text-h2 text-ink">Update Coding Stats</Text>
@@ -142,6 +147,7 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
             {saving ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-ink font-semibold">Save</Text>}
           </Pressable>
         </View>
+        </SafeAreaView>
         <ScrollView className="flex-1 px-4 pt-2" keyboardShouldPersistTaps="handled">
           <View className="bg-paper-2 border border-line px-4 py-3 rounded-xl my-3">
             <Text className="font-sans text-sm text-brand-700">These are self-reported. Enter your current stats from each platform.</Text>
@@ -364,7 +370,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
                 <Ionicons name="chevron-forward" size={16} color={C.ink4} />
               </Pressable>
             )}
-            {!!user?.upiId && (
+            {isFeatureOn('creatorTips') && !!user?.upiId && (
               <View className="flex-row items-center bg-success/10 px-5 py-4 rounded-card border border-success/15">
                 <View className="w-10 h-10 bg-success rounded-card items-center justify-center">
                   <Ionicons name="wallet" size={20} color="white" />
@@ -693,7 +699,7 @@ function Profile() {
                 </Text>
               </View>
             </View>
-            {!subscription.isLifetime && (
+            {!subscription.isLifetime && isFeatureOn('fyncProPaid') && (
               <Pressable 
                 onPress={() => navigation.navigate('SubscriptionScreen')}
                 className="bg-card border border-line px-2.5 py-1 rounded-full"
@@ -704,7 +710,7 @@ function Profile() {
           </View>
         )}
 
-        {subscription?.status === 'expired' && (
+        {subscription?.status === 'expired' && isFeatureOn('fyncProPaid') && (
           <Pressable 
             onPress={() => navigation.navigate('SubscriptionScreen')}
             className="w-full mt-4 bg-paper-2 border border-line px-5 py-3 flex-row items-center justify-between rounded-md"
@@ -819,7 +825,9 @@ function Profile() {
   }, [activeTab, user, renderGridItem]);
 
   return (
-    <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
+    // Plain View: tabBarClearance already includes the bottom inset, and a
+    // bottom SafeAreaView counted it a second time.
+    <View className="flex-1 bg-paper">
       <StatusBar style="dark" />
       <AppBar title="Profile" />
       {/* key={activeTab} forces a remount when the column count changes,
@@ -844,7 +852,7 @@ function Profile() {
         }
         contentContainerStyle={{ paddingBottom: tabBarClearance }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

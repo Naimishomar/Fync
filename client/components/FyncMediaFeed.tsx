@@ -28,7 +28,7 @@ import FyncLogo from "../assets/Fync.png"
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
-import { AppBar, IconBtn } from './ui/kit';
+import { AppBar, IconBtn, Button, Empty } from './ui/kit';
 import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 
 // The server returns every comment flat, newest first, each reply pointing at
@@ -661,6 +661,7 @@ export default function FyncMediaFeed() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   // Upload/Edit States
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
@@ -691,6 +692,7 @@ export default function FyncMediaFeed() {
       const res = await axios.get(`/fync-media/all?page=${pageNum}&limit=10`);
       if (res.data.success) {
         const newMedia: FyncMediaItem[] = res.data.data ?? [];
+        if (pageNum === 1) setLoadError(false);
         if (shouldRefresh || pageNum === 1) {
           setMedia(newMedia);
         } else {
@@ -706,6 +708,7 @@ export default function FyncMediaFeed() {
       }
     } catch (err) {
       console.log("Error fetching Fync Media", err);
+      if (pageNum === 1) setLoadError(true);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -917,14 +920,6 @@ export default function FyncMediaFeed() {
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color={C.brand[500]} />
             </View>
-          ) : media.length === 0 ? (
-            <View className="items-center justify-center mt-20 px-gutter">
-              <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                <Ionicons name="videocam-outline" size={48} color={C.ink4} />
-              </View>
-              <Text className="font-semibold text-base text-ink text-center">Archive Empty</Text>
-              <Text className="font-sans text-sm text-ink-4 mt-2 text-center">No broadcast records found in the registry.</Text>
-            </View>
           ) : (
             <FlatList keyboardShouldPersistTaps="handled"
               data={media}
@@ -940,6 +935,24 @@ export default function FyncMediaFeed() {
               maxToRenderPerBatch={3}
               windowSize={5}
               removeClippedSubviews={Platform.OS === 'android'}
+              // Empty/error live inside the list so pull-to-refresh still works.
+              ListEmptyComponent={loadError ? (
+                <View className="mt-10">
+                  <Empty
+                    icon="cloud-offline-outline"
+                    title="Couldn't load Fync Media"
+                    action={<Button title="Try again" onPress={() => fetchMedia(1, true)} />}
+                  />
+                </View>
+              ) : (
+                <View className="items-center justify-center mt-20 px-gutter">
+                  <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                    <Ionicons name="videocam-outline" size={48} color={C.ink4} />
+                  </View>
+                  <Text className="font-semibold text-base text-ink text-center">Archive Empty</Text>
+                  <Text className="font-sans text-sm text-ink-3 mt-2 text-center">No broadcast records found in the registry.</Text>
+                </View>
+              )}
               ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={C.brand[500]} className="mb-10" /> : <View className="h-10" />}
             />
           )}

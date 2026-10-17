@@ -327,11 +327,13 @@ function CreatePost() {
               </TouchableOpacity>
             </View>
 
-            <View className="h-40" />
+            <View className="h-4" />
           </ScrollView>
 
-          {/* Action Button */}
-          <View className="absolute left-8 right-8" style={{ bottom: bottomInset + 40 }}>
+          {/* Action Button: an ordinary footer under the ScrollView. Floating it
+              absolutely covered the caption while typing. The SafeAreaView
+              already supplies the bottom inset. */}
+          <View className="px-8 pt-3 pb-3">
               <TouchableOpacity 
                 onPress={handleSubmit}
                 disabled={isLoading}

@@ -19,6 +19,8 @@ import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { C } from '../constants/colors';
+import { isFeatureOn } from '../constants/features';
+import { AppBar } from './ui/kit';
 
 export default function EditProfile() {
   const { user, setUser } = useAuth();
@@ -144,32 +146,27 @@ export default function EditProfile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-paper">
-      {/* HEADER DECORATION */}
-
-      {/* --- Header --- */}
-      <View className="flex-row items-center justify-between px-4 py-2 border-b border-black/5 bg-transparent z-10">
-        <Pressable onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
+    // AppBar owns the top inset, so the SafeAreaView only handles the bottom.
+    <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
+      <AppBar
+        title="Edit Profile"
+        onBack={() => navigation.goBack()}
+        right={
+          <Pressable
+            onPress={handleUpdate}
+            disabled={loading || !hasChanges}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-          <Text className="text-ink text-lg">Cancel</Text>
-        </Pressable>
-        <Text className="text-ink font-display text-lg">Edit Profile</Text>
-        <Pressable
-          onPress={handleUpdate}
-          disabled={loading || !hasChanges}
-          hitSlop={12}
-          style={{ opacity: (loading || !hasChanges) ? 0.5 : 1 }}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={C.brand[500]} />
-          ) : (
-            <Text className={`text-lg font-display ${!hasChanges ? 'text-ink-3' : 'text-accent-text'}`}>Save</Text>
-          )}
-        </Pressable>
-      </View>
+            hitSlop={12}
+            style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center', opacity: (loading || !hasChanges) ? 0.5 : 1 }}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={C.brand[500]} />
+            ) : (
+              <Text className={`text-lg font-display ${!hasChanges ? 'text-ink-3' : 'text-accent-text'}`}>Save</Text>
+            )}
+          </Pressable>
+        }
+      />
 
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView className="px-gutter pt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -219,6 +216,7 @@ export default function EditProfile() {
           <InputGroup label="Interests" value={interest} onChange={setInterest} placeholder="e.g. AI, Web3, Cycling" />
           <InputGroup label="Hobbies" value={hobbies} onChange={setHobbies} placeholder="Reading, Gaming..." />
 
+          {isFeatureOn('creatorTips') && (
           <View className="bg-success/10 p-3 rounded-xl border border-success/20 mt-2">
             <InputGroup
               label="UPI ID (For receiving tips/payments)"
@@ -230,6 +228,7 @@ export default function EditProfile() {
               * Other users will use this ID to pay you for your content.
             </Text>
           </View>
+          )}
 
         </View>
       </ScrollView>

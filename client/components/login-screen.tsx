@@ -15,11 +15,14 @@ import { useAuth } from '../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import AuthPoster from './ui/AuthPoster';
 import { C } from '../constants/colors';
+import { isFeatureOn } from '../constants/features';
+import { useBottomInset } from '../constants/layout';
 
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>();
   const { login } = useAuth();
+  const bottomInset = useBottomInset();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -77,7 +80,7 @@ export default function LoginScreen() {
               meeting on a hard horizontal seam. */}
           <View
             className="bg-paper rounded-t-sheet"
-            style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 }}
+            style={{ marginTop: -22, paddingTop: 8, paddingBottom: bottomInset }}
           >
 
           <View className="px-gutter pt-6 pb-2 mb-5">
@@ -182,15 +185,17 @@ export default function LoginScreen() {
             </View>
 
             <View className="flex-row" style={{ gap: 12 }}>
-              <Pressable
-                className="flex-1 flex-row items-center justify-center border-[1.5px] border-line bg-card rounded-md"
-                style={{ minHeight: 44 }}
-                onPress={() => navigation.navigate('AlumniSignup')}
-                accessibilityRole="button"
-              >
-                <Ionicons name="school-outline" size={15} color={C.ink} style={{ marginRight: 7 }} />
-                <Text className="font-display text-ink uppercase" style={{ fontSize: 12, letterSpacing: 0.3 }}>Join as Alumni</Text>
-              </Pressable>
+              {isFeatureOn('alumniSignup') && (
+                  <Pressable
+                    className="flex-1 flex-row items-center justify-center border-[1.5px] border-line bg-card rounded-md"
+                    style={{ minHeight: 44 }}
+                    onPress={() => navigation.navigate('AlumniSignup')}
+                    accessibilityRole="button"
+                  >
+                    <Ionicons name="school-outline" size={15} color={C.ink} style={{ marginRight: 7 }} />
+                    <Text className="font-display text-ink uppercase" style={{ fontSize: 12, letterSpacing: 0.3 }}>Join as Alumni</Text>
+                  </Pressable>
+              )}
               <Pressable
                 className="flex-1 flex-row items-center justify-center bg-ink border-2 border-ink rounded-md"
                 style={{ minHeight: 44 }}

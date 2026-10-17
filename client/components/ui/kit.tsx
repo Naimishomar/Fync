@@ -150,7 +150,7 @@ export function IconBtn({
 
 export const Badge = ({ value, tone = C.danger }: { value: number | string; tone?: string }) => (
   <View style={[s.badge, { backgroundColor: tone }]}>
-    <Text style={s.badgeText}>{typeof value === 'number' && value > 9 ? '9+' : value}</Text>
+    <Text style={s.badgeText} maxFontSizeMultiplier={1.2}>{typeof value === 'number' && value > 9 ? '9+' : value}</Text>
   </View>
 );
 
@@ -553,7 +553,7 @@ const s = StyleSheet.create({
   iconbtnOverlay: { borderRadius: 22, backgroundColor: 'rgba(18,16,14,0.45)', marginHorizontal: 4 },
 
   badge: {
-    position: 'absolute', top: 4, right: 4, minWidth: 18, height: 18, paddingHorizontal: 4,
+    position: 'absolute', top: 4, right: 4, minWidth: 18, minHeight: 18, paddingHorizontal: 4,
     borderRadius: 9, borderWidth: 2, borderColor: C.paper, alignItems: 'center', justifyContent: 'center',
   },
   badgeText: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 9, color: '#fff' },

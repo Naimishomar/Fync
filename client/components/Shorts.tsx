@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from "react";
-import {View, Text, FlatList, Dimensions, Pressable, ViewToken, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, ToastAndroid, Share, Linking} from 'react-native'
+import {View, Text, FlatList, Dimensions, Pressable, ViewToken, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, ToastAndroid, Share, Linking, StatusBar} from 'react-native'
 import { Video, ResizeMode } from "expo-av";
 import { Image } from "expo-image";
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -24,6 +24,8 @@ import CommentsSheet from './ui/CommentsSheet';
 import RepostModal from './ui/RepostModal';
 import YouTubeShort from './YouTubeShort';
 import { C } from '../constants/colors';
+import { isFeatureOn } from '../constants/features';
+import { Button } from './ui/kit';
 
 
 /* ---------------- CONSTANTS ---------------- */
@@ -141,7 +143,7 @@ const SingleShort = React.memo(({
   const handleShare = async () => {
     try {
       const shareUrl = `https://fync-api.duckdns.org/view?shortId=${item._id}`;
-      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.fync.app";
+      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.naimishomar.fync";
 
       await Share.share({
         message: `Check out this short "${item.title}" by ${author.username ?? 'a student'} on Fync!\n\nWatch here: ${shareUrl}\n\nDon't have Fync? Get it on Play Store: ${playStoreUrl}`,
@@ -257,6 +259,8 @@ const SingleShort = React.memo(({
             <Ionicons name="chatbubble-outline" size={28} color="white" />
           </Pressable>
 
+          {/* UPI tips are off for the store launch (Play billing review). */}
+          {isFeatureOn('creatorTips') && (
           <Pressable
             onPress={async () => {
               if (author.upiId) {
@@ -294,6 +298,7 @@ const SingleShort = React.memo(({
             </View>
             <Text className="font-display text-label text-brand-400 mt-1 uppercase">Tip</Text>
           </Pressable>
+          )}
 
           {/* Not offered on your own short — the endpoint refuses it. */}
           {author._id !== currentUserId && (
@@ -428,6 +433,7 @@ export default function Shorts() {
   const loadingMoreRef = useRef(false);
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const isFocused = useIsFocused();
 
   /* ---------------- FETCH ---------------- */
 
@@ -747,7 +753,7 @@ export default function Shorts() {
       return (
         <DiscoverCard
           item={item}
-          isActive={item._id === activeVideoId}
+          isActive={isFocused && item._id === activeVideoId}
           isNear={Math.abs(index - activeIndex) <= 1}
           height={pageH}
           handleUnplayable={handleUnplayable}
@@ -769,7 +775,7 @@ export default function Shorts() {
         onDelete={deleteShort}
       />
     );
-  }, [activeVideoId, activeIndex, pageH, currentUserId, navigation, toggleLike, onRepost, openComments, deleteShort, handleUnplayable]);
+  }, [isFocused, activeVideoId, activeIndex, pageH, currentUserId, navigation, toggleLike, onRepost, openComments, deleteShort, handleUnplayable]);
 
   const getItemLayout = useCallback((_: any, index: number) => ({
     length: pageH,
@@ -784,6 +790,7 @@ export default function Shorts() {
 
   return (
     <>
+      {isFocused && <StatusBar barStyle="light-content" />}
       <FlatList keyboardShouldPersistTaps="handled"
         data={shorts}
         renderItem={renderItem}
@@ -809,6 +816,12 @@ export default function Shorts() {
         onRefresh={onRefresh}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
+        ListEmptyComponent={
+          <View style={{ height: pageH, backgroundColor: C.night }} className="items-center justify-center px-gutter">
+            <Text className="text-night-3 text-center mb-4">{"Couldn't load shorts."}</Text>
+            <Button title="Try again" onPress={onRefresh} />
+          </View>
+        }
       />
 
       {/* One shared sheet, not a fourth copy of it. */}

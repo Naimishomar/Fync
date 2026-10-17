@@ -171,8 +171,10 @@ const HackathonCard = memo(
         <Pressable
           onPress={() => onOpen(item._id)}
           android_ripple={{ color: 'rgba(18, 16, 14,0.06)' }}
-          style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}
         >
+          {/* Pressed state in children: NativeWind can drop a style function. */}
+          {({ pressed }) => (
+          <View style={{ opacity: pressed ? 0.9 : 1 }}>
           {/* Banner */}
           <View style={{ height: BANNER_H }} className="bg-ink">
             {item.bannerImage ? (
@@ -293,6 +295,8 @@ const HackathonCard = memo(
               </View>
             ) : null}
           </View>
+          </View>
+          )}
         </Pressable>
 
       </View>

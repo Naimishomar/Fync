@@ -13,7 +13,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import socket from "../utils/socket";
 import { supabase, fetchUnreadCounts } from "../utils/supabase";
 import { readCache, writeCache, userKey } from "../utils/screenCache";
@@ -21,11 +21,16 @@ import Avatar from "./Avatar";
 import { ChatListSkeleton } from "./Skeleton";
 import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { C } from '../constants/colors';
-import { AppBar } from './ui/kit';
+import { isFeatureOn } from '../constants/features';
+import { AppBar, Button, Empty } from './ui/kit';
 
 const ChatList = () => {
   const autoHideTabBar = useTabBarAutoHide();
   const navigation = useNavigation<any>();
+  // Pushed from Home it is a stack screen and needs a back button; as the
+  // recruiter "Messages" tab, canGoBack() is true too (tab history) but it must not.
+  const route = useRoute();
+  const showBack = route.name === 'ChatList' && navigation.canGoBack();
   const tabBarClearance = useTabBarClearance();
   const { user } = useAuth();
 
@@ -38,6 +43,7 @@ const ChatList = () => {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [typingStates, setTypingStates] = useState<{ [key: string]: boolean }>({});
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [loadError, setLoadError] = useState(false);
 
   // `conversations` read from inside socket callbacks has to come from a ref:
   // the useFocusEffect closure only depends on user._id, so the reconnect
@@ -115,23 +121,6 @@ const ChatList = () => {
         )
         .subscribe();
 
-      // Read receipts live on `messages`, not `conversations`, so the badge
-      // needs its own trigger — otherwise it only refreshed when a new message
-      // happened to bump the conversation row.
-      const msgChannel = supabase
-        .channel(`unread_${user._id}`)
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'messages' },
-          (payload) => {
-            const convoId = (payload.new as any)?.conversationId;
-            if (!conversationsRef.current.some((c: any) => c._id === convoId)) return;
-            if (reloadTimer.current) clearTimeout(reloadTimer.current);
-            reloadTimer.current = setTimeout(loadChats, 300);
-          }
-        )
-        .subscribe();
-
       return () => {
         socket.off("statusUpdate", handleStatusUpdate);
         socket.off("initialOnlineList", handleInitialList);
@@ -140,10 +129,35 @@ const ChatList = () => {
         socket.off("connect", handleConnect);
         if (reloadTimer.current) clearTimeout(reloadTimer.current);
         supabase.removeChannel(channel);
-        supabase.removeChannel(msgChannel);
       };
 
     }, [user._id])
+  );
+
+  // Read receipts live on `messages`, not `conversations`, so the badge
+  // needs its own trigger — otherwise it only refreshed when a new message
+  // happened to bump the conversation row. Filtered server-side to the loaded
+  // threads (unfiltered, every read receipt in the product reached every
+  // client), so it re-subscribes whenever loadChats changes that set.
+  const convoIdsKey = conversations.map((c: any) => c._id).join(',');
+  useFocusEffect(
+    useCallback(() => {
+      if (!convoIdsKey) return;
+      // Unique topic: supabase.channel() returns an existing channel with the same
+      // topic, and the previous one may still be mid-removeChannel (async).
+      const msgChannel = supabase
+        .channel(`unread_${user._id}_${Date.now()}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversationId=in.(${convoIdsKey})` },
+          () => {
+            if (reloadTimer.current) clearTimeout(reloadTimer.current);
+            reloadTimer.current = setTimeout(loadChats, 300);
+          }
+        )
+        .subscribe();
+      return () => { supabase.removeChannel(msgChannel); };
+    }, [user._id, convoIdsKey])
   );
 
 
@@ -174,6 +188,7 @@ const ChatList = () => {
 
       if (error) throw error;
       if (!data) return;
+      setLoadError(false);
 
       setConversations(data);
       conversationsRef.current = data;
@@ -199,6 +214,7 @@ const ChatList = () => {
       writeCache(cacheKey, { conversations: data, unread });
     } catch (e) {
       console.log("Error loading chats from Supabase", e);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -320,8 +336,8 @@ const ChatList = () => {
               </Text>
               
               {unread > 0 && (
-                <View className="bg-brand-500 min-w-[18px] h-4 px-1 flex justify-center items-center rounded-full">
-                  <Text className="text-ink text-label font-display">
+                <View className="bg-brand-500 min-w-[18px] min-h-4 px-1 flex justify-center items-center rounded-full">
+                  <Text className="text-ink text-label font-display" maxFontSizeMultiplier={1.2}>
                     {unread > 9 ? '9+' : unread}
                   </Text>
                 </View>
@@ -366,7 +382,7 @@ const ChatList = () => {
       <StatusBar barStyle="dark-content" />
 
       <View className="flex-1">
-        <AppBar title="Messages" />
+        <AppBar title="Messages" onBack={showBack ? () => navigation.goBack() : undefined} />
         <View className="px-gutter">
           {/* SEARCH DOCK */}
           <View className="flex-row items-center bg-card px-5 py-1 border-2 border-ink shadow-hair mb-5 rounded-md">
@@ -416,7 +432,7 @@ const ChatList = () => {
             ListHeaderComponent={
               <>
                 {/* Special Channels (Only when not searching) */}
-                {search.length === 0 && (
+                {search.length === 0 && (user?.college || isFeatureOn('alumniConnect') || isFeatureOn('proHub')) && (
                   <View className="mb-6">
                     <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
                       <Text className="text-ink-3 text-label font-display uppercase">Dedicated Channels</Text>
@@ -440,11 +456,11 @@ const ChatList = () => {
                       </TouchableOpacity>
                     )}
 
-                    {(user?.user_access === 'user' || user?.user_access === 'alumni' || user?.user_access === 'admin') && user?.college && (
+                    {isFeatureOn('alumniConnect') && (user?.user_access === 'user' || user?.user_access === 'alumni' || user?.user_access === 'admin') && user?.college && (
                       <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => navigation.navigate("AlumniConnect")}
-                        className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair"
+                        className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair mb-2"
                       >
                         <View className="w-12 h-12 rounded-card bg-recruiter/10 items-center justify-center border border-recruiter/15 mr-4">
                           <Ionicons name="people" size={24} color={C.recruiter} />
@@ -459,7 +475,7 @@ const ChatList = () => {
                       </TouchableOpacity>
                     )}
 
-                    {(user?.user_access === 'user' || user?.user_access === 'alumni') && (
+                    {isFeatureOn('proHub') && (user?.user_access === 'user' || user?.user_access === 'alumni') && (
                       <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => navigation.navigate("ProfessionalHub")}
@@ -485,7 +501,15 @@ const ChatList = () => {
                 </View>
               </>
             }
-            ListEmptyComponent={
+            ListEmptyComponent={search.length === 0 && loadError ? (
+              <View className="mt-10">
+                <Empty
+                  icon="cloud-offline-outline"
+                  title="Couldn't load chats"
+                  action={<Button title="Try again" onPress={loadChats} />}
+                />
+              </View>
+            ) : (
               <View className="items-center justify-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                   <Ionicons
@@ -497,11 +521,11 @@ const ChatList = () => {
                 <Text className="font-semibold text-base text-ink text-center">
                   {search.length > 0 ? "Registry Empty" : "No Transmissions"}
                 </Text>
-                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">
+                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
                   Initialize search to establish connection.
                 </Text>
               </View>
-            }
+            )}
           />
         )}
       </View>

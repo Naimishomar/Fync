@@ -1,22 +1,38 @@
-import { TouchableOpacity, View, Dimensions, Animated, Pressable, Text, Image, Platform, StyleSheet } from "react-native";
+import { TouchableOpacity, View, Dimensions, Animated, Pressable, Text, Image, Platform, StyleSheet, BackHandler } from "react-native";
 import { Image as ExpoImage } from 'expo-image';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { BlurView } from 'expo-blur';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Shorts from "./Shorts";
 import ExploreHub from "./ExploreHub";
 import HomeScreen from "./home-screen";
 import CreateShorts from "./CreateShorts";
 import Profile from "./profile";
 import { useAuth } from "context/auth.context";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getFullUrl, getThumbUrl } from "../utils/imageUtils";
 import { TAB_BAR_HEIGHT, useTabBarOffset } from "../constants/layout";
 import SlidingTabBar from "./ui/SlidingTabBar";
 import { C } from '../constants/colors';
+import { isFeatureOn } from '../constants/features';
 
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
+
+/** Small `_sm` twin first, full file when an older upload has none. */
+const TabAvatar = ({ path }: { path: string }) => {
+  const [src, setSrc] = useState(getThumbUrl(path) || '');
+  return (
+    <ExpoImage
+      source={{ uri: src }}
+      style={{ width: 28, height: 28, borderRadius: 14 }}
+      contentFit="cover"
+      cachePolicy="disk"
+      onError={() => { const full = getFullUrl(path); if (full && src !== full) setSrc(full); }}
+    />
+  );
+};
 
 const CustomTabBarButton = ({ children, onPress }: any) => {
   const [opened, setOpened] = useState(false);
@@ -33,20 +49,34 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
     setOpened(!opened);
   };
 
-  // Styles for the two popup buttons
+  // Leaving the tab screen (a pushed screen, a back) must not leave the fan open behind it.
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (!isFocused && opened) toggleMenu();
+  }, [isFocused]);
+  useEffect(() => {
+    if (!opened) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => { toggleMenu(); return true; });
+    return () => sub.remove();
+  }, [opened]);
+
+  // Three arms with Add Startup; without it, Post and Shorts sit as a mirrored pair.
+  const startupArm = isFeatureOn('startups');
+
+  // Styles for the popup buttons
   const item1Style = {
     transform: [
       { scale: animation },
       {
         translateY: animation.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, -62], // Left arm sits lower than the centre
+          outputRange: [0, startupArm ? -62 : -84], // Left arm sits lower than the centre
         }),
       },
       {
         translateX: animation.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, -92], // Wide enough that "Add Post" clears the centre label
+          outputRange: [0, startupArm ? -92 : -60], // Wide enough that "Add Post" clears the centre label
         }),
       },
     ],
@@ -58,13 +88,13 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
       {
         translateY: animation.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, -104], // Apex of the arc
+          outputRange: [0, startupArm ? -104 : -84], // Apex of the arc
         }),
       },
       {
         translateX: animation.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, 0], // Slide right
+          outputRange: [0, startupArm ? 0 : 60], // Slide right
         }),
       },
     ],
@@ -119,12 +149,14 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
         <Text className="text-white text-label font-display uppercase mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", letterSpacing: 0.6, overflow: "hidden" }}>Add Shorts</Text>
       </Animated.View>
 
+      {startupArm && (
       <Animated.View style={[item3Style]} className="absolute items-center">
         <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
           <Ionicons name="bulb-outline" size={20} color={C.brand[500]} />
         </TouchableOpacity>
         <Text className="text-white text-label font-display uppercase mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", letterSpacing: 0.6, overflow: "hidden" }}>Add Startup</Text>
       </Animated.View>
+      )}
 
 
 
@@ -265,12 +297,16 @@ export default function TabLayout() {
                   all there — it renders a flat semi-opaque fill, which is why
                   the bar looked like a black slab rather than glass. iOS blurs
                   natively and ignores this. */}
-              <BlurView
-                intensity={Platform.OS === 'ios' ? 100 : 80}
-                tint="dark"
-                experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
-                style={StyleSheet.absoluteFillObject}
-              />
+              {/* Android skips the live blur: dimezisBlurView re-blurs every
+                  frame behind a bar that is always on screen. The darker
+                  fill below carries the glass there instead. */}
+              {Platform.OS === 'ios' && (
+                <BlurView
+                  intensity={100}
+                  tint="dark"
+                  style={StyleSheet.absoluteFillObject}
+                />
+              )}
 
               {/* Smoked, not frosted white. In the reference the panel is
                   darker than its backdrop and you read the background straight
@@ -281,7 +317,7 @@ export default function TabLayout() {
               <View
                 style={{
                   ...StyleSheet.absoluteFillObject,
-                  backgroundColor: 'rgba(18, 16, 14, 0.34)',
+                  backgroundColor: Platform.OS === 'ios' ? 'rgba(18, 16, 14, 0.34)' : 'rgba(18, 16, 14, 0.6)',
                 }}
               />
 
@@ -380,12 +416,7 @@ export default function TabLayout() {
                   justifyContent: 'center',
                   alignItems: 'center'
                 }}>
-                  <ExpoImage 
-                    source={{ uri: user.avatar }} 
-                    style={{ width: 28, height: 28, borderRadius: 14 }}
-                    contentFit="cover"
-                    cachePolicy="disk"
-                  />
+                  <TabAvatar key={user.avatar} path={user.avatar} />
                 </View>
               ) : (
                 <Ionicons name="person-outline" size={24} color={color} />

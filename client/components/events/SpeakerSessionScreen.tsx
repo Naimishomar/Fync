@@ -10,7 +10,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { collegesInIndia } from '../../data/college';
 // @ts-ignore
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
-import * as XLSX from '@e965/xlsx';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -518,6 +517,9 @@ export default function SpeakerSessionScreen() {
             });
 
             // Create Worksheet
+            // Loaded on demand: xlsx is large and only this export needs it.
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            const XLSX: typeof import('@e965/xlsx') = require('@e965/xlsx');
             const ws = XLSX.utils.json_to_sheet(excelData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Attendees");

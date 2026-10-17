@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios, { setAuthToken } from "./axiosConfig";
+import axios, { clearApiCache, setAuthToken, setOnAuthLost } from "./axiosConfig";
 import * as Device from "expo-device";
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync, savePushTokenToBackend } from "../utils/notificationHelper";
@@ -8,6 +8,7 @@ import { syncFcmToken } from "../services/NotificationService";
 import { trackUser, untrackUser } from "../utils/socket";
 import { clearSupabaseAuth } from "../utils/supabase";
 import { prefetchFeed } from "../utils/feedPrefetch";
+import { getCrashlytics, setUserId } from "@react-native-firebase/crashlytics";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -22,6 +23,11 @@ const AuthContext = createContext<any>(null);
 
 export const AuthProvider = ({ children }: any) => {
   const [user, setUser] = useState<any>(null);
+
+  // Ties crash reports to an account id (never name or email).
+  useEffect(() => {
+    try { setUserId(getCrashlytics(), user?._id ? String(user._id) : '').catch(() => {}); } catch { /* not fatal */ }
+  }, [user?._id]);
   const [loading, setLoading] = useState(true);
 
   const registerToken = async () => {
@@ -38,12 +44,9 @@ export const AuthProvider = ({ children }: any) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      await axios.get("/user/logout");
-    } catch (e) {
-      console.log("Logout backend error:", e);
-    }
+  // Local half of logout. Also run by axiosConfig when the refresh token is
+  // rejected, so the app drops back to login instead of failing every call.
+  const clearSession = async () => {
     await AsyncStorage.multiRemove(["accessToken", "refreshToken", "cachedUser"]);
     // The request interceptor holds the token in memory now; clearing storage
     // alone would leave the logged-out session still sending it.
@@ -54,7 +57,18 @@ export const AuthProvider = ({ children }: any) => {
     // Drop the cached Supabase identity too, or the next account signed in on
     // this device would keep querying as the previous user.
     clearSupabaseAuth();
+    // Cached API responses belong to this account.
+    await clearApiCache();
     setUser(null);
+  };
+
+  const logout = async () => {
+    try {
+      await axios.get("/user/logout");
+    } catch (e) {
+      console.log("Logout backend error:", e);
+    }
+    await clearSession();
   };
 
   const getDeviceId = async () => {
@@ -68,6 +82,8 @@ export const AuthProvider = ({ children }: any) => {
 
   const login = async (email: string, password: string) => {
     try {
+      // Never let this account read the previous one's cached responses.
+      await clearApiCache();
       const deviceId = await getDeviceId();
       const deviceModel = Device.modelName || "Unknown Device";
       const res = await axios.post("/user/login", { email, password, deviceId, deviceModel });
@@ -89,6 +105,13 @@ export const AuthProvider = ({ children }: any) => {
       throw err;
     }
   };
+
+  useEffect(() => {
+    setOnAuthLost(() => {
+      clearSession();
+    });
+    return () => setOnAuthLost(null);
+  }, []);
 
   // Restore session on app start
   useEffect(() => {

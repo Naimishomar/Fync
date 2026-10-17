@@ -10,6 +10,7 @@ import { Alert } from './AlertModal';
 import { getFullUrl } from '../../utils/imageUtils';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { Button, Empty } from './kit';
 
 /**
  * The comment sheet, for every surface that has comments.
@@ -89,6 +90,8 @@ export interface CommentsSheetProps {
   /** Fires with the server's count and its newest comment, so a feed row can
    *  refresh both its badge and the comment it previews. */
   onCountChange?: (targetId: string, count: number, newest?: any) => void;
+  /** Adds Report to other people's comments; call `hide` once it is reported. */
+  onReport?: (comment: CommentModel, hide: () => void) => void;
 }
 
 export interface CommentModel {
@@ -115,6 +118,7 @@ interface RowCtx {
   onCancelEdit: () => void;
   onSave: (id: string) => void;
   onDelete: (id: string) => void;
+  onReport?: (comment: CommentModel) => void;
 }
 
 /**
@@ -205,6 +209,12 @@ const CommentRow = React.memo(function CommentRow({
                 </Pressable>
               )}
 
+              {!mine && ctx.onReport && (
+                <Pressable onPress={() => ctx.onReport!(comment)} hitSlop={8} className={ctx.canReply ? "ml-4" : ""}>
+                  <Text className="font-display text-ink-3 uppercase" style={{ fontSize: 10 }}>Report</Text>
+                </Pressable>
+              )}
+
               {ctx.busyId === comment._id && <ActivityIndicator size="small" color={C.brand[500]} style={{ marginLeft: 10 }} />}
             </View>
           )}
@@ -217,7 +227,7 @@ const CommentRow = React.memo(function CommentRow({
 });
 
 export default function CommentsSheet({
-  visible, onClose, resource, targetId, currentUser, onCountChange, title = 'Comments',
+  visible, onClose, resource, targetId, currentUser, onCountChange, title = 'Comments', onReport,
 }: CommentsSheetProps) {
   const api = typeof resource === 'string' ? BUILT_IN[resource] : resource;
   // Held in a ref: callers build the api object inline, and a fresh object per
@@ -227,6 +237,7 @@ export default function CommentsSheet({
   const apiKey = api.list('');
   const [comments, setComments] = useState<CommentModel[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [text, setText] = useState('');
   const [posting, setPosting] = useState(false);
   const [replyingTo, setReplyingTo] = useState<CommentModel | null>(null);
@@ -304,15 +315,19 @@ export default function CommentsSheet({
       // comment vanish. A read straight after a write asks for a fresh one.
       const { list: listPath, pick, normalize } = apiRef.current;
       const base = listPath(targetId);
-      const url = base + (options?.fresh ? `${base.includes('?') ? '&' : '?'}t=${Date.now()}` : '');
-      const res = await axios.get(url);
+      // `t` makes a new server cache key (the server keys on the full URL), and
+      // axiosConfig never stores timestamp-busted URLs, so this one is fresh end to end.
+      const res = await axios.get(base, options?.fresh ? { params: { t: Date.now() } } : undefined);
       const raw: any[] = (pick ? pick(res.data) : res.data?.comments) ?? [];
       const list = normalize ? raw.map(normalize) : raw;
       if (seq !== fetchSeq.current) return;
+      setLoadFailed(false);
       setComments(list);
       report(list, targetId);
     } catch {
-      // Leaves whatever was already on screen rather than blanking it.
+      // Leaves whatever was already on screen rather than blanking it; the
+      // flag only shows when there is nothing on screen to keep.
+      if (seq === fetchSeq.current) setLoadFailed(true);
     } finally {
       if (seq === fetchSeq.current) setLoading(false);
     }
@@ -423,6 +438,9 @@ export default function CommentsSheet({
   const canReply = !!api.replies;
   const canEdit = !!api.update;
   const canDelete = !!api.remove;
+  const reportRef = useRef(onReport);
+  reportRef.current = onReport;
+  const canReport = !!onReport;
   const rowCtx = useMemo<RowCtx>(() => ({
     currentUserId,
     editingId,
@@ -442,7 +460,11 @@ export default function CommentsSheet({
     onCancelEdit: () => { setEditingId(null); setEditingText(''); },
     onSave: (id) => updateRef.current(id),
     onDelete: (id) => removeRef.current(id),
-  }), [currentUserId, editingId, editingText, busyId, canReply, canEdit, canDelete]);
+    // Reported comments (and their replies) leave this list at once.
+    onReport: canReport ? (comment) => reportRef.current?.(comment, () => setComments((prev) => prev
+      .filter((c) => c._id !== comment._id)
+      .map((c) => (c.replies ? { ...c, replies: c.replies.filter((r) => r._id !== comment._id) } : c)))) : undefined,
+  }), [currentUserId, editingId, editingText, busyId, canReply, canEdit, canDelete, canReport]);
 
   const renderComment = useCallback(
     ({ item }: { item: CommentModel }) => <CommentRow comment={item} ctx={rowCtx} />,
@@ -490,7 +512,15 @@ export default function CommentsSheet({
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
               showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
+              ListEmptyComponent={loadFailed ? (
+                <View className="mt-10">
+                  <Empty
+                    icon="cloud-offline-outline"
+                    title="Couldn't load comments"
+                    action={<Button title="Try again" onPress={() => fetchComments()} />}
+                  />
+                </View>
+              ) : (
                 <View className="items-center mt-16 px-10">
                   <Ionicons name="chatbubble-ellipses-outline" size={44} color={C.ink4} />
                   <Text className="font-display text-base text-ink mt-3">No comments yet</Text>
@@ -498,7 +528,7 @@ export default function CommentsSheet({
                     Say the first thing.
                   </Text>
                 </View>
-              }
+              )}
             />
           )}
 

@@ -85,9 +85,14 @@ export const batchGet = async <T extends Record<string, any> = Record<string, an
     }
     throw new Error('Malformed batch response');
   } catch (error: any) {
-    // 404 means this build is talking to a server without the batch route.
-    // Anything else is a real failure, but the individual requests are still
-    // worth trying — a degraded screen beats an empty one.
+    // 404 means this build is talking to a server without the batch route, so
+    // try the requests individually. Anything else (offline, timeout, 5xx, 429)
+    // would only fail N more times; report status 0 for every entry instead.
+    if (error?.response?.status !== 404) {
+      return Object.fromEntries(
+        entries.map(([key]) => [key, { status: 0, body: null } as BatchResult])
+      ) as Record<keyof T, BatchResult>;
+    }
     const settled = await Promise.all(
       entries.map(async ([key, path]) => {
         try {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useLayoutEffect, useMemo, useCallback } from "react";
-import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, Keyboard, UIManager, LayoutAnimation} from 'react-native'
+import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, Keyboard, UIManager, LayoutAnimation, useWindowDimensions} from 'react-native'
 import { Image } from 'expo-image';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { supabase } from "../utils/supabase";
@@ -14,7 +14,8 @@ import * as DocumentPicker from "expo-document-picker";
 import { Video, ResizeMode } from "expo-av";
 import { ActivityIndicator, Modal } from "react-native";
 import { Alert } from './ui/AlertModal';
-import { AppBar } from './ui/kit';
+import { AppBar, Button, Empty, IconBtn } from './ui/kit';
+import { confirmBlock, report } from '../utils/safety';
 import { C } from '../constants/colors';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -43,10 +44,16 @@ const Chat = ({ route, navigation }: any) => {
   const [isTyping, setIsTyping] = useState(false);
   const [replyingTo, setReplyingTo] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // One <Video> (one decoder) at a time: bubbles show a tile, the tap opens it here.
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   const insets = useSafeAreaInsets();
+  const { width: screenW } = useWindowDimensions();
+  // Media fits the bubble: list padding 40, row max 85%, avatar + gap 48, bubble padding 40.
+  const mediaW = Math.min(224, Math.floor((screenW - 40) * 0.85) - 48 - 40);
   const typingTimeout = useRef<any>(null);
   const lastTypingSent = useRef<number>(0);
   const flatListRef = useRef<FlatList>(null);
@@ -96,6 +103,7 @@ const Chat = ({ route, navigation }: any) => {
     loadingRef.current = false;
     setMessages([]);
     setLoading(true);
+    setLoadError(false);
 
     fetchConversationUser();
 
@@ -245,6 +253,7 @@ const Chat = ({ route, navigation }: any) => {
 
       if (error) throw error;
 
+      setLoadError(false);
       if (data) {
         if (data.length < 20) hasMoreRef.current = false;
         pageRef.current += 1;
@@ -258,6 +267,7 @@ const Chat = ({ route, navigation }: any) => {
       }
     } catch (error) {
       console.log("Error loading messages", error);
+      if (pageRef.current === 1) setLoadError(true);
     } finally {
       loadingRef.current = false;
       setLoading(false);
@@ -396,10 +406,11 @@ const Chat = ({ route, navigation }: any) => {
           touchConversation(preview, data.createdAt || new Date().toISOString());
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Upload error:", e);
       setMessages(prev => prev.filter(m => m._id !== tempId));
-      Alert.alert("Upload Failed", "Could not send media. Please try again.");
+      if (e?.response?.status === 403) Alert.alert("Can't send", e.response.data?.message || "You can't message this user");
+      else Alert.alert("Upload Failed", "Could not send media. Please try again.");
     }
   };
 
@@ -574,7 +585,7 @@ const Chat = ({ route, navigation }: any) => {
                 <TouchableOpacity onPress={() => setSelectedImage(item.mediaUrl)}>
                   <Image
                     source={{ uri: item.mediaUrl }}
-                    style={{ width: 224, height: 224, borderRadius: 12 }}
+                    style={{ width: mediaW, aspectRatio: 1, borderRadius: 12 }}
                     contentFit="cover"
                     cachePolicy="memory-disk"
                     blurRadius={item.pending ? 10 : 0}
@@ -584,21 +595,17 @@ const Chat = ({ route, navigation }: any) => {
 
               {item.messageType === "video" && (
                 <Pressable 
-                  onPress={(e) => e.stopPropagation()} 
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    if (!item.pending) setSelectedVideo(item.mediaUrl);
+                  }}
                   onLongPress={(e) => e.stopPropagation()}
-                  className="w-64 h-40 bg-ink rounded-xl overflow-hidden shadow-hair"
+                  accessibilityRole="button"
+                  accessibilityLabel="Play video"
+                  className="bg-ink rounded-xl overflow-hidden shadow-hair items-center justify-center"
+                  style={{ width: mediaW, aspectRatio: 16 / 10 }}
                 >
-                  <Video
-                    source={{ uri: item.mediaUrl }}
-                    rate={1.0}
-                    volume={1.0}
-                    isMuted={false}
-                    resizeMode={ResizeMode.CONTAIN}
-                    shouldPlay={false}
-                    isLooping={false}
-                    useNativeControls
-                    style={{ width: '100%', height: '100%' }}
-                  />
+                  <Ionicons name="play-circle" size={44} color="white" />
                   {item.pending && (
                     <View className="absolute inset-0 bg-black/40 items-center justify-center">
                       <ActivityIndicator size="small" color="white" />
@@ -656,7 +663,7 @@ const Chat = ({ route, navigation }: any) => {
       </View>
     );
   // conversationId: deleteMessage writes lastMessage to it, and Chat -> Chat reuses this screen.
-  }, [user, conversationId]);
+  }, [user, conversationId, mediaW]);
 
   if (!conversationId) {
     return (
@@ -680,7 +687,19 @@ const Chat = ({ route, navigation }: any) => {
       </View>
 
       {/* FIXED HEADER */}
-      <AppBar onBack={() => navigation.goBack()}>
+      <AppBar
+        onBack={() => navigation.goBack()}
+        right={otherUser ? (
+          <IconBtn
+            name="ellipsis-vertical"
+            onPress={() => Alert.alert(otherUser.name || 'Options', undefined, [
+              { text: 'Report user', onPress: () => report({ targetType: 'user', targetId: otherUser._id }) },
+              { text: 'Block user', style: 'destructive', onPress: () => confirmBlock(otherUser._id, otherUser.name, () => navigation.goBack()) },
+              { text: 'Cancel', style: 'cancel' },
+            ])}
+          />
+        ) : undefined}
+      >
             {otherUser && (
               <TouchableOpacity
                 className="flex-row items-center"
@@ -729,7 +748,9 @@ const Chat = ({ route, navigation }: any) => {
       <KeyboardAvoidingView
         behavior="padding"
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 56 : 0}
+        // 0: this KAV's own frame already starts below the AppBar (its parent is
+        // the full-screen root at y=0), so adding the bar's height counted it twice.
+        keyboardVerticalOffset={0}
       >
         <View style={{ flex: 1 }}>
             {/* MESSAGE CONTAINER (ROUNDED CARD) */}
@@ -750,6 +771,21 @@ const Chat = ({ route, navigation }: any) => {
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
                 keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+                ListEmptyComponent={
+                  // No manual scaleY flip: VirtualizedList already gives the empty
+                  // component the inversion style, and a transform here would override it.
+                  <View style={{ paddingVertical: 24 }}>
+                    {loadError ? (
+                      <Empty
+                        icon="cloud-offline-outline"
+                        title="Couldn't load messages"
+                        action={<Button title="Try again" onPress={() => { setLoadError(false); loadMessages(); }} />}
+                      />
+                    ) : (
+                      <Empty icon="chatbubbles-outline" title="No messages yet" hint="Say hi to start the conversation." />
+                    )}
+                  </View>
+                }
               />
             )}
           </View>
@@ -793,10 +829,14 @@ const Chat = ({ route, navigation }: any) => {
                   className="flex-1 px-3 text-ink font-semibold text-sm py-2 placeholder:text-ink"
                   multiline={true}
                   numberOfLines={1}
+                  style={{ maxHeight: 120 }}
                 />
 
                 <TouchableOpacity
                   onPress={sendMessage}
+                  // otherUser is still loading (or failed to): sending would silently no-op.
+                  disabled={!otherUser}
+                  style={!otherUser ? { opacity: 0.4 } : undefined}
                   className="w-11 h-11 bg-ink rounded-full items-center justify-center shadow-hair"
                 >
                   <Ionicons name="paper-plane" size={18} color="white" />
@@ -821,6 +861,26 @@ const Chat = ({ route, navigation }: any) => {
               style={{ width: '100%', height: '80%' }}
               contentFit="contain"
               cachePolicy="memory-disk"
+            />
+          )}
+        </View>
+      </Modal>
+      {/* FULL SCREEN VIDEO MODAL */}
+      <Modal visible={!!selectedVideo} transparent={true} animationType="fade" onRequestClose={() => setSelectedVideo(null)}>
+        <View className="flex-1 bg-black/95 justify-center items-center">
+          <TouchableOpacity
+            onPress={() => setSelectedVideo(null)}
+            className="absolute top-12 right-6 w-10 h-10 bg-card/10 rounded-full items-center justify-center z-50"
+          >
+            <Ionicons name="close" size={24} color="white" />
+          </TouchableOpacity>
+          {selectedVideo && (
+            <Video
+              source={{ uri: selectedVideo }}
+              resizeMode={ResizeMode.CONTAIN}
+              shouldPlay
+              useNativeControls
+              style={{ width: '100%', height: '80%' }}
             />
           )}
         </View>

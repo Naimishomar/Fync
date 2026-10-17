@@ -11,6 +11,7 @@ import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, IconBtn, Meta } from '../ui/kit';
 import CommentsSheet, { CommentsApi, CommentModel } from '../ui/CommentsSheet';
+import { report } from '../../utils/safety';
 
 const { width } = Dimensions.get('window');
 
@@ -24,25 +25,12 @@ const CONFESSION_COMMENTS: CommentsApi = {
 // Fixed color for all confessions
 const CONFESSION_COLOR = '#FFFFFF';
 
-const maskName = (name: string) => {
-    if (!name) return 'User';
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) {
-        const n = parts[0];
-        if (n.length <= 1) return n.toUpperCase();
-        return `${n[0]}. ${n[n.length - 1]}.`.toUpperCase();
-    }
-    const firstInitial = parts[0][0];
-    const lastInitial = parts[parts.length - 1][0];
-    return `${firstInitial}. ${lastInitial}.`.toUpperCase();
-};
-
 /* ---------------- GLOBAL CACHE ---------------- */
 let globalConfessionsCache: any[] = [];
 let globalCurrentPage = 1;
 let globalHasMore = true;
 
-const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete, navigation, stamped }: any) => {
+const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete, onReport, navigation, stamped }: any) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const MAX_LIMIT = 200;
     const isLongText = (item.content?.length || 0) > MAX_LIMIT;
@@ -55,37 +43,37 @@ const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete,
             <View className="flex-row items-center justify-between mb-5">
                 <View className="flex-row items-center">
                     <View className="w-11 h-11 rounded-full bg-paper-2 items-center justify-center border border-line">
-                        <Ionicons 
-                            name={item.user?.gender === 'Female' ? "woman" : "man"} 
-                            size={20} 
-                            color={C.ink3} 
-                        />
+                        <Ionicons name="person" size={20} color={C.ink3} />
                     </View>
                     <View className="ml-2">
-                        <Text className="text-ink font-display text-base uppercase">{maskName(item.user?.name || 'User')}</Text>
+                        <Text className="text-ink font-display text-base uppercase">Anonymous</Text>
                         <Text className="text-ink-3 text-label uppercase font-display">Anonymous Confession</Text>
                     </View>
                 </View>
 
-                {/* Manage Menu (Admin/Owner) */}
-                {(item.canManage) && (
-                    <TouchableOpacity
-                        onPress={() => {
-                            Alert.alert(
-                                "Manage Content",
-                                "Select protocol action",
-                                [
+                {/* Owner gets edit/delete; everyone else can report. */}
+                <TouchableOpacity
+                    onPress={() => {
+                        Alert.alert(
+                            "Confession",
+                            undefined,
+                            item.canManage
+                                ? [
                                     { text: "Update / Edit", onPress: () => onEdit(item) },
                                     { text: "Delete Post", style: "destructive", onPress: () => onDelete(item._id) },
                                     { text: "Cancel", style: "cancel" }
                                 ]
-                            );
-                        }}
-                        className="p-3 bg-paper-2 rounded-card border border-line"
-                    >
-                        <Ionicons name="settings" size={20} color={C.ink} />
-                    </TouchableOpacity>
-                )}
+                                : [
+                                    { text: "Report", style: "destructive", onPress: () => onReport(item._id) },
+                                    { text: "Cancel", style: "cancel" }
+                                ]
+                        );
+                    }}
+                    className="p-3 bg-paper-2 rounded-card border border-line"
+                    accessibilityLabel="Confession options"
+                >
+                    <Ionicons name="ellipsis-horizontal" size={20} color={C.ink} />
+                </TouchableOpacity>
             </View>
 
             <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} activeOpacity={0.9}>
@@ -344,6 +332,11 @@ const ConfessionFeed = () => {
         }
     }, []);
 
+    // Reported confessions vanish at once; the server hides them on next fetch.
+    const handleReport = useCallback((id: string) => {
+        report({ targetType: 'confession', targetId: id }, () => setConfessions(prev => prev.filter((c: any) => c._id !== id)));
+    }, []);
+
     const renderConfession = useCallback(({ item, index }: any) => (
         <ConfessionItem
             item={item}
@@ -353,9 +346,10 @@ const ConfessionFeed = () => {
             onComments={setActiveConfessionId}
             onEdit={openEditModal}
             onDelete={handleDelete}
+            onReport={handleReport}
             navigation={navigation}
         />
-    ), [user, handleLike, openEditModal, handleDelete, navigation]);
+    ), [user, handleLike, openEditModal, handleDelete, handleReport, navigation]);
 
     // `comments` is only ever read for its length.
     const onCommentCount = (id: string, count: number) => {
@@ -506,6 +500,7 @@ const ConfessionFeed = () => {
                     targetId={activeConfessionId}
                     currentUser={user}
                     onCountChange={onCommentCount}
+                    onReport={(c, hide) => report({ targetType: 'confession_comment', targetId: c._id }, hide)}
                 />
             </View>
         </View>

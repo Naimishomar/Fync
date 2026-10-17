@@ -102,7 +102,7 @@ export const FEATURES: Feature[] = [
   { id: 'rewards', art: 'assets/Wrapped gift/3D/wrapped_gift_3d.png', label: 'Rewards Store', hint: 'Spend your Fync points', icon: 'gift-outline', route: 'RewardsMarketplace', tint: '#f59e0b', category: 'campus', keywords: ['points', 'redeem', 'shop'] },
 
   // ---------- FUN ----------
-  { id: 'partyPool', art: 'assets/Party popper/3D/party_popper_3d.png', label: 'Party Pool', hint: 'Mini games with friends', icon: 'game-controller-outline', route: 'PartyPool', tint: '#db2777', category: 'fun', keywords: ['games', 'flappy', 'draw'] },
+  { id: 'partyPool', art: 'assets/Party popper/3D/party_popper_3d.png', label: 'Party Pool', hint: 'Mini games with friends', icon: 'game-controller-outline', route: 'PartyPool', tint: '#db2777', category: 'fun', keywords: ['games', 'chess', 'trivia', 'charades'] },
   { id: 'nightClub', art: 'assets/Crescent moon/3D/crescent_moon_3d.png', label: '12 AM Club', hint: 'Anonymous, midnight only', icon: 'moon-outline', route: 'TwelveAMHomeCard', tint: '#6366f1', category: 'fun', keywords: ['night', 'anonymous', 'midnight'] },
   { id: 'confessions', art: 'assets/Shushing face/3D/shushing_face_3d.png', label: 'Confessions', hint: 'Post anonymously', icon: 'chatbubble-ellipses-outline', route: 'ConfessionFeed', tint: '#14b8a6', category: 'fun', keywords: ['anonymous', 'secret'] },
   { id: 'audioCall', art: 'assets/Headphone/3D/headphone_3d.png', label: 'Audio Rooms', hint: 'Live voice calls', icon: 'call-outline', route: 'AudioCallLobby', tint: '#db2777', category: 'fun', keywords: ['voice', 'call'] },
@@ -119,9 +119,25 @@ export const FEATURES: Feature[] = [
   { id: 'admin', art: 'assets/Shield/3D/shield_3d.png', label: 'Admin Portal', hint: 'Moderation and broadcasts', icon: 'shield-checkmark-outline', route: 'AdminPortal', tint: '#e11d48', category: 'account', access: ['admin'] },
 ];
 
+/** Off for the store launch; delete an id to bring the feature back. */
+export const LAUNCH_HIDDEN = new Set<string>([
+  // registry ids
+  'studyAssistant', 'focus', 'notesExchange', 'workshops', 'placement', 'contests',
+  'battle1v1', 'createRoom', 'joinRoom', 'shadowRival', 'alumni', 'alumniConnect',
+  'proHub', 'communities', 'startups', 'fyncMedia', 'rewards', 'audioCall',
+  'videoCall', 'movies', 'store', 'myShares', 'storeAdmin',
+  // not in the registry, gated at their entry points
+  'aiInterview', 'placementPredictor', 'coinToss', 'flappyBird', 'drawGuess',
+  'alumniSignup',
+  // no in-app purchases at launch (Play billing): Fync Pro, and paid digital extras
+  'fyncProPaid', 'paidDigital', 'creatorTips',
+]);
+export const isFeatureOn = (id: string) => !LAUNCH_HIDDEN.has(id);
+
 /** Tiles this user is allowed to see. */
 export const visibleFeatures = (user: any) =>
   FEATURES.filter((f) => {
+    if (!isFeatureOn(f.id)) return false;
     if (f.access && !f.access.includes(user?.user_access)) return false;
     if (f.needsCollege && !user?.college) return false;
     return true;

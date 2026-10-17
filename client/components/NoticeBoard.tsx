@@ -15,6 +15,7 @@ import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
 import { AppBar, IconBtn } from './ui/kit';
+import { isFeatureOn } from '../constants/features';
 import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 
 const { width } = Dimensions.get('window');
@@ -528,13 +529,16 @@ const NoticeBoard = () => {
           />
         )}
 
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => setCreateModalVisible(true)}
-          className="absolute right-8 w-14 h-14 rounded-card bg-ink items-center justify-center" style={{ bottom: bottomInset + 56 }}
-        >
-          <Ionicons name="pencil" size={24} color="white" />
-        </TouchableOpacity>
+        {/* A global notice is a paid boost for non-admins; no in-app digital sales at launch. */}
+        {(activeTab !== 'global' || isAdmin || isFeatureOn('paidDigital')) && (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setCreateModalVisible(true)}
+            className="absolute right-8 w-14 h-14 rounded-card bg-ink items-center justify-center" style={{ bottom: bottomInset + 56 }}
+          >
+            <Ionicons name="pencil" size={24} color="white" />
+          </TouchableOpacity>
+        )}
 
         <Modal visible={createModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setCreateModalVisible(false)}>
           <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>

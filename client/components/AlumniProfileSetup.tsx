@@ -21,7 +21,7 @@ import { C } from '../constants/colors';
 export default function AlumniProfileSetup() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { email, phoneNumber } = route.params ?? {};
+  const { email, phoneNumber, verificationToken } = route.params ?? {};
   const insets = useSafeAreaInsets();
 
   const [name, setName] = useState('');
@@ -72,6 +72,7 @@ export default function AlumniProfileSetup() {
       experienceLevel,
       domains,
       linkedIn,
+      verificationToken,
       gender,
       major
     });

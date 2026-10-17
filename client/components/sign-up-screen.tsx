@@ -98,6 +98,8 @@ export default function SignUpScreen() {
           username,
           phoneNumber,
           password,
+          // Proof of the verified email; /user/register requires it.
+          verificationToken: res.data.verificationToken,
         });
       } else {
         Toast.show({

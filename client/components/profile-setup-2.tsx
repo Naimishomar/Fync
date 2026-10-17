@@ -69,6 +69,7 @@ export default function ProfileSetup2() {
       const formData = new FormData();
 
       formData.append('email', route.params.email);
+      if (route.params.verificationToken) formData.append('verificationToken', route.params.verificationToken);
       formData.append('username', route.params.username);
       formData.append('mobileNumber', route.params.phoneNumber);
       formData.append('password', route.params.password);

@@ -7,7 +7,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Avatar from "./Avatar";
 import { C } from '../constants/colors';
-import { AppBar } from './ui/kit';
+import { AppBar, Button, Empty } from './ui/kit';
 
 interface User {
   _id: string;
@@ -26,6 +26,7 @@ const SearchScreen = () => {
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [recentSearches, setRecentSearches] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [searchError, setSearchError] = useState(false);
 
   // Responses can land out of order -- typing "an" then "ann" and having "an"
   // reply last used to overwrite the newer results with stale ones. Only the
@@ -34,6 +35,7 @@ const SearchScreen = () => {
 
   useEffect(() => {
     const normalized = query.trim();
+    setSearchError(false);
     if (!normalized) {
       requestIdRef.current += 1; // cancels any reply still in flight
       setSearchResults([]);
@@ -55,12 +57,14 @@ const SearchScreen = () => {
       const res = await axios.get("/user/search", { params: { q: searchText } });
       if (requestId !== requestIdRef.current) return;
       if (res.data.success) {
+        setSearchError(false);
         setSearchResults(res.data.users || []);
       }
     } catch (error) {
       if (requestId !== requestIdRef.current) return;
       console.log("Search Error:", error);
       setSearchResults([]);
+      setSearchError(true);
     } finally {
       if (requestId === requestIdRef.current) setLoading(false);
     }
@@ -184,7 +188,15 @@ const SearchScreen = () => {
               </View>
             }
             ListEmptyComponent={
-              !loading && searchResults.length === 0 ? (
+              !loading && searchError ? (
+                <View className="mt-10">
+                  <Empty
+                    icon="cloud-offline-outline"
+                    title="Couldn't search right now"
+                    action={<Button title="Try again" onPress={() => { setLoading(true); fetchUsers(query.trim()); }} />}
+                  />
+                </View>
+              ) : !loading && searchResults.length === 0 ? (
                 <View className="items-center mt-12 px-gutter">
                   <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
                     <Ionicons name="search-outline" size={32} color={C.ink4} />

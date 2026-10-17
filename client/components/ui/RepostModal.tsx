@@ -3,6 +3,7 @@ import { View, Text, Pressable, Modal, TextInput, KeyboardAvoidingView, Activity
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Avatar from '../Avatar';
 import { C } from '../../constants/colors';
+import { useBottomInset } from '../../constants/layout';
 
 const MAX_LENGTH = 1000;
 
@@ -30,6 +31,7 @@ export default function RepostModal({
 }) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
+  const bottomInset = useBottomInset();
 
   const close = () => {
     setText('');
@@ -53,7 +55,7 @@ export default function RepostModal({
       <Pressable className="flex-1 bg-black/40 justify-end" onPress={close}>
         <KeyboardAvoidingView behavior="padding">
           {/* Stops a tap inside the sheet from closing it. */}
-          <Pressable onPress={() => {}} className="bg-card rounded-t-sheet p-5">
+          <Pressable onPress={() => {}} className="bg-card rounded-t-sheet p-5" style={{ paddingBottom: bottomInset + 8 }}>
             <View className="flex-row items-center justify-between mb-4">
               <Text className="font-display text-lg text-ink">Repost</Text>
               <Pressable onPress={close} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel">

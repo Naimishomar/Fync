@@ -28,7 +28,7 @@ export default function RecruiterProfileSetup() {
   const { login, setUser } = useAuth();
   
   // Data passed from Step 1 (RecruiterSignup)
-  const { email, phoneNumber, username } = route.params || {};
+  const { email, phoneNumber, username, verificationToken } = route.params || {};
 
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -76,6 +76,7 @@ export default function RecruiterProfileSetup() {
 
       const payloadData = {
         email: email || '',
+        verificationToken,
         username: username || '',
         mobileNumber: phoneNumber || '',
         password: password || '',

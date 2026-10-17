@@ -158,23 +158,38 @@ export const MarketPlaceItem = ({ item, onEdit, onDelete }: any) => (
     </View>
 );
 
-export const ReportItem = ({ item, onDelete }: any) => (
+const REPORT_TARGET_LABEL: Record<string, string> = {
+    post: 'Post', short: 'Short', user: 'User', chat_message: 'Chat message',
+    confession: 'Confession', confession_comment: 'Confession comment',
+    night_message: '12 AM Club message', night_user: '12 AM Club 1v1 partner',
+};
+
+export const ReportItem = ({ item, onDelete, onResolve }: any) => {
+    // Post reports keep the post preview and its delete; everything else (shorts,
+    // users, chat, confessions, 12 AM Club) shows what the server snapshotted.
+    const isPost = !!item.post;
+    const label = isPost ? 'Post' : item.short ? 'Short' : REPORT_TARGET_LABEL[item.targetType] || item.targetType || 'Content';
+    const reportedUser = item.targetUser || item.short?.user;
+    return (
     <View className="rounded-card mb-4 p-4 border border-danger/30 bg-danger/10">
         <View className="flex-row justify-between items-start mb-3">
             <View className="flex-1">
                 <View className="flex-row items-center gap-2">
-                    <Text className="text-ink font-semibold text-base">Reported Post</Text>
+                    <Text className="text-ink font-semibold text-base">Reported {label}</Text>
                     <View className="bg-danger/15 px-1.5 py-0.5 rounded">
                         <Text className="text-danger text-label font-display">Pending Review</Text>
                     </View>
                 </View>
                 <Text className="text-ink-3 text-label mt-1">Reason: <Text className="text-danger font-semibold">{item.reason}</Text></Text>
             </View>
-            <TouchableOpacity onPress={() => onDelete(item._id, 'report')} className="w-9 h-9 bg-danger/10 rounded-full items-center justify-center border border-danger/15">
-                <Ionicons name="trash" size={16} color={C.danger} />
-            </TouchableOpacity>
+            {isPost && (
+                <TouchableOpacity onPress={() => onDelete(item._id, 'report')} className="w-9 h-9 bg-danger/10 rounded-full items-center justify-center border border-danger/15">
+                    <Ionicons name="trash" size={16} color={C.danger} />
+                </TouchableOpacity>
+            )}
         </View>
 
+        {isPost ? (
         <View className="bg-paper-2 rounded-xl p-3 mb-3 border border-line">
             <View className="flex-row items-center gap-2 mb-2">
                 <Image source={{ uri: item.post?.user?.avatar }} className="w-6 h-6 rounded-full" />
@@ -189,6 +204,19 @@ export const ReportItem = ({ item, onDelete }: any) => (
                 </ScrollView>
             )}
         </View>
+        ) : (
+        <View className="bg-paper-2 rounded-xl p-3 mb-3 border border-line">
+            {reportedUser ? (
+                <View className="flex-row items-center gap-2 mb-2">
+                    {!!reportedUser.avatar && <Image source={{ uri: reportedUser.avatar }} className="w-6 h-6 rounded-full" />}
+                    <Text className="text-ink font-semibold text-xs">{reportedUser.name ? `${reportedUser.name} ` : ''}@{reportedUser.username || 'unknown'}</Text>
+                </View>
+            ) : null}
+            <Text className="text-ink text-sm leading-5" numberOfLines={6}>
+                {item.snapshot || item.short?.description || item.short?.caption || 'No content snapshot'}
+            </Text>
+        </View>
+        )}
 
         <View className="flex-row items-center justify-between border-t border-line pt-3">
             <View className="flex-row items-center gap-2">
@@ -197,8 +225,20 @@ export const ReportItem = ({ item, onDelete }: any) => (
             </View>
             <Text className="text-ink-3 text-label">{new Date(item.createdAt).toLocaleDateString()}</Text>
         </View>
+
+        {onResolve && (
+            <View className="flex-row gap-2 mt-3">
+                <TouchableOpacity onPress={() => onResolve(item._id, 'resolved')} className="flex-1 h-10 bg-ink rounded-card items-center justify-center">
+                    <Text className="text-paper font-display text-label uppercase">Resolve</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => onResolve(item._id, 'dismissed')} className="flex-1 h-10 bg-card rounded-card items-center justify-center border border-line">
+                    <Text className="text-ink font-display text-label uppercase">Dismiss</Text>
+                </TouchableOpacity>
+            </View>
+        )}
     </View>
-);
+    );
+};
 
 export const ContactMessageItem = ({ item, onDelete, onToggleRead }: any) => (
     <View className={`bg-card rounded-card mb-4 p-4 border ${item.isRead ? 'border-line' : 'border-recruiter/25 bg-recruiter/10'}`}>

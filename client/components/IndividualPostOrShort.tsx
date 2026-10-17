@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import {View, Text, ActivityIndicator, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, FlatList, Pressable, Dimensions, ScrollView, Share, Image as RNImage} from 'react-native'
+import {View, Text, ActivityIndicator, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, FlatList, Pressable, Dimensions, ScrollView, Share, Image as RNImage, StatusBar} from 'react-native'
 import * as ImagePicker from 'expo-image-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -420,7 +420,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             const id = data._id;
             const idParam = isShort ? `shortId=${id}` : `postId=${id}`;
             const shareUrl = `https://fync-api.duckdns.org/view?${idParam}`;
-            const playStoreUrl = "https://play.google.com/store/apps/details?id=com.fync.app";
+            const playStoreUrl = "https://play.google.com/store/apps/details?id=com.naimishomar.fync";
 
             await Share.share({
                 message: isShort 
@@ -465,10 +465,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             {isShort ? (
                 /* --- SHORTS VIEW --- */
                 <View style={{ height: SCREEN_HEIGHT, width: SCREEN_WIDTH, backgroundColor: 'black' }}>
-                    <Pressable onPress={() => setMenuVisible(true)} className="absolute top-12 right-4 z-50 bg-black/20 p-2 rounded-full">
-                        <Ionicons name="ellipsis-horizontal" size={24} color="white" />
-                    </Pressable>
-
+                    {isFocused && <StatusBar barStyle="light-content" />}
                     <Pressable style={{ flex: 1 }} onPress={togglePlay}>
                         <Video
                             ref={videoRef}
@@ -548,6 +545,15 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             </TouchableOpacity>
                         </View>
                     </View>
+
+                    {/* Back + menu, below the status bar, above the video */}
+                    <View className="absolute top-0 left-0 right-0 z-50" pointerEvents="box-none">
+                        <AppBar
+                            overlay
+                            onBack={() => navigation.goBack()}
+                            right={<IconBtn overlay name="ellipsis-horizontal" onPress={() => setMenuVisible(true)} />}
+                        />
+                    </View>
                 </View>
             ) : (
                 /* --- POST VIEW --- */
@@ -584,9 +590,9 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                     >
                             <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data?.user })} className="flex-row items-center">
                                 <Avatar user={data.user as any} size={36} />
-                                <View className="ml-3">
-                                    <Text className="text-ink font-semibold text-sm">{data.user?.username}</Text>
-                                    {data.college && <Text className="text-ink-3 text-label uppercase">{data.college}</Text>}
+                                <View className="ml-3 flex-1 min-w-0">
+                                    <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{data.user?.username}</Text>
+                                    {data.college && <Text className="text-ink-3 text-label uppercase" numberOfLines={1}>{data.college}</Text>}
                                 </View>
                             </Pressable>
                     </AppBar>
@@ -738,7 +744,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
                     <Pressable className="flex-1" onPress={() => setMenuVisible(false)} />
 
-                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-8">
+                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: bottomInset + 8 }}>
                         <View className="items-center mb-4">
                             <View className="h-1 w-10 bg-ink-3 rounded-full" />
                         </View>
@@ -860,7 +866,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             >
                 <KeyboardAvoidingView behavior="padding" className="flex-1" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
                     <View className="flex-1" />
-                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-6">
+                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: bottomInset + 8 }}>
                             <View className="items-center mb-3">
                                 <View className="h-1 w-10 bg-ink-3 rounded-full" />
                             </View>

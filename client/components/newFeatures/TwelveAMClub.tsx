@@ -15,6 +15,7 @@ import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, IconBtn } from '../ui/kit';
+import { pickReportReason } from '../../utils/safety';
 
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
 
@@ -36,6 +37,16 @@ const getNightIdentity = (nightId: string | undefined) => {
     return { username, avatar };
 };
 
+// Pseudonyms whose messages the viewer reported. Module-level so they stay
+// hidden for the rest of the app session, not just this mount.
+const hiddenNightSenders = new Set<string>();
+
+type NightAck = { ok?: boolean; message?: string };
+// Timed so a dropped socket still resolves the ack (err set) instead of hanging.
+const emitReport = (event: string, payload: object, done: (ack: NightAck) => void) =>
+    socket.timeout(10000).emit(event, payload, (err: any, ack: NightAck) =>
+        done(err ? { ok: false, message: "Couldn't reach the club. Try again." } : ack || {}));
+
 export default function TwelveAMClub() {
   const [isOpen, setIsOpen] = useState(false);
   const [timeLeft, setTimeLeft] = useState(""); 
@@ -49,6 +60,8 @@ export default function TwelveAMClub() {
   const [matchRoomId, setMatchRoomId] = useState<string | null>(null);
   // Our own alias for tonight, issued by the server on join.
   const [myNightId, setMyNightId] = useState<string | null>(null);
+  // Bumped when a pseudonym is added to hiddenNightSenders, to re-filter.
+  const [, setHiddenTick] = useState(0);
 
   const { user } = useAuth();
   const navigation = useNavigation();
@@ -170,6 +183,34 @@ export default function TwelveAMClub() {
       setMatchRoomId(null);
       setPrivateMessages([]);
       findMatch();
+  };
+
+  // Report & leave: the server ends the 1v1 on a successful report, so only
+  // requeue; if the report failed, still leave via a normal skip.
+  const reportPartner = () => pickReportReason((reason) => {
+      emitReport("report_night_partner", { reason }, (ack) => {
+          Alert.alert(ack.ok ? "Reported" : "Couldn't report", ack.message || (ack.ok ? "You won't be matched with them again." : undefined));
+          if (ack.ok) findMatch(); else skipMatch();
+      });
+  }, "Report & leave");
+
+  const openMessageMenu = (item: any) => {
+      const senderKey = item.sender?.id ?? item.sender?._id;
+      const isMe = !!senderKey && senderKey === myNightId;
+      Alert.alert("Message", undefined, [
+          { text: "Reply", onPress: () => setReplyingTo(item) },
+          ...(!isMe && !item.pending ? [{
+              text: "Report", style: "destructive" as const,
+              onPress: () => pickReportReason((reason) => emitReport("report_night_message", { messageId: item._id, reason }, (ack) => {
+                  if (ack.ok && senderKey) {
+                      hiddenNightSenders.add(senderKey);
+                      setHiddenTick(t => t + 1);
+                  }
+                  Alert.alert(ack.ok ? "Reported" : "Couldn't report", ack.message || (ack.ok ? "You won't see their messages tonight." : undefined));
+              })),
+          }] : []),
+          { text: "Cancel", style: "cancel" },
+      ]);
   };
 
   const processAndSendMedia = async (uri: string) => {
@@ -303,7 +344,7 @@ export default function TwelveAMClub() {
             )}
             <View className={`max-w-[80%] rounded-xl px-4 py-3 ${isMe ? 'bg-recruiter' : 'bg-ink/90 border border-white/5'}`}>
                 <Pressable
-                  onLongPress={() => mode === 'global' && setReplyingTo(item)}
+                  onLongPress={() => mode === 'global' && openMessageMenu(item)}
                   delayLongPress={300}
                 >
                     {!isMe && (
@@ -346,6 +387,8 @@ export default function TwelveAMClub() {
             </View>
         </View>
     );
+  // openMessageMenu only reads myNightId, already a dependency.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, myNightId, setReplyingTo]);
 
   if (!isOpen) {
@@ -379,6 +422,15 @@ export default function TwelveAMClub() {
                     title={mode === 'global' ? 'Night Club' : 'Secret 1v1'}
                     onBack={() => navigation.goBack()}
                     right={<>
+                        {mode === 'private' && matchRoomId && (
+                            <TouchableOpacity
+                                onPress={reportPartner}
+                                accessibilityLabel="Report and leave"
+                                className="bg-ink border border-danger/40 px-2.5 py-1 rounded-full mr-2"
+                            >
+                                <Text className="text-danger text-label font-display uppercase">Report</Text>
+                            </TouchableOpacity>
+                        )}
                         {mode === 'private' && matchRoomId && (
                             <TouchableOpacity
                                 onPress={skipMatch}
@@ -425,7 +477,9 @@ export default function TwelveAMClub() {
                 ) : (
                     <FlatList
                         ref={flatListRef}
-                        data={mode === 'global' ? messages : privateMessages}
+                        data={mode === 'global'
+                            ? (hiddenNightSenders.size ? messages.filter(m => !hiddenNightSenders.has(m.sender?.id ?? m.sender?._id)) : messages)
+                            : privateMessages}
                         inverted
                         keyExtractor={(item, index) => item._id || item.tempId || String(index)}
                         contentContainerStyle={{ padding: 20, paddingBottom: 40 }}

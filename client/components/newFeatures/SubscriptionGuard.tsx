@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from '../../context/axiosConfig';
 import SubscriptionScreen from './SubscriptionScreen';
 import SplashScreen from '../SplashScreen';
+import { isFeatureOn } from '../../constants/features';
 
-const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
+const PaywallGuard = ({ children }: { children: React.ReactNode }) => {
     const [isChecking, setIsChecking] = useState(true);
-    const [isSubscribed, setIsSubscribed] = useState(false);
+    const [isSubscribed, setIsSubscribed] = useState(true);
 
     useEffect(() => {
         checkSubscriptionStatus();
@@ -14,16 +15,15 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
     const checkSubscriptionStatus = async () => {
         setIsChecking(true);
         try {
-            const res = await axios.get(`/subscription/status?t=${new Date().getTime()}`);
-            if (res.data.success && res.data.status === 'active') {
-                setIsSubscribed(true);
-            } else {
-                setIsSubscribed(false);
-            }
+            // The axios cache answers instantly when it has a recent status; the
+            // server reports 'active' when subscriptions are disabled globally.
+            const res = await axios.get('/subscription/status');
+            setIsSubscribed(!(res.data?.success && res.data.status !== 'active'));
         } catch (error) {
-            console.error("Error checking subscription:", error);
-            // Default to not subscribed on error to be safe, or could allow retry
-            setIsSubscribed(false);
+            // Network/server failure is not proof of an inactive plan; only an
+            // explicit inactive answer shows the paywall.
+            console.log("Error checking subscription:", error);
+            setIsSubscribed(true);
         } finally {
             setIsChecking(false);
         }
@@ -43,5 +43,9 @@ const SubscriptionGuard = ({ children }: { children: React.ReactNode }) => {
 
     return <>{children}</>;
 };
+
+// No in-app Pro purchase at launch: skip the status check and never show the paywall.
+const SubscriptionGuard = ({ children }: { children: React.ReactNode }) =>
+    isFeatureOn('fyncProPaid') ? <PaywallGuard>{children}</PaywallGuard> : <>{children}</>;
 
 export default SubscriptionGuard;

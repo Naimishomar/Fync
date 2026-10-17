@@ -210,7 +210,7 @@ const ExploreHub = () => {
    * a student can get value from on day one without setting anything up.
    */
   const starters = useMemo(() => {
-    const wanted = ['notesExchange', 'contests', 'bunk', 'internships'];
+    const wanted = ['studyMaterial', 'hackathons', 'bunk', 'internships'];
     return wanted
       .map((id) => features.find((f) => f.id === id))
       .filter(Boolean) as Feature[];

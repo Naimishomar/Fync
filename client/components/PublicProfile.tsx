@@ -19,7 +19,9 @@ import { FlashList } from '@shopify/flash-list';
 import { getFullUrl } from '../utils/imageUtils';
 import GitHubStatsCard from './profile/GitHubStatsCard';
 import { C } from '../constants/colors';
-import { AppBar } from './ui/kit';
+import { AppBar, Button, Empty, IconBtn } from './ui/kit';
+import { Alert } from './ui/AlertModal';
+import { confirmBlock, report } from '../utils/safety';
 
 const { width } = Dimensions.get('window');
 
@@ -246,10 +248,25 @@ const PublicProfile = () => {
                 conversationId: res.data.conversation._id,
                 otherUser: profileUser
             });
-        } catch (err) {
+        } catch (err: any) {
             console.log("Start chat error", err);
+            if (err?.response?.status === 403) Alert.alert("Can't message", err.response.data?.message || "You can't message this user");
         }
     };
+
+    // Block / Report. Never on our own profile (that redirects away anyway).
+    const isOwnProfile = !!currentUser?._id && currentUser._id === profileUser?._id;
+    const profileMenu = profileUser?._id && !isOwnProfile ? (
+        <IconBtn
+            name="ellipsis-vertical"
+            overlay
+            onPress={() => Alert.alert(profileUser.name || 'Options', undefined, [
+                { text: 'Report user', onPress: () => report({ targetType: 'user', targetId: profileUser._id }) },
+                { text: 'Block user', style: 'destructive', onPress: () => confirmBlock(profileUser._id, profileUser.name, () => navigation.goBack()) },
+                { text: 'Cancel', style: 'cancel' },
+            ])}
+        />
+    ) : undefined;
 
     const [recruiterStats, setRecruiterStats] = useState({ active: 0, total: 0 });
     const isRecruiter = profileUser?.user_access === 'recruiter';
@@ -465,7 +482,7 @@ const PublicProfile = () => {
         return (
             <View className="flex-1 bg-paper">
             <View className="absolute left-0 right-0 top-0 z-20" pointerEvents="box-none">
-                <AppBar overlay onBack={() => navigation.goBack()} />
+                <AppBar overlay onBack={() => navigation.goBack()} right={profileMenu} />
             </View>
             <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 bg-paper" showsVerticalScrollIndicator={false}>
                 {/* Banner & Actions */}
@@ -559,10 +576,10 @@ const PublicProfile = () => {
                     <View className="flex-row gap-3 mt-8">
                         <TouchableOpacity
                             onPress={() => navigation.navigate('InternshipList', { recruiterId: profileUser?._id })}
-                            className="flex-1 bg-brand-600 p-4 rounded-card items-center shadow-hair"
+                            className="flex-1 bg-brand-500 p-4 rounded-card items-center shadow-hair"
                         >
-                            <Ionicons name="school-outline" size={20} color="white" className="mb-1" />
-                            <Text className="text-white font-display uppercase text-label">View Internships</Text>
+                            <Ionicons name="school-outline" size={20} color={C.ink} className="mb-1" />
+                            <Text className="text-ink font-display uppercase text-label">View Internships</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -580,6 +597,33 @@ const PublicProfile = () => {
         );
     };
 
+    // Fetch failed with nothing from params to show: an endless skeleton with
+    // no back button trapped the user here.
+    if (!loading && !profileUser) {
+        return (
+            <View className="flex-1 bg-paper">
+                <AppBar onBack={() => navigation.goBack()} />
+                <View className="px-gutter mt-10">
+                    <Empty
+                        icon="cloud-offline-outline"
+                        title="Couldn't load this profile"
+                        action={targetUserId ? (
+                            <Button
+                                title="Try again"
+                                onPress={() => {
+                                    setLoading(true);
+                                    fetchFullProfile(targetUserId);
+                                    fetchUserPosts(targetUserId, 1, true);
+                                    fetchUserShorts(targetUserId, 1, true);
+                                }}
+                            />
+                        ) : undefined}
+                    />
+                </View>
+            </View>
+        );
+    }
+
     if (loading || !profileUser) {
         return <ProfileSkeleton />;
     }
@@ -593,7 +637,7 @@ const PublicProfile = () => {
         <View className="flex-1 bg-paper">
             {/* Back Button Overlay */}
             <View className="absolute left-0 right-0 top-0 z-20" pointerEvents="box-none">
-                <AppBar overlay onBack={() => navigation.goBack()} />
+                <AppBar overlay onBack={() => navigation.goBack()} right={profileMenu} />
             </View>
 
             <FlashList keyboardShouldPersistTaps="handled"

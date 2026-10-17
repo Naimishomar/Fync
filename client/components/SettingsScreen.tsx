@@ -14,6 +14,8 @@ import { useAuth } from '../context/auth.context';
 import { Alert } from './ui/AlertModal';
 import { AppBar } from './ui/kit';
 import { C } from '../constants/colors';
+import { isFeatureOn } from '../constants/features';
+import axios from '../context/axiosConfig';
 
 type Row = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -95,14 +97,45 @@ export default function SettingsScreen() {
       { text: 'Sign out', style: 'destructive', onPress: () => logout() },
     ]);
 
+  // Two confirmations: this is permanent and the server deletes everything at once.
+  const confirmDeleteAccount = () =>
+    Alert.alert(
+      'Delete account?',
+      'Your profile, posts, shorts, comments and notes are permanently deleted. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () =>
+            Alert.alert('Are you sure?', `@${user?.username ?? ''} will be gone for good.`, [
+              { text: 'Keep account', style: 'cancel' },
+              {
+                text: 'Delete forever',
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    await axios.delete('/user/me', { data: { confirm: 'DELETE' } });
+                    await logout();
+                  } catch {
+                    Alert.alert('Could not delete', 'Check your connection and try again, or write to us from Contact us.');
+                  }
+                },
+              },
+            ]),
+        },
+      ],
+    );
+
   const sections: Array<{ title: string; rows: Row[] }> = [
     {
       title: 'Account',
       rows: [
         { icon: 'person-outline', label: 'Edit profile', onPress: () => navigation.navigate('EditProfile') },
         { icon: 'ribbon-outline', label: 'Profile builder', hint: 'Skills, projects, resume', onPress: () => navigation.navigate('FyncProfileBuilder') },
-        { icon: 'diamond-outline', label: 'Subscription', hint: 'Fync Pro plan and billing', onPress: () => navigation.navigate('SubscriptionScreen') },
-        { icon: 'link-outline', label: 'Your shares', hint: 'Links you shared from Fync Store', onPress: () => navigation.navigate('MySharesScreen') },
+        ...(isFeatureOn('fyncProPaid') ? [{ icon: 'diamond-outline', label: 'Subscription', hint: 'Fync Pro plan and billing', onPress: () => navigation.navigate('SubscriptionScreen') } as Row] : []),
+        ...(isFeatureOn('myShares') ? [{ icon: 'link-outline', label: 'Your shares', hint: 'Links you shared from Fync Store', onPress: () => navigation.navigate('MySharesScreen') } as Row] : []),
+        { icon: 'ban-outline', label: 'Blocked users', onPress: () => navigation.navigate('BlockedUsersScreen') },
       ],
     },
     {
@@ -129,6 +162,11 @@ export default function SettingsScreen() {
         { icon: 'people-outline', label: 'Meet the team', onPress: () => navigation.navigate('MeetOurTeam') },
         { icon: 'headset-outline', label: 'Contact us', onPress: () => navigation.navigate('ContactUs') },
         { icon: 'document-text-outline', label: 'Terms & conditions', onPress: () => navigation.navigate('TermsAndCondition') },
+        {
+          icon: 'shield-checkmark-outline',
+          label: 'Privacy policy',
+          onPress: () => Linking.openURL(`${process.env.EXPO_PUBLIC_BACKEND_URL}/privacy`).catch(() => {}),
+        },
       ],
     },
   ];
@@ -183,7 +221,15 @@ export default function SettingsScreen() {
             <Text className="text-danger font-display uppercase text-label">Sign out</Text>
           </TouchableOpacity>
 
-          <Text className="text-ink-4 text-label text-center mt-6 mb-12">
+          <TouchableOpacity
+            onPress={confirmDeleteAccount}
+            className="items-center justify-center p-4 mt-3"
+            accessibilityRole="button" accessibilityLabel="Delete account"
+          >
+            <Text className="text-danger text-label">Delete account</Text>
+          </TouchableOpacity>
+
+          <Text className="text-ink-3 text-label text-center mt-6 mb-12">
             Fync {Constants.expoConfig?.version ?? ''}{Platform.OS === 'ios' ? ' · iOS' : ' · Android'}
           </Text>
         </ScrollView>

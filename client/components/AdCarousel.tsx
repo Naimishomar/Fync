@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, FlatList, useWindowDimensions, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
+import { View, FlatList, useWindowDimensions, ActivityIndicator, TouchableOpacity, Linking, AppState } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { Image } from "expo-image";
 import axios from "../context/axiosConfig";
 import { C } from '../constants/colors';
@@ -14,6 +15,13 @@ const AdCarousel = () => {
   // Edge-to-edge poster, but capped: 168 ate a third of a phone viewport
   // before the feed started. 16:9 keeps it a banner, not a screen.
   const imageHeight = isTablet ? 220 : Math.round(width * 0.30);
+  // Only auto-advance while Home is on screen and the app is in the foreground.
+  const isFocused = useIsFocused();
+  const [appActive, setAppActive] = useState(AppState.currentState === 'active');
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (st) => setAppActive(st === 'active'));
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     fetchAds();
@@ -33,7 +41,7 @@ const AdCarousel = () => {
   };
 
   useEffect(() => {
-    if (ads.length <= 1) return;
+    if (ads.length <= 1 || !isFocused || !appActive) return;
     const interval = setInterval(() => {
       let nextIndex = currentIndex + 1;
       if (nextIndex >= ads.length) nextIndex = 0;
@@ -41,7 +49,7 @@ const AdCarousel = () => {
       setCurrentIndex(nextIndex);
     }, 3000);
     return () => clearInterval(interval);
-  }, [currentIndex, ads.length]);
+  }, [currentIndex, ads.length, isFocused, appActive]);
 
   const onScrollEnd = (event: any) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;

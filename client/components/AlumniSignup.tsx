@@ -87,6 +87,8 @@ export default function AlumniSignup() {
         navigation.navigate('AlumniProfileSetup', {
           email,
           phoneNumber,
+          // Proof of the verified email; /user/register-alumni requires it.
+          verificationToken: res.data.verificationToken,
         });
       }
     } catch (error: any) {

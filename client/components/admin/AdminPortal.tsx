@@ -10,6 +10,7 @@ import Toast from 'react-native-toast-message';
 import { AdItem, RedemptionItem, MarketPlaceItem, ReportItem, ContactMessageItem, UserItem, MediaItem, PaymentItem } from './AdminComponents';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { isFeatureOn } from '../../constants/features';
 import { AppBar, IconBtn } from '../ui/kit';
 
 const TAB_TITLES: Record<string, string> = {
@@ -705,6 +706,17 @@ const AdminPortal = ({ navigation }: any) => {
         }
     };
 
+    // Only pending reports are listed, so a resolved/dismissed one leaves the list.
+    const handleResolveReport = async (id: string, status: 'resolved' | 'dismissed') => {
+        try {
+            await axios.patch(`/post/admin/reports/${id}`, { status });
+            setReports(prev => prev.filter(r => r._id !== id));
+            Toast.show({ type: 'success', text1: status === 'resolved' ? 'Report resolved' : 'Report dismissed' });
+        } catch (e: any) {
+            Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Failed to update report' });
+        }
+    };
+
     const handleDelete = (id: string, type: 'ad' | 'product' | 'message' | 'media' | 'report' = 'ad') => {
         Alert.alert(
             type === 'ad' ? 'Delete Ad?' : type === 'product' ? 'Delete Item?' : type === 'report' ? 'Delete Post?' : type === 'media' ? 'Delete Media?' : 'Delete Message?', 
@@ -784,42 +796,46 @@ const AdminPortal = ({ navigation }: any) => {
               <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
             </View>
             
-            <TouchableOpacity
-                onPress={() => navigation.navigate('ArenaAdminScreen')}
-                className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
-                activeOpacity={0.9}
-            >
-                <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '#EA580C10' }}>
-                    <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: '#EA580C20' }}>
-                        <Ionicons name="code-slash" size={24} color={C.brand[600]} />
+            {isFeatureOn('contests') && (
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('ArenaAdminScreen')}
+                    className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
+                    activeOpacity={0.9}
+                >
+                    <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '#EA580C10' }}>
+                        <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: '#EA580C20' }}>
+                            <Ionicons name="code-slash" size={24} color={C.brand[600]} />
+                        </View>
+                        <View className="flex-1">
+                            <Text className="text-sm font-display text-ink uppercase mb-1">Problem Bank</Text>
+                            <Text className="text-label text-ink-3 leading-[14px] font-medium">Import coding problems and their test cases for contests and battles.</Text>
+                        </View>
+                        <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
+                            <Ionicons name="chevron-forward" size={16} color={C.ink2} />
+                        </View>
                     </View>
-                    <View className="flex-1">
-                        <Text className="text-sm font-display text-ink uppercase mb-1">Problem Bank</Text>
-                        <Text className="text-label text-ink-3 leading-[14px] font-medium">Import coding problems and their test cases for contests and battles.</Text>
+                </TouchableOpacity>
+            )}
+            {isFeatureOn('storeAdmin') && (
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('AffiliateAdminScreen')}
+                    className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
+                    activeOpacity={0.9}
+                >
+                    <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '#EA580C10' }}>
+                        <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: '#EA580C20' }}>
+                            <Ionicons name="pricetags" size={24} color={C.brand[600]} />
+                        </View>
+                        <View className="flex-1">
+                            <Text className="text-sm font-display text-ink uppercase mb-1">Fync Store</Text>
+                            <Text className="text-label text-ink-3 leading-[14px] font-medium">List affiliate products and track the commission each one earns.</Text>
+                        </View>
+                        <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
+                            <Ionicons name="chevron-forward" size={16} color={C.ink2} />
+                        </View>
                     </View>
-                    <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
-                        <Ionicons name="chevron-forward" size={16} color={C.ink2} />
-                    </View>
-                </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-                onPress={() => navigation.navigate('AffiliateAdminScreen')}
-                className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
-                activeOpacity={0.9}
-            >
-                <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '#EA580C10' }}>
-                    <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: '#EA580C20' }}>
-                        <Ionicons name="pricetags" size={24} color={C.brand[600]} />
-                    </View>
-                    <View className="flex-1">
-                        <Text className="text-sm font-display text-ink uppercase mb-1">Fync Store</Text>
-                        <Text className="text-label text-ink-3 leading-[14px] font-medium">List affiliate products and track the commission each one earns.</Text>
-                    </View>
-                    <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
-                        <Ionicons name="chevron-forward" size={16} color={C.ink2} />
-                    </View>
-                </View>
-            </TouchableOpacity>
+                </TouchableOpacity>
+            )}
             <HubButton 
                 title="Banner Ads" 
                 tab="ads" 
@@ -1244,7 +1260,7 @@ const AdminPortal = ({ navigation }: any) => {
                                         activeTab === 'rewards' ?
                                             <RedemptionItem item={item} navigation={navigation} onToggleStatus={handleToggleStatus} /> :
                                             activeTab === 'reports' ?
-                                                <ReportItem item={item} onDelete={handleDelete} /> :
+                                                <ReportItem item={item} onDelete={handleDelete} onResolve={handleResolveReport} /> :
                                                 activeTab === 'users' ?
                                                     <UserItem item={item} onToggleBan={handleToggleBan} /> :
                                                     activeTab === 'payments' ?

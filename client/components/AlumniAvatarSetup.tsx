@@ -58,6 +58,7 @@ export default function AlumniAvatarSetup() {
       const add = (k: string, v: any) => { if (v != null) formData.append(k, String(v)); };
 
       add('email', params.email);
+      add('verificationToken', params.verificationToken);
       add('username', params.username);
       add('mobileNumber', params.phoneNumber);
       add('password', params.password);
