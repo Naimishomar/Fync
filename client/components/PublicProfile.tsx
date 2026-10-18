@@ -22,6 +22,7 @@ import { C } from '../constants/colors';
 import { AppBar, Button, Empty, IconBtn } from './ui/kit';
 import { Alert } from './ui/AlertModal';
 import { confirmBlock, report } from '../utils/safety';
+import { tapHaptic } from '../utils/haptics';
 
 const { width } = Dimensions.get('window');
 
@@ -217,6 +218,7 @@ const PublicProfile = () => {
     const handleFollowToggle = async () => {
         if (!profileUser?._id || !currentUser?._id || followBusy.current) return;
         followBusy.current = true;
+        tapHaptic();
         try {
             if (isFollowing) {
                 await axios.post(`/user/unfollow/${profileUser._id}`);

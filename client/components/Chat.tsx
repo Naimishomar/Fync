@@ -17,6 +17,7 @@ import { Alert } from './ui/AlertModal';
 import { AppBar, Button, Empty, IconBtn } from './ui/kit';
 import { confirmBlock, report } from '../utils/safety';
 import { C } from '../constants/colors';
+import { tapHaptic } from '../utils/haptics';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -294,6 +295,7 @@ const Chat = ({ route, navigation }: any) => {
   /* ---------- SEND ---------- */
   const sendMessage = async () => {
     if (!text.trim() || !otherUser) return;
+    tapHaptic();
 
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     const tempId = generateUUID();

@@ -16,6 +16,7 @@ import { useAuth } from "../context/auth.context";
 import { C } from '../constants/colors';
 import { AppBar } from './ui/kit';
 import Avatar from './Avatar';
+import { tapHaptic } from '../utils/haptics';
 
 type User = {
   _id: string;
@@ -75,6 +76,7 @@ const FollowersAndFollowing = () => {
   const toggleFollow = async (targetId: string, isFollowing: boolean) => {
     if (!myId || targetId === myId || pending.current.has(targetId)) return;
     pending.current.add(targetId);
+    tapHaptic();
 
     const apply = (follow: boolean) =>
       setUsers((prev) =>

@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import Avatar from './Avatar';
 import { C } from '../constants/colors';
+import { tapHaptic } from '../utils/haptics';
 
 interface Suggestion {
   _id: string;
@@ -43,6 +44,7 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
 
   const follow = async (id: string) => {
     setBusy(id);
+    tapHaptic();
     // Optimistic: the button is the whole interaction, and waiting on a round
     // trip to acknowledge a tap makes the row feel broken.
     setFollowed((f) => ({ ...f, [id]: true }));

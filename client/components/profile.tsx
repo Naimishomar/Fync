@@ -32,7 +32,7 @@ type UserType = {
   user_access?: string; college?: string; interest?: string | string[];
   about?: string; experience?: string; skills?: string[];
   hobbies?: string | string[]; github_id?: string; linkedIn_id?: string;
-  banner?: string; upiId?: string;
+  banner?: string; upiId?: string; resumeUrl?: string;
   codingProfiles?: { leetcode?: string; gfg?: string; codechef?: string };
   codingStats?: { leetcodeSolved?: number; leetcodeRating?: number; gfgSolved?: number; gfgRating?: number; codechefSolved?: number; codechefRating?: number; totalSolved?: number };
   followers?: any[]; following?: any[];
@@ -53,6 +53,55 @@ const SH = ({ title, icon, accent = C.brand[500] }: { title: string; icon: strin
     <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
   </View>
 );
+
+// ─── PROFILE STRENGTH ────────────────────────────────────────────────────────
+// Only fields /user/profile already returns; projects live behind another API,
+// so they are not counted here.
+const STRENGTH_ITEMS: { label: string; route: 'EditProfile' | 'FyncProfileBuilder'; done: (u: UserType) => boolean }[] = [
+  { label: 'Add profile photo', route: 'EditProfile', done: u => !!u?.avatar },
+  { label: 'Add a bio', route: 'EditProfile', done: u => !!u?.about?.trim() },
+  { label: 'Add skills', route: 'FyncProfileBuilder', done: u => !!u?.skills?.length },
+  { label: 'Add education', route: 'FyncProfileBuilder', done: u => !!u?.education?.length },
+  { label: 'Link GitHub', route: 'FyncProfileBuilder', done: u => !!(u?.githubUsername || u?.github_id) },
+  { label: 'Upload resume', route: 'FyncProfileBuilder', done: u => !!u?.resumeUrl },
+];
+
+function ProfileStrength({ user }: { user: UserType }) {
+  const navigation = useNavigation<any>();
+  if (!user?._id) return null;
+  const missing = STRENGTH_ITEMS.filter(i => !i.done(user));
+  if (!missing.length) return null;
+  const pct = Math.round(((STRENGTH_ITEMS.length - missing.length) / STRENGTH_ITEMS.length) * 100);
+  return (
+    <View className="w-full mt-4 bg-card border border-line rounded-card p-4">
+      <View className="flex-row items-center justify-between">
+        <Text className="font-display text-label text-ink-3 uppercase">Profile strength</Text>
+        <Text className="font-display text-label text-accent-text">{pct}%</Text>
+      </View>
+      <View
+        className="h-2 bg-paper-2 rounded-full overflow-hidden mt-3"
+        accessibilityRole="progressbar"
+        accessibilityValue={{ min: 0, max: 100, now: pct }}
+      >
+        <View className="h-full bg-brand-500 rounded-full" style={{ width: `${pct}%` }} />
+      </View>
+      <View className="flex-row flex-wrap mt-3" style={{ gap: 8 }}>
+        {missing.slice(0, 2).map(i => (
+          <Pressable
+            key={i.label}
+            onPress={() => navigation.navigate(i.route)}
+            className="flex-row items-center bg-brand-50 border border-line px-3 rounded-full"
+            style={{ minHeight: 32 }}
+            accessibilityRole="button"
+          >
+            <Ionicons name="add" size={14} color={C.accentText} />
+            <Text className="font-semibold text-label text-accent-text ml-1">{i.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 // ─── SKILL CHIP ───────────────────────────────────────────────────────────────
 const SkillChip = ({ label }: { label: string }) => (
@@ -739,6 +788,8 @@ function Profile() {
             <Text className="text-on-brand font-display uppercase text-sm">Portfolio</Text>
           </Pressable>
         </View>
+
+        <ProfileStrength user={user} />
       </View>
     </View>
   );

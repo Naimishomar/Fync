@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { useAuth } from '../context/auth.context';
 import { NotificationSkeleton } from './Skeleton';
 import { C, themed } from '../constants/colors';
 import { AppBar, Button, Empty } from './ui/kit';
+import { withTimeHeaders, HeaderRow } from '../utils/timeBuckets';
 
 // --- TYPES ---
 interface NotificationItem {
@@ -156,8 +157,20 @@ const Notification = () => {
     }
   };
 
+  // Today / This week / Earlier header rows interleaved into the list data,
+  // so paging and refresh keep working on the plain notifications array.
+  const rows = useMemo(() => withTimeHeaders(notifications), [notifications]);
+
   // --- RENDER ITEM ---
-  const renderItem = useCallback(({ item }: { item: NotificationItem }) => {
+  const renderItem = useCallback(({ item: row }: { item: NotificationItem | HeaderRow }) => {
+    if ('kind' in row) {
+      return (
+        <Text className="text-ink-3 text-label font-display uppercase mt-3 mb-2" accessibilityRole="header">
+          {row.label}
+        </Text>
+      );
+    }
+    const item = row;
     let message = '';
     let iconName: any = 'notifications';
     let iconColor = '#fff';
@@ -327,7 +340,7 @@ const Notification = () => {
           </View>
         ) : (
           <FlatList keyboardShouldPersistTaps="handled"
-            data={notifications}
+            data={rows}
             keyExtractor={(item) => item._id}
             renderItem={renderItem}
             initialNumToRender={10}

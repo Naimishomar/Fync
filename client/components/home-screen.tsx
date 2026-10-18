@@ -13,6 +13,8 @@ import Avatar from './Avatar';
 import axios from '../context/axiosConfig';
 import { takePrefetchedFeed } from '../utils/feedPrefetch';
 import FollowSuggestions from './FollowSuggestions';
+import { HeartBurst, useDoubleTap } from './ui/HeartBurst';
+import { tapHaptic } from '../utils/haptics';
 // @ts-ignore
 import no_post from '../assets/no_post.png';
 import AdCarousel from './AdCarousel';
@@ -110,6 +112,8 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost, o
   const [repostCount, setRepostCount] = useRecyclingState(item.reposts || 0, [item._id]);
 
   const [resizeMode, setResizeMode] = useRecyclingState(false, [item._id]);
+  // Bumped on each double-tap to replay the heart; 0 on a recycled row.
+  const [burst, setBurst] = useRecyclingState(0, [item._id]);
   const [activeIndex, setActiveIndex] = useRecyclingState(0, [item._id]);
   const [isExpanded, setIsExpanded] = useRecyclingState(false, [item._id]);
   // A request that settles after the cell was recycled must not write into the
@@ -144,6 +148,7 @@ const MAX_CHAR_LIMIT = 150;
    */
   const handleLike = async () => {
     animatePress();
+    tapHaptic();
     const id = item._id;
     const prevLiked = liked;
     const prevCount = likeCount;
@@ -219,9 +224,19 @@ const MAX_CHAR_LIMIT = 150;
     return `${days}d`;
   };
 
+  // Single tap keeps the fit/fill toggle; double tap likes (never unlikes).
+  const onMediaPress = useDoubleTap(
+    () => setResizeMode(prev => !prev),
+    () => {
+      setBurst(n => n + 1);
+      if (liked) tapHaptic();
+      else handleLike();
+    },
+  );
+
   const renderImage = ({ item: imageUrl }: { item: string }) => (
     <View style={{ width: mediaWidth }}>
-      <Pressable onPress={() => setResizeMode(prev => !prev)}>
+      <Pressable onPress={onMediaPress}>
         <ExpoImage
           source={{ uri: getFullUrl(imageUrl) || '' }}
           style={{ width: mediaWidth, height: mediaWidth }}
@@ -366,6 +381,7 @@ const MAX_CHAR_LIMIT = 150;
             renderItem={renderImage}
           />
         )}
+        <HeartBurst trigger={burst} />
         
         {/* Image Counter (Top Right) */}
         {(item.image?.length || 0) > 1 && (

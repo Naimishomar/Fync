@@ -26,6 +26,8 @@ import YouTubeShort from './YouTubeShort';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 import { Button } from './ui/kit';
+import { HeartBurst, useDoubleTap } from './ui/HeartBurst';
+import { tapHaptic } from '../utils/haptics';
 
 
 /* ---------------- CONSTANTS ---------------- */
@@ -140,6 +142,14 @@ const SingleShort = React.memo(({
     setTimeout(() => setShowIcon(null), 600);
   };
 
+  // Single tap pauses/plays; double tap likes (never unlikes) with a heart burst.
+  const [burst, setBurst] = useState(0);
+  const onVideoPress = useDoubleTap(togglePlay, () => {
+    setBurst(n => n + 1);
+    if (isLiked) tapHaptic();
+    else onLike(item);
+  });
+
   const handleShare = async () => {
     try {
       const shareUrl = `https://fync-api.duckdns.org/view?shortId=${item._id}`;
@@ -155,7 +165,7 @@ const SingleShort = React.memo(({
 
   return (
     <View style={{ height, width: SCREEN_WIDTH }} className="bg-night">
-      <Pressable onPress={togglePlay}>
+      <Pressable onPress={onVideoPress}>
         <Video
           ref={videoRef}
           source={{ uri: getFullUrl(item.video) || '' }}
@@ -177,6 +187,8 @@ const SingleShort = React.memo(({
           />
         </View>
       )}
+
+      <HeartBurst trigger={burst} size={110} />
 
       {/* -------- BOTTOM OVERLAY -------- */}
       <View className="absolute bottom-32 left-4 right-4 flex-row justify-between items-end">
@@ -663,6 +675,7 @@ export default function Shorts() {
     if (!currentUserId) return;
     const uid = String(currentUserId);
     const wasLiked = (short.liked_by ?? []).some(id => String(id) === uid);
+    tapHaptic();
 
     const apply = (liked: boolean) => {
       globalShortsCache = globalShortsCache.map(s =>

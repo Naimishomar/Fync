@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Avatar from '../Avatar';
 import { C } from '../../constants/colors';
 import { useBottomInset } from '../../constants/layout';
+import { tapHaptic } from '../../utils/haptics';
 
 const MAX_LENGTH = 1000;
 
@@ -41,6 +42,7 @@ export default function RepostModal({
   const confirm = async () => {
     if (busy) return;
     setBusy(true);
+    tapHaptic();
     try {
       await onConfirm(text.trim());
       setText('');
