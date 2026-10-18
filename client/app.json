@@ -67,7 +67,8 @@
       ],
       "@react-native-firebase/messaging",
       "@react-native-firebase/app",
-      "@react-native-firebase/crashlytics"
+      "@react-native-firebase/crashlytics",
+      "./plugins/withAllowBackupOverride"
     ],
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
