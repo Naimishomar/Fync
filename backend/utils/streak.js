@@ -1,5 +1,6 @@
 import User from '../models/user.model.js';
-import { istDayDiff, istDateKey } from './eventTime.js';
+import cron from 'node-cron';
+import { istDayDiff, istDateKey, istDayStart } from './eventTime.js';
 
 /*
  * Streak days are IST calendar days.
@@ -80,4 +81,32 @@ export const checkAndResetStreak = async (user) => {
         await user.save();
     }
     return user;
+};
+
+/**
+ * Zero every streak whose owner did not post yesterday or today (IST).
+ *
+ * checkAndResetStreak only runs when a user opens their own profile, so anyone
+ * who logged out or stopped opening the app kept showing a dead streak on their
+ * public profile and everywhere else streakCount is read. One sweep fixes them all.
+ */
+export const resetLapsedStreaks = async (now = new Date()) => {
+    const yesterdayStart = istDayStart(istDateKey(new Date(now.getTime() - 86400000)));
+    const res = await User.updateMany(
+        {
+            streakCount: { $gt: 0 },
+            $or: [{ lastPostDate: { $lt: yesterdayStart } }, { lastPostDate: null }],
+        },
+        { $set: { streakCount: 0 } },
+    );
+    return res.modifiedCount ?? 0;
+};
+
+export const initStreakReset = () => {
+    const run = () => resetLapsedStreaks()
+        .then((n) => n && console.log(`🔥 Streak reset: ${n} lapsed streaks zeroed`))
+        .catch((err) => console.error('Streak reset error:', err.message));
+    // Just after IST midnight, plus once at boot to catch a missed night.
+    cron.schedule('1 0 * * *', run, { timezone: 'Asia/Kolkata' });
+    run();
 };

@@ -79,6 +79,7 @@ import { initCommunityCleanup } from './utils/communityCleanup.js';
 import { initFyncMediaCleanup } from './utils/fyncMediaCleanup.js';
 import { initChatMediaCleanup } from './utils/chatMediaCleanup.js';
 import { initNoteCleanup } from './utils/noteCleanup.js';
+import { initStreakReset } from './utils/streak.js';
 import startCleanupCron from './services/cleanup.service.js';
 import { initShortViewsFlush, flushShortViews } from './utils/shortViews.js';
 import initShadowRival from './utils/shadowRival.js';
@@ -326,7 +327,8 @@ const startServer = async (retries = 5) => {
       initCommunityCleanup();
       initFyncMediaCleanup();
       initChatMediaCleanup();
-    initNoteCleanup();
+      initNoteCleanup();
+      initStreakReset();
       initEventCleanup();
       startCleanupCron();
       initShortViewsFlush();
