@@ -71,6 +71,7 @@ import { setCommunityIo } from './controllers/community/community.controller.js'
 import { setClubIo } from './controllers/club/message.controller.js';
 import { setChatIo } from './controllers/chat.controller.js';
 import { setChessIo } from './controllers/chess.socket.js';
+import { setDuoIo } from './controllers/duo.socket.js';
 import { initCollegeChatCleanup } from './utils/collegeChatCleanup.js';
 import { initMentorshipCleanup } from './utils/mentorshipCleanup.js';
 import { initNightClubCleanup } from './utils/nightClubCleanup.js';
@@ -315,6 +316,7 @@ const startServer = async (retries = 5) => {
     setClubIo(io);
     setChatIo(io);
     setChessIo(io);
+    setDuoIo(io);
     codingBattleSockets(io);
 
     // 3. Initialize Monitors & Cleanups — only on one worker. In PM2 cluster mode

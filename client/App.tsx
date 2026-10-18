@@ -186,6 +186,7 @@ export type RootStackParamList = {
   FocusProductivity: undefined;
   ConfessionFeed: undefined;
   TwelveAMHomeCard: undefined;
+  CouplesCorner: undefined;
   TwelveAMClub: undefined;
   FindTeammate: undefined;
   Notification: undefined;
@@ -391,6 +392,7 @@ function AppStack() {
       <Stack.Screen name="BunkOMeter" getComponent={() => require('./components/newFeatures/BunkOMeter').default} />
       <Stack.Screen name="ConfessionFeed" getComponent={() => require('./components/newFeatures/ConfessionFeed').default} />
       <Stack.Screen name="TwelveAMHomeCard" getComponent={() => require('./components/newFeatures/TwelveAMHomeCard').default} />
+      <Stack.Screen name="CouplesCorner" getComponent={() => require('./components/couples/CouplesCorner').default} />
       <Stack.Screen name="TwelveAMClub" getComponent={() => require('./components/newFeatures/TwelveAMClub').default} />
       <Stack.Screen name="FindTeammate" getComponent={() => require('./components/FindTeammate').default} />
       <Stack.Screen name="Notification" component={Notification} />

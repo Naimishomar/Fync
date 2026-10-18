@@ -108,6 +108,7 @@ export const FEATURES: Feature[] = [
 
   // ---------- FUN ----------
   { id: 'partyPool', art: 'assets/Party popper/3D/party_popper_3d.png', label: 'Party Pool', hint: 'Mini games with friends', icon: 'game-controller-outline', route: 'PartyPool', tint: '#db2777', category: 'fun', keywords: ['games', 'chess', 'trivia', 'charades'] },
+  { id: 'couples', art: 'assets/Two hearts/3D/two_hearts_3d.png', label: 'Couples Corner', hint: 'Games for two, partner or random', icon: 'heart-outline', route: 'CouplesCorner', tint: '#db2777', category: 'fun', keywords: ['couple', 'partner', 'love', 'this or that', 'would you rather', 'never have i ever', 'match', 'games'] },
   { id: 'nightClub', art: 'assets/Night with stars/3D/night_with_stars_3d.png', label: '12 AM Club', hint: 'Anonymous, midnight only', icon: 'moon-outline', route: 'TwelveAMHomeCard', tint: '#6366f1', category: 'fun', keywords: ['night', 'anonymous', 'midnight'] },
   { id: 'confessions', art: 'assets/Shushing face/3D/shushing_face_3d.png', label: 'Confessions', hint: 'Post anonymously', icon: 'chatbubble-ellipses-outline', route: 'ConfessionFeed', tint: '#14b8a6', category: 'fun', keywords: ['anonymous', 'secret'] },
   { id: 'audioCall', art: d3('headphone'), label: 'Audio Rooms', hint: 'Live voice calls', icon: 'call-outline', route: 'AudioCallLobby', tint: '#db2777', category: 'fun', keywords: ['voice', 'call'] },
