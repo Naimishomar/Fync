@@ -24,5 +24,8 @@ const codingSubmissionSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// Profile/progress reads are "this user's submissions, newest first".
+codingSubmissionSchema.index({ user: 1, createdAt: -1 });
+
 const CodingSubmission = mongoose.model('CodingSubmission', codingSubmissionSchema);
 export default CodingSubmission;

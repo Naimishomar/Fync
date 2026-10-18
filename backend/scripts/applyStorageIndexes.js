@@ -12,6 +12,7 @@ import mongoose from 'mongoose';
 
 const APPLY = process.argv.includes('--apply');
 const WEEK = 7 * 24 * 60 * 60;
+const MONTH = 30 * 24 * 60 * 60;
 
 const TTL = [
   ['notifications', { createdAt: 1 }, { expireAfterSeconds: WEEK, partialFilterExpression: { isRead: true } }],
@@ -20,6 +21,7 @@ const TTL = [
   ['giftorders', { createdAt: 1 }, { expireAfterSeconds: WEEK, partialFilterExpression: { status: 'pending_payment' } }],
   ['subscriptions', { createdAt: 1 }, { expireAfterSeconds: WEEK, partialFilterExpression: { status: 'pending' } }],
   ['submissions', { submittedAt: 1 }, { expireAfterSeconds: WEEK }],
+  ['notifications', { updatedAt: 1 }, { expireAfterSeconds: MONTH }],
 ];
 
 // Each is a prefix of a compound index on the same collection, or (liked_by)
@@ -86,6 +88,23 @@ for (const [coll, field, onlyIf] of UNSET) {
   if (!n) { console.log(`ok      ${coll}.${field} nothing to strip`); continue; }
   console.log(`UNSET   ${coll}.${field} on ${n} docs`);
   if (APPLY) await db.collection(coll).updateMany(filter, { $unset: { [field]: 1 } });
+}
+
+// Collections whose models were deleted (nothing ever read or wrote them).
+for (const coll of ['paymenttransactions', 'monthlystats']) {
+  const exists = (await db.listCollections({ name: coll }).toArray()).length;
+  if (!exists) { console.log(`ok      ${coll} absent`); continue; }
+  console.log(`DROPCOL ${coll} (${await db.collection(coll).countDocuments()} docs)`);
+  if (APPLY) await db.collection(coll).drop();
+}
+
+// Backlog for the daily sweep in services/cleanup.service.js: source code of
+// failed submissions older than 7 days (only Accepted code is worth keeping).
+{
+  const filter = { status: { $ne: 'Accepted' }, createdAt: { $lt: new Date(Date.now() - WEEK * 1000) }, code: { $exists: true } };
+  const n = await db.collection('codingsubmissions').countDocuments(filter);
+  console.log(n ? `UNSET   codingsubmissions.code/errorOutput on ${n} failed docs` : 'ok      codingsubmissions nothing to strip');
+  if (APPLY && n) await db.collection('codingsubmissions').updateMany(filter, { $unset: { code: 1, errorOutput: 1 } });
 }
 
 await mongoose.disconnect();

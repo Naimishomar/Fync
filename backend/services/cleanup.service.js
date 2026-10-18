@@ -3,6 +3,9 @@ import ClubMessage from '../models/club/clubMessage.model.js';
 import { deleteFromR2 } from '../utils/r2.js';
 import { runNightlyScoreUpdate } from './nightlyScore.service.js';
 import InterviewSession from '../models/interview.model.js';
+import CodingSubmission from '../models/coding/codingSubmission.model.js';
+import OLX from '../models/olx.model.js';
+import LostAndFound from '../models/lostAndFound.model.js';
 
 /**
  * Interview sessions are deleted when the student ends or cancels. One still
@@ -22,6 +25,42 @@ export const purgeAbandonedInterviews = async () => {
     await InterviewSession.deleteMany({ _id: { $in: stale.map((s) => s._id) } });
     console.log(`🧹 Purged ${stale.length} abandoned interview sessions`);
     return stale.length;
+};
+
+const DAY = 24 * 60 * 60 * 1000;
+const ago = (ms) => new Date(Date.now() - ms);
+
+/** Only Accepted code is ever worth keeping; nothing reads failed attempts' code. */
+export const stripFailedSubmissionCode = async () => {
+    const r = await CodingSubmission.updateMany(
+        { status: { $ne: 'Accepted' }, createdAt: { $lt: ago(7 * DAY) }, code: { $exists: true } },
+        { $unset: { code: 1, errorOutput: 1 } }
+    );
+    if (r.modifiedCount) console.log(`🧹 Stripped code from ${r.modifiedCount} failed submissions`);
+    return r.modifiedCount;
+};
+
+/**
+ * Campus listings, classified-ad style: sold OLX items go 7 days after the
+ * sale, unsold ones after 30; Lost & Found goes 12h after a claim (the 24h
+ * claimed_at TTL is only a backstop) or after 30 days. Done here rather than
+ * by TTL so the photos are removed from R2 too, not orphaned.
+ */
+export const purgeStaleListings = async () => {
+    const jobs = [
+        [OLX, { $or: [{ is_selled: true, updatedAt: { $lt: ago(7 * DAY) } }, { createdAt: { $lt: ago(30 * DAY) } }] }, (d) => d.product_image || []],
+        [LostAndFound, { $or: [{ claimed_at: { $lt: ago(DAY / 2) } }, { createdAt: { $lt: ago(30 * DAY) } }] }, (d) => [d.image]],
+    ];
+    let total = 0;
+    for (const [Model, filter, files] of jobs) {
+        const stale = await Model.find(filter).select('product_image image').limit(500).lean();
+        if (!stale.length) continue;
+        await Promise.allSettled(stale.flatMap(files).filter(Boolean).map((u) => deleteFromR2(u)));
+        const r = await Model.deleteMany({ _id: { $in: stale.map((d) => d._id) } });
+        total += r.deletedCount;
+    }
+    if (total) console.log(`🧹 Purged ${total} stale campus listings`);
+    return total;
 };
 
 /**
@@ -54,6 +93,15 @@ const startCleanupCron = () => {
 
     cron.schedule('30 0 * * *', () => {
         purgeAbandonedInterviews().catch((err) => console.error('Interview cleanup error:', err.message));
+    });
+
+    cron.schedule('45 0 * * *', () => {
+        stripFailedSubmissionCode().catch((err) => console.error('Submission cleanup error:', err.message));
+    });
+
+    // Hourly: claimed Lost & Found items must be caught before their 24h TTL.
+    cron.schedule('7 * * * *', () => {
+        purgeStaleListings().catch((err) => console.error('Listing cleanup error:', err.message));
     });
 
     // ─── Nightly Fync Score + GitHub Sync — 2:00 AM IST (20:30 UTC) ──────────

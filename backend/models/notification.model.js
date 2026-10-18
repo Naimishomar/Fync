@@ -63,5 +63,9 @@ notificationSchema.index(
     { expireAfterSeconds: 7 * 24 * 60 * 60, partialFilterExpression: { isRead: true } }
 );
 
+// Unread ones go after 30 days. Reading bumps updatedAt, but those are already
+// gone at 7 days via the index above, so this only ever catches unread rows.
+notificationSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
+
 const Notification = mongoose.model("Notification", notificationSchema);
 export default Notification;
