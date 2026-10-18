@@ -91,7 +91,9 @@ for (const [coll, field, onlyIf] of UNSET) {
 }
 
 // Collections whose models were deleted (nothing ever read or wrote them).
-for (const coll of ['paymenttransactions', 'monthlystats']) {
+// paymenttransactions is NOT dropped: prod still holds legacy payment rows,
+// which are financial records. Export them before ever removing it.
+for (const coll of ['monthlystats']) {
   const exists = (await db.listCollections({ name: coll }).toArray()).length;
   if (!exists) { console.log(`ok      ${coll} absent`); continue; }
   console.log(`DROPCOL ${coll} (${await db.collection(coll).countDocuments()} docs)`);
