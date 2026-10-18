@@ -41,13 +41,16 @@ const Tile = ({ feature, columns, onOpen }: { feature: Feature; columns: number;
     accessibilityRole="button"
     accessibilityLabel={`${feature.label}. ${feature.hint}`}
   >
-    <View className="w-full h-[62px] items-center justify-center border-[1.5px] border-line bg-card mb-[7px] rounded-md">
+    <View
+      className="w-full h-[70px] items-center justify-center border-[1.5px] border-line mb-[7px] rounded-md"
+      style={{ backgroundColor: `${fam(feature.category) ?? feature.tint}14` }}
+    >
       {/* 3D artwork when the feature has it; the Ionicon stays as the fallback
           so a new feature is never a blank tile before art is chosen for it. */}
       {artUrl(feature.art) ? (
         <ExpoImage
           source={{ uri: artUrl(feature.art) }}
-          style={{ width: 38, height: 38 }}
+          style={{ width: 46, height: 46 }}
           contentFit="contain"
           cachePolicy="disk"
           transition={120}
@@ -105,7 +108,7 @@ const Row = ({ feature, onOpen }: { feature: Feature; onOpen: (f: Feature) => vo
 const CategoryCard = ({
   cat, items, open, onToggle, columns, onOpen,
 }: {
-  cat: { id: string; label: string; icon: any };
+  cat: { id: string; label: string; icon: any; art?: string };
   items: Feature[];
   open: boolean;
   onToggle: () => void;
@@ -125,7 +128,7 @@ const CategoryCard = ({
         className="items-center justify-center rounded-xl border-2 border-ink"
         style={{ width: 42, height: 42, backgroundColor: `${fam(cat.id) ?? C.brand[500]}1A` }}
       >
-        <Ionicons name={cat.icon} size={20} color={fam(cat.id) ?? C.brand[500]} />
+        <ExpoImage source={{ uri: artUrl(cat.art) }} style={{ width: 30, height: 30 }} contentFit="contain" cachePolicy="disk" transition={120} />
       </View>
 
       <View className="flex-1 ml-3 min-w-0">

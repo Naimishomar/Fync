@@ -45,14 +45,14 @@ export type CategoryId =
 export const ART_BASE = 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/';
 export const artUrl = (art?: string) => (art ? ART_BASE + encodeURI(art) : undefined);
 
-export const CATEGORIES: Array<{ id: CategoryId; label: string; icon: IoniconName }> = [
-  { id: 'study', label: 'Study', icon: 'book-outline' },
-  { id: 'career', label: 'Career', icon: 'briefcase-outline' },
-  { id: 'events', label: 'Events & Contests', icon: 'trophy-outline' },
-  { id: 'social', label: 'Social', icon: 'people-outline' },
-  { id: 'campus', label: 'Campus', icon: 'school-outline' },
-  { id: 'fun', label: 'Fun', icon: 'game-controller-outline' },
-  { id: 'account', label: 'Account', icon: 'settings-outline' },
+export const CATEGORIES: Array<{ id: CategoryId; label: string; icon: IoniconName; art: string }> = [
+  { id: 'study', label: 'Study', icon: 'book-outline', art: 'assets/Open book/3D/open_book_3d.png' },
+  { id: 'career', label: 'Career', icon: 'briefcase-outline', art: 'assets/Briefcase/3D/briefcase_3d.png' },
+  { id: 'events', label: 'Events & Contests', icon: 'trophy-outline', art: 'assets/Trophy/3D/trophy_3d.png' },
+  { id: 'social', label: 'Social', icon: 'people-outline', art: 'assets/Busts in silhouette/3D/busts_in_silhouette_3d.png' },
+  { id: 'campus', label: 'Campus', icon: 'school-outline', art: 'assets/School/3D/school_3d.png' },
+  { id: 'fun', label: 'Fun', icon: 'game-controller-outline', art: 'assets/Video game/3D/video_game_3d.png' },
+  { id: 'account', label: 'Account', icon: 'settings-outline', art: 'assets/Gear/3D/gear_3d.png' },
 ];
 
 export const FEATURES: Feature[] = [
