@@ -131,15 +131,17 @@ const SingleShort = React.memo(({
 
   const togglePlay = async () => {
     if (!videoRef.current) return;
-    const status = await videoRef.current.getStatusAsync();
-    if (status.isLoaded && status.isPlaying) {
-      await videoRef.current.pauseAsync();
-      setShowIcon("play");
-    } else {
-      await videoRef.current.playAsync();
-      setShowIcon("pause");
-    }
-    setTimeout(() => setShowIcon(null), 600);
+    try {
+      const status = await videoRef.current.getStatusAsync();
+      if (status.isLoaded && status.isPlaying) {
+        await videoRef.current.pauseAsync();
+        setShowIcon("play");
+      } else {
+        await videoRef.current.playAsync();
+        setShowIcon("pause");
+      }
+      setTimeout(() => setShowIcon(null), 600);
+    } catch { /* still loading or already unloaded: a tap must not raise */ }
   };
 
   // Single tap pauses/plays; double tap likes (never unlikes) with a heart burst.
@@ -468,7 +470,7 @@ export default function Shorts() {
       const res = await axios.post(`/shorts/smart?page=${Math.max(page, 1)}`, { seenBloom });
 
       if (res.data.success) {
-        const newShorts = res.data.shorts;
+        const newShorts: ShortItem[] = Array.isArray(res.data.shorts) ? res.data.shorts : [];
         // 'recycled' means the campus feed has nothing new left and is about to
         // replay what the user has already watched. The server still reports
         // hasMore: true, because it ranks against the refilled pool — so
@@ -510,7 +512,7 @@ export default function Shorts() {
         const cursor = isFirstPage ? '' : globalShortsCache[globalShortsCache.length - 1]?._id;
         const res = await axios.get(`/shorts/all?cursor=${cursor || ''}`);
         if (res.data.success) {
-          const newShorts = res.data.shorts;
+          const newShorts: ShortItem[] = Array.isArray(res.data.shorts) ? res.data.shorts : [];
           if (shouldRefresh || isFirstPage) {
             globalShortsCache = newShorts;
             setShorts(newShorts);
@@ -556,7 +558,7 @@ export default function Shorts() {
       });
       if (!res.data.success) return;
 
-      const mapped: ShortItem[] = res.data.items.map((i: any) => ({
+      const mapped: ShortItem[] = (res.data.items ?? []).map((i: any) => ({
         _id: i.id,
         video: '',
         title: i.title,

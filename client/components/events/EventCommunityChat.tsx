@@ -53,7 +53,7 @@ export default function EventCommunityChat({ route }: any) {
             const endpoint = type === 'Bootcamp' ? `/bootcamp/community/${type}/${eventId}` : `/speakers/community/${type}/${eventId}`;
             const res = await axios.get(endpoint);
             if (res.data.success) {
-                setMessages(res.data.messages);
+                setMessages(res.data.messages ?? []);
             }
         } catch (error: any) {
             console.error("Chat fetch error:", error);
@@ -169,13 +169,17 @@ export default function EventCommunityChat({ route }: any) {
     };
 
     const pickImage = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            quality: 0.6,
-        });
-        if (!result.canceled) {
-            handleSend(result.assets[0].uri);
+        try {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                allowsEditing: true,
+                quality: 0.6,
+            });
+            if (!result.canceled && result.assets?.[0]) {
+                handleSend(result.assets[0].uri);
+            }
+        } catch {
+            Alert.alert("Error", "Could not open your photos");
         }
     };
 
@@ -232,7 +236,7 @@ export default function EventCommunityChat({ route }: any) {
                     {!isMine && (
                         <Image
                             source={{ uri: item.sender?.avatar }}
-                            style={{ width: 32, height: 32, borderRadius: 12, marginRight: 8, marginBottom: 4 }}
+                            style={{ width: 32, height: 32, borderRadius: 12, marginRight: 8, marginBottom: 4, backgroundColor: C.paper2 }}
                             cachePolicy="memory-disk"
                         />
                     )}
@@ -243,10 +247,10 @@ export default function EventCommunityChat({ route }: any) {
                         {/* Reply Preview inside Bubble */}
                         {item.replyTo && (
                             <View className={`m-2 p-2 rounded-xl border-l-4 ${isMine ? 'bg-black/10 border-recruiter/40' : 'bg-paper-2 border-recruiter'}`}>
-                                <Text className={`text-label font-display uppercase ${isMine ? 'text-recruiter' : 'text-recruiter'}`}>
+                                <Text className={`text-label font-display uppercase ${isMine ? 'text-white' : 'text-recruiter'}`}>
                                     {item.replyTo.sender?.name || "User"}
                                 </Text>
-                                <Text className={`text-label ${isMine ? 'text-recruiter' : 'text-ink-3'}`} numberOfLines={1}>
+                                <Text className={`text-label ${isMine ? 'text-white/80' : 'text-ink-3'}`} numberOfLines={1}>
                                     {item.replyTo.text}
                                 </Text>
                             </View>
@@ -273,10 +277,10 @@ export default function EventCommunityChat({ route }: any) {
                                 </Text>
                             )}
                             <View className="flex-row items-center justify-end mt-1 gap-1">
-                                <Text className={`text-label font-semibold ${isMine ? 'text-recruiter' : 'text-ink-3'}`}>
+                                <Text className={`text-label font-semibold ${isMine ? 'text-white/70' : 'text-ink-3'}`}>
                                     {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </Text>
-                                {isMine && <Ionicons name="checkmark-done" size={10} color={C.paper2} />}
+                                {isMine && <Ionicons name="checkmark-done" size={10} color="rgba(255,255,255,0.7)" />}
                             </View>
                         </View>
                     </View>
@@ -352,7 +356,7 @@ export default function EventCommunityChat({ route }: any) {
                                 {sending ? (
                                     <ActivityIndicator size="small" color="white" />
                                 ) : (
-                                    <Ionicons name="send" size={18} color="white" />
+                                    <Ionicons name="send" size={18} color={inputText.trim() ? 'white' : C.ink4} />
                                 )}
                             </TouchableOpacity>
                         </View>

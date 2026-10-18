@@ -47,6 +47,8 @@ const FollowersAndFollowing = () => {
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -62,11 +64,14 @@ const FollowersAndFollowing = () => {
         // Handle response key dynamically
         const list = type === "followers" ? res.data.followers : res.data.following;
         setUsers(list || []);
+        setFailed(false);
       }
     } catch (err) {
-      console.log("Fetch error", err);
+      // An empty "No followers" on a network error read as the truth.
+      setFailed(true);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -152,13 +157,15 @@ const FollowersAndFollowing = () => {
                 renderItem={renderItem}
                 contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
                 showsVerticalScrollIndicator={false}
+                refreshing={refreshing}
+                onRefresh={() => { setRefreshing(true); fetchList(); }}
                 ListEmptyComponent={
                 <View className="items-center justify-center mt-20 px-gutter">
                     <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                         <Ionicons name="people" size={40} color={C.ink4} />
                     </View>
-                    <Text className="font-semibold text-base text-ink text-center">No {type} Found</Text>
-                    <Text className="font-sans text-sm text-ink-4 mt-2 text-center">There are no users in this list yet.</Text>
+                    <Text className="font-semibold text-base text-ink text-center">{failed ? "Couldn't load this list" : type === "following" ? "Not following anyone yet" : "No followers yet"}</Text>
+                    <Text className="font-sans text-sm text-ink-3 mt-2 text-center">{failed ? "Pull down to try again." : "There are no users in this list yet."}</Text>
                 </View>
                 }
             />

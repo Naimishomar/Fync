@@ -18,6 +18,7 @@ import { NotificationSkeleton } from './Skeleton';
 import { C, themed } from '../constants/colors';
 import { AppBar, Button, Empty } from './ui/kit';
 import { withTimeHeaders, HeaderRow } from '../utils/timeBuckets';
+import { getFullUrl } from '../utils/imageUtils';
 
 // --- TYPES ---
 interface NotificationItem {
@@ -63,7 +64,8 @@ const Notification = () => {
 
   // --- FETCH NOTIFICATIONS ---
   const fetchNotifications = useCallback(async (append: boolean) => {
-    if (inFlightRef.current) return;
+    // A pull while a page is loading would otherwise leave the spinner stuck.
+    if (inFlightRef.current) { setRefreshing(false); return; }
     inFlightRef.current = true;
     if (append) setLoadingMore(true);
 
@@ -147,9 +149,12 @@ const Notification = () => {
       navigation.navigate('HackathonDetail', { hackathonId: item.hackathon });
       return;
     }
-    const contentId = item.post?._id || item.shorts?._id;
-    if (contentId) {
-      navigation.navigate('IndividualPostOrShort', { postId: contentId });
+    if (item.post?._id) {
+      navigation.navigate('IndividualPostOrShort', { postId: item.post._id });
+      return;
+    }
+    if (item.shorts?._id) {
+      navigation.navigate('IndividualPostOrShort', { shortId: item.shorts._id });
       return;
     }
     if (item.sender?._id) {
@@ -275,7 +280,7 @@ const Notification = () => {
           ) : (
           <ExpoImage
             source={{
-              uri: item.sender?.avatar || `https://ui-avatars.com/api/?name=${item.sender?.username || 'Fync'}`
+              uri: getFullUrl(item.sender?.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.sender?.username || 'Fync')}`
             }}
             style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line }}
             cachePolicy="memory-disk"
@@ -308,13 +313,13 @@ const Notification = () => {
 
         {/* Right Side: Post Image / Follow Button / Opportunity Icon */}
         {item.type === 'broadcast' && item.imageUrl ? (
-          <ExpoImage source={{ uri: item.imageUrl }} style={s.thumb} cachePolicy="memory-disk" />
+          <ExpoImage source={{ uri: getFullUrl(item.imageUrl) || '' }} style={s.thumb} cachePolicy="memory-disk" />
         ) : item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
           <View style={{ backgroundColor: 'rgba(249,115,22,0.12)', borderRadius: 12, padding: 8 }}>
             <Ionicons name={item.type === 'broadcast' ? 'megaphone' : 'briefcase'} size={18} color={C.brand[500]} />
           </View>
         ) : item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
-          <ExpoImage source={{ uri: item.post.image[0] }} style={s.thumb} cachePolicy="memory-disk" />
+          <ExpoImage source={{ uri: getFullUrl(item.post.image[0]) || '' }} style={s.thumb} cachePolicy="memory-disk" />
         ) : item.type === 'follow' ? (
           <View className="bg-ink ml-2 px-2.5 py-1 rounded-full">
             <Text className="text-paper text-label font-display uppercase">Profile</Text>

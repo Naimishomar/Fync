@@ -70,22 +70,24 @@ const SearchScreen = () => {
     }
   };
 
-  const handleUserPress = async (user: User) => {
+  // Navigate first: waiting on storage delayed the tap, and a storage error
+  // swallowed it entirely.
+  const handleUserPress = (user: User) => {
     const updated = [user, ...recentSearches.filter((item) => item._id !== user._id)].slice(0, 10);
     setRecentSearches(updated);
-    await AsyncStorage.setItem("recentSearches", JSON.stringify(updated));
     navigation.navigate("PublicProfile", { userId: user._id, user });
+    AsyncStorage.setItem("recentSearches", JSON.stringify(updated)).catch(() => {});
   };
 
-  const removeItem = async (userId: string) => {
+  const removeItem = (userId: string) => {
     const updated = recentSearches.filter((i) => i._id !== userId);
     setRecentSearches(updated);
-    await AsyncStorage.setItem("recentSearches", JSON.stringify(updated));
+    AsyncStorage.setItem("recentSearches", JSON.stringify(updated)).catch(() => {});
   };
 
-  const clearAll = async () => {
+  const clearAll = () => {
     setRecentSearches([]);
-    await AsyncStorage.removeItem("recentSearches");
+    AsyncStorage.removeItem("recentSearches").catch(() => {});
   };
 
   useFocusEffect(
@@ -172,7 +174,7 @@ const SearchScreen = () => {
         </View>
 
         {/* LIST RENDER */}
-        {query.length > 0 ? (
+        {query.trim().length > 0 ? (
           <FlatList
             data={searchResults}
             {...autoHideTabBar}
@@ -236,7 +238,7 @@ const SearchScreen = () => {
                     <Ionicons name="time-outline" size={32} color={C.ink4} />
                   </View>
                   <Text className="font-semibold text-base text-ink text-center">History Empty</Text>
-                  <Text className="font-sans text-sm text-ink-4 mt-2 text-center">No previous registry lookups found.</Text>
+                  <Text className="font-sans text-sm text-ink-3 mt-2 text-center">No previous registry lookups found.</Text>
                 </View>
               }
             />

@@ -8,7 +8,7 @@ import { useAuth } from '../../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Empty, Button } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -48,8 +48,12 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
     };
 
     const handleSell = async () => {
-        if (!name || !price || !desc || images.length === 0) {
+        if (!name.trim() || !price.trim() || !desc.trim() || images.length === 0) {
             Alert.alert("Missing Fields", "Please fill all fields and add at least one image.");
+            return;
+        }
+        if (!(Number(price) > 0)) {
+            Alert.alert("Invalid Price", "Enter the price as a number, e.g. 499.");
             return;
         }
         setLoading(true);
@@ -79,7 +83,7 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
 
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-ink/60 justify-end">
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-black/60 justify-end">
                 <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={onClose} />
                 <View className="bg-paper rounded-t-sheet h-[75%] overflow-hidden shadow-hair">
                     <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
@@ -145,7 +149,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
 
     return (
         <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
-            <View className="flex-1 bg-ink/60 justify-end">
+            <View className="flex-1 bg-black/60 justify-end">
                 <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={onClose} />
                 <View className="bg-paper rounded-t-sheet overflow-hidden max-h-[90%] w-full shadow-hair">
                     <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
@@ -258,6 +262,7 @@ const MarketplaceScreen = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [search, setSearch] = useState("");
     const [activeTab, setActiveTab] = useState('all');
+    const [loadError, setLoadError] = useState(false);
 
     const [sellModalVisible, setSellModalVisible] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -265,11 +270,13 @@ const MarketplaceScreen = () => {
     const fetchProducts = async () => {
         try {
             const res = await axios.get('/olx/products');
-            if (res.data.success) {
+            if (res.data?.success) {
                 setProducts(res.data.products || []);
             }
+            setLoadError(false);
         } catch (error) {
             console.log("Error fetching products", error);
+            setLoadError(true);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -427,7 +434,11 @@ const MarketplaceScreen = () => {
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchProducts(); }} tintColor={C.brand[500]} />
                         }
-                        ListEmptyComponent={
+                        ListEmptyComponent={loadError && products.length === 0 ? (
+                            <View className="mt-20">
+                                <Empty icon="cloud-offline-outline" title="Couldn't load listings" action={<Button title="Try again" onPress={() => { setLoading(true); fetchProducts(); }} />} />
+                            </View>
+                        ) : (
                             <View className="items-center justify-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                                     <Ionicons name="basket-outline" size={32} color={C.ink4} />
@@ -435,7 +446,7 @@ const MarketplaceScreen = () => {
                                 <Text className="font-semibold text-base text-ink text-center">No Active Listings</Text>
                                 <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Be the first hunter to deploy assets here.</Text>
                             </View>
-                        }
+                        )}
                     />
                 )}
 

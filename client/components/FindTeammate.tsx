@@ -68,7 +68,7 @@ export default function FindTeammate() {
 
             if (response.data.success) {
                 const batch = response.data.developers ?? [];
-                setDevelopers((prev) => (pageNum === 1 ? batch : [...prev, ...batch]));
+                setDevelopers((prev) => (pageNum === 1 ? batch : [...prev, ...batch.filter((b: UserProfile) => !prev.some((p) => p._id === b._id))]));
                 const pg = response.data.pagination;
                 // fall back to a short-batch check if an older server sends no
                 // pagination block, so this cannot loop for ever
@@ -99,6 +99,8 @@ export default function FindTeammate() {
     useEffect(() => {
         setPage(1);
         setHasMore(true);
+        // Clear so the old tab's people don't sit under the new tab while it loads.
+        setDevelopers([]);
         fetchDevelopers(1);
     }, [activeTab, fetchDevelopers]);
 
@@ -176,7 +178,7 @@ export default function FindTeammate() {
                         <View className="flex-row items-center mt-1.5 bg-paper-2 self-start px-2 py-0.5 rounded-full border border-line">
                             <MaterialCommunityIcons name="school" size={12} color={C.ink3} />
                             <Text className="text-ink-3 text-label font-semibold ml-1 uppercase" numberOfLines={1}>
-                                {item.year}YR • {item.major}
+                                {[item.year ? `${item.year}YR` : null, item.major].filter(Boolean).join(' • ') || 'Student'}
                             </Text>
                         </View>
                     </View>
@@ -267,7 +269,7 @@ export default function FindTeammate() {
                             className="flex-1 ml-4 text-ink text-sm font-display"
                         />
                         {searchQuery.length > 0 && (
-                            <TouchableOpacity onPress={() => setSearchQuery("")}>
+                            <TouchableOpacity onPress={() => setSearchQuery("")} hitSlop={12} accessibilityLabel="Clear search">
                                 <Ionicons name="close-circle" size={20} color={C.ink4} />
                             </TouchableOpacity>
                         )}

@@ -336,7 +336,8 @@ export default function FyncProfileBuilder() {
       const fileName = file.name || 'resume.pdf';
       
       formData.append('resume', {
-        uri: Platform.OS === 'ios' ? file.uri.replace('file://', '') : file.uri,
+        // RN's FormData needs the file:// scheme on iOS too; a bare path fails the upload.
+        uri: file.uri,
         name: fileName,
         type: 'application/pdf',
       } as any);
@@ -347,6 +348,8 @@ export default function FyncProfileBuilder() {
 
       if (res.data.success) {
         Toast.show({ type: 'success', text1: 'Resume uploaded successfully!' });
+        // Apply screens read resumeUrl from the auth user, not this profile.
+        if (setUser && res.data.user) setUser(res.data.user);
         fetchProfile();
       }
     } catch (error) {
@@ -456,6 +459,10 @@ export default function FyncProfileBuilder() {
                   <TextInput
                     value={skillInput}
                     onChangeText={handleSkillInput}
+                    // Return adds the skill too; otherwise a skill typed without a comma was dropped.
+                    onSubmitEditing={() => handleSkillInput(skillInput + ',')}
+                    returnKeyType="done"
+                    submitBehavior="submit"
                     placeholder={skills.length > 0 ? "" : "React, Node.js, Design..."}
                     placeholderTextColor={C.ink3}
                     className="text-ink-2 min-w-[120px] flex-1 py-1 text-label font-semibold uppercase"

@@ -59,6 +59,8 @@ export default function ArticleScreen() {
     try {
       setError(null);
       const res = await axios.get('/tech-news/article', { params: { url } });
+      // No article in a 200 left the screen blank; show the open-original fallback.
+      if (!res.data?.article) throw new Error('empty');
       setArticle(res.data.article);
     } catch (e: any) {
       setError(e?.response?.data?.message ?? 'This article could not be opened.');

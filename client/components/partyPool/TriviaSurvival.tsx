@@ -21,6 +21,8 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
     const [health, setHealth] = useState(100);
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState<'playing' | 'gameover'>('playing');
+    // A failed question fetch is not a death; say so instead of "You Died".
+    const [loadFailed, setLoadFailed] = useState(false);
 
     const healthRef = useRef(100);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -40,6 +42,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
     const fetchMoreQuestions = async () => {
         setLoading(true);
+        setLoadFailed(false);
         try {
             // 1. Get Session Token if not exists
             if (!tokenRef.current) {
@@ -76,11 +79,13 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
             } else {
                 // E.g., rate limit or empty
                 setLoading(false);
+                setLoadFailed(true);
                 setStatus('gameover');
             }
         } catch (e) {
             if (!mountedRef.current) return;
             setLoading(false);
+            setLoadFailed(true);
             setStatus('gameover');
         }
     };
@@ -149,22 +154,25 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
     if (status === 'gameover') {
         return (
             <View className="grow bg-night justify-center items-center rounded-sheet p-6 border-2 border-danger/30">
-                <Ionicons name="skull" size={80} color={C.danger} />
-                <Text className="text-white text-3xl font-display uppercase mt-4 text-center">You Died</Text>
-                
-                <View className="bg-danger/20 px-6 py-3 rounded-full mt-6 border border-danger">
-                    <Text className="text-danger font-display text-xl">SURVIVED: {score} Qs</Text>
-                </View>
+                <Ionicons name={loadFailed ? "cloud-offline" : "skull"} size={80} color={C.danger} />
+                <Text className="text-white text-3xl font-display uppercase mt-4 text-center">{loadFailed ? "No Signal" : "You Died"}</Text>
+                {loadFailed ? (
+                    <Text className="text-night-3 text-sm mt-2 text-center">Couldn't load questions. Check your connection.</Text>
+                ) : (
+                    <View className="bg-danger/20 px-6 py-3 rounded-full mt-6 border border-danger">
+                        <Text className="text-danger font-display text-xl">SURVIVED: {score} Qs</Text>
+                    </View>
+                )}
 
                 <TouchableOpacity 
                     onPress={restartGame}
                     className="mt-10 bg-card px-gutter py-4 rounded-full w-full items-center shadow-hair"
                 >
-                    <Text className="text-ink font-display uppercase">Respawn</Text>
+                    <Text className="text-ink font-display uppercase">{loadFailed ? "Try Again" : "Respawn"}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                     onPress={onClose}
-                    className="mt-4 bg-night px-gutter py-4 rounded-full w-full items-center border border-night"
+                    className="mt-4 bg-night px-gutter py-4 rounded-full w-full items-center border border-white/20"
                 >
                     <Text className="text-white font-display uppercase">Exit</Text>
                 </TouchableOpacity>
@@ -183,7 +191,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
                 <TouchableOpacity onPress={onClose} hitSlop={8} className="bg-white/10 p-2 rounded-full">
                     <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
-                <View className="flex-1 mx-4 h-6 bg-night rounded-full overflow-hidden border border-night relative">
+                <View className="flex-1 mx-4 h-6 bg-white/10 rounded-full overflow-hidden border border-white/10 relative">
                     <View 
                         style={{ width: `${health}%`, backgroundColor: healthColor }} 
                         className="h-full rounded-full"
@@ -217,7 +225,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
                     <TouchableOpacity 
                         key={i}
                         onPress={() => handleAnswer(opt)}
-                        className="bg-night px-6 h-[64px] justify-center rounded-card border border-night"
+                        className="bg-white/10 px-6 h-[64px] justify-center rounded-card border border-white/10"
                     >
                         <Text 
                             className="text-white text-sm font-display text-center"

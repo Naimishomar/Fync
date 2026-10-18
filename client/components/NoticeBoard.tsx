@@ -14,7 +14,7 @@ import { RAZORPAY_KEY_ID } from '../constants/keys';
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
-import { AppBar, IconBtn } from './ui/kit';
+import { AppBar, IconBtn, Empty, Button } from './ui/kit';
 import { isFeatureOn } from '../constants/features';
 import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 
@@ -95,6 +95,7 @@ const NoticeBoard = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   // Modals
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -138,6 +139,7 @@ const NoticeBoard = () => {
 
       const res = await axios.get(endpoint);
       if (id !== requestId.current) return;
+      if (pageNum === 1) setLoadError(false);
 
       if (res.data?.success && Array.isArray(res.data?.notices)) {
         const fetchedNotices = res.data.notices;
@@ -162,6 +164,8 @@ const NoticeBoard = () => {
         setHasMore(false);
       } else {
         console.error("Error fetching notices:", error);
+        // Page 1 failing on a tab switch used to leave the other tab's notices up.
+        if (pageNum === 1) { setNotices([]); setLoadError(true); }
       }
     } finally {
       if (pageNum > 1) loadingMoreRef.current = false;
@@ -517,7 +521,11 @@ const NoticeBoard = () => {
                 </View>
               ) : <View className="h-10" />
             )}
-            ListEmptyComponent={
+            ListEmptyComponent={loadError ? (
+              <View className="mt-20">
+                <Empty icon="cloud-offline-outline" title="Couldn't load notices" action={<Button title="Try again" onPress={() => fetchNotices(1, false)} />} />
+              </View>
+            ) : (
               <View className="items-center justify-center mt-20 px-gutter">
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                   <Ionicons name="clipboard-outline" size={32} color={C.ink4} />
@@ -525,7 +533,7 @@ const NoticeBoard = () => {
                 <Text className="font-semibold text-base text-ink text-center">No Active Intel</Text>
                 <Text className="font-sans text-sm text-ink-4 mt-2 text-center">The board is currently silent.</Text>
               </View>
-            }
+            )}
           />
         )}
 

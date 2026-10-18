@@ -394,7 +394,7 @@ const HackathonCreate = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar style="dark" />
+      <StatusBar style={C.scheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView className="flex-1" edges={["bottom"]}>
 
         {/* Header */}

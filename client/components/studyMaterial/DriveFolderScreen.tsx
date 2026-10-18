@@ -41,7 +41,7 @@ const SkeletonItem = () => {
 };
 
 const DriveFolderScreen = ({ route, navigation }: any) => {
-    const { folderId, title } = route.params;
+    const { folderId, title } = route?.params ?? {};
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");

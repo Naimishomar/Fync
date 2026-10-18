@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Toast from 'react-native-toast-message';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
@@ -50,8 +51,37 @@ export default function ProfileSetup1() {
   const handleDateChange = (_: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      setBirthday(selectedDate.toISOString().split('T')[0]);
+      // Local date parts: toISOString() is UTC and shifts the day back for
+      // anyone east of Greenwich picking before 05:30 IST.
+      const pad = (n: number) => String(n).padStart(2, '0');
+      setBirthday(`${selectedDate.getFullYear()}-${pad(selectedDate.getMonth() + 1)}-${pad(selectedDate.getDate())}`);
     }
+  };
+
+  // /user/register rejects the whole form if any of these is empty; catch it
+  // here, not after the photo step.
+  const handleContinue = () => {
+    const missing = ([
+      ['full name', fullName.trim()], ['birthday', birthday], ['gender', gender],
+      ['college', college], ['major', major], ['passout year', year],
+    ] as [string, string][]).find(([, v]) => !v);
+    if (missing) {
+      Toast.show({ type: 'error', text1: `Please add your ${missing[0]}` });
+      return;
+    }
+    navigation.navigate('ProfileSetup2', {
+      email,
+      username,
+      phoneNumber,
+      password,
+      fullName: fullName.trim(),
+      birthday,
+      gender,
+      college,
+      major,
+      year,
+      verificationToken,
+    });
   };
 
   const genderOptions = ['Male', 'Female', 'Other'];
@@ -139,21 +169,7 @@ export default function ProfileSetup1() {
                   className="mt-5 bg-brand-500 items-center justify-center border-2 border-ink rounded-md"
                   style={{ minHeight: 48 }}
                   accessibilityRole="button"
-                  onPress={() =>
-                    navigation.navigate('ProfileSetup2', {
-                      email,
-                      username,
-                      phoneNumber,
-                      password,
-                      fullName,
-                      birthday,
-                      gender,
-                      college,
-                      major,
-                      year,
-                      verificationToken,
-                    })
-                  }
+                  onPress={handleContinue}
                 >
                   <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Continue</Text>
                 </Pressable>
@@ -165,7 +181,8 @@ export default function ProfileSetup1() {
         {/* Date Picker */}
         {showDatePicker && (
           <DateTimePicker
-            value={birthday ? new Date(birthday) : new Date()}
+            value={birthday ? new Date(`${birthday}T12:00:00`) : new Date(2005, 0, 1)}
+            maximumDate={new Date()}
             mode="date"
             display="default"
             onChange={handleDateChange}
@@ -192,12 +209,16 @@ export default function ProfileSetup1() {
                 <TextInput
                   placeholder="Search college..."
                   className="mb-3 rounded-lg border-[1.5px] border-ink px-3 py-2 text-ink"
+                  placeholderTextColor={C.ink3}
                   value={search}
                   onChangeText={setSearch}
                 />
               )}
 
               <ScrollView keyboardShouldPersistTaps="handled">
+                {dropdownType === 'college name' && filteredColleges.length === 0 && (
+                  <Text className="text-center text-ink-3 p-3">No college matches "{search}"</Text>
+                )}
                 {(dropdownType === 'gender'
                   ? genderOptions
                   : dropdownType === 'passout year'
@@ -218,7 +239,7 @@ export default function ProfileSetup1() {
                       setDropdownType(null);
                     }}
                   >
-                    <Text className="text-center">{item}</Text>
+                    <Text className="text-center text-ink">{item}</Text>
                   </Pressable>
                 ))}
               </ScrollView>
@@ -230,7 +251,7 @@ export default function ProfileSetup1() {
                   setDropdownType(null);
                 }}
               >
-                <Text className="text-center font-semibold">Cancel</Text>
+                <Text className="text-center font-semibold text-ink">Cancel</Text>
               </Pressable>
             </View>
           </View>

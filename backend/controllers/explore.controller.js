@@ -2,10 +2,11 @@ import Hackathon from "../models/hackathon/hackathons.model.js";
 import Opportunity from "../models/opportunity.model.js";
 import Bootcamp from "../models/events/bootcamp.model.js";
 import CreateSpeakerSession from "../models/events/createSpeakerSession.model.js";
+import PaidGigs from "../models/paidGigs.model.js";
 import { istDayStart } from "../utils/eventTime.js";
 
 const PER_SOURCE = 4;
-const MAX_ITEMS = 10;
+const MAX_ITEMS = 12;
 
 // "50000" -> "₹50,000"; "$5k" / "₹10k" / "Unpaid" pass through untouched.
 const rupees = (v) => {
@@ -37,6 +38,7 @@ const opportunity = (o) => ({
     // A square company logo makes a poor portrait cover, so it rides along as
     // `logo` and the client draws its own poster.
     logo: o.companyLogo || undefined,
+    pay: o.isPaid && o.stipend && o.stipend !== "Unpaid" ? rupees(o.stipend) : (o.type === "internship" ? "Unpaid" : undefined),
     chips: [
         o.location,
         o.type === "internship"
@@ -44,6 +46,16 @@ const opportunity = (o) => ({
             : (o.isPaid && o.stipend && o.stipend !== "Unpaid" ? rupees(o.stipend) : o.opportunityType),
         o.duration,
     ].filter(Boolean),
+});
+
+const gig = (g) => ({
+    type: "gig",
+    id: String(g._id),
+    title: g.title,
+    org: g.postedBy?.name,
+    logo: g.postedBy?.avatar || undefined,
+    pay: g.stipend && g.stipend !== "Not disclosed" ? rupees(g.stipend) : undefined,
+    chips: [g.visibility === "College" ? "Your campus" : "Remote"],
 });
 
 const event = (type, startKey) => (e) => ({
@@ -75,7 +87,7 @@ export const getFeatured = async (req, res, next) => {
                 .select("title company companyLogo location type opportunityType isPaid stipend duration")
                 .sort({ createdAt: -1 }).limit(PER_SOURCE).lean();
 
-        const [hacks, interns, jobs, camps, talks] = await Promise.all([
+        const [hacks, interns, jobs, camps, talks, gigs] = await Promise.all([
             Hackathon.find({
                 status: { $ne: "draft" },
                 hackathonends: { $gte: now },
@@ -92,6 +104,14 @@ export const getFeatured = async (req, res, next) => {
             CreateSpeakerSession.find({ status: "open", date: { $gte: istDayStart() }, ...collegeScope(college) })
                 .select("eventName college venue fee banner logo date")
                 .sort({ date: 1 }).limit(PER_SOURCE).lean(),
+            // Same visibility as the gig list: global, or college-only from your college.
+            PaidGigs.find({
+                status: "Open",
+                $or: [{ visibility: "Global" }, { visibility: "College", postedUserCollege: college }],
+            })
+                .select("title stipend visibility postedBy")
+                .populate("postedBy", "name avatar")
+                .sort({ createdAt: -1 }).limit(PER_SOURCE).lean(),
         ]);
 
         const items = interleave([
@@ -100,6 +120,7 @@ export const getFeatured = async (req, res, next) => {
             camps.map(event("bootcamp", "startDate")),
             jobs.map(opportunity),
             talks.map(event("speaker", "date")),
+            gigs.map(gig),
         ]);
         res.status(200).json({ success: true, items });
     } catch (error) {

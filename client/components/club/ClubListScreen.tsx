@@ -9,7 +9,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Empty, Button } from '../ui/kit';
 import { useBottomInset } from '../../constants/layout';
 
 // Ids may arrive populated ({ _id }) or bare, depending on the endpoint.
@@ -81,6 +81,7 @@ const ClubListScreen = () => {
     const [clubs, setClubs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [loadError, setLoadError] = useState(false);
 
     // Join Code State
     const [showCodeModal, setShowCodeModal] = useState(false);
@@ -92,11 +93,13 @@ const ClubListScreen = () => {
     const fetchClubs = async () => {
         try {
             const res = await axios.get('/clubs/all', { params: { userId: user?._id } });
-            if (res.data.success) {
-                setClubs(res.data.clubs);
+            if (res.data?.success) {
+                setClubs(res.data.clubs || []);
             }
+            setLoadError(false);
         } catch (error) {
             console.log("Error fetching clubs", error);
+            setLoadError(true);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -170,13 +173,10 @@ const ClubListScreen = () => {
                         >
                             <View className="flex-row items-center">
                                 <View className="w-14 h-14 bg-brand-600 rounded-card items-center justify-center">
-                                    <Ionicons name="add" size={32} color="white" />
+                                    <Ionicons name="add" size={32} color={C.onBrand} />
                                 </View>
                                 <View className="ml-6">
-                                    <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
-                                      <Text className="text-paper font-display uppercase text-xs">Establish Hub</Text>
-                                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                    </View>
+                                    <Text className="text-paper font-display uppercase text-xs mb-1">Establish Hub</Text>
                                     <Text className="text-paper/40 text-label font-semibold uppercase italic">New Community Protocol</Text>
                                 </View>
                             </View>
@@ -211,17 +211,21 @@ const ClubListScreen = () => {
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: bottomInset }}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
-                    ListEmptyComponent={!loading ? (
+                    ListEmptyComponent={loading ? <ActivityIndicator color={C.brand[500]} className="mt-20" /> : loadError ? (
+                        <View className="mt-20">
+                            <Empty icon="cloud-offline-outline" title="Couldn't load clubs" action={<Button title="Try again" onPress={() => { setLoading(true); fetchClubs(); }} />} />
+                        </View>
+                    ) : (
                         <View className="items-center mt-32 px-gutter">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                                 <MaterialCommunityIcons name="shield-lock-outline" size={48} color={C.ink4} />
                             </View>
-                            <Text className="font-semibold text-base text-on-brand text-center">Hub Empty</Text>
+                            <Text className="font-semibold text-base text-ink text-center">Hub Empty</Text>
                             <Text className="font-sans text-sm text-ink-4 mt-2 text-center">
                                 Your authorization space is empty.{"\n"}Establish a hub or wait for a clearance signal.
                             </Text>
                         </View>
-                    ) : <ActivityIndicator color={C.brand[500]} className="mt-20" />}
+                    )}
                 />
 
                 {/* Join Code Modal */}

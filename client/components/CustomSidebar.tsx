@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
 import { visibleFeatures } from '../constants/features';
 import { C } from '../constants/colors';
+import { getFullUrl } from '../utils/imageUtils';
 
 /**
  * The drawer used to be the app's only feature menu: ~35 rows across seven
@@ -40,7 +41,7 @@ export default function CustomSidebar(props: any) {
                             className="flex-row items-center gap-4 flex-1 mr-4"
                         >
                             <Image
-                                source={{ uri: user?.avatar?.trim() ? user.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'User')}` }}
+                                source={{ uri: getFullUrl(user?.avatar?.trim()) || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'User')}` }}
                                 className="h-14 w-14 rounded-full border-2 border-brand-500 bg-paper-2"
                             />
                             <View className="flex-1 justify-center">

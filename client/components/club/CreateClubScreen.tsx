@@ -117,7 +117,7 @@ const CreateClubScreen = () => {
                         {/* Form Fields */}
                         <View className="mt-8">
                             <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Identity</Text>
-                            <TextInput 
+                            <TextInput placeholderTextColor={C.ink4} 
                                 placeholder="Club Name"
                                 className="bg-card p-5 mb-4 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 value={name}
@@ -125,7 +125,7 @@ const CreateClubScreen = () => {
                             />
                             
                             <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Specialization</Text>
-                            <TextInput 
+                            <TextInput placeholderTextColor={C.ink4} 
                                 placeholder="Category (e.g. Technical, Sports)"
                                 className="bg-card p-5 mb-4 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 value={category}
@@ -133,7 +133,7 @@ const CreateClubScreen = () => {
                             />
 
                             <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Mission Statement</Text>
-                            <TextInput 
+                            <TextInput placeholderTextColor={C.ink4} 
                                 placeholder="Describe the club's goal..."
                                 className="bg-card p-5 mb-6 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 multiline

@@ -529,7 +529,7 @@ const Chat = ({ route, navigation }: any) => {
         <View className={`flex-row items-end ${isMe ? "flex-row-reverse" : "flex-row"} max-w-[85%]`}>
           {/* AVATAR */}
           <View className={`${isMe ? "ml-3" : "mr-3"}`}>
-            <View className="w-9 h-9 rounded-card border-2 border-white shadow-hair overflow-hidden bg-paper-2">
+            <View className="w-9 h-9 rounded-card border-2 border-card shadow-hair overflow-hidden bg-paper-2">
               <Image
                 source={{
                   uri: isMe
@@ -714,7 +714,7 @@ const Chat = ({ route, navigation }: any) => {
                 }
               >
                 <View className="relative">
-                  <View className="w-9 h-9 rounded-full border-2 border-white shadow-hair overflow-hidden">
+                  <View className="w-9 h-9 rounded-full border-2 border-card shadow-hair overflow-hidden">
                     <Image
                       source={{
                         uri:
@@ -726,7 +726,7 @@ const Chat = ({ route, navigation }: any) => {
                     />
                   </View>
                   {onlineUsers.has(otherUser?._id) && (
-                    <View className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-success rounded-full border-2 border-white" />
+                    <View className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-success rounded-full border-2 border-card" />
                   )}
                 </View>
 

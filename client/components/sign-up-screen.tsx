@@ -33,8 +33,14 @@ export default function SignUpScreen() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // The code is tied to the email it went to; editing the form after it was
+  // sent would verify a different address, so send a fresh one instead.
+  const resetOtp = () => {
+    if (otpSent) { setOtpSent(false); setOtp(''); }
+  };
+
   const sendOtpToEmail = async () => {
-    if (!email || !username || !phoneNumber || !password) {
+    if (!email.trim() || !username.trim() || !phoneNumber.trim() || !password) {
       Toast.show({
         type: 'error',
         text1: 'Missing Fields',
@@ -46,9 +52,9 @@ export default function SignUpScreen() {
     try {
       setIsLoading(true);
       const res = await axios.post('/user/send-email-otp', {
-        email,
-        username,
-        mobileNumber: phoneNumber,
+        email: email.trim(),
+        username: username.trim(),
+        mobileNumber: phoneNumber.trim(),
       });
 
       if (res.data.success) {
@@ -83,8 +89,8 @@ export default function SignUpScreen() {
     try {
       setIsLoading(true);
       const res = await axios.post('/user/verify-email-otp', {
-        email,
-        otp,
+        email: email.trim(),
+        otp: otp.trim(),
       });
 
       if (res.data.success) {
@@ -94,9 +100,9 @@ export default function SignUpScreen() {
         });
 
         navigation.navigate('ProfileSetup1', {
-          email,
-          username,
-          phoneNumber,
+          email: email.trim(),
+          username: username.trim(),
+          phoneNumber: phoneNumber.trim(),
           password,
           // Proof of the verified email; /user/register requires it.
           verificationToken: res.data.verificationToken,
@@ -181,14 +187,14 @@ export default function SignUpScreen() {
                 <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>Email</Text>
                 <View className="mt-2 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50, justifyContent: 'center' }}>
                   <TextInput className="font-sans text-base text-ink" placeholder="you@college.ac.in"
-                    placeholderTextColor={C.ink3} value={email} onChangeText={setEmail}
+                    placeholderTextColor={C.ink3} value={email} onChangeText={(v) => { setEmail(v); resetOtp(); }}
                     keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
                 </View>
 
                 <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>Username</Text>
                 <View className="mt-2 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50, justifyContent: 'center' }}>
                   <TextInput className="font-sans text-base text-ink" placeholder="naimish"
-                    placeholderTextColor={C.ink3} value={username} onChangeText={setUsername}
+                    placeholderTextColor={C.ink3} value={username} onChangeText={(v) => { setUsername(v); resetOtp(); }}
                     autoCapitalize="none" autoComplete="username" />
                 </View>
 
@@ -196,7 +202,7 @@ export default function SignUpScreen() {
                 <View className="mt-2 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50, justifyContent: 'center' }}>
                   <TextInput className="font-sans text-base text-ink" placeholder="+91 98765 43210"
                     placeholderTextColor={C.ink3} keyboardType="phone-pad" value={phoneNumber}
-                    onChangeText={setPhoneNumber} autoComplete="tel" />
+                    onChangeText={(v) => { setPhoneNumber(v); resetOtp(); }} autoComplete="tel" />
                 </View>
 
                 <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>Password</Text>
@@ -212,7 +218,7 @@ export default function SignUpScreen() {
                 </View>
 
                 <View className="flex-row items-center mt-4" style={{ gap: 12 }}>
-                  <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color={C.ink} />
+                  <Checkbox value={agreeTerms} onValueChange={setAgreeTerms} color={agreeTerms ? C.accent : C.ink3} />
                   <View className="flex-row flex-wrap flex-1">
                     <Text className="font-sans text-sm text-ink-2">I agree to the </Text>
                     <Pressable onPress={() => navigation.navigate('TermsAndCondition')} hitSlop={8}>

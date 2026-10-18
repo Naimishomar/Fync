@@ -337,6 +337,16 @@ export default function CommentsSheet({
     if (visible && targetId) fetchComments();
   }, [visible, targetId, fetchComments]);
 
+  // A reply or edit left open on one post must not carry over to the next:
+  // the reply would be filed under a comment id the new post does not have.
+  useEffect(() => {
+    setReplyingTo(null);
+    setReplyRoot(null);
+    setEditingId(null);
+    setEditingText('');
+    setText('');
+  }, [targetId]);
+
   const post = async () => {
     const body = text.trim();
     if (!body || !targetId || posting) return;

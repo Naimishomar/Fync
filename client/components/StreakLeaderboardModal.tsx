@@ -7,6 +7,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import axios from '../context/axiosConfig';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
+import { getFullUrl } from '../utils/imageUtils';
 
 const { width, height } = Dimensions.get('window');
 
@@ -38,9 +39,9 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
       const res = await axios.get('/user/streak-leaderboard');
       if (res.data.success) {
         setData(res.data.leaderboard ?? []);
-        setUserRank(res.data.userRank);
-        setUserStreak(res.data.userStreak);
-        setCompletedToday(res.data.completedToday);
+        setUserRank(res.data.userRank ?? -1);
+        setUserStreak(res.data.userStreak ?? 0);
+        setCompletedToday(!!res.data.completedToday);
       }
     } catch (error) {
       console.error("Leaderboard fetch error:", error);
@@ -114,32 +115,32 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                     </View>
                     <View>
                       <View className="flex-row items-center mt-6 mb-0.5" style={{ gap: 12 }}>
-                        <Text className="text-white/70 text-label font-display uppercase">Your Position</Text>
+                        <Text className="text-on-brand opacity-70 text-label font-display uppercase">Your Position</Text>
                         <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                       </View>
-                      <Text className="text-white text-base font-display uppercase">Global Ranking</Text>
+                      <Text className="text-on-brand text-base font-display uppercase">Global Ranking</Text>
                     </View>
                   </View>
                   <View className="items-end">
                     <View className="flex-row items-center mt-6 mb-0.5" style={{ gap: 12 }}>
-                      <Text className="text-white/70 text-label font-display uppercase">Current Streak</Text>
+                      <Text className="text-on-brand opacity-70 text-label font-display uppercase">Current Streak</Text>
                       <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                     </View>
                     <View className="flex-row items-center">
-                      <Text className="text-white text-2xl font-display">{userStreak}</Text>
-                      <MaterialCommunityIcons name="fire" size={24} color="white" className="ml-1" />
+                      <Text className="text-on-brand text-2xl font-display">{userStreak}</Text>
+                      <MaterialCommunityIcons name="fire" size={24} color={C.onBrand} className="ml-1" />
                     </View>
                     
                     <View className="mt-1">
                       {completedToday ? (
                         <View className="flex-row items-center bg-card/20 px-2 py-1 rounded-full">
-                          <MaterialCommunityIcons name="check-circle" size={10} color="#fff" />
-                          <Text className="text-white text-label font-display uppercase ml-1">Secured Today</Text>
+                          <MaterialCommunityIcons name="check-circle" size={10} color={C.onBrand} />
+                          <Text className="text-on-brand text-label font-display uppercase ml-1">Secured Today</Text>
                         </View>
                       ) : (
                         <View className="flex-row items-center bg-danger/40 px-2 py-1 rounded-full border border-danger/50">
-                          <MaterialCommunityIcons name="clock-alert-outline" size={10} color="#fff" />
-                          <Text className="text-white text-label font-display uppercase ml-1">Post To Secure</Text>
+                          <MaterialCommunityIcons name="clock-alert-outline" size={10} color={C.onBrand} />
+                          <Text className="text-on-brand text-label font-display uppercase ml-1">Post To Secure</Text>
                         </View>
                       )}
                     </View>
@@ -181,7 +182,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                     </View>
                     
                     <Image 
-                      source={{ uri: item.avatar || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} 
+                      source={{ uri: getFullUrl(item.avatar) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} 
                       style={{ width: 44, height: 44, borderRadius: 12, marginRight: 16, borderWidth: 1, borderColor: C.line }}
                       cachePolicy="memory-disk"
                     />

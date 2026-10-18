@@ -9,6 +9,8 @@ import {
   StatusBar,
   TouchableOpacity,
   Platform,
+  Alert,
+  RefreshControl,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
@@ -44,6 +46,8 @@ const ChatList = () => {
   const [typingStates, setTypingStates] = useState<{ [key: string]: boolean }>({});
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [loadError, setLoadError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const startingChat = useRef(false);
 
   // `conversations` read from inside socket callbacks has to come from a ref:
   // the useFocusEffect closure only depends on user._id, so the reconnect
@@ -249,10 +253,13 @@ const ChatList = () => {
     }
     typingTimeoutRef.current = setTimeout(() => {
       performSearch(text);
-    }, 1000);
+    }, 400);
   };
 
   const startChat = async (targetUser: any) => {
+    // A second tap while the first request is in flight opened the chat twice.
+    if (startingChat.current) return;
+    startingChat.current = true;
     try {
       const res = await axios.post("/chat/start", {
         userId: targetUser._id,
@@ -265,6 +272,9 @@ const ChatList = () => {
       setResults([]);
     } catch (e) {
       console.log("Start chat error", e);
+      Alert.alert("Couldn't start chat", "Please check your connection and try again.");
+    } finally {
+      startingChat.current = false;
     }
   };
 
@@ -423,6 +433,14 @@ const ChatList = () => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+            refreshControl={search.length === 0 ? (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={async () => { setRefreshing(true); await loadChats(); setRefreshing(false); }}
+                tintColor={C.brand[500]}
+                colors={[C.brand[500]]}
+              />
+            ) : undefined}
             initialNumToRender={10}
             maxToRenderPerBatch={5}
             windowSize={5}
@@ -449,7 +467,7 @@ const ChatList = () => {
                           <Ionicons name="school" size={24} color={C.brand[500]} />
                         </View>
                         <View className="flex-1">
-                          <Text className="font-semibold text-base text-on-brand">{user.college} Area</Text>
+                          <Text className="font-semibold text-base text-ink">{user.college} Area</Text>
                           <Text className="text-ink-3 text-label font-semibold mt-1">24hr Expiring Zone</Text>
                         </View>
                         <View className="bg-brand-500 w-2 h-2 rounded-full" />
@@ -466,7 +484,7 @@ const ChatList = () => {
                           <Ionicons name="people" size={24} color={C.recruiter} />
                         </View>
                         <View className="flex-1">
-                          <Text className="font-semibold text-base text-on-brand">Student-Alumni Chat</Text>
+                          <Text className="font-semibold text-base text-ink">Student-Alumni Chat</Text>
                           <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Global Networking Zone</Text>
                         </View>
                         <View className="bg-recruiter px-2.5 py-1 rounded-full">
@@ -485,7 +503,7 @@ const ChatList = () => {
                           <Ionicons name="briefcase" size={24} color={C.paper} />
                         </View>
                         <View className="flex-1">
-                          <Text className="font-semibold text-base text-on-brand">Professional Hub</Text>
+                          <Text className="font-semibold text-base text-ink">Professional Hub</Text>
                           <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Global Alumni Network</Text>
                         </View>
                         <View className="bg-ink px-2.5 py-1 rounded-full">
@@ -518,7 +536,7 @@ const ChatList = () => {
                     color={C.ink4}
                   />
                 </View>
-                <Text className="font-semibold text-base text-on-brand text-center">
+                <Text className="font-semibold text-base text-ink text-center">
                   {search.length > 0 ? "Registry Empty" : "No Transmissions"}
                 </Text>
                 <Text className="font-sans text-sm text-ink-3 mt-2 text-center">

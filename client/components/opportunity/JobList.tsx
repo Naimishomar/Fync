@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import {View, Text, FlatList, Image, ActivityIndicator, Linking, TextInput, TouchableOpacity, StatusBar, Modal} from 'react-native'
+import {View, Text, FlatList, Image, ActivityIndicator, Linking, TextInput, TouchableOpacity, StatusBar, Modal, RefreshControl} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
@@ -30,6 +30,13 @@ const JobList = () => {
   const [applyModalVisible, setApplyModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [applying, setApplying] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await (activeTab === 'all' ? fetchJobs(1) : fetchShortlisted());
+    setRefreshing(false);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -248,6 +255,7 @@ const JobList = () => {
           updateCellsBatchingPeriod={50}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
           ListFooterComponent={renderFooter}
           contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
           showsVerticalScrollIndicator={false}

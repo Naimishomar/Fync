@@ -250,10 +250,14 @@ export function SectionRule({
 
 /* ----------------------------------------------------------------- sticker */
 type Tone = 'brand' | 'alt' | 'live' | 'gold' | 'rec' | 'ok' | 'warn';
-const STICKER_BG: Record<Tone, string> = {
-  brand: C.brand200, alt: '#FFFFFF', live: C.danger, gold: C.alumniLit,
-  rec: '#EDE8E0', ok: '#EDE8E0', warn: '#EDE8E0',
-};
+// A function, not a module-level object: a frozen object kept the light values
+// in dark mode, putting light ink on a light chip (invisible).
+const stickerBg = (t: Tone) => ({
+  brand: C.brand200, alt: C.card, live: C.danger, gold: C.alumniLit,
+  rec: C.paper2, ok: C.paper2, warn: C.paper2,
+})[t];
+/** Gold is the same bright yellow in both themes, so it always takes dark ink. */
+const stickerFg = (tone: Tone) => (tone === 'live' ? '#FFFFFF' : tone === 'gold' ? P.onBrand : C.ink);
 /** Status and identity only — never navigation. Rotation is decorative and must
  *  not clip text or shrink the tap area, so it is applied to the wrapper. */
 export function Sticker({
@@ -262,12 +266,12 @@ export function Sticker({
   children: React.ReactNode; tone?: Tone; tilt?: 'l' | 'r'; flat?: boolean;
   icon?: React.ComponentProps<typeof Ionicons>['name'];
 }) {
-  const fg = tone === 'live' ? '#FFFFFF' : C.ink;
+  const fg = stickerFg(tone);
   return (
     <View
       style={[
         s.sticker,
-        { backgroundColor: STICKER_BG[tone] },
+        { backgroundColor: stickerBg(tone) },
         flat && { shadowOpacity: 0, elevation: 0, borderWidth: 1.5 },
         !flat && { transform: [{ rotate: tilt === 'r' ? '1.8deg' : '-1.6deg' }] },
       ]}
@@ -292,8 +296,8 @@ export function RoleSticker({ role, size = 'sm' }: { role?: string; size?: 'sm' 
   const label = role === 'alumni' ? 'Alumni' : role === 'recruiter' ? 'Recruiter' : 'Admin';
   if (size === 'md') return <Sticker tone={tone}>{label}</Sticker>;
   return (
-    <View style={[s.sticker, { backgroundColor: STICKER_BG[tone], paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1.5, shadowOpacity: 0, elevation: 0 }]}>
-      <Text style={[s.stickerText, { fontSize: 8, color: tone === 'live' ? '#fff' : C.ink }]}>{label}</Text>
+    <View style={[s.sticker, { backgroundColor: stickerBg(tone), paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1.5, shadowOpacity: 0, elevation: 0 }]}>
+      <Text style={[s.stickerText, { fontSize: 8, color: stickerFg(tone) }]}>{label}</Text>
     </View>
   );
 }
@@ -422,14 +426,15 @@ export const ChipRow = ({ children, style }: { children: React.ReactNode; style?
 
 /* ------------------------------------------------------------------ avatar */
 export type Role = 'student' | 'alumni' | 'recruiter' | undefined;
-const RING: Record<string, string> = { student: C.student, alumni: C.alumni, recruiter: C.recruiter };
+// Read per render so the ring follows the theme (alumni/recruiter differ in dark).
+const ringOf = (r: string) => ({ student: C.student, alumni: C.alumni, recruiter: C.recruiter } as Record<string, string>)[r];
 
 export function Avatar({
   initials, uri, size = 44, role, square, style,
 }: {
   initials?: string; uri?: string; size?: number; role?: Role; square?: boolean; style?: any;
 }) {
-  const ring = role ? RING[role] : undefined;
+  const ring = role ? ringOf(role) : undefined;
   return (
     <View
       style={[

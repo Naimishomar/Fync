@@ -56,10 +56,12 @@ const isDark = (r: number, g: number, b: number) =>
   (r * 299 + g * 587 + b * 114) / 1000 < 140;
 
 const PDFViewerScreen = ({ route, navigation }: any) => {
-  const { fileId, title, url } = route.params;
+  const { fileId, title, url } = route?.params ?? {};
 
-  const [bg, setBg] = React.useState(FALLBACK_LIGHT);
-  const [dark, setDark] = React.useState(false);
+  // Start on the app's own theme so a dark-mode user gets no white flash before
+  // the probe reports what the viewer painted.
+  const [bg, setBg] = React.useState(C.scheme === 'dark' ? C.card : FALLBACK_LIGHT);
+  const [dark, setDark] = React.useState(C.scheme === 'dark');
 
   const pdfUrl = url
     ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`

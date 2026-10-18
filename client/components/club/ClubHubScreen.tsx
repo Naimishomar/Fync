@@ -9,7 +9,7 @@ import { useAuth } from '../../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn, Empty } from '../ui/kit';
+import { AppBar, IconBtn, Empty, Button } from '../ui/kit';
 
 const ClubHubScreen = () => {
     const navigation = useNavigation<any>();
@@ -113,15 +113,22 @@ const ClubHubScreen = () => {
     };
 
     if (loading) return (
-        <View className="flex-1 bg-paper justify-center items-center">
-            <ActivityIndicator color={C.brand[500]} />
+        <View className="flex-1 bg-paper">
+            <AppBar title="Club" onBack={() => navigation.goBack()} />
+            <View className="flex-1 justify-center items-center">
+                <ActivityIndicator color={C.brand[500]} />
+            </View>
         </View>
     );
 
     if (!club) return (
         <View className="flex-1 bg-paper">
             <AppBar title="Club" onBack={() => navigation.goBack()} />
-            <Empty icon="cloud-offline-outline" title="Could not load club" hint="Go back and try again." />
+            <Empty
+                icon="cloud-offline-outline"
+                title="Could not load club"
+                action={<Button title="Try again" onPress={() => { setLoading(true); fetchClubDetails(); }} />}
+            />
         </View>
     );
 
@@ -172,7 +179,7 @@ const ClubHubScreen = () => {
                     <View className="absolute bottom-10 left-5 flex-row items-center">
                         <View className="relative">
                             <Image 
-                                source={{ uri: club.logo }} 
+                                source={club.logo ? { uri: club.logo } : undefined}
                                 className="w-24 h-24 rounded-sheet border-4 border-white/20 bg-card"
                             />
                             {hasAccess && <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full border-4 border-ink" />}
@@ -235,7 +242,7 @@ const ClubHubScreen = () => {
                                                 {sub.isGeneral ? (
                                                     <MaterialCommunityIcons name="shield-check" size={28} color={C.brand[500]} />
                                                 ) : (
-                                                    <Image source={{ uri: sub.logo }} className="w-full h-full rounded-card" />
+                                                    sub.logo ? <Image source={{ uri: sub.logo }} className="w-full h-full rounded-card" /> : <Feather name="hash" size={24} color={C.ink3} />
                                                 )}
                                             </View>
                                             
@@ -249,7 +256,7 @@ const ClubHubScreen = () => {
                                             </View>
 
                                             {isSubMember ? (
-                                                <Ionicons name="chevron-forward" size={20} color={sub.isGeneral ? C.ink : C.ink4} />
+                                                <Ionicons name="chevron-forward" size={20} color={sub.isGeneral ? C.paper : C.ink4} />
                                             ) : isPendingJoin ? (
                                                 <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
                                                     <Text className="text-ink-3 font-display text-label uppercase">Pending</Text>
@@ -260,8 +267,8 @@ const ClubHubScreen = () => {
                                                     disabled={joining === sub._id}
                                                     className="bg-brand-600 px-5 py-3 rounded-card shadow-hair"
                                                 >
-                                                    {joining === sub._id ? <ActivityIndicator size="small" color="white" /> : (
-                                                        <Text className="text-white font-display text-label uppercase">Join</Text>
+                                                    {joining === sub._id ? <ActivityIndicator size="small" color={C.onBrand} /> : (
+                                                        <Text className="text-on-brand font-display text-label uppercase">Join</Text>
                                                     )}
                                                 </TouchableOpacity>
                                             )}
@@ -296,7 +303,7 @@ const ClubHubScreen = () => {
                                     onPress={() => navigation.navigate('ClubList')}
                                     className="bg-brand-600 py-6 px-gutter rounded-sheet w-full items-center shadow-hair"
                                 >
-                                    <Text className="text-white font-display uppercase text-xs">Accept Invitation</Text>
+                                    <Text className="text-on-brand font-display uppercase text-xs">Accept Invitation</Text>
                                 </TouchableOpacity>
                             ) : (
                                 <TouchableOpacity 
@@ -304,7 +311,7 @@ const ClubHubScreen = () => {
                                     disabled={requesting}
                                     className="bg-card py-6 px-gutter rounded-sheet w-full items-center shadow-hair"
                                 >
-                                    {requesting ? <ActivityIndicator color="black" /> : (
+                                    {requesting ? <ActivityIndicator color={C.ink} /> : (
                                         <Text className="font-semibold text-base text-ink">Request Clearance</Text>
                                     )}
                                 </TouchableOpacity>

@@ -5,7 +5,7 @@ import { C } from '../../constants/colors';
 import { AppBar } from '../ui/kit';
 
 const MarkdownViewerScreen = ({ route, navigation } : any) => {
-  const { url, title } = route.params;
+  const { url, title } = route?.params ?? {};
   
   React.useLayoutEffect(() => {
     navigation.setOptions({ title: title });

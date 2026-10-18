@@ -13,7 +13,7 @@ import socket from "../../utils/socket";
 import { useAuth } from "../../context/auth.context";
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, Meta } from '../ui/kit';
+import { AppBar, Meta, Empty, Button } from '../ui/kit';
 
 const CollegeChatScreen = ({ navigation }: any) => {
     const { user } = useAuth();
@@ -21,6 +21,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
     const [messages, setMessages] = useState<any[]>([]);
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const [replyTo, setReplyTo] = useState<any>(null);
     const [timeLeft, setTimeLeft] = useState("23:59:59");
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -87,8 +88,9 @@ const CollegeChatScreen = ({ navigation }: any) => {
     const loadMessages = async () => {
         try {
             setLoading(true);
+            setLoadError(false);
             const res = await axios.get("/college-chat/messages", { params: { noCache: true } });
-            if (res.data.success) {
+            if (res.data?.success) {
                 const sorted = (res.data.messages || []).sort(
                     (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                 );
@@ -96,6 +98,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
             }
         } catch (e) {
             console.log("Failed to load college chat messages", e);
+            setLoadError(true);
         } finally {
             setLoading(false);
         }
@@ -419,7 +422,19 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                 showsVerticalScrollIndicator={false}
                                 keyboardShouldPersistTaps="handled"
                                 keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-                                ListHeaderComponent={() => <View className="h-0" />}
+                                ListEmptyComponent={
+                                    <View style={{ paddingVertical: 24 }}>
+                                        {loadError ? (
+                                            <Empty
+                                                icon="cloud-offline-outline"
+                                                title="Couldn't load messages"
+                                                action={<Button title="Try again" onPress={loadMessages} />}
+                                            />
+                                        ) : (
+                                            <Empty icon="chatbubbles-outline" title="No messages yet" hint="Messages here vanish at midnight. Say hi to campus." />
+                                        )}
+                                    </View>
+                                }
                             />
                         )}
                     </View>
@@ -432,7 +447,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                     <Text className="text-label text-accent-text font-semibold uppercase">Replying to @{replyTo.senderId?.username}</Text>
                                     <Text className="text-xs text-ink-3" numberOfLines={1}>{replyTo.content || '[Media]'}</Text>
                                 </View>
-                                <TouchableOpacity onPress={() => setReplyTo(null)}><Ionicons name="close-circle" size={20} color={C.brand[500]} /></TouchableOpacity>
+                                <TouchableOpacity onPress={() => setReplyTo(null)} hitSlop={12}><Ionicons name="close-circle" size={20} color={C.brand[500]} /></TouchableOpacity>
                             </View>
                         )}
                         <View
@@ -462,7 +477,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                              <View className="ml-2">
                                 {text.trim().length > 0 && (
                                     <TouchableOpacity onPress={handleSendText} className="w-12 h-12 bg-brand-600 items-center justify-center rounded-full shadow-hair">
-                                        <Ionicons name="send" size={20} color="white" />
+                                        <Ionicons name="send" size={20} color={C.onBrand} />
                                     </TouchableOpacity>
                                 )}
                             </View>
@@ -475,7 +490,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                 <View className="flex-1 bg-black/95 justify-center items-center">
                     <TouchableOpacity
                         onPress={() => setSelectedImage(null)}
-                        className="absolute top-12 right-6 w-10 h-10 bg-card/10 rounded-full items-center justify-center z-50"
+                        className="absolute top-12 right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
                     >
                         <Ionicons name="close" size={24} color="white" />
                     </TouchableOpacity>

@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ConfessionSkeleton } from '../Skeleton';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn, Meta } from '../ui/kit';
+import { AppBar, IconBtn, Meta, Empty, Button } from '../ui/kit';
 import CommentsSheet, { CommentsApi, CommentModel } from '../ui/CommentsSheet';
 import { report } from '../../utils/safety';
 
@@ -138,6 +138,7 @@ const ConfessionFeed = () => {
     const [hasMore, setHasMore] = useState(globalHasMore);
     const [loadingMore, setLoadingMore] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [loadError, setLoadError] = useState(false);
 
     // Edit state
     const [editingConfession, setEditingConfession] = useState<any>(null);
@@ -176,7 +177,8 @@ const ConfessionFeed = () => {
 
         try {
             const res = await axios.get(`/confessions?page=${pageNum}&limit=15`);
-            if (res.data.success) {
+            if (pageNum === 1) setLoadError(false);
+            if (res.data?.success) {
                 const newConfessions = res.data.confessions || [];
                 if (shouldRefresh || pageNum === 1) {
                     globalConfessionsCache = newConfessions;
@@ -193,6 +195,7 @@ const ConfessionFeed = () => {
             }
         } catch (error) {
             console.error('Fetch confessions error:', error);
+            if (pageNum === 1) setLoadError(true);
         } finally {
             setLoading(false);
             if (pageNum > 1) loadingMoreRef.current = false;
@@ -217,25 +220,21 @@ const ConfessionFeed = () => {
         setSubmitting(true);
         try {
             if (editingConfession) {
-                console.log('UPDATING:', editingConfession._id, { content: newConfession, color: selectedColor, taggedUserId: taggedUser?._id });
                 const res = await axios.put(`/confessions/${editingConfession._id}`, {
                     content: newConfession,
                     color: selectedColor,
                     taggedUserId: taggedUser?._id
                 });
-                console.log('UPDATE RES:', res.data);
                 if (res.data.success) {
                     setConfessions(prev => prev.map((c: any) => c._id === editingConfession._id ? res.data.confession : c));
                     Toast.show({ type: 'success', text1: 'Confession updated!' });
                 }
             } else {
-                console.log('POSTING NEW:', { content: newConfession, color: selectedColor, taggedUserId: taggedUser?._id });
                 const res = await axios.post('/confessions', {
                     content: newConfession,
                     color: selectedColor,
                     taggedUserId: taggedUser?._id
                 });
-                console.log('POST RES:', res.data);
                 if (res.data.success) {
                     setConfessions(prev => [res.data.confession, ...prev]);
                     Toast.show({ type: 'success', text1: 'Posted anonymously!' });
@@ -358,7 +357,7 @@ const ConfessionFeed = () => {
 
     if (loading && confessions.length === 0) {
         return (
-            <View className="flex-1 bg-paper-2">
+            <View className="flex-1 bg-paper">
                 <AppBar title="Confessions Feed" onBack={() => navigation.goBack()} />
                 <View className="px-gutter pb-4 pt-2">
                     {[1, 2, 3].map(i => <ConfessionSkeleton key={i} />)}
@@ -392,7 +391,15 @@ const ConfessionFeed = () => {
                     ListFooterComponent={() => (
                         loadingMore ? <ActivityIndicator color={C.brand[500]} className="my-8" /> : <View className="h-20" />
                     )}
-                    ListEmptyComponent={
+                    ListEmptyComponent={loadError ? (
+                        <View className="mt-20">
+                            <Empty
+                                icon="cloud-offline-outline"
+                                title="Couldn't load confessions"
+                                action={<Button title="Try again" onPress={() => fetchConfessions(1)} />}
+                            />
+                        </View>
+                    ) : (
                         <View className="mt-20 items-center px-gutter">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                                 <Ionicons name="lock-closed" size={40} color={C.ink4} />
@@ -400,7 +407,7 @@ const ConfessionFeed = () => {
                             <Text className="text-ink font-display uppercase text-xl text-center">Protocol Locked</Text>
                             <Text className="font-sans text-sm text-ink-3 mt-2 text-center">No signals detected. Be the first to broadcast anonymously.</Text>
                         </View>
-                    }
+                    )}
                 />
 
                 {/* Post/Edit Modal */}
@@ -430,7 +437,7 @@ const ConfessionFeed = () => {
                                             </View>
                                         )}
                                         <Text className="text-accent-text font-display ml-2 text-label uppercase">Tagged: {taggedUser.name}</Text>
-                                        <TouchableOpacity onPress={() => setTaggedUser(null)} className="ml-3 bg-brand-100 rounded-full w-4 h-4 items-center justify-center">
+                                        <TouchableOpacity onPress={() => setTaggedUser(null)} hitSlop={12} className="ml-3 bg-brand-100 rounded-full w-4 h-4 items-center justify-center">
                                             <Ionicons name="close" size={12} color={C.brand[500]} />
                                         </TouchableOpacity>
                                     </View>

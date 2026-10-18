@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Pressable, Animated, StatusBar, RefreshControl, ScrollView} from 'react-native'
+import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Pressable, Animated, StatusBar, RefreshControl, ScrollView, KeyboardAvoidingView, Platform} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../context/axiosConfig';
@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import socket from '../utils/socket';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
-import { AppBar, IconBtn } from './ui/kit';
+import { AppBar, IconBtn, Empty, Button } from './ui/kit';
 import { Image } from 'expo-image';
 
 // Module scope: declared inside the screen it was a new component type on every
@@ -62,6 +62,8 @@ const LostAndFound = () => {
     const [items, setItems] = useState<LostAndFoundItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [loadError, setLoadError] = useState(false);
+    const contacting = useRef(false);
 
     // Modal State
     const [modalVisible, setModalVisible] = useState(false);
@@ -84,7 +86,8 @@ const LostAndFound = () => {
             const endpoint = activeTab === 'lost' ? '/lostAndFound/get/lost' : '/lostAndFound/get/found';
             const res = await axios.get(endpoint);
             if (id !== reqId.current) return;
-            if (res.data.success) {
+            setLoadError(false);
+            if (res.data?.success) {
                 const sorted = (res.data.items || []).sort((a: any, b: any) => {
                     const aStatus = activeTab === 'lost' ? a.is_lost_item_found : a.is_found_item_claimed;
                     const bStatus = activeTab === 'lost' ? b.is_lost_item_found : b.is_found_item_claimed;
@@ -94,6 +97,8 @@ const LostAndFound = () => {
             }
         } catch (error) {
             console.log("Error fetching items", error);
+            // A failed tab switch used to leave the other tab's items on screen.
+            if (id === reqId.current) { setItems([]); setLoadError(true); }
         } finally {
             if (id === reqId.current) {
                 setLoading(false);
@@ -115,7 +120,7 @@ const LostAndFound = () => {
     };
 
     const handleCreateItem = async () => {
-        if (!newItemName || !newItemPlace) {
+        if (!newItemName.trim() || !newItemPlace.trim()) {
             Alert.alert("Error", "Name and Place are required.");
             return;
         }
@@ -189,7 +194,8 @@ const LostAndFound = () => {
     };
 
     const handleMessage = async (targetUser: any) => {
-        if (!targetUser?._id) return;
+        if (!targetUser?._id || contacting.current) return;
+        contacting.current = true;
         try {
             const response = await axios.post("/chat/start", { userId: targetUser._id });
             const conversationId = response.data.conversation._id;
@@ -207,6 +213,8 @@ const LostAndFound = () => {
             });
         } catch (error: any) {
             Alert.alert("Error", "Could not initiate contact protocol.");
+        } finally {
+            contacting.current = false;
         }
     };
 
@@ -337,7 +345,11 @@ const LostAndFound = () => {
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchItems(true); }} tintColor={C.brand[500]} />}
-                        ListEmptyComponent={
+                        ListEmptyComponent={loadError ? (
+                            <View className="mt-20">
+                                <Empty icon="cloud-offline-outline" title="Couldn't load items" action={<Button title="Try again" onPress={() => fetchItems()} />} />
+                            </View>
+                        ) : (
                             <View className="items-center justify-center mt-20 px-gutter">
                                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                                     <Ionicons name="search" size={32} color={C.ink4} />
@@ -345,13 +357,13 @@ const LostAndFound = () => {
                                 <Text className="font-semibold text-base text-ink text-center">No Active Signals</Text>
                                 <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Scanning campus for artifacts...</Text>
                             </View>
-                        }
+                        )}
                     />
                 )}
             </View>
 
             <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-                <View className="flex-1 bg-black/60 justify-end">
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 bg-black/60 justify-end">
                     <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setModalVisible(false)} />
                     <View className="bg-paper rounded-t-sheet h-[80%] shadow-hair overflow-hidden">
                         <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
@@ -407,12 +419,12 @@ const LostAndFound = () => {
                             >
                                 {/* Ink on the ink-filled "lost" button was invisible. */}
                                 {submitting
-                                    ? <ActivityIndicator color={activeTab === 'lost' ? C.paper : C.ink} />
-                                    : <Text className={`font-display uppercase text-sm ${activeTab === 'lost' ? 'text-paper' : 'text-ink'}`}>Deploy Report to HQ</Text>}
+                                    ? <ActivityIndicator color={activeTab === 'lost' ? C.paper : C.onBrand} />
+                                    : <Text className={`font-display uppercase text-sm ${activeTab === 'lost' ? 'text-paper' : 'text-on-brand'}`}>Deploy Report to HQ</Text>}
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
         </View>
     );

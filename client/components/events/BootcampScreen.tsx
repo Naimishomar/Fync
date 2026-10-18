@@ -733,7 +733,7 @@ export default function BootcampScreen() {
                             }}
                         />
                     )}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchSessions(); }} />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchSessions(); }} tintColor={C.recruiter} colors={[C.recruiter]} />}
                     ListEmptyComponent={<View className="py-20 items-center"><Text className="text-ink-3 font-semibold">No bootcamps available</Text></View>}
                 />
 

@@ -481,7 +481,7 @@ export default function SpeakerSessionScreen() {
         try {
             const res = await axios.get(`/speakers/registrations/${eventId}`);
             if (res.data.success) {
-                setAttendees(res.data.registrations);
+                setAttendees(res.data.registrations ?? []);
             }
         } catch (error: any) {
             console.log("Error fetching attendees:", error.response?.data || error.message);
@@ -573,7 +573,10 @@ export default function SpeakerSessionScreen() {
             const sessionsPromise = axios.get("/speakers/all", { params: { page: pageNum, limit: 10 } });
             const registrationsPromise = axios.get("/speakers/my-sessions");
 
-            const [sessionsRes, registrationsRes] = await Promise.all([sessionsPromise, registrationsPromise]);
+            // Settled, not all: a failing my-sessions call used to hide every session too.
+            const [sessionsSettled, registrationsSettled] = await Promise.allSettled([sessionsPromise, registrationsPromise]);
+            if (sessionsSettled.status === 'rejected') throw sessionsSettled.reason;
+            const sessionsRes = sessionsSettled.value;
 
             if (sessionsRes.data.success) {
                 const batch: SpeakerSession[] = sessionsRes.data.sessions ?? [];
@@ -586,7 +589,8 @@ export default function SpeakerSessionScreen() {
                 setHasMore(sessionsRes.data.hasMore);
             }
 
-            if (registrationsRes.data.success) {
+            const registrationsRes = registrationsSettled.status === 'fulfilled' ? registrationsSettled.value : null;
+            if (registrationsRes?.data?.success) {
                 setMyRegistrations(registrationsRes.data.registrations || registrationsRes.data.sessions || []);
             }
         } catch (error: any) {
@@ -1092,15 +1096,17 @@ export default function SpeakerSessionScreen() {
                             }}
                         />
                     )}
-                    ListEmptyComponent={
+                    ListEmptyComponent={loading ? (
+                        <View className="items-center justify-center mt-20"><ActivityIndicator size="large" color={C.recruiter} /></View>
+                    ) : (
                         <View className="items-center justify-center mt-20 px-gutter">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                                 <Ionicons name="mic-outline" size={48} color={C.ink4} />
                             </View>
                             <Text className="font-semibold text-base text-ink text-center">Archive Empty</Text>
-                            <Text className="font-sans text-sm text-ink-4 mt-2 text-center">No intelligence sessions found in the registry.</Text>
+                            <Text className="font-sans text-sm text-ink-3 mt-2 text-center">No intelligence sessions found in the registry.</Text>
                         </View>
-                    }
+                    )}
                     ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={C.brand[500]} className="mb-10" /> : <View className="h-20" />}
                 />
             </View>
@@ -1618,7 +1624,7 @@ export default function SpeakerSessionScreen() {
                                             <View className="flex-row justify-between items-start mb-4">
                                                 <View className="flex-1">
                                                     <View className="flex-row items-center gap-2 mb-1">
-                                                        <Text className="text-on-brand font-display uppercase text-lg" style={{ flexShrink: 1 }} numberOfLines={1}>{u.name}</Text>
+                                                        <Text className="text-ink font-display uppercase text-lg" style={{ flexShrink: 1 }} numberOfLines={1}>{u.name}</Text>
                                                         {item.isPaid && (
                                                             <View className="bg-success/10 border border-success/15 px-2.5 py-1 rounded-full">
                                                                 <Text className="text-success text-label font-display uppercase">Verified</Text>
@@ -1653,8 +1659,8 @@ export default function SpeakerSessionScreen() {
                                 }}
                                 ListEmptyComponent={
                                     <View className="flex-1 items-center mt-20 p-card-pad">
-                                        <Ionicons name="people-outline" size={64} color={C.paper2} />
-                                        <Text className="font-semibold text-base text-on-brand mt-6 text-center">No verified personnel found.</Text>
+                                        <Ionicons name="people-outline" size={64} color={C.ink4} />
+                                        <Text className="font-semibold text-base text-ink mt-6 text-center">No verified personnel found.</Text>
                                     </View>
                                 }
                                 contentContainerStyle={{ paddingBottom: 50 }}

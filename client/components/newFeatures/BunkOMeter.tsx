@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {View, Text, TextInput, TouchableOpacity, Keyboard, Image, ScrollView, KeyboardAvoidingView, Platform, StatusBar} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -16,6 +16,7 @@ export default function BunkOMeter() {
     const [targetInput, setTargetInput] = useState('');
     const [result, setResult] = useState<any>(null);
     const navigation = useNavigation<any>();
+    const scrollRef = useRef<ScrollView>(null);
 
     const calculateAttendance = () => {
         Keyboard.dismiss();
@@ -89,6 +90,8 @@ export default function BunkOMeter() {
         }
 
         setResult(analysis);
+        // The result renders below the fold on most phones; bring it into view.
+        setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
     };
 
     return (
@@ -101,7 +104,7 @@ export default function BunkOMeter() {
                     behavior="padding"
                     className="flex-1"
                 >
-                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+                    <ScrollView ref={scrollRef} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
 
                         {/* --- INPUT CARD (Arena Style) --- */}
                         <View className="bg-card mx-gutter mt-4 p-card-pad rounded-xl border border-line shadow-hair">

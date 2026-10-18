@@ -10,7 +10,7 @@ import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Empty, Button } from '../ui/kit';
 import Avatar from '../Avatar';
 
 const SubGroupChat = ({ navigation, route }: any) => {
@@ -19,6 +19,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
     
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const [subGroup, setSubGroup] = useState<any>(null);
     const [text, setText] = useState('');
     const [sending, setSending] = useState(false);
@@ -32,8 +33,9 @@ const SubGroupChat = ({ navigation, route }: any) => {
 
     const fetchMessages = async () => {
         try {
+            setLoadError(false);
             const res = await axios.get(`/clubs/messages/${subGroupId}`);
-            if (res.data.success) {
+            if (res.data?.success) {
                 setMessages(res.data.messages || []);
                 setSubGroup(res.data.subGroup);
             }
@@ -44,6 +46,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
             }
         } catch (error) {
             console.log("Chat fetch error", error);
+            setLoadError(true);
         } finally {
             // No scroll timer here: onContentSizeChange already pins the list to the end.
             setLoading(false);
@@ -219,7 +222,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                                     <Ionicons name="checkmark-circle" size={14} color={C.info} style={{ marginLeft: 6 }} />
                                                 )}
                                             </View>
-                                            <Text className={`text-label font-display z-10 ${percentage === 100 ? 'text-white' : 'text-ink-3'}`}>{Math.round(percentage)}%</Text>
+                                            <Text className={`text-label font-display z-10 ${percentage === 100 ? 'text-ink' : 'text-ink-3'}`}>{Math.round(percentage)}%</Text>
                                         </View>
                                     </TouchableOpacity>
                                 );
@@ -280,6 +283,15 @@ const SubGroupChat = ({ navigation, route }: any) => {
                             keyboardShouldPersistTaps="handled"
                             keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                            ListEmptyComponent={loadError ? (
+                                <Empty
+                                    icon="cloud-offline-outline"
+                                    title="Couldn't load messages"
+                                    action={<Button title="Try again" onPress={() => { setLoading(true); fetchMessages(); }} />}
+                                />
+                            ) : (
+                                <Empty icon="chatbubbles-outline" title="No messages yet" />
+                            )}
                         />
                     )}
                 </View>
@@ -295,7 +307,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                     <Feather name="paperclip" size={20} color={C.ink2} />
                                 </TouchableOpacity>
                                 <View className="flex-1 min-h-[40px] max-h-32 bg-paper-2 rounded-card px-4 border border-line justify-center">
-                                    <TextInput 
+                                    <TextInput placeholderTextColor={C.ink4} 
                                         placeholder="Type message..." 
                                         className="text-ink text-sm font-semibold"
                                         multiline
@@ -308,7 +320,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                     disabled={sending || (!text.trim())}
                                     className={`w-11 h-11 rounded-card items-center justify-center mb-1 ${text.trim() ? 'bg-ink' : 'bg-paper-2'}`}
                                 >
-                                    {sending ? <ActivityIndicator color={C.paper} size="small" /> : <Feather name="arrow-up" size={24} color={C.paper} />}
+                                    {sending ? <ActivityIndicator color={C.paper} size="small" /> : <Feather name="arrow-up" size={24} color={text.trim() ? C.paper : C.ink4} />}
                                 </TouchableOpacity>
                             </View>
                         ) : (
@@ -331,18 +343,18 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                 </TouchableOpacity>
                             </View>
                             
-                            <TextInput 
+                            <TextInput placeholderTextColor={C.ink4} 
                                 placeholder="What's your question?"
-                                className="bg-paper-2 p-4 rounded-card mb-4 font-semibold"
+                                className="bg-paper-2 p-4 rounded-card mb-4 font-semibold text-ink"
                                 value={pollQuestion}
                                 onChangeText={setPollQuestion}
                             />
 
                             {pollOptions.map((opt, idx) => (
-                                <TextInput 
+                                <TextInput placeholderTextColor={C.ink4} 
                                     key={idx}
                                     placeholder={`Option ${idx + 1}`}
-                                    className="bg-paper-2 p-4 rounded-xl mb-3"
+                                    className="bg-paper-2 p-4 rounded-xl mb-3 text-ink"
                                     value={opt}
                                     onChangeText={(val) => {
                                         const newOpts = [...pollOptions];

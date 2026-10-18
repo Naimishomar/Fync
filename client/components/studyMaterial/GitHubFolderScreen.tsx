@@ -31,6 +31,7 @@ const GitHubFolderScreen = () => {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     fetchRepoContents();
@@ -38,18 +39,22 @@ const GitHubFolderScreen = () => {
 
   const fetchRepoContents = async () => {
     setLoading(true);
+    setFailed(false);
     try {
       // Use a fresh axios instance to avoid global interceptors adding local auth tokens
       const githubAxios = axios.create();
       const response = await githubAxios.get(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`);
       // Sort: Folders first, then files
-      const sortedData = response.data.sort((a: any, b: any) => {
+      // A file path or an API error body is an object, not a listing.
+      const sortedData = (Array.isArray(response.data) ? response.data : []).sort((a: any, b: any) => {
         if (a.type === b.type) return a.name.localeCompare(b.name);
         return a.type === 'dir' ? -1 : 1;
       });
       setItems(sortedData);
     } catch (error) {
+      // Usually GitHub's 60-requests-an-hour anonymous limit; say so instead of "no files".
       console.error("Error fetching repo contents:", error);
+      setFailed(true);
     } finally {
       setLoading(false);
     }
@@ -167,7 +172,14 @@ const GitHubFolderScreen = () => {
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                   <Ionicons name="folder-open-outline" size={32} color={C.ink4} />
                 </View>
-                <Text className="font-semibold text-base text-ink text-center">No protocol files found</Text>
+                <Text className="font-semibold text-base text-ink text-center">
+                  {failed ? "Couldn't load this folder" : 'No protocol files found'}
+                </Text>
+                {failed ? (
+                  <TouchableOpacity onPress={fetchRepoContents} className="mt-4 bg-ink px-5 py-3 rounded-md" accessibilityRole="button">
+                    <Text className="text-paper font-display text-label uppercase">Try again</Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
             }
           />

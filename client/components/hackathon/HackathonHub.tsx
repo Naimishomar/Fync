@@ -448,7 +448,11 @@ const HackathonHub = () => {
 
         if (id !== reqId.current) return; // a newer request superseded this one
 
-        setHackathons((prev) => (opts.append ? [...prev, ...data] : data));
+        // Dedupe on append: a listing published between page fetches shifts the
+        // pages and repeats a row, which FlatList renders twice under one key.
+        setHackathons((prev) =>
+          opts.append ? [...prev, ...data.filter((d) => !prev.some((p) => p._id === d._id))] : data
+        );
         setPage(opts.pageNum);
         setHasMore(more);
       } catch {

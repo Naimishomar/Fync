@@ -8,7 +8,7 @@ import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Empty, Button } from '../ui/kit';
 import Avatar from '../Avatar';
 
 const EditSubGroupScreen = () => {
@@ -36,12 +36,12 @@ const EditSubGroupScreen = () => {
     const fetchSubGroupDetails = async () => {
         try {
             const res = await axios.get(`/clubs/messages/${subGroupId}`);
-            if (res.data.success) {
-                const sg = res.data.subGroup;
+            const sg = res.data?.success ? res.data.subGroup : null;
+            if (sg) {
                 setSubGroup(sg);
-                setName(sg.name);
-                setDescription(sg.description);
-                setOnlyAdminsCanMessage(sg.onlyAdminsCanMessage);
+                setName(sg.name || '');
+                setDescription(sg.description || '');
+                setOnlyAdminsCanMessage(!!sg.onlyAdminsCanMessage);
 
                 // Fetch Club for admin check
                 const clubRes = await axios.get(`/clubs/${sg.clubId}`);
@@ -230,7 +230,20 @@ const EditSubGroupScreen = () => {
     const canEditRoom = isMainAdmin || isRoomLeader || isSuperAdmin;
     const canDelete = canEditRoom && !subGroup?.isGeneral;
 
-    if (loading) return <View className="flex-1 bg-paper justify-center items-center"><ActivityIndicator color={C.ink} /></View>;
+    if (loading || !subGroup) return (
+        <View className="flex-1 bg-paper">
+            <AppBar title="Room Control" onBack={() => navigation.goBack()} />
+            {loading ? (
+                <View className="flex-1 justify-center items-center"><ActivityIndicator color={C.brand[500]} /></View>
+            ) : (
+                <Empty
+                    icon="cloud-offline-outline"
+                    title="Couldn't load this room"
+                    action={<Button title="Try again" onPress={() => { setLoading(true); fetchSubGroupDetails(); fetchMembers(); }} />}
+                />
+            )}
+        </View>
+    );
 
     return (
         <View className="flex-1 bg-paper">
@@ -247,7 +260,7 @@ const EditSubGroupScreen = () => {
                                 {logo ? (
                                     <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
                                 ) : (
-                                    <Image source={{ uri: subGroup?.logo }} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
+                                    <Image source={subGroup?.logo ? { uri: subGroup.logo } : undefined} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
                                 )}
                                 <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-card">
                                     <Feather name="edit-2" size={14} color={C.paper} />
@@ -258,7 +271,7 @@ const EditSubGroupScreen = () => {
                         {/* Form Fields */}
                         <View className="mt-2">
                             <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Room Identity</Text>
-                            <TextInput 
+                            <TextInput placeholderTextColor={C.ink4} 
                                 placeholder="New Room Name"
                                 className={`bg-paper-2 p-5 rounded-card mb-4 font-semibold border border-line ${subGroup?.isGeneral ? 'text-ink-3' : 'text-ink'}`}
                                 value={name}
@@ -272,7 +285,7 @@ const EditSubGroupScreen = () => {
                             )}
                             
                             <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Scope & Mission</Text>
-                            <TextInput 
+                            <TextInput placeholderTextColor={C.ink4} 
                                 placeholder="Refined scope..."
                                 className="bg-card p-5 mb-8 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 multiline

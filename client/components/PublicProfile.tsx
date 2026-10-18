@@ -23,6 +23,7 @@ import { AppBar, Button, Empty, IconBtn } from './ui/kit';
 import { Alert } from './ui/AlertModal';
 import { confirmBlock, report } from '../utils/safety';
 import { tapHaptic } from '../utils/haptics';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('window');
 
@@ -90,7 +91,11 @@ const PublicProfile = () => {
     useEffect(() => {
         if (currentUser?._id && profileUser?._id) {
             if (currentUser._id === profileUser._id) {
-                navigation.replace("Profile");
+                // "Profile" is a tab, not a root stack screen, so replace() was
+                // unhandled and left the user on their own public profile.
+                navigation.popTo('Tabs', currentUser.user_access === 'recruiter'
+                    ? { screen: 'Profile' }
+                    : { screen: 'TabNavigator', params: { screen: 'Profile' } });
             }
         }
     }, [currentUser, profileUser]);
@@ -206,12 +211,19 @@ const PublicProfile = () => {
         }
     };
 
+    // onEndReached can fire twice before isFetchingMore re-renders.
+    const loadMoreBusy = useRef(false);
     const handleLoadMore = () => {
-        if (isFetchingMore || !targetUserId) return;
+        if (isFetchingMore || loadMoreBusy.current || !targetUserId) return;
+        let req: Promise<void> | undefined;
         if (activeTab === 'posts' && hasMorePosts) {
-            fetchUserPosts(targetUserId, postsPage + 1);
+            req = fetchUserPosts(targetUserId, postsPage + 1);
         } else if (activeTab === 'shorts' && hasMoreShorts) {
-            fetchUserShorts(targetUserId, shortsPage + 1);
+            req = fetchUserShorts(targetUserId, shortsPage + 1);
+        }
+        if (req) {
+            loadMoreBusy.current = true;
+            req.finally(() => { loadMoreBusy.current = false; });
         }
     };
 
@@ -236,7 +248,7 @@ const PublicProfile = () => {
                 }) : null);
             }
         } catch (error: any) {
-            console.log("Follow error", error.message);
+            Toast.show({ type: 'error', text1: error?.response?.data?.message || "Couldn't update follow. Try again." });
         } finally {
             followBusy.current = false;
         }
@@ -253,6 +265,7 @@ const PublicProfile = () => {
         } catch (err: any) {
             console.log("Start chat error", err);
             if (err?.response?.status === 403) Alert.alert("Can't message", err.response.data?.message || "You can't message this user");
+            else Toast.show({ type: 'error', text1: "Couldn't open chat. Try again." });
         }
     };
 
@@ -335,6 +348,11 @@ const PublicProfile = () => {
                         <Text className="text-white text-label font-semibold absolute bottom-1.5 left-2 truncate w-[90%] z-20 shadow-hair">
                             {item.title}
                         </Text>
+                    </View>
+                ) : !item.image?.length ? (
+                    // Text-only post: an empty image source drew a blank tile.
+                    <View className="flex-1 bg-paper-2 items-center justify-center p-3">
+                        <Text className="text-accent-text text-label font-semibold text-center" numberOfLines={4}>{item.title || item.description}</Text>
                     </View>
                 ) : (
                     <>

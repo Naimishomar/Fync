@@ -144,7 +144,7 @@ const StudentPicker = ({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 bg-ink/50 justify-end">
+      <View className="flex-1 bg-black/50 justify-end">
         <View className="bg-paper rounded-t-sheet border-t-2 border-ink" style={{ height: '72%' }}>
           <View className="flex-row items-center justify-between px-gutter pt-4 pb-3 border-b border-line">
             <Text className="text-ink text-base font-display">Tag a student</Text>
@@ -350,7 +350,7 @@ const HackathonWinners = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar style="dark" />
+      <StatusBar style={C.scheme === 'dark' ? 'light' : 'dark'} />
       <View className="flex-1">
         {/* Header */}
         <AppBar title="Announce Winners" onBack={confirmLeave} />

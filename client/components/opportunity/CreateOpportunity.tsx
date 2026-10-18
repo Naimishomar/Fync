@@ -52,22 +52,26 @@ const CreateOpportunity = () => {
   });
 
   const pickLogo = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
 
-    if (!result.canceled && result.assets?.[0]) {
-      setLogoUri(result.assets[0].uri);
+      if (!result.canceled && result.assets?.[0]) {
+        setLogoUri(result.assets[0].uri);
+      }
+    } catch {
+      Alert.alert("Error", "Could not open your photos.");
     }
   };
 
   const handlePost = async () => {
     const { title, company, description, isPaid, stipend } = formData;
 
-    if (!title || !company || !description) {
+    if (!title.trim() || !company.trim() || !description.trim()) {
       Alert.alert("Required Fields", "Please fill in Title, Company, and Description.");
       return;
     }
@@ -100,7 +104,9 @@ const CreateOpportunity = () => {
       // Append logo image if newly picked
       if (logoUri && !logoUri.startsWith('http')) {
         const uriParts = logoUri.split('.');
-        const fileType = uriParts[uriParts.length - 1];
+        // "image/jpg" is not a MIME type; servers that check it reject the upload.
+        const ext = uriParts[uriParts.length - 1].toLowerCase();
+        const fileType = ext === 'jpg' ? 'jpeg' : ext;
         data.append('companyLogo', {
           uri: logoUri,
           name: `logo.${fileType}`,

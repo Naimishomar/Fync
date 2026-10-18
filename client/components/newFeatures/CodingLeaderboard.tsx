@@ -262,7 +262,7 @@ export default function CodingLeaderboard() {
                 )}
             </View>
             <View className="p-0.5 rounded-full border border-line bg-card">
-                <Image source={{ uri: item.avatar }} style={{ width: 48, height: 48, borderRadius: 24 }} cachePolicy="memory-disk" />
+                <Image source={{ uri: item.avatar }} recyclingKey={item._id} style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
             </View>
             <View className="flex-1 ml-4">
                 <Text className="text-ink font-display text-sm uppercase" numberOfLines={1}>{item.name || item.username}</Text>
@@ -339,7 +339,7 @@ export default function CodingLeaderboard() {
                         </View>
                         </StampCard>
 
-                        <Text className="font-sans text-sm text-ink-4 mt-12 text-center px-gutter">
+                        <Text className="font-sans text-sm text-ink-3 mt-12 text-center px-gutter">
                             Your coding stats will be fetched directly from LeetCode and displayed in the Fync Arena.
                         </Text>
                     </ScrollView>
@@ -431,7 +431,7 @@ export default function CodingLeaderboard() {
 
                 {/* --- ULTRA DETAILED MODAL --- */}
                 <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>
-                    <BlurView intensity={20} tint="light" className="flex-1 justify-end">
+                    <BlurView intensity={20} tint={C.scheme === 'dark' ? 'dark' : 'light'} className="flex-1 justify-end">
                         <TouchableOpacity className="absolute inset-0" onPress={() => setModalVisible(false)} />
                         <View className="bg-paper h-[85%] rounded-t-sheet border-t border-line p-card-pad shadow-hair">
                             <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mb-8" />
@@ -589,7 +589,7 @@ export default function CodingLeaderboard() {
                                             ))}
                                         </View>
                                     ) : (
-                                        <Text className="text-ink-4 mb-8">No recent activity detected.</Text>
+                                        <Text className="text-ink-3 mb-8">No recent activity detected.</Text>
                                     )}
 
                                     <TouchableOpacity

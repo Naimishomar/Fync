@@ -405,7 +405,7 @@ export default function TabLayout() {
           component={Profile} 
           options={{ 
             tabBarAccessibilityLabel: 'You, profile tab',
-            tabBarIcon: ({ color, focused }) => (
+            tabBarIcon: ({ focused }) => (
               user?.avatar ? (
                 <View style={{ 
                   width: 28, 
@@ -419,7 +419,8 @@ export default function TabLayout() {
                   <TabAvatar key={user.avatar} path={user.avatar} />
                 </View>
               ) : (
-                <Ionicons name="person-outline" size={24} color={color} />
+                // TabIcon, not the bar's ink tint: an ink glyph vanished on the dark glass.
+                <TabIcon name="person-outline" focused={focused} />
               )
             ) 
           }} 

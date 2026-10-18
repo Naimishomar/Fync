@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl, Linking, TextInput, Modal, Pressable, KeyboardAvoidingView, Platform} from 'react-native'
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
@@ -94,15 +94,15 @@ const RecruiterPortal = () => {
     };
 
     // ─── Data fetching ────────────────────────────────────────────────────
-    const fetchData = useCallback(async () => {
-        setLoading(true);
+    const fetchData = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const [postsRes, appsRes] = await Promise.all([
                 axios.get('/opportunity/recruiter/posts'),
                 axios.get('/opportunity/recruiter/applications'),
             ]);
-            if (postsRes.data.success) setPosts(postsRes.data.data);
-            if (appsRes.data.success) setApplications(appsRes.data.data);
+            if (postsRes.data.success) setPosts(postsRes.data.data ?? []);
+            if (appsRes.data.success) setApplications(appsRes.data.data ?? []);
         } catch (error) {
             Alert.alert('Error', 'Failed to fetch portal data.');
         } finally {
@@ -111,6 +111,14 @@ const RecruiterPortal = () => {
     }, []);
 
     useEffect(() => { fetchData(); }, [fetchData]);
+
+    // This is a tab: it stays mounted, so a role posted from CreateOpportunity
+    // never appeared on return. Refetch quietly on refocus.
+    const focusedOnce = useRef(false);
+    useFocusEffect(useCallback(() => {
+        if (focusedOnce.current) fetchData(true);
+        else focusedOnce.current = true;
+    }, [fetchData]));
 
     // ─── Helpers ────────────────────────────────────────────────────────
     const openView = (post: any, target: PortalView, filter: 'all' | 'new' | 'shortlisted' | 'rejected' = 'all') => {
@@ -800,7 +808,7 @@ const RecruiterPortal = () => {
                 right={
                     <>
                         <IconBtn name="notifications-outline" onPress={() => navigation.navigate('Notification')} />
-                        <IconBtn name="refresh" onPress={fetchData} />
+                        <IconBtn name="refresh" onPress={() => fetchData()} />
                     </>
                 }
             />
@@ -888,7 +896,7 @@ const RecruiterPortal = () => {
                             keyExtractor={item => item._id}
                             renderItem={renderPostCard}
                             contentContainerStyle={{ paddingTop: 8, paddingBottom: tabBarClearance }}
-                            refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
+                            refreshControl={<RefreshControl refreshing={loading} onRefresh={() => fetchData()} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
                             ListEmptyComponent={
                                 <View className="items-center justify-center py-20 px-gutter">
                                     <Ionicons name="file-tray-outline" size={60} color={C.ink4} />
@@ -922,7 +930,7 @@ const RecruiterPortal = () => {
                         keyExtractor={item => item._id}
                         renderItem={renderApplicantCard}
                         contentContainerStyle={{ paddingTop: 12, paddingBottom: tabBarClearance }}
-                        refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchData} />}
+                        refreshControl={<RefreshControl refreshing={loading} onRefresh={() => fetchData()} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
                         ListEmptyComponent={
                             // The empty state has to distinguish "nobody applied"
                             // from "your filter hid everyone" — the old one said

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StatusBar, Dimensions, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StatusBar, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -34,7 +34,6 @@ export default function TwelveAMLockScreen() {
 
   const handleEnter = () => {
       if (isOpen) {
-          console.log("Entering Club...");
           navigation.navigate("TwelveAMClub");
       }
   };
@@ -110,10 +109,10 @@ export default function TwelveAMLockScreen() {
 
             <TouchableOpacity disabled={!isOpen} onPress={handleEnter} activeOpacity={0.8}>
                 {isOpen ? (
-                    <Pressable className="flex-row items-center justify-center rounded-full bg-brand-500 py-3" onPress={handleEnter}>
+                    <View className="flex-row items-center justify-center rounded-full bg-brand-500 py-3">
                         <Text className="text-night font-display text-lg mr-2">ENTER CLUB</Text>
                         <Ionicons name="arrow-forward" size={20} color={C.night} />
-                    </Pressable>
+                    </View>
                 ) : (
                     <View className="flex-row items-center justify-center bg-brand-500/20 py-3 rounded-full">
                         <Ionicons name="lock-closed" size={20} color={C.night3} style={{ marginRight: 8 }} />

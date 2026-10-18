@@ -35,6 +35,10 @@ export default function LoginScreen() {
   );
 
   const handleSubmit = async () => {
+    if (!email.trim() || !password) {
+      Toast.show({ type: 'error', text1: 'Enter your email and password' });
+      return;
+    }
     try {
       setIsLoading(true);
       // Keyboards and autofill leave a trailing space that fails the lookup.

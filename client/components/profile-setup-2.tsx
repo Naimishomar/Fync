@@ -41,6 +41,9 @@ export default function ProfileSetup2() {
   const [isLoading, setIsLoading] = useState(false);
   // State updates are async; a quick double tap would otherwise register twice.
   const submittingRef = useRef(false);
+  // Register succeeded but the follow-up login failed: a retry must only log
+  // in, or /user/register answers "User already exists" and the user is stuck.
+  const registeredRef = useRef(false);
 
   const handleUploadProfilePic = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -53,7 +56,7 @@ export default function ProfileSetup2() {
       mediaTypes: 'images',
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 1,
+      quality: 0.7,
     });
 
     if (!result.canceled) {
@@ -61,11 +64,15 @@ export default function ProfileSetup2() {
     }
   };
 
-  const submitRegistration = async () => {
+  const submitRegistration = async (withPhoto = true) => {
     if (submittingRef.current) return;
     submittingRef.current = true;
     try {
       setIsLoading(true);
+      if (registeredRef.current) {
+        await login(route.params.email, route.params.password);
+        return;
+      }
       const formData = new FormData();
 
       formData.append('email', route.params.email);
@@ -91,7 +98,7 @@ export default function ProfileSetup2() {
       formData.append('gender', route.params.gender);
       formData.append('major', route.params.major);
 
-      if (profileImageUri) {
+      if (withPhoto && profileImageUri) {
         const filename = profileImageUri.split('/').pop();
         const match = /\.(\w+)$/.exec(filename || '');
         const type = match ? `image/${match[1]}` : 'image/jpeg';
@@ -108,6 +115,7 @@ export default function ProfileSetup2() {
         },
       });
       if (res.data.success) {
+        registeredRef.current = true;
         Toast.show({
           type: 'success',
           text1: 'Registered successfully',
@@ -153,7 +161,7 @@ export default function ProfileSetup2() {
           {/* Bottom Sheet */}
           <View className="rounded-t-sheet bg-paper px-6 pt-8 pb-16">
             <ScrollView keyboardShouldPersistTaps="handled">
-              <Text className="font-display mb-6 text-center text-h1">
+              <Text className="font-display mb-6 text-center text-h1 text-ink">
                 Profile Setup
               </Text>
 
@@ -185,7 +193,7 @@ export default function ProfileSetup2() {
                 <Pressable
                   className="bg-brand-500 items-center justify-center mb-4 border-2 border-ink rounded-md"
                   style={{ minHeight: 48 }}
-                  onPress={submitRegistration}
+                  onPress={() => submitRegistration(true)}
                   accessibilityRole="button"
                 >
                   <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
@@ -202,7 +210,7 @@ export default function ProfileSetup2() {
               ) : (
                 <Pressable
                   className="rounded-full border border-line py-4 items-center"
-                  onPress={submitRegistration}
+                  onPress={() => submitRegistration(false)}
                 >
                   <Text className="text-ink-2 text-lg font-semibold">
                     Skip for now

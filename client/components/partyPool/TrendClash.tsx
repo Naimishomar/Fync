@@ -135,7 +135,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
                 </TouchableOpacity>
                 <TouchableOpacity 
                     onPress={onClose}
-                    className="mt-4 bg-night px-gutter py-4 rounded-full w-full items-center border border-night"
+                    className="mt-4 bg-night px-gutter py-4 rounded-full w-full items-center border border-white/20"
                 >
                     <Text className="text-white font-display uppercase">Exit</Text>
                 </TouchableOpacity>
@@ -147,7 +147,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
     return (
         <View className="grow rounded-sheet overflow-hidden bg-night border border-night" style={{ minHeight: 520 }}>
             {/* Top Half - Item A */}
-            <View className="flex-1 justify-center items-center p-6 border-b border-night bg-night relative">
+            <View className="flex-1 justify-center items-center p-6 border-b border-white/10 bg-night relative">
                 <TouchableOpacity onPress={onClose} hitSlop={8} className="absolute top-4 left-4 z-10 bg-white/10 p-2 rounded-full">
                     <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>

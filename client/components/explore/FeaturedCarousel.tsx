@@ -9,7 +9,7 @@ import { isFeatureOn } from '../../constants/features';
 import Skeleton from '../Skeleton';
 import { daysLeftLabel } from '../../utils/deadline';
 
-type FeaturedType = 'hackathon' | 'internship' | 'job' | 'bootcamp' | 'speaker';
+type FeaturedType = 'hackathon' | 'internship' | 'job' | 'bootcamp' | 'speaker' | 'gig';
 type FeaturedItem = {
   type: FeaturedType;
   id: string;
@@ -17,6 +17,8 @@ type FeaturedItem = {
   org?: string;
   image?: string;
   logo?: string;
+  /** Stipend / package / gig pay, already formatted. */
+  pay?: string;
   chips: string[];
   deadline?: string;
 };
@@ -29,6 +31,7 @@ const META: Record<FeaturedType, { feature: string; family: 'career' | 'events';
   job: { feature: 'jobs', family: 'career', open: () => ['JobList'] },
   bootcamp: { feature: 'bootcamps', family: 'events', open: () => ['BootcampScreen'] },
   speaker: { feature: 'speakers', family: 'events', open: () => ['SpeakerSessionScreen'] },
+  gig: { feature: 'gigs', family: 'career', open: () => ['PaidGigs'] },
 };
 
 const GAP = 12;
@@ -61,8 +64,8 @@ const Poster = ({ item, w, h }: { item: FeaturedItem; w: number; h: number }) =>
       {!item.image ? (
         <View className="items-center" style={{ paddingTop: h * 0.14 }}>
           {item.logo ? (
-            <View className="rounded-xl overflow-hidden" style={{ width: w * 0.5, height: w * 0.5, backgroundColor: '#FFFFFF' }}>
-              <Image source={{ uri: item.logo }} recyclingKey={`${item.id}-logo`} style={{ width: '100%', height: '100%' }} contentFit="contain" cachePolicy="disk" />
+            <View className="rounded-full overflow-hidden" style={{ width: w * 0.5, height: w * 0.5, backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: 'rgba(255,255,255,0.9)' }}>
+              <Image source={{ uri: item.logo }} recyclingKey={`${item.id}-logo`} style={{ width: '100%', height: '100%' }} contentFit={item.type === 'gig' ? 'cover' : 'contain'} cachePolicy="disk" />
             </View>
           ) : (
             <Text className="font-display" style={{ color: '#FFFFFF', fontSize: w * 0.34 }}>
@@ -115,9 +118,11 @@ const FeaturedCarousel = () => {
     axios
       .get('/explore/featured')
       .then((res) => {
-        const list: FeaturedItem[] = (res.data?.items ?? []).filter(
-          (i: FeaturedItem) => META[i.type] && isFeatureOn(META[i.type].feature)
-        );
+        const raw = Array.isArray(res.data?.items) ? res.data.items : [];
+        // chips/title come straight from the API; one item missing them crashed the row.
+        const list: FeaturedItem[] = raw
+          .filter((i: FeaturedItem) => i?.id && i.title && META[i.type] && isFeatureOn(META[i.type].feature))
+          .map((i: FeaturedItem) => ({ ...i, chips: Array.isArray(i.chips) ? i.chips : [] }));
         if (live) setItems(list);
       })
       .catch(() => live && setItems([]));
@@ -152,9 +157,9 @@ const FeaturedCarousel = () => {
       <View className="mt-6">
         <Header />
         <View className="flex-row" style={{ gap: GAP }}>
-          <Skeleton width={cardW} height={cardH} borderRadius={14} />
-          <Skeleton width={cardW} height={cardH} borderRadius={14} />
-          <Skeleton width={cardW} height={cardH} borderRadius={14} />
+          <Skeleton width={cardW} height={cardH} borderRadius={14} lightMode />
+          <Skeleton width={cardW} height={cardH} borderRadius={14} lightMode />
+          <Skeleton width={cardW} height={cardH} borderRadius={14} lightMode />
         </View>
       </View>
     );
@@ -202,11 +207,16 @@ const FeaturedCarousel = () => {
             style={{ width: cardW }}
             className="active:opacity-80"
             accessibilityRole="button"
-            accessibilityLabel={[item.title, item.org, due?.label, ...item.chips].filter(Boolean).join('. ')}
+            accessibilityLabel={[item.title, item.org, item.pay, due?.label, ...item.chips].filter(Boolean).join('. ')}
           >
             <View className="rounded-[14px] border border-line overflow-hidden bg-card">
               <Poster item={item} w={cardW} h={cardH} />
             </View>
+            {item.pay ? (
+              <Text className="font-display text-ink mt-1.5" style={{ fontSize: 13 }} numberOfLines={1}>
+                💰 {item.pay}
+              </Text>
+            ) : null}
             {due || item.chips[0] ? (
               <View className={`self-start mt-1.5 rounded-full px-2 py-0.5 border ${due?.urgent ? 'bg-brand-50 border-brand-500/30' : 'border-line'}`}>
                 <Text className={`font-sans text-[11px] ${due ? 'text-accent-text' : 'text-ink-2'}`} numberOfLines={1}>

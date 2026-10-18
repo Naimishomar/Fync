@@ -299,7 +299,8 @@ function HomeDrawer() {
       screenOptions={{
         headerShown: false,
         drawerStyle: {
-          backgroundColor: '#000',
+          // Paper, not black: the drawer edge flashed black in light mode while sliding.
+          backgroundColor: C.paper,
           width: '75%',
         },
         drawerType: 'front',

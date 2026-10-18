@@ -5,7 +5,7 @@ import { C } from '../../constants/colors';
 import { AppBar } from '../ui/kit';
 
 const CodeViewerScreen = ({ route, navigation } : any) => {
-  const { url, title, language = 'javascript' } = route.params;
+  const { url, title, language = 'javascript' } = route?.params ?? {};
   
   React.useLayoutEffect(() => {
     navigation.setOptions({ title: title });

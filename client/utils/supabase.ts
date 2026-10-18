@@ -73,6 +73,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   // session -- which is correct here, since Fync's backend is the identity
   // provider and supabase.auth was never used.
   accessToken: getSupabaseAccessToken,
+  // A hung endpoint (paused project, bad network) otherwise leaves chat
+  // skeletons spinning forever; time out so screens reach their error state.
+  global: {
+    fetch: (input, init) => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000);
+      init?.signal?.addEventListener('abort', () => ctrl.abort());
+      return fetch(input, { ...init, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+    },
+  },
 });
 
 /**

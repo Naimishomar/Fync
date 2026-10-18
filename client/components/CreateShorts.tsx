@@ -430,8 +430,9 @@ const CreateShorts = () => {
                       </>
                     ) : (
                       <>
-                        <Text className="text-ink font-display uppercase mr-3 text-base">Post to Fync</Text>
-                        <Ionicons name="rocket-outline" size={20} color={C.ink} />
+                        {/* on-brand, not ink: ink turns light in dark mode and vanished on the orange. */}
+                        <Text className="text-on-brand font-display uppercase mr-3 text-base">Post to Fync</Text>
+                        <Ionicons name="rocket-outline" size={20} color={C.onBrand} />
                       </>
                     )}
                   </View>

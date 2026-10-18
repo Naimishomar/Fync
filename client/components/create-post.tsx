@@ -25,6 +25,7 @@ import { useAuth } from '../context/auth.context';
 import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
 import { AppBar } from './ui/kit';
+import { getFullUrl } from '../utils/imageUtils';
 
 interface UserSuggestion {
   _id: string;
@@ -107,7 +108,7 @@ function CreatePost() {
   const openGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      alert('Permission required!');
+      Toast.show({ type: 'error', text1: 'Photo access needed', text2: 'Allow photo access in Settings to add images.' });
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -221,7 +222,7 @@ function CreatePost() {
                                 onPress={() => handleSelection(user)}
                                 className="flex-row items-center p-4 border-b border-line"
                             >
-                                <Image source={{ uri: user.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name || '') }} className="w-10 h-10 rounded-card bg-paper-2" />
+                                <Image source={{ uri: getFullUrl(user.avatar) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name || '') }} className="w-10 h-10 rounded-card bg-paper-2" />
                                 <View className="ml-4">
                                     <Text className="text-sm font-display text-ink uppercase">{user.name}</Text>
                                     <Text className="text-label font-display text-accent-text uppercase mt-0.5">@{user.username}</Text>

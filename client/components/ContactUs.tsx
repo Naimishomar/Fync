@@ -69,9 +69,8 @@ const ContactUs = () => {
     };
 
     const handleSubmit = async () => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         const { name, phone, email, message } = formData;
-        if (!name || !phone || !email || !message) {
+        if (!name.trim() || !phone.trim() || !email.trim() || !message.trim()) {
             Toast.show({
                 type: 'error',
                 text1: 'Error',
@@ -106,7 +105,10 @@ const ContactUs = () => {
                 },
             });
 
-            if (res.status === 201) {
+            // Any 2xx is a success (axios throws on the rest); a 200 used to
+            // leave the user on the form with no feedback at all.
+            if (res.status >= 200 && res.status < 300) {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 setIsSubmitted(true);
                 setFormData({ name: '', phone: '', email: '', message: '' });
                 setSelectedImages([]);

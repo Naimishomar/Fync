@@ -223,7 +223,7 @@ export default function MasterStudyHub() {
                     </Text>
                   </View>
 
-                  <Text className="font-display text-base text-on-brand" numberOfLines={3}>{item.title}</Text>
+                  <Text className="font-display text-base text-ink" numberOfLines={3}>{item.title}</Text>
 
                   {item.authors?.length > 0 && (
                     <Text className="font-sans text-ink-3 mt-1" style={{ fontSize: 11 }} numberOfLines={1}>
@@ -235,7 +235,7 @@ export default function MasterStudyHub() {
               ListEmptyComponent={
                 <View className="items-center mt-20 px-8">
                   <Ionicons name="document-outline" size={52} color={C.ink4} />
-                  <Text className="font-display text-base text-on-brand mt-4 text-center">Nothing found</Text>
+                  <Text className="font-display text-base text-ink mt-4 text-center">Nothing found</Text>
                   <Text className="font-sans text-ink-3 mt-2 text-center" style={{ fontSize: 13 }}>
                     Try the subject name on its own, like "operating systems".
                   </Text>

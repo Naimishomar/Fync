@@ -47,7 +47,8 @@ export const AuthProvider = ({ children }: any) => {
   // Local half of logout. Also run by axiosConfig when the refresh token is
   // rejected, so the app drops back to login instead of failing every call.
   const clearSession = async () => {
-    await AsyncStorage.multiRemove(["accessToken", "refreshToken", "cachedUser"]);
+    // recentSearches is per-account too: the next login on this phone must not see it.
+    await AsyncStorage.multiRemove(["accessToken", "refreshToken", "cachedUser", "recentSearches"]);
     // The request interceptor holds the token in memory now; clearing storage
     // alone would leave the logged-out session still sending it.
     setAuthToken(null);

@@ -45,31 +45,31 @@ export default function TermsAndCondition() {
           {/* Sections */}
           <TCSection
             icon="shield-checkmark"
-            title="1.Usage"
+            title="1. Usage"
             content="You agree to use this app only for lawful purposes. Any activity that harms, harasses, or violates the rights of other students is strictly prohibited and may result in permanent termination of your account."
           />
 
           <TCSection
             icon="lock-closed"
-            title="2.User Data"
+            title="2. User Data"
             content="Your privacy is our priority. We collect data to improve your experience and match you with relevant opportunities. We will never sell your personal information to third parties without your explicit consent."
           />
 
           <TCSection
             icon="card"
-            title="3.Payments"
+            title="3. Payments"
             content="All financial transactions, including funding and gig payments, are processed through secure, industry-standard third-party providers. Fync is not liable for transaction failures caused by external banking systems."
           />
 
           <TCSection
             icon="sync"
-            title="4.Updates"
+            title="4. Updates"
             content="The student ecosystem is fast-moving. We reserve the right to modify these terms at any time. Significant changes will be announced via the dashboard or email."
           />
 
           <TCSection
             icon="mail"
-            title="5.Contact"
+            title="5. Contact"
             content="Questions or concerns? Reach out to our legal and support team directly at fync.dev@gmail.com — we're here to help you build your future."
           />
 

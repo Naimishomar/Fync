@@ -500,7 +500,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 <Avatar user={data.user as any} size={40} />
                                 <View className="ml-2">
                                     <Text className="text-white font-semibold text-base shadow-hair">{data.user?.name || data.user?.username}</Text>
-                                    <Text className="text-ink-4 text-xs shadow-hair">@{data.user?.username}</Text>
+                                    <Text className="text-white/70 text-xs shadow-hair">@{data.user?.username}</Text>
                                 </View>
                             </Pressable>
                             {/* Truncated Title & Description */}
@@ -510,7 +510,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                         ? title.substring(0, 50) + "..."
                                         : title}
                                 </Text>
-                                <Text className="text-ink-4 text-xs shadow-hair mt-1">
+                                <Text className="text-white/70 text-xs shadow-hair mt-1">
                                     {(!showFullText && description.length > 50)
                                         ? description.substring(0, 50) + "..."
                                         : description}
@@ -592,7 +592,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 <Avatar user={data.user as any} size={36} />
                                 <View className="ml-3 flex-1 min-w-0">
                                     <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{data.user?.username}</Text>
-                                    {data.college && <Text className="text-ink-3 text-label uppercase" numberOfLines={1}>{data.college}</Text>}
+                                    {!!data.college && <Text className="text-ink-3 text-label uppercase" numberOfLines={1}>{data.college}</Text>}
                                 </View>
                             </Pressable>
                     </AppBar>

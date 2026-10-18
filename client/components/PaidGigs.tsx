@@ -32,7 +32,7 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
     const MAX_CHAR = 150;
 
     const isOwner = item.postedBy?._id === currentUser?._id || item.postedBy === currentUser?._id;
-    const avatarUrl = item.postedBy?.avatar || (isOwner ? currentUser?.avatar : `https://ui-avatars.com/api/?name=${item.postedBy?.username || 'User'}`);
+    const avatarUrl = item.postedBy?.avatar || (isOwner ? currentUser?.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(item.postedBy?.username || 'User')}`);
     const posterName = item.postedBy?.name || (isOwner ? currentUser?.name : 'Anonymous');
     const description: string = item.description || '';
     // formatDistanceToNow throws on an Invalid Date, which would take the whole list down.
@@ -235,7 +235,8 @@ export default function PaidGigs({ navigation }: any) {
 
             if (fetchedGigs && Array.isArray(fetchedGigs)) {
                 if (shouldAppend) {
-                    setGigs(prev => [...prev, ...fetchedGigs]);
+                    // Deduped: a gig posted between page fetches shifts the pages and repeats a key.
+                    setGigs(prev => [...prev, ...fetchedGigs.filter((g: any) => !prev.some(p => p._id === g._id))]);
                 } else {
                     setGigs(fetchedGigs);
                 }
@@ -471,7 +472,7 @@ export default function PaidGigs({ navigation }: any) {
                                     <Ionicons name="briefcase-outline" size={32} color={C.ink4} />
                                 </View>
                                 <Text className="font-semibold text-base text-ink text-center">No Gigs Active</Text>
-                                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Transmission silence detected.</Text>
+                                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">Transmission silence detected.</Text>
                             </View>
                         }
                     />

@@ -486,6 +486,13 @@ export default function TwelveAMClub() {
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
                         renderItem={renderMessage}
+                        ListEmptyComponent={
+                            <View className="items-center py-10">
+                                <Text className="text-night-3 text-label font-display uppercase text-center">
+                                    {mode === 'global' ? 'Quiet so far. Say something.' : 'Matched. Say hi.'}
+                                </Text>
+                            </View>
+                        }
                     />
                 )}
             </View>
@@ -502,7 +509,7 @@ export default function TwelveAMClub() {
                         {replyingTo.messageType === 'image' ? 'Shared an image' : replyingTo.message}
                       </Text>
                     </View>
-                    <TouchableOpacity onPress={() => setReplyingTo(null)}>
+                    <TouchableOpacity onPress={() => setReplyingTo(null)} hitSlop={12}>
                       <Ionicons name="close-circle" size={20} color={C.night3} />
                     </TouchableOpacity>
                   </BlurView>

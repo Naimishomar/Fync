@@ -9,7 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, Empty, Meta } from '../ui/kit';
+import { AppBar, Empty, Meta, Button } from '../ui/kit';
 import Avatar from '../Avatar';
 
 const ClubAdminPanel = () => {
@@ -45,10 +45,10 @@ const ClubAdminPanel = () => {
             if (res.data.success) {
                 const c = res.data.club;
                 setClub(c);
-                setEditName(c.name);
-                setEditDesc(c.description);
-                setEditCategory(c.category);
-                setIsJoinCodeEnabled(c.isJoinCodeEnabled);
+                setEditName(c.name || '');
+                setEditDesc(c.description || '');
+                setEditCategory(c.category || '');
+                setIsJoinCodeEnabled(c.isJoinCodeEnabled ?? true);
             }
         } catch (error) {
             console.log("Admin Panel fetch error", error);
@@ -172,7 +172,7 @@ const ClubAdminPanel = () => {
             const res = await axios.get('/clubs/search-users', { params: { query } });
             if (query !== latestQuery.current) return;
             if (res.data.success) {
-                setSearchResults(res.data.users);
+                setSearchResults(res.data.users || []);
             }
         } catch (error) {
             console.log("Search error", error);
@@ -278,13 +278,22 @@ const ClubAdminPanel = () => {
         );
     };
 
-    if (loading) return <View className="flex-1 bg-paper justify-center items-center"><ActivityIndicator color={C.ink} /></View>;
+    if (loading) return (
+        <View className="flex-1 bg-paper">
+            <AppBar title="Control Panel" onBack={() => navigation.goBack()} />
+            <View className="flex-1 justify-center items-center"><ActivityIndicator color={C.brand[500]} /></View>
+        </View>
+    );
 
     if (!club) {
         return (
             <View className="flex-1 bg-paper">
                 <AppBar title="Control Panel" onBack={() => navigation.goBack()} />
-                <Empty icon="cloud-offline-outline" title="Could not load club" hint="Go back and try again." />
+                <Empty
+                    icon="cloud-offline-outline"
+                    title="Could not load club"
+                    action={<Button title="Try again" onPress={() => { setLoading(true); fetchClubDetails(); }} />}
+                />
             </View>
         );
     }
@@ -347,7 +356,7 @@ const ClubAdminPanel = () => {
                             <Text className="text-ink-3 font-semibold uppercase text-label mb-4">Recruit Members</Text>
                             <View className="bg-card p-4 border-2 border-ink mb-6 flex-row items-center rounded-md">
                                 <Feather name="search" size={18} color={C.ink3} />
-                                <TextInput 
+                                <TextInput placeholderTextColor={C.ink4} 
                                     placeholder="Search by username..."
                                     className="flex-1 ml-3 font-semibold text-ink"
                                     value={searchQuery}
@@ -458,7 +467,7 @@ const ClubAdminPanel = () => {
                                         onPress={copyJoinCode}
                                         className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line"
                                      hitSlop={2}>
-                                        <Feather name="copy" size={16} color="black" />
+                                        <Feather name="copy" size={16} color={C.ink} />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -497,21 +506,21 @@ const ClubAdminPanel = () => {
                                     </TouchableOpacity>
                                 </View>
 
-                                <TextInput 
+                                <TextInput placeholderTextColor={C.ink4} 
                                     placeholder="Club Name"
-                                    className="bg-card p-4 mb-4 font-semibold border-[1.5px] border-ink rounded-md"
+                                    className="bg-card p-4 mb-4 font-semibold text-ink border-[1.5px] border-ink rounded-md"
                                     value={editName}
                                     onChangeText={setEditName}
                                 />
-                                <TextInput 
+                                <TextInput placeholderTextColor={C.ink4} 
                                     placeholder="Category"
-                                    className="bg-card p-4 mb-4 font-semibold border-[1.5px] border-ink rounded-md"
+                                    className="bg-card p-4 mb-4 font-semibold text-ink border-[1.5px] border-ink rounded-md"
                                     value={editCategory}
                                     onChangeText={setEditCategory}
                                 />
-                                <TextInput 
+                                <TextInput placeholderTextColor={C.ink4} 
                                     placeholder="Mission Statement"
-                                    className="bg-card p-4 mb-6 font-semibold border-[1.5px] border-ink rounded-md"
+                                    className="bg-card p-4 mb-6 font-semibold text-ink border-[1.5px] border-ink rounded-md"
                                     value={editDesc}
                                     onChangeText={setEditDesc}
                                     multiline

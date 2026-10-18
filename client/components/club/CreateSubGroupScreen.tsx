@@ -101,7 +101,7 @@ const CreateSubGroupScreen = () => {
                         {/* Form Fields */}
                         <View className="mt-2">
                             <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Room Identity</Text>
-                            <TextInput 
+                            <TextInput placeholderTextColor={C.ink4} 
                                 placeholder="e.g. Web Development, AI, Sports Talk"
                                 className="bg-card p-5 mb-4 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 value={name}
@@ -109,7 +109,7 @@ const CreateSubGroupScreen = () => {
                             />
                             
                             <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Scope & Mission</Text>
-                            <TextInput 
+                            <TextInput placeholderTextColor={C.ink4} 
                                 placeholder="Briefly describe what happens in this room..."
                                 className="bg-card p-5 mb-10 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 multiline

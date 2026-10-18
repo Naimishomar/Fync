@@ -482,6 +482,8 @@ function Profile() {
   const [hasMoreShorts, setHasMoreShorts] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
+  // Until the first load answers, an empty grid means "loading", not "none".
+  const [loaded, setLoaded] = useState(false);
 
   const fetchSubscription = async () => {
     try {
@@ -620,7 +622,9 @@ function Profile() {
     useCallback(() => {
       if (Date.now() - lastLoadedAt.current < STALE_AFTER_MS) return;
       lastLoadedAt.current = Date.now();
-      loadProfileScreen().catch(() => { lastLoadedAt.current = 0; });
+      loadProfileScreen()
+        .catch(() => { lastLoadedAt.current = 0; })
+        .finally(() => setLoaded(true));
     }, [loadProfileScreen])
   );
 
@@ -640,10 +644,17 @@ function Profile() {
     setRefreshing(false);
   };
 
+  // onEndReached can fire twice before isLoadingMore re-renders.
+  const loadMoreBusy = useRef(false);
   const handleLoadMore = () => {
-    if (isLoadingMore) return;
-    if (activeTab === 'posts' && hasMorePosts) getPosts(postsPage + 1);
-    else if (activeTab === 'shorts' && hasMoreShorts) getShorts(shortsPage + 1);
+    if (isLoadingMore || loadMoreBusy.current) return;
+    const req = activeTab === 'posts' && hasMorePosts ? getPosts(postsPage + 1)
+      : activeTab === 'shorts' && hasMoreShorts ? getShorts(shortsPage + 1)
+      : undefined;
+    if (req) {
+      loadMoreBusy.current = true;
+      req.finally(() => { loadMoreBusy.current = false; });
+    }
   };
 
   const deletePost = async (id: string) => {
@@ -895,12 +906,16 @@ function Profile() {
         ListHeaderComponent={<>{renderProfileInfo()}{renderTabBar()}</>}
         renderItem={renderTabItem}
         ListFooterComponent={isLoadingMore ? <View className="py-4"><ActivityIndicator size="small" color={C.recruiter} /></View> : null}
-        ListEmptyComponent={
+        ListEmptyComponent={!loaded ? (
+          <View className="items-center justify-center py-20">
+            <ActivityIndicator size="small" color={C.ink3} />
+          </View>
+        ) : (
           <View className="items-center justify-center py-20">
             <Ionicons name="images-outline" size={48} color={C.ink4} />
             <Text className="text-ink-3 mt-4 font-medium">No content here yet</Text>
           </View>
-        }
+        )}
         contentContainerStyle={{ paddingBottom: tabBarClearance }}
       />
     </View>

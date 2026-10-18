@@ -99,7 +99,7 @@ const AdCarousel = () => {
           >
             <Image
               source={{ uri: item.imageUrl }}
-              style={{ width, height: imageHeight }}
+              style={{ width, height: imageHeight, backgroundColor: C.paper2 }}
               contentFit="cover"
               cachePolicy="memory-disk"
             />

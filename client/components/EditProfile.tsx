@@ -21,6 +21,7 @@ import Toast from 'react-native-toast-message';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 import { AppBar } from './ui/kit';
+import { getFullUrl } from '../utils/imageUtils';
 
 export default function EditProfile() {
   const { user, setUser } = useAuth();
@@ -45,9 +46,9 @@ export default function EditProfile() {
   const [upiId, setUpiId] = useState(user?.upiId || '');
 
   // --- Images ---
-  const [avatar, setAvatar] = useState(user?.avatar || null);
+  const [avatar, setAvatar] = useState(getFullUrl(user?.avatar));
   const [newAvatar, setNewAvatar] = useState<any>(null);
-  const [banner, setBanner] = useState(user?.banner || null);
+  const [banner, setBanner] = useState(getFullUrl(user?.banner));
   const [newBanner, setNewBanner] = useState<any>(null);
 
   // --- CHANGE DETECTION ---
@@ -69,7 +70,7 @@ export default function EditProfile() {
   // --- IMAGE PICKER ---
   const pickImage = async (type: 'avatar' | 'banner') => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'images',
       allowsEditing: true,
       aspect: type === 'avatar' ? [1, 1] : [16, 9],
       quality: 0.5,
@@ -90,11 +91,15 @@ export default function EditProfile() {
 
   // --- SUBMIT HANDLER ---
   const handleUpdate = async () => {
+    if (!name.trim() || !username.trim()) {
+      Toast.show({ type: 'error', text1: 'Name and username cannot be empty' });
+      return;
+    }
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append('name', name);
-      formData.append('username', username);
+      formData.append('name', name.trim());
+      formData.append('username', username.trim());
 
       formData.append('about', about);
 
@@ -136,10 +141,11 @@ export default function EditProfile() {
         if (setUser) setUser(res.data.user);
         Toast.show({ type: 'success', text1: 'Profile updated successfully!' });
         navigation.goBack();
+      } else {
+        Toast.show({ type: 'error', text1: 'Update failed', text2: res.data.message || 'Please try again.' });
       }
-    } catch (error) {
-      console.error(error);
-      Toast.show({ type: 'error', text1: 'Update failed', text2: 'Please try again.' });
+    } catch (error: any) {
+      Toast.show({ type: 'error', text1: 'Update failed', text2: error?.response?.data?.message || 'Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -206,7 +212,7 @@ export default function EditProfile() {
         <View className="space-y-5 pb-10 gap-5">
 
           <InputGroup label="Name" value={name} onChange={setName} placeholder="Your Name" />
-          <InputGroup label="Username" value={username} onChange={setUsername} placeholder="username" />
+          <InputGroup label="Username" value={username} onChange={setUsername} placeholder="username" autoCapitalize="none" />
 
 
           <InputGroup label="About" value={about} onChange={setAbout} placeholder="Tell us more about yourself..." multiline />
@@ -238,7 +244,7 @@ export default function EditProfile() {
 }
 
 // --- Reusable Input Component ---
-const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: any) => (
+const InputGroup = ({ label, value, onChange, placeholder, multiline = false, autoCapitalize }: any) => (
   <View>
     <Text className="text-ink-3 text-sm mb-1.5 ml-1">{label}</Text>
     <TextInput
@@ -248,6 +254,7 @@ const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: 
       placeholder={placeholder}
       placeholderTextColor={C.ink4}
       multiline={multiline}
+      autoCapitalize={autoCapitalize}
       textAlignVertical={multiline ? 'top' : 'center'}
     />
   </View>

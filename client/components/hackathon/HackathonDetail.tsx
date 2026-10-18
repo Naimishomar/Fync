@@ -198,6 +198,7 @@ const HackathonDetail = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [solidHeader, setSolidHeader] = useState(false);
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const headerOpacity = scrollY.interpolate({ inputRange: [0, 160], outputRange: [0, 1], extrapolate: 'clamp' });
@@ -243,14 +244,15 @@ const HackathonDetail = () => {
    * button says where it goes rather than pretending the flow stays in Fync.
    */
   const openApplyLink = useCallback(async () => {
-    const url = hackathon?.applyLink;
-    if (!url) {
+    const raw = hackathon?.applyLink?.trim();
+    if (!raw) {
       Toast.show({ type: 'info', text1: 'The organiser has not added a registration link yet' });
       return;
     }
+    // Organisers paste "unstop.com/…" without a scheme, and canOpenURL reports
+    // false on Android 11+ for links it can open, so open directly.
+    const url = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`;
     try {
-      const ok = await Linking.canOpenURL(url);
-      if (!ok) throw new Error('unsupported');
       await Linking.openURL(url);
     } catch {
       Toast.show({ type: 'error', text1: 'Could not open that link', text2: url });
@@ -341,15 +343,22 @@ const HackathonDetail = () => {
   }
 
   const isDraft = hackathon.isDraft || hackathon.status === 'draft';
-  const statusMeta = STATUS_META()[hackathon.status] ?? STATUS_META().upcoming;
   const winners: Winner[] = hackathon.winners ?? [];
   const hasEnded = new Date(hackathon.hackathonends) < new Date();
+  // Derived from the dates like the hub card, so the two never disagree when
+  // the stored status lags behind.
+  const derived = isDraft ? 'draft'
+    : hasEnded ? 'completed'
+    : new Date(hackathon.hackathonstarts) > new Date() ? 'upcoming'
+    : hackathon.hackathonstarts ? 'active' : hackathon.status;
+  const statusMeta = STATUS_META()[derived] ?? STATUS_META().upcoming;
   const regClosed =
     hackathon.registrationends && new Date(hackathon.registrationends) < new Date();
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar style="light" />
+      {/* Light icons over the dark banner; theme icons once the paper header covers it. */}
+      <StatusBar style={solidHeader && C.scheme !== 'dark' ? 'dark' : 'light'} />
 
       {/* Collapsed header — appears once the banner scrolls away */}
       <Animated.View
@@ -376,7 +385,13 @@ const HackathonDetail = () => {
       </View>
 
       <Animated.ScrollView keyboardShouldPersistTaps="handled"
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+          useNativeDriver: true,
+          listener: (e: any) => {
+            const solid = e.nativeEvent.contentOffset.y > 120;
+            if (solid !== solidHeader) setSolidHeader(solid);
+          },
+        })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}

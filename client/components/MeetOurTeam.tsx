@@ -69,7 +69,7 @@ const TEAM_MEMBERS = [
 // brand border.
 const Avatar = ({ uri, size }: { uri: string; size: number }) => (
     <View className="rounded-full border-2 border-brand-500 bg-card" style={{ padding: 2 }}>
-        <Image source={{ uri }} style={{ width: size, height: size, borderRadius: 999 }} resizeMode="cover" />
+        <Image source={{ uri }} style={{ width: size, height: size, borderRadius: 999, backgroundColor: C.paper2 }} resizeMode="cover" />
     </View>
 );
 

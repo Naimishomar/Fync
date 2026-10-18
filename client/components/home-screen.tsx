@@ -601,7 +601,7 @@ export default function HomeScreen() {
         const cursorParam = (pageNum === 1 ? null : followingCursorRef.current);
         const res = await axios.get(`/post/feed/followers?${cursorParam ? `cursor=${cursorParam}` : ''}&limit=10`);
         if (res.data.success) {
-          newPosts = res.data.posts;
+          newPosts = Array.isArray(res.data.posts) ? res.data.posts : [];
           serverHasMore = res.data.hasMore ?? newPosts.length >= 10;
           followingCursorRef.current = res.data.nextCursor ?? null;
         }
@@ -616,7 +616,7 @@ export default function HomeScreen() {
           }));
 
         if (res.data.success) {
-          newPosts = res.data.posts;
+          newPosts = Array.isArray(res.data.posts) ? res.data.posts : [];
           serverHasMore = res.data.hasMore ?? newPosts.length >= 10;
           if (newPosts.length > 0) markPostsAsSeen(newPosts.map((p: Post) => p._id));
           if (res.data.mode === 'recycled') resetSeenPosts();
@@ -658,6 +658,9 @@ export default function HomeScreen() {
     } catch (error) {
       console.log('Failed to load feed', error);
       if (pageNum === 1 && isCurrent()) setFeedError(true);
+      // loadMore already advanced the page; roll back so the next scroll retries
+      // this page instead of skipping it.
+      if (pageNum > 1 && isCurrent()) setPage(pageNum - 1);
     } finally {
       if (pageNum > 1) loadingMoreRef.current = false;
       setLoading(false);
@@ -869,7 +872,7 @@ export default function HomeScreen() {
             pad inside a 2px brand border. */}
         <View className="rounded-full border-2 border-brand-500 bg-card" style={{ padding: 2 }}>
           <ExpoImage
-            source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${user?.username}&background=random&color=fff` }}
+            source={{ uri: getFullUrl(profileImage) || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=random&color=fff` }}
             style={{ width: 28, height: 28, borderRadius: 999 }}
             cachePolicy="disk"
           />
