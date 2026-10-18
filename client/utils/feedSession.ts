@@ -150,14 +150,24 @@ async function _seenBloom(key: string): Promise<SeenBloom> {
     return { m: BLOOM_BITS, k: BLOOM_K, b: toBase64(bits) };
 }
 
+// The server drops seen ids and THEN applies the page offset, so every page of
+// one scroll must send the seen set taken at page 1. Re-reading it after page 1
+// was marked seen shrinks the list under the offset: page 2 skipped ten unseen
+// posts, and a few pages in the offset ran past the end and the feed stopped.
+const pageOneSnapshot: Record<string, Promise<SeenBloom>> = {};
+function _pagedBloom(key: string, page: number): Promise<SeenBloom> {
+    if (page <= 1 || !pageOneSnapshot[key]) pageOneSnapshot[key] = _seenBloom(key);
+    return pageOneSnapshot[key];
+}
+
 /** Pass as `seenBloom` in the body of POST /post/smart-feed. */
-export function getSeenPostsBloom(): Promise<SeenBloom> {
-    return _seenBloom(KEYS.SEEN_POSTS);
+export function getSeenPostsBloom(page = 1): Promise<SeenBloom> {
+    return _pagedBloom(KEYS.SEEN_POSTS, page);
 }
 
 /** Pass as `seenBloom` in the body of POST /shorts/smart. */
-export function getSeenShortsBloom(): Promise<SeenBloom> {
-    return _seenBloom(KEYS.SEEN_SHORTS);
+export function getSeenShortsBloom(page = 1): Promise<SeenBloom> {
+    return _pagedBloom(KEYS.SEEN_SHORTS, page);
 }
 
 // ─────────────────────────────────────────────────────────────

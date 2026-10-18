@@ -612,7 +612,7 @@ export default function HomeScreen() {
         const res =
           prefetched ||
           (await axios.post(`/post/smart-feed?page=${pageNum}&limit=10`, {
-            seenBloom: await getSeenPostsBloom(),
+            seenBloom: await getSeenPostsBloom(pageNum),
           }));
 
         if (res.data.success) {

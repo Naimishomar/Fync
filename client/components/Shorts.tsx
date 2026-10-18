@@ -22,7 +22,6 @@ import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 import CommentsSheet from './ui/CommentsSheet';
 import RepostModal from './ui/RepostModal';
-import YouTubeShort from './YouTubeShort';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 import { Button } from './ui/kit';
@@ -57,24 +56,12 @@ interface ShortItem {
   reposts?: number;
   repostedBy?: string[];
   user: User;
-  /* Discover items: aggregated tech content that fills the feed once the campus
-     shorts run out. They live only in this array — nothing is stored. */
-  discover?: boolean;
-  videoId?: string;
-  url?: string;
-  source?: string;
-  thumbnail?: string;
-  account?: string;
 }
 
 /* ---------------- GLOBAL CACHE ---------------- */
 let globalShortsCache: ShortItem[] = [];
 let globalShortsPage = 0;
 let globalHasMore = true;
-// Discover takes over when the campus feed is exhausted, so the scroll never
-// dead-ends in the early days when few students have posted.
-let globalDiscoverCursor = 0;
-let globalDiscoverExhausted = false;
 
 /* ---------------- COMPONENT ---------------- */
 
@@ -346,81 +333,6 @@ const SingleShort = React.memo(({
 });
 
 
-/* ---------------- DISCOVER CARD ---------------- */
-/**
- * Creative Commons video from YouTube, shown once students' own shorts run out.
- *
- * Playback is YouTube's player with its chrome switched off; everything the
- * user touches is ours. See YouTubeShort for why it never receives a gesture.
- */
-const DiscoverCard = React.memo(({
-  item,
-  isActive,
-  isNear,
-  height,
-  handleUnplayable,
-}: {
-  item: ShortItem;
-  isActive: boolean;
-  isNear: boolean;
-  height: number;
-  handleUnplayable: (videoId: string, code: number) => void;
-}) => {
-  // A WebView is expensive in a way a native view is not, so one is created
-  // only for the video on screen and its immediate neighbours. The thumbnail
-  // stands in for the rest, which is all the user ever sees of them.
-  if (!isNear) {
-    return (
-      <View style={{ height, width: SCREEN_WIDTH }} className="bg-night">
-        {!!item.thumbnail && (
-          <Image
-            source={{ uri: item.thumbnail }}
-            style={{ width: SCREEN_WIDTH, height }}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            blurRadius={6}
-          />
-        )}
-      </View>
-    );
-  }
-
-  return (
-    <View style={{ height, width: SCREEN_WIDTH }}>
-      <YouTubeShort
-        videoId={item.videoId!}
-        isActive={isActive}
-        thumbnail={item.thumbnail}
-        onUnplayable={handleUnplayable}
-      />
-      <DiscoverAttribution item={item} />
-    </View>
-  );
-});
-
-/**
- * Channel credit. Not a licence condition any more, but the viewer should still
- * be able to see whose video they are watching without leaving the feed.
- */
-const DiscoverAttribution = ({ item }: { item: ShortItem }) => (
-  <View className="absolute bottom-32 left-4 right-4" pointerEvents="none">
-    <View className="flex-row items-center mb-2">
-      <View className="bg-brand-500 px-2 py-1 rounded-sm">
-        <Text className="font-display text-label text-on-brand uppercase">Tech</Text>
-      </View>
-      <Text className="font-sans text-sm text-white ml-2" numberOfLines={1}>
-        {item.source}
-      </Text>
-    </View>
-    <Text className="font-display text-base text-white mb-1" numberOfLines={2}>
-      {item.title}
-    </Text>
-    <Text className="font-sans text-night-3" style={{ fontSize: 11 }} numberOfLines={1}>
-      YouTube
-    </Text>
-  </View>
-);
-
 export default function Shorts() {
   const tabBarClearance = useTabBarClearance();
   const autoHideTabBar = useTabBarAutoHide();
@@ -454,18 +366,11 @@ export default function Shorts() {
   const fetchShorts = async (page = 0, shouldRefresh = false) => {
     const isFirstPage = page <= 1;
     if (!globalHasMore && !shouldRefresh && !isFirstPage) return;
-    // A refresh rebuilds the cache from scratch, so the discover cursor has to
-    // go back with it — otherwise it stays parked past the end and the feed
-    // never refills after the first pull-to-refresh.
-    if (shouldRefresh || isFirstPage) {
-      globalDiscoverCursor = 0;
-      globalDiscoverExhausted = false;
-    }
     if (isFirstPage) setLoading(true);
     else setLoadingMore(true);
 
     try {
-      const seenBloom = await getSeenShortsBloom();
+      const seenBloom = await getSeenShortsBloom(page);
 
       const res = await axios.post(`/shorts/smart?page=${Math.max(page, 1)}`, { seenBloom });
 
@@ -473,9 +378,8 @@ export default function Shorts() {
         const newShorts: ShortItem[] = Array.isArray(res.data.shorts) ? res.data.shorts : [];
         // 'recycled' means the campus feed has nothing new left and is about to
         // replay what the user has already watched. The server still reports
-        // hasMore: true, because it ranks against the refilled pool — so
-        // trusting it here is what kept the feed looping on students' shorts
-        // and never reaching Discover.
+        // hasMore: true, because it ranks against the refilled pool, so the
+        // feed ends here instead of looping.
         const campusExhausted = res.data.mode === 'recycled';
 
         if (shouldRefresh || isFirstPage) {
@@ -485,8 +389,7 @@ export default function Shorts() {
           // callback won't fire again if the list still starts at index 0.
           setActiveVideoId(newShorts[0]?._id ?? null);
         } else if (campusExhausted) {
-          // Deliberately not appended: these are repeats, and Discover has
-          // genuinely new material to show instead.
+          // Deliberately not appended: these are repeats.
         } else {
           globalShortsCache = [...globalShortsCache, ...newShorts.filter((s: ShortItem) => !globalShortsCache.find(x => x._id === s._id))];
           setShorts(globalShortsCache);
@@ -500,11 +403,8 @@ export default function Shorts() {
         }
 
         if (campusExhausted) {
-          // Clear the history so the next session's campus feed feels fresh
-          // again, then hand straight over rather than waiting for another
-          // scroll to trigger it.
+          // Clear the history so the next session's campus feed feels fresh again.
           resetSeenShorts();
-          if (!globalDiscoverExhausted) await fetchDiscover();
         }
       }
     } catch (err) {
@@ -546,52 +446,6 @@ export default function Shorts() {
     }, [])
   );
 
-  /* Campus shorts are finite; this is what keeps scrolling. Items are fetched
-     live from the backend aggregator and appended in place — they are never
-     written to our database, so the feed costs storage nothing. */
-  const fetchDiscover = async () => {
-    setLoadingMore(true);
-    try {
-      const seen = globalShortsCache.filter(s => s.discover).map(s => s._id).slice(-120);
-      const res = await axios.get('/shorts/discover', {
-        params: { cursor: globalDiscoverCursor, limit: 10, seen: seen.join(',') },
-      });
-      if (!res.data.success) return;
-
-      const mapped: ShortItem[] = (res.data.items ?? []).map((i: any) => ({
-        _id: i.id,
-        video: '',
-        title: i.title,
-        description: i.description || '',
-        likes: 0,
-        liked_by: [],
-        views: 0,
-        user: { _id: i.id, name: i.source, username: i.source },
-        discover: true,
-        videoId: i.videoId,
-        url: i.url,
-        source: i.source,
-        thumbnail: i.thumbnail,
-        account: i.account,
-      }));
-
-      globalShortsCache = [
-        ...globalShortsCache,
-        ...mapped.filter(m => !globalShortsCache.find(x => x._id === m._id)),
-      ];
-      setShorts(globalShortsCache);
-      globalDiscoverCursor = res.data.nextCursor;
-      globalDiscoverExhausted = !res.data.hasMore && !res.data.recycled;
-    } catch { /* a dead source must not break the campus feed above it */ }
-    finally { setLoadingMore(false); }
-  };
-
-  /**
-   * Drop a dead video and tell the server.
-   *
-   * Removed from the list rather than left showing an error card: a student
-   * swiping a feed should never have to read an error code.
-   */
   /** Reference-style: the short surfaces on your profile, credited to its author. */
   const handleRepost = useCallback(async (short: ShortItem, text = '') => {
     const mine = short.repostedBy?.some((u) => String(u) === String(currentUserId));
@@ -623,23 +477,13 @@ export default function Shorts() {
     }
   }, [currentUserId]);
 
-  const handleUnplayable = useCallback((videoId: string, code: number) => {
-    globalShortsCache = globalShortsCache.filter(s => s.videoId !== videoId);
-    setShorts(globalShortsCache);
-    axios.post('/shorts/discover/unplayable', { videoId, code }).catch(() => {});
-  }, []);
-
   // Guarded by a ref, not the loadingMore state: onEndReached and the
   // viewability prefetch both fire in the same frame, before state updates.
   const loadMore = async () => {
     if (loadingMoreRef.current) return;
     loadingMoreRef.current = true;
     try {
-      if (globalHasMore) {
-        await fetchShorts(globalShortsPage + 1);
-      } else if (!globalDiscoverExhausted) {
-        await fetchDiscover();
-      }
+      if (globalHasMore) await fetchShorts(globalShortsPage + 1);
     } finally {
       loadingMoreRef.current = false;
     }
@@ -764,18 +608,6 @@ export default function Shorts() {
     // 🚀 Look-Ahead Buffer: We play the active one, and PRE-BUFFER the next one
     const isNext = index === activeIndex + 1;
 
-    if (item.discover) {
-      return (
-        <DiscoverCard
-          item={item}
-          isActive={isFocused && item._id === activeVideoId}
-          isNear={Math.abs(index - activeIndex) <= 1}
-          height={pageH}
-          handleUnplayable={handleUnplayable}
-        />
-      );
-    }
-
     return (
       <SingleShort
         item={item}
@@ -790,7 +622,7 @@ export default function Shorts() {
         onDelete={deleteShort}
       />
     );
-  }, [isFocused, activeVideoId, activeIndex, pageH, currentUserId, navigation, toggleLike, onRepost, openComments, deleteShort, handleUnplayable]);
+  }, [isFocused, activeVideoId, activeIndex, pageH, currentUserId, navigation, toggleLike, onRepost, openComments, deleteShort]);
 
   const getItemLayout = useCallback((_: any, index: number) => ({
     length: pageH,

@@ -1,5 +1,4 @@
 import express from 'express';
-import { getDiscoverFeed, reportUnplayable } from "../controllers/discover.controller.js";
 import { addComment, batchViewsInShorts, createShorts, deleteComment, deleteShort, fetchShorts, getAllComments, getShortByShortId, getShortsByUserId, getSmartShorts, getYourShorts, likeAndUnlikeShort, reportShort, updateComment, updateShort, viewsInShort } from '../controllers/shorts.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { cacheMiddleware } from '../middlewares/cache.middleware.js';
@@ -24,19 +23,10 @@ router.post(
   r2UploadMiddleware({ video: 'video', thumbnail: 'shorts_thumbnails' }),
   createShorts,
 );
-// Discover: aggregated tech content, cached in Redis and stored nowhere.
-//
-// Deliberately NOT wrapped in cacheMiddleware: that keys on the full URL, and
-// every user sends a different ?seen list, so the cache would miss on every
-// request and refetch all sources each time. The controller caches the ranked
-// collection instead, so one upstream fetch serves everybody and the per-user
-// filtering happens after it.
-router.get('/discover', authMiddleware, feedLimiter, getDiscoverFeed);
 
 // Reposting. A reference to the original, so credit and edits stay with the author.
 router.post('/repost/:id', authMiddleware, toggleRepost('shorts'));
 router.get('/reposts/:userId', authMiddleware, getReposts('shorts'));
-router.post('/discover/unplayable', authMiddleware, feedLimiter, reportUnplayable);
 
 router.get('/all', authMiddleware, feedLimiter, cacheMiddleware(60, { tags: ['shorts'] }), fetchShorts);
 router.get('/your', authMiddleware, cacheMiddleware(300, { tags: (req) => [`shorts:user:${req.user.id}`] }), getYourShorts);
