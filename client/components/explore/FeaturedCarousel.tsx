@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
-import { FEATURES, artUrl, isFeatureOn } from '../../constants/features';
+import { isFeatureOn } from '../../constants/features';
 import Skeleton from '../Skeleton';
 import { daysLeftLabel } from '../../utils/deadline';
 
@@ -36,50 +36,64 @@ const PAD = 20; // matches ExploreHub's ScrollView gutter, which this row bleeds
 const ADVANCE_MS = 3500;
 const RESUME_MS = 5000;
 
+// Company/event image fills the card; title sits on a dark scrim, so text is
+// white in both themes. expo-image plays animated GIF/WebP banners as-is.
 const Poster = ({ item, w, h }: { item: FeaturedItem; w: number; h: number }) => {
-  const meta = META[item.type];
-  if (item.image) {
-    return (
-      <Image
-        source={{ uri: item.image }}
-        recyclingKey={item.id}
-        style={{ width: w, height: h }}
-        contentFit="cover"
-        cachePolicy="disk"
-        accessibilityIgnoresInvertColors
-      />
-    );
-  }
-  const tint = C.fam[meta.family];
-  const art = artUrl(FEATURES.find((f) => f.id === meta.feature)?.art);
+  const bg = item.image || item.logo;
+  const tint = C.fam[META[item.type].family];
   return (
-    <LinearGradient colors={[tint, `${tint}B3`]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: w, height: h, padding: 16 }}>
-      {item.logo ? (
-        <View className="rounded-lg overflow-hidden mb-3" style={{ width: 40, height: 40, backgroundColor: '#FFFFFF' }}>
-          <Image source={{ uri: item.logo }} recyclingKey={`${item.id}-logo`} style={{ width: 40, height: 40 }} contentFit="contain" cachePolicy="disk" />
+    <View style={{ width: w, height: h, backgroundColor: tint }}>
+      {bg ? (
+        <Image
+          source={{ uri: bg }}
+          recyclingKey={item.id}
+          style={{ position: 'absolute', width: w, height: h }}
+          contentFit="cover"
+          // A square logo stretched to portrait looks mushy: blur it into a
+          // colour wash and draw the sharp logo on top instead.
+          blurRadius={item.image ? 0 : 18}
+          cachePolicy="disk"
+          accessibilityIgnoresInvertColors
+        />
+      ) : (
+        <LinearGradient colors={[tint, `${tint}99`]} style={{ position: 'absolute', width: w, height: h }} />
+      )}
+      {!item.image ? (
+        <View className="items-center" style={{ paddingTop: h * 0.14 }}>
+          {item.logo ? (
+            <View className="rounded-xl overflow-hidden" style={{ width: w * 0.5, height: w * 0.5, backgroundColor: '#FFFFFF' }}>
+              <Image source={{ uri: item.logo }} recyclingKey={`${item.id}-logo`} style={{ width: '100%', height: '100%' }} contentFit="contain" cachePolicy="disk" />
+            </View>
+          ) : (
+            <Text className="font-display" style={{ color: '#FFFFFF', fontSize: w * 0.34 }}>
+              {(item.org || item.title).trim().charAt(0).toUpperCase()}
+            </Text>
+          )}
         </View>
       ) : null}
-      {/* Always-dark coloured surface: white text in both themes. */}
-      <Text className="font-display" style={{ color: '#FFFFFF', fontSize: 22, lineHeight: 26 }} numberOfLines={4}>
-        {item.title}
-      </Text>
-      {item.org ? (
-        <Text className="font-sans mt-2" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }} numberOfLines={1}>
-          {item.org}
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.85)']}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 8, paddingBottom: 8, paddingTop: 28 }}
+      >
+        <Text className="font-display" style={{ color: '#FFFFFF', fontSize: 13, lineHeight: 16 }} numberOfLines={3}>
+          {item.title}
         </Text>
-      ) : null}
-      {art ? (
-        <Image source={{ uri: art }} style={{ position: 'absolute', right: 8, bottom: 8, width: w * 0.5, height: w * 0.5 }} contentFit="contain" cachePolicy="disk" />
-      ) : null}
-    </LinearGradient>
+        {item.org ? (
+          <Text className="font-sans mt-0.5" style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }} numberOfLines={1}>
+            {item.org}
+          </Text>
+        ) : null}
+      </LinearGradient>
+    </View>
   );
 };
 
 const FeaturedCarousel = () => {
   const navigation = useNavigation<any>();
   const { width } = useWindowDimensions();
-  const cardW = Math.round(width * 0.62);
-  const cardH = Math.round(cardW * 1.25);
+  // Three cards across the gutter-to-gutter width.
+  const cardW = Math.floor((width - PAD * 2 - GAP * 2) / 3);
+  const cardH = Math.round(cardW * 1.45);
   const step = cardW + GAP;
 
   const [items, setItems] = useState<FeaturedItem[] | null>(null);
@@ -113,18 +127,20 @@ const FeaturedCarousel = () => {
   }, []);
 
   const count = items?.length ?? 0;
+  // Last index whose card can still sit at the left edge with two after it.
+  const last = Math.max(0, count - 3);
 
   // One timeout per state change; cleared on any change, blur, background or unmount.
   useEffect(() => {
-    if (count <= 1 || touching || !isFocused || !appActive) return;
+    if (last === 0 || touching || !isFocused || !appActive) return;
     const delay = Math.max(ADVANCE_MS, holdUntil - Date.now());
     const t = setTimeout(() => {
-      const next = index + 1 >= count ? 0 : index + 1;
+      const next = index + 1 > last ? 0 : index + 1;
       listRef.current?.scrollToOffset({ offset: next * step, animated: true });
       setIndex(next);
     }, delay);
     return () => clearTimeout(t);
-  }, [index, count, touching, isFocused, appActive, holdUntil, step]);
+  }, [index, last, touching, isFocused, appActive, holdUntil, step]);
 
   const release = () => {
     setTouching(false);
@@ -136,8 +152,9 @@ const FeaturedCarousel = () => {
       <View className="mt-6">
         <Header />
         <View className="flex-row" style={{ gap: GAP }}>
-          <Skeleton width={cardW} height={cardH} borderRadius={16} />
-          <Skeleton width={cardW} height={cardH} borderRadius={16} />
+          <Skeleton width={cardW} height={cardH} borderRadius={14} />
+          <Skeleton width={cardW} height={cardH} borderRadius={14} />
+          <Skeleton width={cardW} height={cardH} borderRadius={14} />
         </View>
       </View>
     );
@@ -171,7 +188,7 @@ const FeaturedCarousel = () => {
           // the left edge, so a programmatic scroll there reads back one short.
           if (!userScroll.current) return;
           userScroll.current = false;
-          setIndex(Math.min(count - 1, Math.max(0, Math.round(e.nativeEvent.contentOffset.x / step))));
+          setIndex(Math.min(last, Math.max(0, Math.round(e.nativeEvent.contentOffset.x / step))));
           release();
         }}
         renderItem={({ item }) => {
@@ -187,38 +204,23 @@ const FeaturedCarousel = () => {
             accessibilityRole="button"
             accessibilityLabel={[item.title, item.org, due?.label, ...item.chips].filter(Boolean).join('. ')}
           >
-            <View className="rounded-2xl border border-line overflow-hidden bg-card">
+            <View className="rounded-[14px] border border-line overflow-hidden bg-card">
               <Poster item={item} w={cardW} h={cardH} />
             </View>
-            {item.chips.length > 0 || due ? (
-              <View className="flex-row flex-wrap mt-2.5" style={{ gap: 6 }}>
-                {due ? (
-                  <View className={`flex-row items-center rounded-full px-2 py-0.5 border ${due.urgent ? 'bg-brand-50 border-brand-500/30' : 'border-line'}`}>
-                    <Text className="font-sans text-xs text-accent-text">⏳ {due.label}</Text>
-                  </View>
-                ) : null}
-                {item.chips.map((c) => (
-                  <View key={c} className="rounded-full border border-line px-2 py-0.5">
-                    <Text className="font-sans text-xs text-ink-2">{c}</Text>
-                  </View>
-                ))}
+            {due || item.chips[0] ? (
+              <View className={`self-start mt-1.5 rounded-full px-2 py-0.5 border ${due?.urgent ? 'bg-brand-50 border-brand-500/30' : 'border-line'}`}>
+                <Text className={`font-sans text-[11px] ${due ? 'text-accent-text' : 'text-ink-2'}`} numberOfLines={1}>
+                  {due ? `⏳ ${due.label}` : item.chips[0]}
+                </Text>
               </View>
-            ) : null}
-            <Text className="font-display text-ink mt-2" style={{ fontSize: 15, lineHeight: 19 }} numberOfLines={2}>
-              {item.title}
-            </Text>
-            {item.org ? (
-              <Text className="font-sans text-sm text-ink-3 mt-0.5" numberOfLines={1}>
-                {item.org}
-              </Text>
             ) : null}
           </Pressable>
           );
         }}
       />
-      {count > 1 ? (
+      {last > 0 ? (
         <View className="flex-row justify-center mt-3" style={{ gap: 6 }}>
-          {items.map((i, n) => (
+          {items.slice(0, last + 1).map((i, n) => (
             <View key={`${i.type}:${i.id}`} className={`h-1.5 rounded-full ${n === index ? 'w-4 bg-brand-500' : 'w-1.5 bg-ink/20'}`} />
           ))}
         </View>
