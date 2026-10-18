@@ -188,6 +188,7 @@ export type RootStackParamList = {
   TwelveAMHomeCard: undefined;
   CouplesCorner: undefined;
   CoupleSpace: undefined;
+  CoupleLeaderboard: undefined;
   GiftShop: undefined;
   GiftProduct: { id: string };
   GiftCheckout: { product: any; customization: any };
@@ -402,6 +403,7 @@ function AppStack() {
       <Stack.Screen name="TwelveAMHomeCard" getComponent={() => require('./components/newFeatures/TwelveAMHomeCard').default} />
       <Stack.Screen name="CouplesCorner" getComponent={() => require('./components/couples/CouplesCorner').default} />
       <Stack.Screen name="CoupleSpace" getComponent={() => require('./components/couples/CoupleSpace').default} />
+      <Stack.Screen name="CoupleLeaderboard" getComponent={() => require('./components/couples/CoupleLeaderboard').default} />
       <Stack.Screen name="GiftShop" getComponent={() => require('./components/gifts/GiftShop').default} />
       <Stack.Screen name="GiftProduct" getComponent={() => require('./components/gifts/GiftProduct').default} />
       <Stack.Screen name="GiftCheckout" getComponent={() => require('./components/gifts/GiftCheckout').default} />

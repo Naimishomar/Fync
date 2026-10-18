@@ -3,12 +3,15 @@ import { authMiddleware } from "../middlewares/auth.middleware.js";
 import {
     getSpace, createCode, joinCode, unlink, setSince, answer, history,
     addBucket, toggleBucket, deleteBucket, nudge, listNotes, sendNote, markNotesRead,
+    leaderboard, setBoardOptIn,
 } from "../controllers/couple.controller.js";
 
 const router = express.Router();
 router.use(authMiddleware);
 
 router.get("/", getSpace);
+router.get("/leaderboard", leaderboard);
+router.patch("/leaderboard", setBoardOptIn);
 router.post("/code", createCode);
 router.post("/join", joinCode);
 router.delete("/", unlink);

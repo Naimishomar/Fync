@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, Pressable, ScrollView, TextInput, ActivityIndicator, RefreshControl, Share, Platform, Animated, Easing,
+  View, Text, Pressable, ScrollView, TextInput, ActivityIndicator, RefreshControl, Share, Platform, Animated, Easing, Switch,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -35,6 +35,7 @@ type Space = {
   nudges: { sentToday: number; receivedToday: number };
   unreadNotes: number;
   bucket: BucketItem[];
+  onBoard?: { me: boolean; partner: boolean };
 };
 type Unlinked = { linked: false; pendingCode: { code: string; expiresIn: number } | null };
 type Note = { _id: string; from: string; text: string; createdAt: string; readAt: string | null };
@@ -252,6 +253,42 @@ const LinkFlow = ({ pending, onLinked }: { pending: Unlinked['pendingCode']; onL
 
 /* ---------------------------------------------------------------- dashboard */
 
+/** Leaderboard entry + opt-in. Listed only when both partners switch it on. */
+const BoardCard = ({ s, setS }: { s: Space; setS: (s: Space) => void }) => {
+  const navigation = useNavigation<any>();
+  const on = !!s.onBoard?.me;
+  const partnerOn = !!s.onBoard?.partner;
+  const toggle = (show: boolean) => {
+    selectHaptic();
+    setS({ ...s, onBoard: { me: show, partner: partnerOn } });
+    axios.patch('/couple/leaderboard', { show }).catch(() => {
+      setS({ ...s, onBoard: { me: !show, partner: partnerOn } });
+      Toast.show({ type: 'error', text1: 'Could not update, try again' });
+    });
+  };
+  return (
+    <View className="rounded-2xl bg-card border border-line mt-4 overflow-hidden">
+      <Pressable onPress={() => navigation.navigate('CoupleLeaderboard')} accessibilityRole="button" className="flex-row items-center p-4 active:opacity-80">
+        <Text style={{ fontSize: 26 }}>🏆</Text>
+        <View className="flex-1 ml-3">
+          <Text className="font-display text-ink" style={{ fontSize: 15 }}>Top couples</Text>
+          <Text className="font-sans text-ink-3 text-xs mt-0.5">Longest daily-question streaks on Fync</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={C.ink3} />
+      </Pressable>
+      <View className="flex-row items-center px-4 py-3 border-t border-line">
+        <View className="flex-1 pr-3">
+          <Text className="font-sans text-ink text-sm">Show us on the leaderboard</Text>
+          <Text className="font-sans text-ink-3 text-xs mt-0.5">
+            {on && partnerOn ? "You're both in 💕" : on ? `Waiting for ${first(s.couple.partner)} to switch it on` : partnerOn ? `${first(s.couple.partner)} wants in — switch it on to join` : 'Both of you need to switch this on'}
+          </Text>
+        </View>
+        <Switch value={on} onValueChange={toggle} trackColor={{ true: '#e11d48', false: C.line }} thumbColor="#FFFFFF" />
+      </View>
+    </View>
+  );
+};
+
 const Dashboard = ({ s, reload, setS }: { s: Space; reload: () => Promise<void>; setS: (s: Space) => void }) => {
   const { me, partner } = s.couple;
   const t = s.together;
@@ -308,6 +345,8 @@ const Dashboard = ({ s, reload, setS }: { s: Space; reload: () => Promise<void>;
         <Stat big={`${t.anniversary.inDays}d`} small={t.anniversary.years === 1 ? 'to 1st anniversary' : `to year ${t.anniversary.years}`} />
       </View>
       {s.bestStreak > 1 ? <Text className="font-sans text-ink-3 text-xs mt-2 text-center">Best streak: {s.bestStreak} days</Text> : null}
+
+      <BoardCard s={s} setS={setS} />
 
       {/* Milestones */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4" contentContainerStyle={{ gap: 8 }}>

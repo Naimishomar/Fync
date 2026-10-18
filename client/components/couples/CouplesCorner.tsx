@@ -287,6 +287,16 @@ const CouplesCorner = () => {
                 ))}
               </View>
 
+              <Pressable
+                onPress={() => navigation.navigate('CoupleLeaderboard')}
+                accessibilityRole="button"
+                className="flex-row items-center rounded-2xl border border-line bg-card px-4 py-3 mb-6 active:opacity-80"
+              >
+                <Text style={{ fontSize: 22 }}>🏆</Text>
+                <Text className="font-display text-ink flex-1 ml-3">Top couples leaderboard</Text>
+                <Text className="font-sans text-ink-3">›</Text>
+              </Pressable>
+
               <Text className="font-display text-label text-ink-2 uppercase mb-2" style={{ letterSpacing: 1.2 }}>Have a code?</Text>
               <View className="flex-row items-center mb-6" style={{ gap: 10 }}>
                 <TextInput

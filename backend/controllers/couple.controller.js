@@ -168,6 +168,10 @@ export const getSpace = async (req, res) => {
             nudges: { sentToday: Number(counts?.[0] || 0), receivedToday: Number(counts?.[1] || 0) },
             unreadNotes,
             bucket: couple.bucket,
+            onBoard: {
+                me: (couple.showOnBoard || []).some((u) => String(u) === uid),
+                partner: (couple.showOnBoard || []).some((u) => String(u) === String(partner?._id)),
+            },
         });
     } catch (err) {
         return oops(res, "getSpace", err);
@@ -360,3 +364,70 @@ export const markNotesRead = async (req, res) => {
     }
 };
 
+
+/* -------------------------------------------------------------- leaderboard */
+
+const BOARD_SIZE = 50;
+const bothOptedIn = { "showOnBoard.1": { $exists: true } };
+
+/** PATCH /couple/leaderboard {show}: opt yourself in or out. */
+export const setBoardOptIn = async (req, res) => {
+    try {
+        const couple = await mine(req, res);
+        if (!couple) return;
+        const op = req.body?.show ? "$addToSet" : "$pull";
+        await Couple.updateOne({ _id: couple._id }, { [op]: { showOnBoard: req.user.id } });
+        return res.json({ success: true, show: Boolean(req.body?.show) });
+    } catch (err) {
+        return oops(res, "setBoardOptIn", err);
+    }
+};
+
+/**
+ * GET /couple/leaderboard?type=live|best
+ * live: current streak, only couples whose streak is still alive (answered
+ * together today or yesterday). best: all-time best streak.
+ */
+export const leaderboard = async (req, res) => {
+    try {
+        const uid = String(req.user.id);
+        const today = istDateKey();
+        const yesterday = new Date(Date.parse(`${today}T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
+        const best = req.query.type === "best";
+        const filter = best
+            ? { ...bothOptedIn, bestStreak: { $gt: 0 } }
+            : { ...bothOptedIn, streak: { $gt: 0 }, lastBothAnsweredDay: { $gte: yesterday } };
+        const sort = best ? { bestStreak: -1, since: 1 } : { streak: -1, bestStreak: -1, since: 1 };
+        const field = best ? "bestStreak" : "streak";
+
+        const [rows, my] = await Promise.all([
+            Couple.find(filter).sort(sort).limit(BOARD_SIZE)
+                .select("users since streak bestStreak lastBothAnsweredDay")
+                .populate("users", "name username avatar college").lean(),
+            Couple.findOne({ users: uid }).select("users since streak bestStreak lastBothAnsweredDay showOnBoard").lean(),
+        ]);
+
+        let me = null;
+        if (my) {
+            const score = best ? my.bestStreak : liveStreak(my.streak, my.lastBothAnsweredDay, today);
+            const listed = (my.showOnBoard || []).length >= 2 && score > 0;
+            // Rank = couples strictly ahead + 1 (ties share a rank).
+            const ahead = listed ? await Couple.countDocuments({ ...filter, [field]: { $gt: score } }) : null;
+            me = { score, listed, rank: listed ? ahead + 1 : null };
+        }
+
+        return res.json({
+            success: true,
+            type: best ? "best" : "live",
+            couples: rows.map((c) => ({
+                id: c._id,
+                users: c.users,
+                score: c[field],
+                days: Math.max(0, dayDiff(c.since, today)),
+            })),
+            me,
+        });
+    } catch (err) {
+        return oops(res, "leaderboard", err);
+    }
+};
