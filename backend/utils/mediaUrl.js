@@ -31,9 +31,11 @@ export const mediaUrlMiddleware = () => {
       const text = JSON.stringify(body);
       if (typeof text !== 'string') return json(body);
       const out = rewrite(text);
-      if (out === text) return json(body);
-      if (!res.get('Content-Type')) res.type('application/json');
-      return res.send(out);
+      // Back through res.json as an object, never res.send(string): /batch
+      // dispatches sub-requests with a stub response whose send() keeps the raw
+      // value, so a string body reached the app as text and the screen saw no
+      // `success` (profile posts vanished).
+      return json(out === text ? body : JSON.parse(out));
     };
     next();
   };
