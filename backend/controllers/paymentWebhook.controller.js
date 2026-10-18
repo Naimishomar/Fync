@@ -3,6 +3,7 @@ import PaymentOrder from "../models/paymentOrder.model.js";
 import Subscription from "../models/subscription.model.js";
 import { grantEntitlement } from "./payment.controller.js";
 import { activateSubscription } from "./subscription.controller.js";
+import { markGiftRefunded } from "./gift.controller.js";
 import User from "../models/user.model.js";
 import RegisterSpeakerSession from "../models/events/registerSpeakerSession.model.js";
 import RegisterBootcamp from "../models/events/registerBootcamp.model.js";
@@ -95,6 +96,9 @@ const handleRefund = async (refund, payment) => {
     }
     if (order.purpose === "bootcamp" && order.meta?.registrationId) {
       await RegisterBootcamp.findByIdAndUpdate(order.meta.registrationId, { isPaid: false });
+    }
+    if (order.purpose === "couple_gift" && order.meta?.giftOrderId) {
+      await markGiftRefunded(order.meta.giftOrderId);
     }
   }
 

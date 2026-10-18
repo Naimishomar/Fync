@@ -2,7 +2,9 @@ import GameScore from "../models/gameScore.model.js";
 
 // Scores are client-reported, so each game has a ceiling a real run can't
 // pass. DrawAndGuess sends a flat 100 per win; FlappyBird is one point a pipe.
-const MAX_SCORE = { FlappyBird: 1000, DrawAndGuess: 100 };
+// WordSolo: best endless streak. Reaction: 1000 - best ms, so higher is better
+// like every other board. Spy/Ludo/WordDuel wins are server-recorded only.
+const MAX_SCORE = { FlappyBird: 1000, DrawAndGuess: 100, WordSolo: 500, Reaction: 900 };
 
 export const submitScore = async (req, res) => {
   try {

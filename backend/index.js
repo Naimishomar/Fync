@@ -60,6 +60,8 @@ import gameRoute from './routes/game.route.js';
 import batchRoute from './routes/batch.route.js';
 import noteRoutes from "./routes/note.route.js";
 import exploreRoute from './routes/explore.route.js';
+import giftRoute from './routes/gift.route.js';
+import coupleRoute from './routes/couple.route.js';
 import ContestManager from './services/contestManager.js';
 import { mediaUrlMiddleware } from './utils/mediaUrl.js';
 
@@ -72,6 +74,9 @@ import { setClubIo } from './controllers/club/message.controller.js';
 import { setChatIo } from './controllers/chat.controller.js';
 import { setChessIo } from './controllers/chess.socket.js';
 import { setDuoIo } from './controllers/duo.socket.js';
+import { setSpyIo } from './controllers/spy.socket.js';
+import { setLudoIo } from './controllers/ludo.socket.js';
+import { setWordDuelIo } from './controllers/wordDuel.socket.js';
 import { initCollegeChatCleanup } from './utils/collegeChatCleanup.js';
 import { initMentorshipCleanup } from './utils/mentorshipCleanup.js';
 import { initNightClubCleanup } from './utils/nightClubCleanup.js';
@@ -295,6 +300,8 @@ app.use('/entertainment', entertainmentRoute);
 app.use('/games', gameRoute);
 app.use('/webrtc', webrtcRoute);
 app.use('/explore', exploreRoute);
+app.use('/gifts', giftRoute);
+app.use('/couple', coupleRoute);
 // Mounted last: it dispatches back into this same router, so every route it can
 // reach must already be registered above it.
 app.use('/batch', batchRoute);
@@ -317,6 +324,9 @@ const startServer = async (retries = 5) => {
     setChatIo(io);
     setChessIo(io);
     setDuoIo(io);
+    setSpyIo(io);
+    setLudoIo(io);
+    setWordDuelIo(io);
     codingBattleSockets(io);
 
     // 3. Initialize Monitors & Cleanups — only on one worker. In PM2 cluster mode

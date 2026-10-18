@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import Community from "../models/community/community.model.js";
+import GiftOrder from "../models/gift/giftOrder.model.js";
 
 // The single source of truth for what anything costs.
 //
@@ -57,6 +59,21 @@ export const CATALOG = {
       return { plan, communityId: String(communityId) };
     },
   },
+
+  // Fync Gifts. The amount was computed from the product and chosen options
+  // when the GiftOrder was created (controllers/gift.controller.js); here we
+  // only charge exactly that, for the buyer's own still-unpaid order.
+  couple_gift: {
+    price: async ({ giftOrderId }, userId) => (await pendingGift(giftOrderId, userId)).amount,
+    meta: async ({ giftOrderId }) => ({ giftOrderId: String(giftOrderId) }),
+  },
+};
+
+const pendingGift = async (giftOrderId, userId) => {
+  if (!mongoose.isValidObjectId(giftOrderId)) throw new Error("giftOrderId is required");
+  const gift = await GiftOrder.findOne({ _id: giftOrderId, buyer: userId, status: "pending_payment" }).select("amount").lean();
+  if (!gift) throw new Error("Gift order not found or already paid");
+  return gift;
 };
 
 /**
@@ -72,7 +89,7 @@ export const resolvePurchase = async (purpose, options = {}, userId) => {
     throw new Error("Invalid plan");
   }
 
-  const amount = entry.price(options);
+  const amount = await entry.price(options, userId);
   if (!Number.isInteger(amount) || amount <= 0) {
     throw new Error(`No price configured for ${purpose}`);
   }

@@ -31,6 +31,7 @@ const roomKey = (id) => `duo:room:${id}`;
 const userKey = (userId) => `duo:user:${userId}`;
 const queueKey = (game) => `queue:duo:${game}`;
 const codeKey = (code) => `duo:code:${code}`;
+const myCodeKey = (userId) => `duo:mycode:${userId}`;
 
 const getRoom = async (id) => {
     const raw = id && await redisClient.get(roomKey(id));
@@ -126,6 +127,12 @@ export const setDuoIo = (io) => {
     };
 
     // socketId set: drop only that socket's entries (another device may still be searching).
+    // A cancelled (or replaced) invite must stop working at once, not at its TTL.
+    const dropCode = async (userId) => {
+        const code = await redisClient.get(myCodeKey(userId));
+        if (code) await redisClient.del([codeKey(code), myCodeKey(userId)]);
+    };
+
     const dropFromQueues = async (userId, socketId) => {
         // Queue entries are JSON with the socket id, so match on the userId field.
         await Promise.all(Object.keys(DUO_GAMES).map(async (game) => {
@@ -184,9 +191,11 @@ export const setDuoIo = (io) => {
             const self = profile(p);
             await leave(socket, self.userId);
             await dropFromQueues(self.userId);
+            await dropCode(self.userId);
             const code = newCode();
             await redisClient.set(codeKey(code), JSON.stringify({ ...self, game: p.game }), { EX: CODE_TTL });
-            socket.emit("duo_code", { code, game: p.game });
+            await redisClient.set(myCodeKey(self.userId), code, { EX: CODE_TTL });
+            socket.emit("duo_code", { code, game: p.game, expiresIn: CODE_TTL });
         }));
 
         socket.on("duo_join", guard(async (p) => {
@@ -197,6 +206,7 @@ export const setDuoIo = (io) => {
                 : null;
             if (!raw) return socket.emit("duo_error", "Code expired or wrong. Ask your partner for a new one.");
             const host = JSON.parse(raw);
+            await redisClient.del(myCodeKey(host.userId));
             const self = profile(p);
             if (host.userId === self.userId) return socket.emit("duo_error", "That's your own code — share it with your partner.");
             const hostSocket = await getSocketAcrossCluster(io, host.socketId);
@@ -223,6 +233,7 @@ export const setDuoIo = (io) => {
         }));
 
         socket.on("duo_cancel", guard(async () => {
+            await dropCode(socket.userId);
             await dropFromQueues(socket.userId);
             await leave(socket, socket.userId);
         }));
@@ -230,11 +241,13 @@ export const setDuoIo = (io) => {
         // "disconnecting" still has socket.rooms, so only the device actually in the
         // game ends it; the same account open on another phone doesn't.
         socket.on("disconnecting", async () => {
+            // Copy now: socket.io empties socket.rooms right after this event, before any await resumes.
+            const rooms = new Set(socket.rooms);
             if (!socket.userId || !redisClient.isReady) return;
             try {
                 await dropFromQueues(socket.userId, socket.id);
                 const id = await redisClient.get(userKey(socket.userId));
-                if (id && socket.rooms.has(id)) await leave(socket, socket.userId);
+                if (id && rooms.has(id)) await leave(socket, socket.userId);
             } catch (e) {
                 console.error("Duo disconnect error:", e);
             }

@@ -9,7 +9,7 @@ const gameScoreSchema = new mongoose.Schema(
     },
     gameName: {
       type: String,
-      enum: ["FlappyBird", "DrawAndGuess"],
+      enum: ["FlappyBird", "DrawAndGuess", "Spy", "Ludo", "WordDuel", "WordSolo", "Reaction"],
       required: true,
     },
     highScore: {

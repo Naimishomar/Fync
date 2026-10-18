@@ -12,6 +12,7 @@ import Community from "../models/community/community.model.js";
 import PaymentOrder from "../models/paymentOrder.model.js";
 import { resolvePurchase } from "../utils/pricing.js";
 import { redeemPaidOrder, PaymentError } from "../utils/redeemOrder.js";
+import { markGiftPaid } from "./gift.controller.js";
 dotenv.config({ quiet: true });
 
 // resolvePurchase throws plain Errors for anything the caller got wrong; this
@@ -129,6 +130,12 @@ export const grantEntitlement = async (order) => {
 
   if (purpose === "bootcamp" && meta.registrationId) {
     await RegisterBootcamp.findByIdAndUpdate(meta.registrationId, { isPaid: true });
+    return;
+  }
+
+  // Idempotent: verify and the webhook both land here for the same payment.
+  if (purpose === "couple_gift" && meta.giftOrderId) {
+    await markGiftPaid(order);
   }
 };
 

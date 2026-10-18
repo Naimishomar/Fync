@@ -44,6 +44,7 @@ const CouplesCorner = () => {
   const [game, setGame] = useState<GameId>('thisOrThat');
   const [code, setCode] = useState('');
   const [joinCode, setJoinCode] = useState('');
+  const [codeLeft, setCodeLeft] = useState(0);
   const [partner, setPartner] = useState<Player | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [round, setRound] = useState<Round | null>(null);
@@ -63,8 +64,9 @@ const CouplesCorner = () => {
 
   useEffect(() => {
     const onSearching = () => setPhase('searching');
-    const onCode = (d: { code: string }) => {
+    const onCode = (d: { code: string; expiresIn?: number }) => {
       setCode(d.code);
+      setCodeLeft(d.expiresIn ?? 600);
       setPhase('code');
     };
     const onMatched = (d: { game: GameId; players: Player[]; opponent: Player }) => {
@@ -114,6 +116,22 @@ const CouplesCorner = () => {
     // Detach only this screen's listeners: the socket is shared app-wide.
     return () => evts.forEach(([e, fn]) => socket.off(e, fn));
   }, [timer]);
+
+  // Invite codes die after 10 min server-side; count down and drop back to the lobby with it.
+  useEffect(() => {
+    if (phase !== 'code') return;
+    const t = setInterval(() => {
+      setCodeLeft((s) => {
+        if (s > 1) return s - 1;
+        clearInterval(t);
+        socket.emit('duo_cancel', {});
+        setPhase('lobby');
+        Toast.show({ type: 'info', text1: 'Invite code expired', text2: 'Create a new one when your partner is ready.' });
+        return 0;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [phase]);
 
   const me = () => ({ name: user?.name, username: user?.username, avatar: user?.avatar });
   const ready = () => {
@@ -230,7 +248,9 @@ const CouplesCorner = () => {
                     style={{ marginTop: 14 }}
                     onPress={() => Share.share({ message: `Play "${g.title}" with me on Fync 💕 Open Couples Corner and enter code ${code}` }).catch(() => {})}
                   />
-                  <Text className="font-sans text-ink-3 text-xs mt-3">Waiting for them to join · code works for 10 min</Text>
+                  <Text className="font-sans text-ink-3 text-xs mt-3">
+                    Waiting for them to join · expires in {Math.floor(codeLeft / 60)}:{String(codeLeft % 60).padStart(2, '0')}
+                  </Text>
                 </>
               )}
               <Button title="Cancel" variant="ghost" small style={{ marginTop: 10 }} onPress={cancel} />
@@ -247,6 +267,24 @@ const CouplesCorner = () => {
                   </View>
                   <Image source={{ uri: artUrl('assets/Two hearts/3D/two_hearts_3d.png') }} style={{ width: 76, height: 76 }} contentFit="contain" />
                 </View>
+              </View>
+
+              <View className="flex-row mb-6" style={{ gap: 10 }}>
+                {[
+                  { title: 'Couple Space', sub: 'Streak, daily question, notes', art: 'assets/Heart with ribbon/3D/heart_with_ribbon_3d.png', route: 'CoupleSpace' },
+                  { title: 'Gift Shop', sub: 'Custom albums, mugs & more', art: 'assets/Wrapped gift/3D/wrapped_gift_3d.png', route: 'GiftShop' },
+                ].map((x) => (
+                  <Pressable
+                    key={x.route}
+                    onPress={() => navigation.navigate(x.route)}
+                    accessibilityRole="button"
+                    className="flex-1 rounded-2xl border border-line bg-card p-4 active:opacity-80"
+                  >
+                    <Image source={{ uri: artUrl(x.art) }} style={{ width: 44, height: 44 }} contentFit="contain" cachePolicy="disk" />
+                    <Text className="font-display text-ink mt-2" style={{ fontSize: 15 }}>{x.title}</Text>
+                    <Text className="font-sans text-ink-3 text-xs mt-0.5" numberOfLines={2}>{x.sub}</Text>
+                  </Pressable>
+                ))}
               </View>
 
               <Text className="font-display text-label text-ink-2 uppercase mb-2" style={{ letterSpacing: 1.2 }}>Have a code?</Text>

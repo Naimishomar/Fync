@@ -12,11 +12,13 @@ import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { isFeatureOn } from '../../constants/features';
 import { AppBar, IconBtn } from '../ui/kit';
+import GiftAdmin from '../gifts/GiftAdmin';
 
 const TAB_TITLES: Record<string, string> = {
     ads: 'Banner Ads', users: 'User Management', media: 'Fync Media', reports: 'Reported Content',
     marketplace: 'Reward Items', rewards: 'Redemptions', messages: 'Contact Messages',
     broadcast: 'Global Broadcast', payments: 'Payments', subscription: 'Subscription Pricing',
+    gifts: 'Gift Shop',
 };
 
 // Using a stable key for navigation to ensure it survives re-renders
@@ -54,7 +56,7 @@ const AdminPortal = ({ navigation }: any) => {
         }
     }, [user]);
 
-    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media' | 'reports' | 'users' | 'subscription' | 'broadcast' | 'payments'>('ads');
+    const [activeTab, setActiveTab] = useState<'ads' | 'rewards' | 'marketplace' | 'messages' | 'media' | 'reports' | 'users' | 'subscription' | 'broadcast' | 'payments' | 'gifts'>('ads');
     const [view, setView] = useState<'hub' | 'feature'>('hub');
     const [subscriptionPrice, setSubscriptionPrice] = useState<string>('39');
     const [currentSubscriptionPrice, setCurrentSubscriptionPrice] = useState<string>('...');
@@ -497,6 +499,9 @@ const AdminPortal = ({ navigation }: any) => {
                 fetchPayments({ reset: true });
                 fetchPaymentStats();
                 break;
+            case 'gifts':
+                // GiftAdmin loads its own data.
+                break;
             case 'users':
                 if (userSearch.trim()) {
                     fetchAdminUsers(userSearch);
@@ -891,6 +896,12 @@ const AdminPortal = ({ navigation }: any) => {
                 color={C.success} 
                 description="Every transaction with its reference id, payer and outcome — for answering student queries." onOpen={openHub} />
             <HubButton 
+                title="Gift Shop" 
+                tab="gifts" 
+                icon="gift-outline" 
+                color={C.danger} 
+                description="Fync Gifts: edit products and prices, ship paid orders and update tracking." onOpen={openHub} />
+            <HubButton 
                 title="Subscription Pricing" 
                 tab="subscription" 
                 icon="pricetag" 
@@ -1018,7 +1029,7 @@ const AdminPortal = ({ navigation }: any) => {
                 <AppBar
                     title={view === 'hub' ? 'Admin Portal' : TAB_TITLES[activeTab]}
                     onBack={() => (view === 'feature' ? setView('hub') : navigation.goBack())}
-                    right={view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && activeTab !== 'subscription' && activeTab !== 'payments' ? (
+                    right={view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && activeTab !== 'subscription' && activeTab !== 'payments' && activeTab !== 'gifts' ? (
                         <IconBtn name="add" boxed onPress={() => { resetForm(); setModalVisible(true); }} />
                     ) : undefined}
                 />
@@ -1119,6 +1130,8 @@ const AdminPortal = ({ navigation }: any) => {
                 // Called, not mounted: a component defined in render is a new type
                 // every render, so the hub remounted (and lost scroll) on each update.
                 HubView()
+            ) : activeTab === 'gifts' ? (
+                <GiftAdmin />
             ) : activeTab === 'subscription' ? (
                 // Subscription view is rendered above, so we render nothing here to prevent the FlatList fallback
                 null

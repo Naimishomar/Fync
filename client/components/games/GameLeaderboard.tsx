@@ -33,6 +33,7 @@ const GameLeaderboard = () => {
   };
 
   const getGameTitle = () => {
+    if (route.params?.title) return route.params.title;
     return gameName === "FlappyBird" ? "Flappy Bird High Scores" : "Draw & Guess Champions";
   };
 

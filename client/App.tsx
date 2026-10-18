@@ -187,6 +187,14 @@ export type RootStackParamList = {
   ConfessionFeed: undefined;
   TwelveAMHomeCard: undefined;
   CouplesCorner: undefined;
+  CoupleSpace: undefined;
+  GiftShop: undefined;
+  GiftProduct: { id: string };
+  GiftCheckout: { product: any; customization: any };
+  MyGifts: undefined;
+  SpyGame: undefined;
+  LudoGame: undefined;
+  WordDuel: undefined;
   TwelveAMClub: undefined;
   FindTeammate: undefined;
   Notification: undefined;
@@ -393,6 +401,14 @@ function AppStack() {
       <Stack.Screen name="ConfessionFeed" getComponent={() => require('./components/newFeatures/ConfessionFeed').default} />
       <Stack.Screen name="TwelveAMHomeCard" getComponent={() => require('./components/newFeatures/TwelveAMHomeCard').default} />
       <Stack.Screen name="CouplesCorner" getComponent={() => require('./components/couples/CouplesCorner').default} />
+      <Stack.Screen name="CoupleSpace" getComponent={() => require('./components/couples/CoupleSpace').default} />
+      <Stack.Screen name="GiftShop" getComponent={() => require('./components/gifts/GiftShop').default} />
+      <Stack.Screen name="GiftProduct" getComponent={() => require('./components/gifts/GiftProduct').default} />
+      <Stack.Screen name="GiftCheckout" getComponent={() => require('./components/gifts/GiftCheckout').default} />
+      <Stack.Screen name="MyGifts" getComponent={() => require('./components/gifts/MyGifts').default} />
+      <Stack.Screen name="SpyGame" getComponent={() => require('./components/games/spy/SpyGame').default} />
+      <Stack.Screen name="LudoGame" getComponent={() => require('./components/games/ludo/LudoGame').default} />
+      <Stack.Screen name="WordDuel" getComponent={() => require('./components/games/word/WordDuel').default} />
       <Stack.Screen name="TwelveAMClub" getComponent={() => require('./components/newFeatures/TwelveAMClub').default} />
       <Stack.Screen name="FindTeammate" getComponent={() => require('./components/FindTeammate').default} />
       <Stack.Screen name="Notification" component={Notification} />
