@@ -59,6 +59,7 @@ import webrtcRoute from './routes/webrtc.route.js';
 import gameRoute from './routes/game.route.js';
 import batchRoute from './routes/batch.route.js';
 import noteRoutes from "./routes/note.route.js";
+import exploreRoute from './routes/explore.route.js';
 import ContestManager from './services/contestManager.js';
 import { mediaUrlMiddleware } from './utils/mediaUrl.js';
 
@@ -292,6 +293,7 @@ app.use('/arena/admin', arenaAdminRoute);
 app.use('/entertainment', entertainmentRoute);
 app.use('/games', gameRoute);
 app.use('/webrtc', webrtcRoute);
+app.use('/explore', exploreRoute);
 // Mounted last: it dispatches back into this same router, so every route it can
 // reach must already be registered above it.
 app.use('/batch', batchRoute);

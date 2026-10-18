@@ -23,6 +23,7 @@ import {
 } from '../constants/features';
 import { C } from '../constants/colors';
 import { AppBar } from './ui/kit';
+import FeaturedCarousel from './explore/FeaturedCarousel';
 
 // A category reads as one colour instead of forty. `feature.tint` stays in
 // constants/features.ts as a fallback for anything not yet categorised.
@@ -289,6 +290,8 @@ const ExploreHub = () => {
             )
           ) : (
             <>
+              <FeaturedCarousel />
+
               {/* Somewhere to start. A first-time student facing seven closed
                   categories still has to guess, so the four things most people
                   actually open are surfaced directly. */}
