@@ -33,40 +33,48 @@ const fam = (k: string): string | undefined =>
 // Declared at module scope on purpose: inside the component these are a new
 // function type on every render, so React unmounts and remounts every tile
 // rather than updating it — which is what made opening a feature feel slow.
-const Tile = ({ feature, columns, onOpen }: { feature: Feature; columns: number; onOpen: (f: Feature) => void }) => (
-  <Pressable
-    onPress={() => onOpen(feature)}
-    style={{ width: `${100 / columns}%`, paddingHorizontal: 6 }}
-    className="items-center pb-[18px] active:opacity-60"
-    accessibilityRole="button"
-    accessibilityLabel={`${feature.label}. ${feature.hint}`}
-  >
-    <View
-      className="w-full h-[70px] items-center justify-center border-[1.5px] border-line mb-[7px] rounded-md"
-      style={{ backgroundColor: `${fam(feature.category) ?? feature.tint}14` }}
+// Card tile (Unstop-style): title on top, a large 3D illustration under it,
+// on a soft wash of the feature's family colour.
+const Tile = ({ feature, columns, onOpen }: { feature: Feature; columns: number; onOpen: (f: Feature) => void }) => {
+  const tint = fam(feature.category) ?? feature.tint;
+  return (
+    <Pressable
+      onPress={() => onOpen(feature)}
+      style={{ width: `${100 / columns}%`, padding: 5 }}
+      className="active:opacity-70"
+      accessibilityRole="button"
+      accessibilityLabel={`${feature.label}. ${feature.hint}`}
     >
-      {/* 3D artwork when the feature has it; the Ionicon stays as the fallback
-          so a new feature is never a blank tile before art is chosen for it. */}
-      {artUrl(feature.art) ? (
-        <ExpoImage
-          source={{ uri: artUrl(feature.art) }}
-          style={{ width: 46, height: 46 }}
-          contentFit="contain"
-          cachePolicy="disk"
-          transition={120}
-        />
-      ) : (
-        <Ionicons name={feature.icon} size={24} color={fam(feature.category) ?? feature.tint} />
-      )}
-    </View>
-    <Text
-      className="font-display text-ink text-label text-center leading-tight"
-      numberOfLines={2}
-    >
-      {feature.label}
-    </Text>
-  </Pressable>
-);
+      <View
+        className="items-center rounded-2xl border border-line overflow-hidden"
+        style={{ backgroundColor: `${tint}${C.scheme === 'dark' ? '26' : '17'}`, height: 132, paddingTop: 12, paddingHorizontal: 6 }}
+      >
+        <Text
+          className="font-display text-ink text-center"
+          style={{ fontSize: 13, lineHeight: 16 }}
+          numberOfLines={2}
+        >
+          {feature.label}
+        </Text>
+        <View className="flex-1 w-full items-center justify-center">
+          {/* 3D artwork when the feature has it; the Ionicon stays as the fallback
+              so a new feature is never a blank tile before art is chosen for it. */}
+          {artUrl(feature.art) ? (
+            <ExpoImage
+              source={{ uri: artUrl(feature.art) }}
+              style={{ width: 66, height: 66 }}
+              contentFit="contain"
+              cachePolicy="disk"
+              transition={120}
+            />
+          ) : (
+            <Ionicons name={feature.icon} size={34} color={tint} />
+          )}
+        </View>
+      </View>
+    </Pressable>
+  );
+};
 
 const Row = ({ feature, onOpen }: { feature: Feature; onOpen: (f: Feature) => void }) => (
   <Pressable
@@ -186,7 +194,7 @@ const ExploreHub = () => {
 
   // Four across on a phone, more on a tablet, without hard-coding a tile width
   // that overflows on small screens.
-  const columns = width >= 700 ? 6 : 4;
+  const columns = width >= 700 ? 5 : 3;
 
   useFocusEffect(
     useCallback(() => {
