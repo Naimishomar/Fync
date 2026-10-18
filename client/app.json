@@ -42,7 +42,6 @@
         "expo-build-properties",
         {
           "android": {
-            "allowBackup": false,
             "usesCleartextTraffic": false,
             "minSdkVersion": 24,
             "enableProguardInReleaseBuilds": true,
@@ -132,8 +131,11 @@
       "backgroundColor": "#F5F2EC",
       "blockedPermissions": [
         "android.permission.ACCESS_MEDIA_LOCATION",
-        "android.permission.READ_MEDIA_AUDIO"
-      ]
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.NFC"
+      ],
+      "allowBackup": false
     },
     "extra": {
       "eas": {

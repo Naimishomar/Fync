@@ -679,7 +679,7 @@ export default function SpeakerSessionScreen() {
                                     navigate('RazorpayWebView', {
                                         order: order,
                                         user: user,
-                                        keyId: RAZORPAY_KEY_ID || 'rzp_test_RipeosWeZjGxlD',
+                                        keyId: RAZORPAY_KEY_ID,
                                         merchantName: 'Fync speaker events'
                                     });
                                 }
