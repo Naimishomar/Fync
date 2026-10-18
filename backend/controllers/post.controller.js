@@ -154,7 +154,7 @@ export const getPosts = async (req, res) => {
             .populate("user", "name avatar username college user_access")
             .populate({
                 path: "comments",
-                populate: { path: "user", select: "name avatar username" }
+                populate: { path: "commentor", select: "name avatar username" }
             })
             .select("-liked_by -upvoted_by -downvoted_by")
             .sort({ createdAt: -1 })
