@@ -155,7 +155,7 @@ export default function ProfileSetup1() {
                     })
                   }
                 >
-                  <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Continue</Text>
+                  <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Continue</Text>
                 </Pressable>
               </View>
             </View>
@@ -182,9 +182,9 @@ export default function ProfileSetup1() {
             setDropdownType(null);
           }}
         >
-          <View className="flex-1 items-center justify-center bg-black/50">
+          <View className="flex-1 items-center justify-center" style={{ backgroundColor: C.scrim }}>
             <View className="w-80 max-h-[70%] rounded-lg bg-card p-4">
-              <Text className="mb-4 text-center text-lg font-display">
+              <Text className="mb-4 text-center text-lg font-display text-ink">
                 Select {dropdownType}
               </Text>
 

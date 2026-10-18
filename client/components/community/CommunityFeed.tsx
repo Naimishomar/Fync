@@ -170,13 +170,13 @@ export default function CommunityFeed() {
             {/* Vote rail */}
             <View className="bg-paper-2 px-3 py-5 items-center justify-start border-r border-line">
                 <TouchableOpacity onPress={() => vote(item, 1)} hitSlop={8}>
-                    <Ionicons name={item.myVote === 1 ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={26} color={item.myVote === 1 ? '#F97316' : '#8B857E'} />
+                    <Ionicons name={item.myVote === 1 ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={26} color={item.myVote === 1 ? C.brand[500] : C.ink3} />
                 </TouchableOpacity>
                 <Text className={`font-display text-sm my-1 ${item.myVote === 1 ? 'text-accent-text' : item.myVote === -1 ? 'text-fam-career' : 'text-ink'}`}>
                     {item.score}
                 </Text>
                 <TouchableOpacity onPress={() => vote(item, -1)} hitSlop={8}>
-                    <Ionicons name={item.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={26} color={item.myVote === -1 ? '#2563EB' : '#8B857E'} />
+                    <Ionicons name={item.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={26} color={item.myVote === -1 ? C.info : C.ink3} />
                 </TouchableOpacity>
             </View>
 
@@ -203,7 +203,7 @@ export default function CommunityFeed() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <View className="flex-1">
                 <AppBar
                     title={subName}
@@ -218,8 +218,8 @@ export default function CommunityFeed() {
                             onPress={() => changeSort(s.key)}
                             className={`flex-row items-center px-4 h-10 rounded-xl border ${sort === s.key ? 'bg-ink border-ink' : 'bg-card border-line'}`}
                         >
-                            <Ionicons name={s.icon as any} size={14} color={sort === s.key ? '#fff' : '#8B857E'} />
-                            <Text className={`font-display text-label uppercase ml-2 ${sort === s.key ? 'text-white' : 'text-ink-3'}`}>
+                            <Ionicons name={s.icon as any} size={14} color={sort === s.key ? C.paper : C.ink3} />
+                            <Text className={`font-display text-label uppercase ml-2 ${sort === s.key ? 'text-paper' : 'text-ink-3'}`}>
                                 {s.label}
                             </Text>
                         </TouchableOpacity>
@@ -263,8 +263,8 @@ export default function CommunityFeed() {
                                 className={`px-5 h-10 rounded-xl items-center justify-center ${posting || !title.trim() ? 'bg-paper-2' : 'bg-ink'}`}
                             >
                                 {posting
-                                    ? <ActivityIndicator color="white" size="small" />
-                                    : <Text className="text-white font-display uppercase text-label">Post</Text>}
+                                    ? <ActivityIndicator color={C.paper} size="small" />
+                                    : <Text className="text-paper font-display uppercase text-label">Post</Text>}
                             </TouchableOpacity>}
                         />
 

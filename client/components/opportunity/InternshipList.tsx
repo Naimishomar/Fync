@@ -95,7 +95,7 @@ const InternshipCard = memo(({ item, onApply, hideApply }: { item: any; onApply:
             activeOpacity={item.hasApplied ? 1 : 0.9}
             className={`${item.hasApplied ? 'bg-paper-2 border-line' : 'bg-ink'} px-gutter py-3.5 rounded-card shadow-hair`}
           >
-            <Text className={`${item.hasApplied ? 'text-ink-3' : 'text-white'} font-display uppercase text-label`}>
+            <Text className={`${item.hasApplied ? 'text-ink-3' : 'text-paper'} font-display uppercase text-label`}>
               {item.hasApplied ? 'Registered' : 'Apply Now'}
             </Text>
           </TouchableOpacity>
@@ -265,7 +265,7 @@ const InternshipList = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
         <AppBar title="Internships" onBack={() => navigation.goBack()} />
@@ -402,7 +402,7 @@ const InternshipList = () => {
                     <Ionicons
                       name={user?.resumeUrl ? "checkmark-circle" : "close-circle"}
                       size={22}
-                      color={user?.resumeUrl ? "#047857" : "#DC2626"}
+                      color={user?.resumeUrl ? C.success : C.danger}
                     />
                   </View>
 

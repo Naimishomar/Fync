@@ -127,7 +127,7 @@ export default function ImageToPdfScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
+    <View className="flex-1" style={{ backgroundColor: C.paper }}>
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Image to PDF" onBack={() => navigation.goBack()}
           right={<IconBtn name="trash-outline" color={C.ink3} onPress={() => setImages([])} />} />
@@ -174,11 +174,11 @@ export default function ImageToPdfScreen() {
               className={`w-full py-4 rounded-card items-center justify-center flex-row shadow-hair ${isProcessing ? 'bg-brand-400' : 'bg-brand-500'}`}
             >
               {isProcessing ? (
-                <ActivityIndicator color={C.ink} />
+                <ActivityIndicator color={C.onBrand} />
               ) : (
                 <>
-                  <Ionicons name="document-text" size={20} color={C.ink} className="mr-2" />
-                  <Text className="text-ink font-semibold text-base ml-2">Generate PDF ({images.length} pages)</Text>
+                  <Ionicons name="document-text" size={20} color={C.onBrand} className="mr-2" />
+                  <Text className="text-on-brand font-semibold text-base ml-2">Generate PDF ({images.length} pages)</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -195,8 +195,8 @@ export default function ImageToPdfScreen() {
                 onPress={downloadPdf}
                 className="flex-1 py-4 items-center justify-center flex-row bg-brand-500 ml-2 border-2 border-ink rounded-md"
               >
-                <Ionicons name="download" size={20} color={C.ink} className="mr-2" />
-                <Text className="text-ink font-semibold text-base ml-2">Download</Text>
+                <Ionicons name="download" size={20} color={C.onBrand} className="mr-2" />
+                <Text className="text-on-brand font-semibold text-base ml-2">Download</Text>
               </TouchableOpacity>
             </View>
           )}

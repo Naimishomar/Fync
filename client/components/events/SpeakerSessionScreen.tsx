@@ -107,7 +107,7 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                 {item.banner ? (
                     <ExpoImage source={{ uri: item.banner }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={item._id} />
                 ) : (
-                    <View className="w-full h-full"  style={{ backgroundColor: '#F97316' }} />
+                    <View className="w-full h-full"  style={{ backgroundColor: C.brand[500] }} />
                 )}
 
                 <View className="absolute top-6 left-6 bg-card/90 px-4 py-2 rounded-card border border-white/20 backdrop-blur-md">
@@ -117,7 +117,7 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                 {isAdmin && (
                     <View className="absolute top-6 right-6 flex-row gap-2">
                         <TouchableOpacity onPress={onOpenScanner} className="w-10 h-10 bg-brand-500 items-center justify-center border-2 border-ink rounded-md" hitSlop={2}>
-                            <Ionicons name="scan" size={18} color={C.ink} />
+                            <Ionicons name="scan" size={18} color={C.onBrand} />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={() => onViewAttendees(item.eventId)} className="w-10 h-10 bg-card rounded-card items-center justify-center border border-line shadow-hair">
                             <Ionicons name="people" size={18} color={C.ink} />
@@ -174,7 +174,7 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                         <Text className="text-ink-3 font-display text-label uppercase">Speakers</Text>
                         {isPrimaryAdmin && (
                             <TouchableOpacity onPress={() => onAddSpeaker(item.eventId)} className="bg-ink px-2.5 py-1 rounded-full">
-                                <Text className="text-white text-label font-display uppercase">+ Add Speaker</Text>
+                                <Text className="text-paper text-label font-display uppercase">+ Add Speaker</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -194,8 +194,8 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                                             cachePolicy="memory-disk"
                                         />
                                         {isPrimaryAdmin && (
-                                            <View className="absolute -top-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-white">
-                                                <Ionicons name="pencil" size={10} color="white" />
+                                            <View className="absolute -top-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-card">
+                                                <Ionicons name="pencil" size={10} color={C.paper} />
                                             </View>
                                         )}
                                     </View>
@@ -238,7 +238,7 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                                         {contact.email && (
                                             <TouchableOpacity onPress={() => Linking.openURL(`mailto:${contact.email}`)} className="flex-row items-center">
                                                 <View className="w-5 h-5 bg-ink rounded-lg items-center justify-center mr-2">
-                                                    <Ionicons name="mail" size={8} color="white" />
+                                                    <Ionicons name="mail" size={8} color={C.paper} />
                                                 </View>
                                                 <Text className="text-ink font-display text-label uppercase">Email Intel</Text>
                                             </TouchableOpacity>
@@ -271,8 +271,8 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
 
                 <View className="flex-row justify-between items-center bg-ink p-6 rounded-xl mt-4 shadow-hair">
                     <View>
-                        <Text className="text-white/40 font-display uppercase text-label">Entry Protocol</Text>
-                        <Text className="text-white text-xl font-display uppercase mt-0.5">
+                        <Text className="text-paper/40 font-display uppercase text-label">Entry Protocol</Text>
+                        <Text className="text-paper text-xl font-display uppercase mt-0.5">
                             {item.fee && item.fee > 0 ? `₹${item.fee}` : 'FREE ENTRY'}
                         </Text>
                     </View>
@@ -280,7 +280,7 @@ const SessionCard = memo(({ item, onRegister, isAdmin, onAddSpeaker, onEditSessi
                     <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => !isRegistered && item.status === 'open' && !isLimitReached && onRegister(item)}
-                        className={`px-gutter py-4 rounded-xl border ${(isRegistered || item.status === 'closed' || isLimitReached) ? 'bg-ink border-ink' : 'bg-card border-white'}`}
+                        className={`px-gutter py-4 rounded-xl border ${(isRegistered || item.status === 'closed' || isLimitReached) ? 'bg-ink border-ink' : 'bg-card border-card'}`}
                         disabled={!!isRegistered || item.status === 'closed' || isLimitReached}
                     >
                         <Text className={`${(isRegistered || item.status === 'closed' || isLimitReached) ? 'text-ink-3' : 'text-ink'} font-display text-label uppercase`}>
@@ -353,7 +353,7 @@ const JoinedSessionCard = memo(({ item, onShowQR, onRefresh }: { item: Registrat
                     )}
                     className={`flex-row items-center justify-center py-4 rounded-card border ${item.isPaid ? 'bg-paper-2 border-line' : 'bg-paper-2 border-line opacity-50'}`}
                 >
-                    <Ionicons name="qr-code" size={16} color={item.isPaid ? "#F97316" : "#C4BEB6"} />
+                    <Ionicons name="qr-code" size={16} color={item.isPaid ? C.brand[500] : C.ink4} />
                     <Text className={`${item.isPaid ? 'text-ink' : 'text-ink-3'} font-semibold text-base ml-3`}>
                         {item.isPaid
                             ? ((item as any).isAdmin ? 'Organizer Pass' : 'Access Pass')
@@ -1024,7 +1024,7 @@ export default function SpeakerSessionScreen() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             {/* Background Protocol Gradient */}
 
@@ -1034,7 +1034,7 @@ export default function SpeakerSessionScreen() {
                         <IconBtn name="ticket" size={20} color={C.brand[500]} boxed onPress={() => setTicketsModalVisible(true)} />
                         {/* openSessionModal resets edit mode, speakers, fee and limit —
                             setting only the data here reopened a previous edit as "Update". */}
-                        <IconBtn name="add" size={24} color="white" style={{ backgroundColor: C.ink, marginLeft: 12 }} onPress={() => openSessionModal()} />
+                        <IconBtn name="add" size={24} color={C.paper} style={{ backgroundColor: C.ink, marginLeft: 12 }} onPress={() => openSessionModal()} />
                     </>} />
                 <FlatList keyboardShouldPersistTaps="handled"
                     data={sessions}
@@ -1145,7 +1145,7 @@ export default function SpeakerSessionScreen() {
                             />
 
                             <TouchableOpacity onPress={handleSpeakerAction} disabled={addingSpeaker} className="bg-ink py-5 items-center border-2 border-ink rounded-md">
-                                {addingSpeaker ? <ActivityIndicator color="white" /> : <Text className="text-white font-display uppercase">Add Speaker</Text>}
+                                {addingSpeaker ? <ActivityIndicator color={C.paper} /> : <Text className="text-paper font-display uppercase">Add Speaker</Text>}
                             </TouchableOpacity>
                             <View className="h-10" />
                         </View>
@@ -1159,9 +1159,9 @@ export default function SpeakerSessionScreen() {
                     <View className="bg-card w-full max-h-[70%] rounded-sheet overflow-hidden">
                         <View className="p-card-pad bg-ink">
                             <View className="flex-row justify-between items-center mb-6">
-                                <Text className="text-white text-xl font-display uppercase">Select College</Text>
+                                <Text className="text-paper text-xl font-display uppercase">Select College</Text>
                                 <TouchableOpacity onPress={() => setCollegeModalVisible(false)} className="w-10 h-10 bg-card/10 rounded-xl items-center justify-center">
-                                    <Ionicons name="close" size={20} color="white" />
+                                    <Ionicons name="close" size={20} color={C.paper} />
                                 </TouchableOpacity>
                             </View>
                             <View className="flex-row items-center bg-card/10 rounded-card px-4 border border-white/10">
@@ -1171,7 +1171,7 @@ export default function SpeakerSessionScreen() {
                                     placeholderTextColor={C.ink3}
                                     value={collegeSearch}
                                     onChangeText={setCollegeSearch}
-                                    className="flex-1 h-12 text-white font-display ml-3 text-xs"
+                                    className="flex-1 h-12 text-paper font-display ml-3 text-xs"
                                 />
                             </View>
                         </View>
@@ -1444,7 +1444,7 @@ export default function SpeakerSessionScreen() {
                                                 {searchingUsers && <ActivityIndicator size="small" color={C.brand[500]} className="mr-2" />}
                                             </View>
                                             <TouchableOpacity onPress={handleAddAdmin} disabled={addingAdmin} className="w-14 h-14 bg-ink items-center justify-center border-2 border-ink rounded-md">
-                                                {addingAdmin ? <ActivityIndicator size="small" color="white" /> : <Ionicons name="person-add" size={24} color="white" />}
+                                                {addingAdmin ? <ActivityIndicator size="small" color={C.paper} /> : <Ionicons name="person-add" size={24} color={C.paper} />}
                                             </TouchableOpacity>
                                         </View>
 
@@ -1569,7 +1569,7 @@ export default function SpeakerSessionScreen() {
                                 </View>
 
                                 <TouchableOpacity onPress={handleSessionAction} disabled={savingSession} className="bg-ink py-6 items-center mb-12 border-2 border-ink rounded-md">
-                                    {savingSession ? <ActivityIndicator color="white" /> : <Text className="text-white font-display uppercase">Initialize Protocol</Text>}
+                                    {savingSession ? <ActivityIndicator color={C.paper} /> : <Text className="text-paper font-display uppercase">Initialize Protocol</Text>}
                                 </TouchableOpacity>
                             </ScrollView>
                         </View>
@@ -1583,12 +1583,12 @@ export default function SpeakerSessionScreen() {
                     <View className="bg-paper h-[90%] rounded-t-sheet overflow-hidden">
                         <View className="p-card-pad bg-ink flex-row justify-between items-center shadow-hair">
                             <View className="flex-1 mr-4">
-                                <Text className="text-white font-display uppercase mb-1 text-h1" numberOfLines={1}>{currentEventForAttendees?.eventName || 'Archive'}</Text>
-                                <Text className="text-white/40 text-label uppercase font-display">{attendees.length} Verified Personnel</Text>
+                                <Text className="text-paper font-display uppercase mb-1 text-h1" numberOfLines={1}>{currentEventForAttendees?.eventName || 'Archive'}</Text>
+                                <Text className="text-paper/40 text-label uppercase font-display">{attendees.length} Verified Personnel</Text>
                             </View>
                             <View className="flex-row items-center gap-3">
                                 <TouchableOpacity onPress={() => exportToExcel(currentEventForAttendees?.eventName || 'Event')} disabled={exporting || loadingAttendees} className="w-12 h-12 bg-card/10 rounded-card items-center justify-center border border-white/10">
-                                    {exporting ? <ActivityIndicator size="small" color={C.brand[500]} /> : <Ionicons name="download-outline" size={24} color="white" />}
+                                    {exporting ? <ActivityIndicator size="small" color={C.brand[500]} /> : <Ionicons name="download-outline" size={24} color={C.paper} />}
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => setAttendeeModalVisible(false)} className="w-12 h-12 bg-card rounded-card items-center justify-center">
                                     <Ionicons name="close" size={24} color={C.ink} />
@@ -1618,7 +1618,7 @@ export default function SpeakerSessionScreen() {
                                             <View className="flex-row justify-between items-start mb-4">
                                                 <View className="flex-1">
                                                     <View className="flex-row items-center gap-2 mb-1">
-                                                        <Text className="text-ink font-display uppercase text-lg" style={{ flexShrink: 1 }} numberOfLines={1}>{u.name}</Text>
+                                                        <Text className="text-on-brand font-display uppercase text-lg" style={{ flexShrink: 1 }} numberOfLines={1}>{u.name}</Text>
                                                         {item.isPaid && (
                                                             <View className="bg-success/10 border border-success/15 px-2.5 py-1 rounded-full">
                                                                 <Text className="text-success text-label font-display uppercase">Verified</Text>
@@ -1654,7 +1654,7 @@ export default function SpeakerSessionScreen() {
                                 ListEmptyComponent={
                                     <View className="flex-1 items-center mt-20 p-card-pad">
                                         <Ionicons name="people-outline" size={64} color={C.paper2} />
-                                        <Text className="font-semibold text-base text-ink mt-6 text-center">No verified personnel found.</Text>
+                                        <Text className="font-semibold text-base text-on-brand mt-6 text-center">No verified personnel found.</Text>
                                     </View>
                                 }
                                 contentContainerStyle={{ paddingBottom: 50 }}
@@ -1723,7 +1723,7 @@ export default function SpeakerSessionScreen() {
                                 )}
                             </View>
                             <View className="mt-8 bg-ink px-6 py-3 rounded-card">
-                                <Text className="text-white font-display uppercase text-label">Entry ID: {selectedReg?._id?.slice(-8).toUpperCase()}</Text>
+                                <Text className="text-paper font-display uppercase text-label">Entry ID: {selectedReg?._id?.slice(-8).toUpperCase()}</Text>
                             </View>
                         </View>
                         <TouchableOpacity onPress={() => setQrModalVisible(false)} className="p-card-pad items-center bg-card border-t border-line">
@@ -1735,7 +1735,7 @@ export default function SpeakerSessionScreen() {
 
             {/* QR Scanner Modal */}
             <Modal visible={scannerVisible} transparent animationType="fade" onRequestClose={() => setScannerVisible(false)}>
-                <View className="flex-1 bg-ink">
+                <View className="flex-1 bg-night">
                     <CameraView
                         style={{ flex: 1 }}
                         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}

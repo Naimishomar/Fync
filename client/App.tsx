@@ -7,7 +7,7 @@ import NoInternetScreen from "./components/NoInternetScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { DefaultTheme } from '@react-navigation/native';
+import { DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import Toast from "react-native-toast-message";
 
@@ -16,7 +16,9 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AlertHost } from './components/ui/AlertModal';
 //@ts-ignore
 import "./global.css";
-import { cssInterop } from "nativewind";
+import { cssInterop, colorScheme as nwColorScheme, useColorScheme } from "nativewind";
+import { C, setPalette } from "./constants/colors";
+import { loadThemePref } from "./utils/theme";
 import { Image as ExpoImage } from "expo-image";
 
 // NativeWind only maps `className` for React Native's own components.
@@ -523,9 +525,12 @@ function RootNavigator() {
 }
 
 
-const navTheme = {
-  ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, background: '#F5F2EC' },
+const makeNavTheme = (dark: boolean) => {
+  const base = dark ? DarkTheme : DefaultTheme;
+  return {
+    ...base,
+    colors: { ...base.colors, background: C.paper, card: C.card, text: C.ink, border: C.line, primary: C.brand[500] },
+  };
 };
 
 const linking = {
@@ -551,6 +556,18 @@ const linking = {
 export default function App() {
   const [isConnected, setIsConnected] = React.useState(true);
 
+  // Theme: NativeWind owns the scheme (classes); the JS palette follows it
+  // before anything below renders, so every C.* read in this pass matches.
+  const { colorScheme: scheme } = useColorScheme();
+  setPalette(scheme);
+  React.useEffect(() => {
+    loadThemePref().then((pref) => nwColorScheme.set(pref)).catch(() => {});
+  }, []);
+  const navTheme = React.useMemo(() => makeNavTheme(scheme === 'dark'), [scheme]);
+  // Screens read C.* during render, so a scheme change remounts the navigator
+  // (keyed by scheme) and restores where the user was from this snapshot.
+  const navState = React.useRef<any>(undefined);
+
   const [fontsLoaded, fontError] = useFonts({
     SpaceGrotesk_500Medium,
     SpaceGrotesk_700Bold,
@@ -573,20 +590,20 @@ export default function App() {
   if (!fontsLoaded && !fontError) {
     return (
       <View className="flex-1 items-center justify-center bg-paper">
-        <ActivityIndicator color="#EA580C" />
+        <ActivityIndicator color={C.accentText} />
       </View>
     );
   }
 
   const toastConfig = {
     success: (props: any) => (
-      <View className="mx-5 my-2 p-4 bg-white rounded-3xl flex-row items-center shadow-xl border border-slate-100">
-        <View className="w-10 h-10 bg-slate-50 rounded-2xl items-center justify-center mr-3 border border-slate-100 overflow-hidden">
+      <View className="mx-5 my-2 p-4 bg-card rounded-3xl flex-row items-center shadow-xl border border-line">
+        <View className="w-10 h-10 bg-paper-2 rounded-2xl items-center justify-center mr-3 border border-line overflow-hidden">
           <Image source={require('./assets/Fync.png')} className="w-full h-full" resizeMode="cover" />
         </View>
         <View className="flex-1">
-          <Text className="text-zinc-900 font-bold text-sm tracking-tight">{props.text1}</Text>
-          {!!props.text2 && <Text className="text-slate-500 text-xs mt-0.5">{props.text2}</Text>}
+          <Text className="text-ink font-bold text-sm tracking-tight">{props.text1}</Text>
+          {!!props.text2 && <Text className="text-ink-3 text-xs mt-0.5">{props.text2}</Text>}
         </View>
         <View className="bg-green-500 w-1.5 h-6 rounded-full ml-2" />
       </View>
@@ -604,13 +621,13 @@ export default function App() {
       </View>
     ),
     error: (props: any) => (
-      <View className="mx-5 my-2 p-4 bg-white rounded-3xl flex-row items-center shadow-xl border border-red-50">
-        <View className="w-10 h-10 bg-red-50 rounded-2xl items-center justify-center mr-3 border border-red-100 overflow-hidden">
+      <View className="mx-5 my-2 p-4 bg-card rounded-3xl flex-row items-center shadow-xl border border-danger/10">
+        <View className="w-10 h-10 bg-danger/10 rounded-2xl items-center justify-center mr-3 border border-danger/20 overflow-hidden">
           <Image source={require('./assets/Fync.png')} className="w-full h-full" resizeMode="cover" />
         </View>
         <View className="flex-1">
-          <Text className="text-red-900 font-bold text-sm tracking-tight">{props.text1}</Text>
-          {!!props.text2 && <Text className="text-red-400 text-xs mt-0.5">{props.text2}</Text>}
+          <Text className="text-ink font-bold text-sm tracking-tight">{props.text1}</Text>
+          {!!props.text2 && <Text className="text-danger text-xs mt-0.5">{props.text2}</Text>}
         </View>
         <View className="bg-red-500 w-1.5 h-6 rounded-full ml-2" />
       </View>
@@ -621,8 +638,15 @@ export default function App() {
     <ErrorBoundary>
       <AuthProvider>
         <SafeAreaProvider>
-          <NavigationContainer ref={navigationRef} linking={linking} theme={navTheme}>
-            <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
+          <NavigationContainer
+            key={scheme ?? 'light'}
+            ref={navigationRef}
+            linking={linking}
+            theme={navTheme}
+            initialState={navState.current}
+            onStateChange={(state) => { navState.current = state; }}
+          >
+            <StatusBar style={C.statusStyle} backgroundColor="transparent" translucent={true} />
             <RootNavigator />
             <AlertHost />
             <Toast config={toastConfig} position="top" visibilityTime={4000} topOffset={60} />

@@ -296,7 +296,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                         )}
 
                         {item.messageType === 'text' && (
-                            <Text className={`${isMe ? 'text-white' : 'text-ink'} text-sm leading-5 font-medium`}>{item.message}</Text>
+                            <Text className={`${isMe ? 'text-paper' : 'text-ink'} text-sm leading-5 font-medium`}>{item.message}</Text>
                         )}
                         {item.messageType === 'image' && (
                             <Image source={{ uri: item.fileUrl }} style={{ width: 208, height: 208, borderRadius: 8 }} contentFit="cover" cachePolicy="memory-disk" />
@@ -316,7 +316,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                             >
                                 <Ionicons name="document-text" size={24} color={C.brand[500]} />
                                 <View className="ml-2">
-                                    <Text className={`${isMe ? 'text-white' : 'text-ink'} text-xs font-semibold`} numberOfLines={1}>{item.fileName || "Document"}</Text>
+                                    <Text className={`${isMe ? 'text-paper' : 'text-ink'} text-xs font-semibold`} numberOfLines={1}>{item.fileName || "Document"}</Text>
                                     <Text className="text-ink-3 text-label">Mentorship Resource (Limit 5MB)</Text>
                                 </View>
                             </TouchableOpacity>
@@ -332,7 +332,7 @@ const ProfessionalHub = ({ navigation }: any) => {
 
     return (
         <View className="flex-1 bg-paper-2">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar
                     title="Professional Hub"
@@ -434,7 +434,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                             />
                             {text.trim().length > 0 && (
                                 <Pressable onPress={handleSendText} hitSlop={6} className="bg-brand-500 p-2.5 rounded-full ml-2 shadow-hair">
-                                    <Ionicons name="send" size={16} color={C.ink} />
+                                    <Ionicons name="send" size={16} color={C.onBrand} />
                                 </Pressable>
                             )}
                         </View>

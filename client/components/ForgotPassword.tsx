@@ -95,11 +95,11 @@ const ForgotPassword = ({ route, navigation }: any) => {
       >
         <AppBar title="Forgot Password" onBack={() => navigation.goBack()} />
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F5F2EC' }}
+          contentContainerStyle={{ flexGrow: 1, backgroundColor: C.paper }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="flex-1 bg-ink">
+          <View className="flex-1 bg-night">
 
             <AuthPoster mode="login" grow />
 
@@ -116,7 +116,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                   />
                   <Image
                     source={require('../assets/fync-logo.jpg')}
-                    style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: '#12100E' }}
+                    style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: C.ink }}
                     resizeMode="cover"
                     accessibilityLabel="Fync"
                   />
@@ -199,7 +199,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
               {/* Action Button */}
               {isLoading ? (
                 <Pressable className="bg-brand-500 py-4 items-center justify-center border-2 border-ink rounded-xl" style={{ minHeight: 52 }}>
-                  <ActivityIndicator size="small" color={C.ink} />
+                  <ActivityIndicator size="small" color={C.onBrand} />
                 </Pressable>
               ) : (
                 <Pressable
@@ -207,7 +207,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                   style={{ minHeight: 52 }}
                   onPress={isOtpSent ? handleVerifyAndReset : handleSendOtp}
                 >
-                  <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
+                  <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
                     {isOtpSent ? "Reset Password" : "Send OTP"}
                   </Text>
                 </Pressable>

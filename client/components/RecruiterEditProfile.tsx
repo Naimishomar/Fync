@@ -133,7 +133,7 @@ export default function RecruiterEditProfile() {
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
-      <StatusBar style="dark" />
+      <StatusBar style={C.statusStyle} />
 
       <AppBar
         title="Profile Settings"

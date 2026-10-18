@@ -116,7 +116,7 @@ const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: s
           onPress={() => onPress(item.seo_url)}
           className="bg-ink px-gutter py-3.5 rounded-xl shadow-hair"
         >
-          <Text className="text-white font-display uppercase text-label">Access Portal</Text>
+          <Text className="text-paper font-display uppercase text-label">Access Portal</Text>
         </TouchableOpacity>
       </View>
 
@@ -219,7 +219,7 @@ export default function WorkshopList() {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
         <AppBar title="Workshop Hub" onBack={() => navigation.goBack()} />

@@ -102,11 +102,11 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
       {/* CONTROLS */}
       <View style={[styles.controls, { paddingBottom: Math.max(40, insets.bottom + 16) }]}>
         <TouchableOpacity onPress={handleToggleMute} style={[styles.controlBtn, isMuted && styles.controlBtnActive]}>
-          {isMuted ? <MicOff size={22} color={C.ink} /> : <Mic size={22} color="#fff" />}
+          {isMuted ? <MicOff size={22} color="#12100E" /> : <Mic size={22} color="#fff" />}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleToggleVideo} style={[styles.controlBtn, !isVideoOn && styles.controlBtnActive]}>
-          {isVideoOn ? <Camera size={22} color="#fff" /> : <CameraOff size={22} color={C.ink} />}
+          {isVideoOn ? <Camera size={22} color="#fff" /> : <CameraOff size={22} color="#12100E" />}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleSwitchCamera} style={styles.controlBtn}>

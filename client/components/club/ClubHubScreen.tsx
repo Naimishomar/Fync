@@ -212,7 +212,7 @@ const ClubHubScreen = () => {
                                         onPress={() => navigation.navigate('CreateSubGroup', { clubId: club._id })} 
                                         className="w-12 h-12 bg-ink rounded-card items-center justify-center shadow-hair"
                                     >
-                                        <Ionicons name="add" size={28} color="white" />
+                                        <Ionicons name="add" size={28} color={C.paper} />
                                     </TouchableOpacity>
                                 )}
                             </View>
@@ -240,7 +240,7 @@ const ClubHubScreen = () => {
                                             </View>
                                             
                                             <View className="flex-1 ml-5 pr-4">
-                                                <Text className={`${sub.isGeneral ? 'text-white' : 'text-ink'} font-display text-lg uppercase`} numberOfLines={1}>
+                                                <Text className={`${sub.isGeneral ? 'text-paper' : 'text-ink'} font-display text-lg uppercase`} numberOfLines={1}>
                                                     {sub.name}
                                                 </Text>
                                                 <Text className={`${sub.isGeneral ? 'text-ink-3' : 'text-ink-3'} text-label font-display uppercase mt-1`} numberOfLines={1}>
@@ -249,7 +249,7 @@ const ClubHubScreen = () => {
                                             </View>
 
                                             {isSubMember ? (
-                                                <Ionicons name="chevron-forward" size={20} color={sub.isGeneral ? "#12100E" : "#C4BEB6"} />
+                                                <Ionicons name="chevron-forward" size={20} color={sub.isGeneral ? C.ink : C.ink4} />
                                             ) : isPendingJoin ? (
                                                 <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
                                                     <Text className="text-ink-3 font-display text-label uppercase">Pending</Text>
@@ -282,7 +282,7 @@ const ClubHubScreen = () => {
                             <View className="w-20 h-20 bg-ink rounded-sheet items-center justify-center mb-8 border border-ink">
                                 <Feather name="lock" size={32} color={C.brand[500]} />
                             </View>
-                            <Text className="text-white text-2xl font-display uppercase text-center">Protocol Restricted</Text>
+                            <Text className="text-paper text-2xl font-display uppercase text-center">Protocol Restricted</Text>
                             <Text className="text-ink-3 text-center mt-4 mb-10 leading-6 font-medium text-sm">
                                 This community hub is under tight security. Authorization clearance is required to view classified rooms and internal signals.
                             </Text>

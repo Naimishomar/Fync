@@ -33,8 +33,8 @@ const NoInternetScreen = ({ onRetry }: { onRetry: () => void }) => {
           activeOpacity={0.8}
           onPress={handleRetry}
         >
-          <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Try Again</Text>
-          <Ionicons name="refresh-outline" size={20} color={C.ink} style={{ marginLeft: 8 }} />
+          <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Try Again</Text>
+          <Ionicons name="refresh-outline" size={20} color={C.onBrand} style={{ marginLeft: 8 }} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>

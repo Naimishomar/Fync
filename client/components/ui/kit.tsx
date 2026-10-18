@@ -24,19 +24,35 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomInset } from '../../constants/layout';
+import { C as P, themed } from '../../constants/colors';
 
 /* ------------------------------------------------------------------ tokens */
-// Mirrors tailwind.config.js for the handful of places that need a raw value
-// (shadows, SVG-ish props, Ionicons colour). Keep the two in step.
-export const C = {
-  ink: '#12100E', ink2: '#57534E', ink3: '#8B857E', ink4: '#C4BEB6',
-  paper: '#F5F2EC', paper2: '#EDE8E0', card: '#FFFFFF', line: '#E3DDD3',
-  brand: '#F97316', brandText: '#EA580C', brand100: '#EDE8E0', brand200: '#EDE8E0', brand50: '#EDE8E0',
-  student: '#F97316', alumni: '#B45309', alumniLit: '#F5B700', recruiter: '#4F46E5',
-  study: '#7C3AED', career: '#2563EB', events: '#EA580C', social: '#0891B2', campus: '#57534E', fun: '#DB2777',
-  success: '#047857', warning: '#B45309', danger: '#DC2626',
-  night: '#0D0B12', night2: '#171320', nightInk: '#EDE8E0', night3: '#8B8397', violet: '#7C3AED',
-} as const;
+// The kit's short names for the live palette in constants/colors.ts. Every
+// read goes through to the current theme (see the Proxy there).
+type KitC = {
+  ink: string; ink2: string; ink3: string; ink4: string;
+  paper: string; paper2: string; card: string; line: string;
+  brand: string; brandText: string; brand100: string; brand200: string; brand50: string;
+  student: string; alumni: string; alumniLit: string; recruiter: string;
+  study: string; career: string; events: string; social: string; campus: string; fun: string;
+  success: string; warning: string; danger: string;
+  night: string; night2: string; nightInk: string; night3: string; violet: string;
+};
+const kitKey: Record<keyof KitC, () => string> = {
+  ink: () => P.ink, ink2: () => P.ink2, ink3: () => P.ink3, ink4: () => P.ink4,
+  paper: () => P.paper, paper2: () => P.paper2, card: () => P.card, line: () => P.line,
+  brand: () => P.brand[500], brandText: () => P.accentText,
+  brand100: () => P.paper2, brand200: () => P.paper2, brand50: () => P.paper2,
+  student: () => P.student, alumni: () => P.alumni, alumniLit: () => P.alumniLit, recruiter: () => P.recruiter,
+  study: () => P.fam.study, career: () => P.fam.career, events: () => P.fam.events,
+  social: () => P.fam.social, campus: () => P.fam.campus, fun: () => P.fam.fun,
+  success: () => P.success, warning: () => P.warning, danger: () => P.danger,
+  night: () => P.night, night2: () => P.night2, nightInk: () => P.nightInk, night3: () => P.night3,
+  violet: () => '#7C3AED',
+};
+export const C: KitC = new Proxy({} as KitC, {
+  get: (_t, k) => kitKey[k as keyof KitC]?.(),
+});
 
 export const GUTTER = 20;
 
@@ -310,7 +326,7 @@ export function Button({
   inCard?: boolean;
 }) {
   const fg =
-    variant === 'primary' ? C.ink :
+    variant === 'primary' ? P.onBrand :
     variant === 'solid' ? C.paper :
     C.ink;
   const bg =
@@ -534,7 +550,7 @@ export function Empty({
 }
 
 /* ------------------------------------------------------------------ styles */
-const s = StyleSheet.create({
+const s = themed(() => ({
   display: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 34, lineHeight: 35, letterSpacing: -1.2, color: C.ink, textTransform: 'uppercase' },
   h1: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 24, lineHeight: 27, letterSpacing: -0.6, color: C.ink },
   h2: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 19, lineHeight: 23, letterSpacing: -0.4, color: C.ink },
@@ -639,6 +655,6 @@ const s = StyleSheet.create({
     alignItems: 'center', paddingVertical: 28, paddingHorizontal: 20,
     borderWidth: 1, borderStyle: 'dashed', borderColor: C.line, borderRadius: 20,
   },
-});
+}));
 
 export const kitStyles = s;

@@ -234,7 +234,7 @@ const EditSubGroupScreen = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <View className="flex-1">
                 <AppBar title="Room Control" onBack={() => navigation.goBack()} />
 
@@ -249,8 +249,8 @@ const EditSubGroupScreen = () => {
                                 ) : (
                                     <Image source={{ uri: subGroup?.logo }} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
                                 )}
-                                <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-white">
-                                    <Feather name="edit-2" size={14} color="white" />
+                                <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-card">
+                                    <Feather name="edit-2" size={14} color={C.paper} />
                                 </View>
                             </TouchableOpacity>
                         </View>
@@ -292,7 +292,7 @@ const EditSubGroupScreen = () => {
                                 <Switch 
                                     value={onlyAdminsCanMessage}
                                     onValueChange={setOnlyAdminsCanMessage}
-                                    trackColor={{ false: "#E3DDD3", true: "#2563EB" }}
+                                    trackColor={{ false: C.line, true: C.info }}
                                     thumbColor="white"
                                     disabled={!canEditRoom}
                                 />
@@ -386,9 +386,9 @@ const EditSubGroupScreen = () => {
                                 className="bg-ink py-5 items-center border-2 border-ink rounded-md"
                             >
                                 {updating ? (
-                                    <ActivityIndicator color="white" />
+                                    <ActivityIndicator color={C.paper} />
                                 ) : (
-                                    <Text className="text-white font-display uppercase text-xs">Synchronize Room</Text>
+                                    <Text className="text-paper font-display uppercase text-xs">Synchronize Room</Text>
                                 )}
                             </TouchableOpacity>
                         )}

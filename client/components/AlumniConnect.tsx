@@ -325,7 +325,7 @@ const AlumniConnect = ({ navigation }: any) => {
                         className={`max-w-[280px] p-3 rounded-card ${isMe ? "bg-brand-600 rounded-br-none" : "bg-card rounded-bl-none"} border border-line`}
                     >
                         {item.messageType === 'text' && (
-                            <Text className="text-ink text-sm">{item.message}</Text>
+                            <Text className={`${isMe ? "text-on-brand" : "text-ink"} text-sm`}>{item.message}</Text>
                         )}
                         {item.messageType === 'image' && (
                             <Pressable onPress={() => { }}>
@@ -348,12 +348,12 @@ const AlumniConnect = ({ navigation }: any) => {
                                         }
                                     }
                                 }}
-                                className="flex-row items-center bg-black/20 p-2 rounded-lg"
+                                className={`flex-row items-center ${isMe ? "bg-on-brand/10" : "bg-ink/10"} p-2 rounded-lg`}
                             >
                                 <Ionicons name="document-text" size={24} color={C.alumniLit} />
                                 <View className="ml-2">
-                                    <Text className="text-ink text-xs font-semibold" numberOfLines={1}>{item.fileName || "Document"}</Text>
-                                    <Text className="text-ink-3 text-label">Tap to view (Limit 5MB)</Text>
+                                    <Text className={`${isMe ? "text-on-brand" : "text-ink"} text-xs font-semibold`} numberOfLines={1}>{item.fileName || "Document"}</Text>
+                                    <Text className={`${isMe ? "text-on-brand/70" : "text-ink-3"} text-label`}>Tap to view (Limit 5MB)</Text>
                                 </View>
                             </TouchableOpacity>
                         )}
@@ -419,17 +419,17 @@ const AlumniConnect = ({ navigation }: any) => {
                     <View className="p-3 bg-paper border-t border-line">
                         <View className="flex-row items-center bg-card rounded-card px-3 py-1 border border-line">
                             <Pressable onPress={handlePickMedia} className="p-2">
-                                <Ionicons name="image" size={22} color="gray" />
+                                <Ionicons name="image" size={22} color={C.ink3} />
                             </Pressable>
                             <Pressable onPress={handlePickDocument} className="p-2">
-                                <Ionicons name="attach" size={24} color="gray" />
+                                <Ionicons name="attach" size={24} color={C.ink3} />
                             </Pressable>
 
                             <TextInput
                                 value={text}
                                 onChangeText={handleTyping}
                                 placeholder="Message your batch..."
-                                placeholderTextColor="gray"
+                                placeholderTextColor={C.ink3}
                                 className="flex-1 text-ink py-3 px-2 text-sm"
                                 multiline
                             />
@@ -462,10 +462,10 @@ const AlumniConnect = ({ navigation }: any) => {
                         {/* Search Bar */}
                         <View className="px-5 py-4">
                             <View className="flex-row items-center bg-card px-4 py-2 border-2 border-ink rounded-md">
-                                <Ionicons name="search" size={18} color="gray" />
+                                <Ionicons name="search" size={18} color={C.ink3} />
                                 <TextInput
                                     placeholder="Search by name or company..."
-                                    placeholderTextColor="gray"
+                                    placeholderTextColor={C.ink3}
                                     className="flex-1 text-ink ml-2 h-10"
                                     value={searchQuery}
                                     onChangeText={handleSearch}
@@ -496,7 +496,7 @@ const AlumniConnect = ({ navigation }: any) => {
                                             </View>
                                         )}
                                     </View>
-                                    <Ionicons name="chevron-forward" size={18} color="gray" style={{ marginLeft: 'auto' }} />
+                                    <Ionicons name="chevron-forward" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
                                 </Pressable>
                             )}
                             ListEmptyComponent={

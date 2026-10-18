@@ -105,7 +105,7 @@ export default function ImageCompressorScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
+    <View className="flex-1" style={{ backgroundColor: C.paper }}>
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Compress Image" onBack={() => navigation.goBack()} />
 
@@ -183,8 +183,8 @@ export default function ImageCompressorScreen() {
                   onPress={shareCompressed}
                   className="w-full py-4 items-center justify-center flex-row bg-ink border-2 border-ink rounded-md"
                 >
-                  <Ionicons name="share-outline" size={20} color="white" className="mr-2" />
-                  <Text className="text-white font-semibold text-base ml-2">Save / Share Image</Text>
+                  <Ionicons name="share-outline" size={20} color={C.paper} className="mr-2" />
+                  <Text className="text-paper font-semibold text-base ml-2">Save / Share Image</Text>
                 </TouchableOpacity>
               )}
             </View>

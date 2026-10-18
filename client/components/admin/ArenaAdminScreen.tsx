@@ -109,14 +109,14 @@ export default function ArenaAdminScreen() {
           <View className="flex-1" />
           <TouchableOpacity
             onPress={() => setJson(TEMPLATE)}
-            className="px-3 py-2 rounded-xl border-2 border-ink bg-white"
+            className="px-3 py-2 rounded-xl border-2 border-ink bg-card"
             style={{ minHeight: 40, justifyContent: 'center' }}
           >
             <Text className="font-display text-ink" style={{ fontSize: 11 }}>USE TEMPLATE</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={async () => setJson(await Clipboard.getStringAsync())}
-            className="px-3 py-2 rounded-xl border-2 border-ink bg-white ml-2"
+            className="px-3 py-2 rounded-xl border-2 border-ink bg-card ml-2"
             style={{ minHeight: 40, justifyContent: 'center' }}
           >
             <Text className="font-display text-ink" style={{ fontSize: 11 }}>PASTE</Text>
@@ -133,7 +133,7 @@ export default function ArenaAdminScreen() {
           autoCorrect={false}
           // Monospace so the JSON is legible and a stray bracket is findable.
           style={{ fontFamily: 'monospace', fontSize: 12, minHeight: 260, textAlignVertical: 'top' }}
-          className="bg-white border-2 border-ink rounded-card p-3 text-ink"
+          className="bg-card border-2 border-ink rounded-card p-3 text-ink"
         />
 
         <TouchableOpacity
@@ -144,13 +144,13 @@ export default function ArenaAdminScreen() {
           accessibilityRole="button"
           accessibilityLabel="Import problems"
         >
-          {busy ? <ActivityIndicator color={C.ink} /> : <Text className="font-display text-ink">IMPORT</Text>}
+          {busy ? <ActivityIndicator color={C.onBrand} /> : <Text className="font-display text-on-brand">IMPORT</Text>}
         </TouchableOpacity>
 
         {!!report && (
           <View className="mt-5">
             {report.created?.length > 0 && (
-              <View className="bg-white border-2 border-ink rounded-card p-4 mb-3">
+              <View className="bg-card border-2 border-ink rounded-card p-4 mb-3">
                 <Text className="font-display text-ink mb-2">Imported {report.created.length}</Text>
                 {report.created.map((c: any) => (
                   <Text key={c.id} className="font-sans text-ink-3" style={{ fontSize: 12 }} numberOfLines={1}>
@@ -161,7 +161,7 @@ export default function ArenaAdminScreen() {
             )}
 
             {report.errors?.length > 0 && (
-              <View className="bg-white border-2 border-danger rounded-card p-4">
+              <View className="bg-card border-2 border-danger rounded-card p-4">
                 <Text className="font-display text-danger mb-2">Rejected {report.errors.length}</Text>
                 {report.errors.map((e: any) => (
                   <View key={e.index} className="mb-2">
@@ -182,7 +182,7 @@ export default function ArenaAdminScreen() {
           <View className="mt-6">
             <Text className="font-display text-ink uppercase mb-2" style={{ fontSize: 13 }}>In the bank</Text>
             {problems.slice(0, 40).map((p: any) => (
-              <View key={p._id} className="bg-white border-2 border-ink rounded-card px-4 py-3 mb-2 flex-row items-center">
+              <View key={p._id} className="bg-card border-2 border-ink rounded-card px-4 py-3 mb-2 flex-row items-center">
                 <View className="flex-1">
                   <Text className="font-display text-ink" style={{ fontSize: 14 }} numberOfLines={1}>{p.title}</Text>
                   <Text className="font-sans text-ink-3" style={{ fontSize: 11 }}>

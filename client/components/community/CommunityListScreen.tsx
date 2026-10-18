@@ -93,8 +93,8 @@ const CommunityItem = React.memo(({ item, userId, handleJoin, navigation, stampe
 
                     {isCreator ? (
                         <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-ink rounded-xl">
-                            <Feather name="shield" size={10} color="white" />
-                            <Text className="text-white font-display uppercase text-label">Guardian</Text>
+                            <Feather name="shield" size={10} color={C.paper} />
+                            <Text className="text-paper font-display uppercase text-label">Guardian</Text>
                         </View>
                     ) : isMember ? (
                         <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-paper-2 rounded-xl border border-line">
@@ -106,7 +106,7 @@ const CommunityItem = React.memo(({ item, userId, handleJoin, navigation, stampe
                             onPress={() => handleJoin(item._id)}
                             className="bg-brand-500 px-2.5 py-1 rounded-full"
                         >
-                            <Text className="text-ink font-display uppercase text-label">Subscribe</Text>
+                            <Text className="text-on-brand font-display uppercase text-label">Subscribe</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -182,7 +182,7 @@ const CommunityListScreen = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             
 
             <View className="flex-1">
@@ -198,19 +198,19 @@ const CommunityListScreen = () => {
                             onPress={() => setFilter('all')}
                             className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'all' ? 'bg-ink' : 'bg-transparent'}`}
                         >
-                            <Text className={`font-display text-label uppercase ${filter === 'all' ? 'text-white' : 'text-ink-3'}`}>All</Text>
+                            <Text className={`font-display text-label uppercase ${filter === 'all' ? 'text-paper' : 'text-ink-3'}`}>All</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => setFilter('joined')}
                             className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'joined' ? 'bg-brand-500' : 'bg-transparent'}`}
                         >
-                            <Text className={`font-display text-label uppercase ${filter === 'joined' ? 'text-ink' : 'text-ink-3'}`}>Joined</Text>
+                            <Text className={`font-display text-label uppercase ${filter === 'joined' ? 'text-on-brand' : 'text-ink-3'}`}>Joined</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => setFilter('created')}
                             className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'created' ? 'bg-ink' : 'bg-transparent'}`}
                         >
-                            <Text className={`font-display text-label uppercase ${filter === 'created' ? 'text-white' : 'text-ink-3'}`}>Created</Text>
+                            <Text className={`font-display text-label uppercase ${filter === 'created' ? 'text-paper' : 'text-ink-3'}`}>Created</Text>
                         </TouchableOpacity>
                     </View>
 

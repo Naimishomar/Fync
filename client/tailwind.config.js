@@ -17,20 +17,24 @@
 //                 labels; `font-sans` (Inter) for everything a user reads.
 //   - Elevation-> a hairline, or ONE `shadow-stamp` card per screen. Nothing else.
 
+// Theme-aware: values live in global.css (:root light, .dark:root dark).
+const tv = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 const brand = {
-  50: '#fff7ed',
-  100: '#ffedd5',
-  200: '#fed7aa',
-  300: '#fdba74',
-  400: '#fb923c',
-  500: '#f97316', // fills, icon tints, the FAB
-  600: '#ea580c', // the text-safe one — 4.6:1 on paper. Use for ALL orange text.
-  700: '#c2410c',
-  800: '#9a3412',
-  900: '#7c2d12',
+  50: tv('brand-50'),
+  100: tv('brand-100'),
+  200: tv('brand-200'),
+  300: tv('brand-300'),
+  400: tv('brand-400'),
+  500: tv('brand-500'), // fills, icon tints, the FAB
+  600: tv('brand-600'), // the text-safe one — 4.6:1 on paper. Use for ALL orange text.
+  700: tv('brand-700'),
+  800: tv('brand-800'),
+  900: tv('brand-900'),
 };
 
 module.exports = {
+  darkMode: 'class',
   content: ['./App.{js,ts,tsx}', './components/**/*.{js,ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {
@@ -38,45 +42,47 @@ module.exports = {
       colors: {
         brand,
         accent: brand[500],
-        'accent-text': brand[600],
+        'accent-text': tv('accent-text'),
+        // Text/icons ON a brand fill: dark in both themes (cream on orange is ~2.3:1).
+        'on-brand': '#12100E',
 
         // Ink & paper. Warm neutrals, NOT cool slate. This is the single biggest
         // reason the app stops looking like a default template.
         ink: {
-          DEFAULT: '#12100E', // headings, borders, tab bar
-          2: '#57534E',       // body copy
-          3: '#8B857E',       // meta, timestamps
-          4: '#C4BEB6',       // disabled, placeholder — never body text
+          DEFAULT: tv('ink'), // headings, borders, tab bar
+          2: tv('ink-2'),       // body copy
+          3: tv('ink-3'),       // meta, timestamps
+          4: tv('ink-4'),       // disabled, placeholder — never body text
         },
         paper: {
-          DEFAULT: '#F5F2EC', // app background
-          2: '#EDE8E0',       // pressed / inset surfaces
+          DEFAULT: tv('paper'), // app background
+          2: tv('paper-2'),       // pressed / inset surfaces
         },
-        card: '#FFFFFF',
-        line: '#E3DDD3',      // hairline
+        card: tv('card'),
+        line: tv('line'),      // hairline
 
         // Audience colours. Semantic: a ring or sticker says who you are looking
         // at before you read a word. Always paired with a text sticker.
         student: '#F97316',
-        alumni: '#B45309',     // gold that survives 4.5:1 on paper
+        alumni: tv('alumni'),     // gold that survives 4.5:1 on paper
         'alumni-lit': '#F5B700', // gold on ink only
-        recruiter: '#4F46E5',
+        recruiter: tv('recruiter'),
 
         // Feature families. Explore tiles and section icons inherit these, so a
         // category reads as one colour instead of forty random tints.
         fam: {
-          study: '#7C3AED',
-          career: '#2563EB',
-          events: '#EA580C',
-          social: '#0891B2',
-          campus: '#57534E',
-          fun: '#DB2777',
+          study: tv('fam-study'),
+          career: tv('fam-career'),
+          events: tv('fam-events'),
+          social: tv('fam-social'),
+          campus: tv('fam-campus'),
+          fun: tv('fam-fun'),
         },
 
-        success: '#047857',
-        warning: '#B45309',
-        danger: '#DC2626',
-        info: '#2563EB',
+        success: tv('success'),
+        warning: tv('warning'),
+        danger: tv('danger'),
+        info: tv('info'),
 
         // Night surface: Shorts, 12 AM Club, calls. A designed second theme, not
         // an inverted light theme — its contrast is verified separately.

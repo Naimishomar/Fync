@@ -206,7 +206,7 @@ const NoticeBoard = () => {
         const currentOrder = orderRes.data;
         const content = `
             <html>
-            <body style="background-color: #F5F2EC;">
+            <body style="background-color: ${C.paper};">
                 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
                 <script>
                 var options = {
@@ -221,7 +221,7 @@ const NoticeBoard = () => {
                         email: ${JSON.stringify(user?.email || '')},
                         contact: ${JSON.stringify(String(user?.mobileNumber || ''))}
                     },
-                    theme: { color: "#F97316" },
+                    theme: { color: "${C.brand[500]}" },
                     handler: function (response) {
                         window.ReactNativeWebView.postMessage(JSON.stringify({
                             event: "SUCCESS",
@@ -392,7 +392,7 @@ const NoticeBoard = () => {
               className="flex-row items-center bg-paper-2 p-4 rounded-card mb-6 self-start border border-line"
             >
               <View className="w-8 h-8 bg-ink rounded-card items-center justify-center mr-3">
-                <Ionicons name="link" size={14} color="white" />
+                <Ionicons name="link" size={14} color={C.paper} />
               </View>
               <Text className="text-ink text-label font-display uppercase" numberOfLines={1}>
                 Open Attachment
@@ -448,7 +448,7 @@ const NoticeBoard = () => {
                 <Ionicons
                   name={item.liked_by?.includes(user?._id || '') ? "heart" : "heart-outline"}
                   size={16}
-                  color={item.liked_by?.includes(user?._id || '') ? "#DB2777" : "#C4BEB6"}
+                  color={item.liked_by?.includes(user?._id || '') ? C.fam.fun : C.ink4}
                 />
                 <Text className="text-ink text-label ml-2 font-display">{item.likes || 0}</Text>
               </TouchableOpacity>
@@ -472,7 +472,7 @@ const NoticeBoard = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
         <AppBar title="Fync Board" onBack={() => navigation.goBack()} />
@@ -482,14 +482,14 @@ const NoticeBoard = () => {
               onPress={() => setActiveTab('college')}
               className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === 'college' ? 'bg-ink shadow-hair ' : 'bg-transparent'}`}
             >
-              <Text className={`font-display text-label uppercase ${activeTab === 'college' ? 'text-white' : 'text-ink-3'}`}>Campus</Text>
+              <Text className={`font-display text-label uppercase ${activeTab === 'college' ? 'text-paper' : 'text-ink-3'}`}>Campus</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => setActiveTab('global')}
               className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === 'global' ? 'bg-brand-500' : 'bg-transparent'}`}
             >
-              <Text className={`font-display text-label uppercase ${activeTab === 'global' ? 'text-ink' : 'text-ink-3'}`}>Global</Text>
+              <Text className={`font-display text-label uppercase ${activeTab === 'global' ? 'text-on-brand' : 'text-ink-3'}`}>Global</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -536,14 +536,14 @@ const NoticeBoard = () => {
             onPress={() => setCreateModalVisible(true)}
             className="absolute right-8 w-14 h-14 rounded-card bg-ink items-center justify-center" style={{ bottom: bottomInset + 56 }}
           >
-            <Ionicons name="pencil" size={24} color="white" />
+            <Ionicons name="pencil" size={24} color={C.paper} />
           </TouchableOpacity>
         )}
 
         <Modal visible={createModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setCreateModalVisible(false)}>
           <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
             <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <AppBar
               inset={false}
               title={activeTab === 'global' ? 'New Global Intel' : 'New Campus Intel'}
@@ -611,10 +611,10 @@ const NoticeBoard = () => {
               >
                 {submitting ? <ActivityIndicator color={C.brand[500]} /> : (
                   <>
-                    <Text className="text-white font-display uppercase text-xs mr-3">
+                    <Text className="text-paper font-display uppercase text-xs mr-3">
                       {activeTab === 'global' && !isAdmin ? 'Deploy for ₹49' : 'Deploy Notice'}
                     </Text>
-                    <Ionicons name="paper-plane" size={16} color="white" />
+                    <Ionicons name="paper-plane" size={16} color={C.paper} />
                   </>
                 )}
               </TouchableOpacity>
@@ -648,7 +648,7 @@ const NoticeBoard = () => {
 
         {/* PAYMENT MODAL */}
         <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} statusBarTranslucent onRequestClose={() => setShowPaymentParams(null)}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }} edges={['bottom']}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: C.paper }} edges={['bottom']}>
             <AppBar
               title="Secure Transaction"
               right={<IconBtn name="close" onPress={() => { setShowPaymentParams(null); Alert.alert('Cancelled', 'Payment is required to post a global notice.'); }} />}
@@ -658,7 +658,7 @@ const NoticeBoard = () => {
                 source={{ html: showPaymentParams.html }}
                 originWhitelist={["*"]}
                 onMessage={handleWebViewMessage}
-                style={{ flex: 1, backgroundColor: '#F5F2EC' }}
+                style={{ flex: 1, backgroundColor: C.paper }}
               />
             ) : (
               <View className="flex-1 bg-paper justify-center items-center">

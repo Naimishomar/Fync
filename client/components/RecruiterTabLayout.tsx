@@ -23,7 +23,7 @@ const PostOpportunityButton = ({ children, onPress }: any) => {
     <View className="flex-1 items-center justify-center">
       <View
         style={{
-          shadowColor: '#F97316', shadowOffset: { width: 0, height: 6 },
+          shadowColor: C.brand[500], shadowOffset: { width: 0, height: 6 },
           shadowOpacity: 0.5, shadowRadius: 16, elevation: 10
         }}
         className="rounded-full"
@@ -32,11 +32,11 @@ const PostOpportunityButton = ({ children, onPress }: any) => {
           onPress={() => navigation.navigate('CreateOpportunity', { type: 'internship' })}
           activeOpacity={0.9}
           className="w-14 h-14 rounded-full items-center justify-center border-2 border-ink"
-          style={{ backgroundColor: '#F97316' }}
+          style={{ backgroundColor: C.brand[500] }}
           accessibilityRole="button"
           accessibilityLabel="Post opportunity"
         >
-          <Ionicons name="add" size={28} color={C.ink} />
+          <Ionicons name="add" size={28} color={C.onBrand} />
         </TouchableOpacity>
       </View>
     </View>
@@ -73,7 +73,7 @@ export default function RecruiterTabLayout() {
             paddingVertical: 0,
             justifyContent: 'center',
           },
-          tabBarActiveTintColor: "#F97316",
+          tabBarActiveTintColor: C.brand[500],
           tabBarInactiveTintColor: "rgba(245,242,236,0.55)",
           tabBarStyle: {
             position: "absolute",
@@ -142,7 +142,7 @@ export default function RecruiterTabLayout() {
                   height: 28,
                   borderRadius: 14,
                   borderWidth: focused ? 1.5 : 0,
-                  borderColor: '#F97316',
+                  borderColor: C.brand[500],
                   justifyContent: 'center',
                   alignItems: 'center'
                 }}>

@@ -62,10 +62,10 @@ const RaceChart = ({ history, width }: { history: HistoryPoint[]; width: number 
 
     return (
         <Svg width={width} height={CHART_HEIGHT}>
-            <Polyline points={toPoints((p) => p.rival)} fill="none" stroke="#12100E" strokeWidth={2} />
-            <Polyline points={toPoints((p) => p.me)} fill="none" stroke="#F97316" strokeWidth={2.5} />
-            <Circle cx={(history.length - 1) * stepX} cy={CHART_HEIGHT - (last.rival / peak) * CHART_HEIGHT} r={3.5} fill="#12100E" />
-            <Circle cx={(history.length - 1) * stepX} cy={CHART_HEIGHT - (last.me / peak) * CHART_HEIGHT} r={4} fill="#F97316" />
+            <Polyline points={toPoints((p) => p.rival)} fill="none" stroke={C.ink} strokeWidth={2} />
+            <Polyline points={toPoints((p) => p.me)} fill="none" stroke={C.brand[500]} strokeWidth={2.5} />
+            <Circle cx={(history.length - 1) * stepX} cy={CHART_HEIGHT - (last.rival / peak) * CHART_HEIGHT} r={3.5} fill={C.ink} />
+            <Circle cx={(history.length - 1) * stepX} cy={CHART_HEIGHT - (last.me / peak) * CHART_HEIGHT} r={4} fill={C.brand[500]} />
         </Svg>
     );
 };
@@ -159,7 +159,7 @@ export default function ShadowRival() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
 
             <View className="flex-1">
@@ -199,19 +199,19 @@ export default function ShadowRival() {
                             <StampCard style={{ marginHorizontal: 20 }}>
                                 <View
                                     style={{ backgroundColor: revealed
-                                        ? (won ? '#F97316' : '#57534E')
-                                        : (data.leading ? '#F97316' : '#12100E') }}
+                                        ? (won ? C.brand[500] : C.ink2)
+                                        : (data.leading ? C.brand[500] : C.ink) }}
                                     className="p-card-pad items-center"
                                 >
-                                    <Text className={`text-label font-display uppercase ${aheadFill ? 'text-ink/70' : 'text-white/70'}`}>
+                                    <Text className={`text-label font-display uppercase ${aheadFill ? 'text-ink/70' : 'text-paper/70'}`}>
                                         {revealed
                                             ? (won ? 'Season won' : 'Season lost')
                                             : data.leading === null ? 'Neck and neck' : data.leading ? "You're ahead" : 'Your Shadow is ahead'}
                                     </Text>
-                                    <Text className={`text-5xl font-display mt-2 ${aheadFill ? 'text-ink' : 'text-white'}`}>
-                                        {data.me.total} <Text className={`text-2xl ${aheadFill ? 'text-ink/50' : 'text-white/50'}`}>vs</Text> {data.rival.total}
+                                    <Text className={`text-5xl font-display mt-2 ${aheadFill ? 'text-ink' : 'text-paper'}`}>
+                                        {data.me.total} <Text className={`text-2xl ${aheadFill ? 'text-ink/50' : 'text-paper/50'}`}>vs</Text> {data.rival.total}
                                     </Text>
-                                    <Text className={`text-label font-display uppercase mt-2 ${aheadFill ? 'text-ink/70' : 'text-white/70'}`}>
+                                    <Text className={`text-label font-display uppercase mt-2 ${aheadFill ? 'text-ink/70' : 'text-paper/70'}`}>
                                         {revealed ? 'Final' : `${daysLeft(data.revealAt)} days to reveal`}
                                     </Text>
                                 </View>
@@ -307,7 +307,7 @@ export default function ShadowRival() {
                                 disabled={busy || (data.rematchesLeft ?? 0) < 1}
                                 className="flex-row items-center px-6 py-5 border-b border-line"
                             >
-                                <Ionicons name="shuffle" size={18} color={(data.rematchesLeft ?? 0) < 1 ? '#C4BEB6' : '#F97316'} />
+                                <Ionicons name="shuffle" size={18} color={(data.rematchesLeft ?? 0) < 1 ? C.ink4 : C.brand[500]} />
                                 <Text className={`font-display uppercase text-label ml-4 flex-1 ${(data.rematchesLeft ?? 0) < 1 ? 'text-ink-4' : 'text-ink'}`}>
                                     Reroll Shadow
                                 </Text>
@@ -327,7 +327,7 @@ export default function ShadowRival() {
                                 value={!!data?.optOut}
                                 onValueChange={toggleOptOut}
                                 disabled={busy}
-                                trackColor={{ true: '#F97316', false: '#E3DDD3' }}
+                                trackColor={{ true: C.brand[500], false: C.line }}
                                 thumbColor="#fff"
                             />
                         </View>

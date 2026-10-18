@@ -328,7 +328,7 @@ const YouTubeVideoPlayer = ({
   return (
     <View
       onTouchStart={resetHideTimer}
-      className={`bg-ink relative overflow-hidden ${isFullscreen ? 'absolute inset-0 z-[999]' : 'w-full aspect-video'}`}
+      className={`bg-night relative overflow-hidden ${isFullscreen ? 'absolute inset-0 z-[999]' : 'w-full aspect-video'}`}
     >
       <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, longPressGesture, doubleTap)}>
         <Animated.View style={[{ width: '100%', height: '100%' }, animatedStyle]}>
@@ -402,7 +402,7 @@ const YouTubeVideoPlayer = ({
               onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
               className="w-full h-3 justify-center"
             >
-              <View className="w-full h-1 bg-card/20 rounded-full overflow-hidden">
+              <View className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
                 <View
                   className="h-full bg-danger rounded-full"
                   style={{ width: status ? `${(status.positionMillis / (status.durationMillis || 1)) * 100}%` : '0%' }}
@@ -448,7 +448,7 @@ const YouTubeCard = React.memo(({
           cachePolicy="memory-disk"
           recyclingKey={item._id}
         />
-        <View className="absolute bottom-4 right-4 bg-ink/90 px-2 py-1 rounded-lg border border-white/20">
+        <View className="absolute bottom-4 right-4 bg-night/90 px-2 py-1 rounded-lg border border-white/20">
           <Text className="text-white text-label font-display uppercase">{formatDuration(item.duration)}</Text>
         </View>
 
@@ -573,11 +573,11 @@ const MediaDetailView = React.memo(({
               <View className="flex-row items-center gap-4">
                 <View className="flex-row items-center bg-card rounded-card h-12 px-1 border border-line shadow-hair">
                   <TouchableOpacity onPress={handleLike} className="flex-row items-center gap-2 pl-4 pr-5 border-r border-line">
-                    <Ionicons name={isLiked ? "heart" : "heart-outline"} size={20} color={isLiked ? "#F97316" : "#8B857E"} />
+                    <Ionicons name={isLiked ? "heart" : "heart-outline"} size={20} color={isLiked ? C.brand[500] : C.ink3} />
                     <Text className="font-semibold text-base text-ink">{likeCount}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handleDislike} className="flex-row items-center gap-2 pl-5 pr-4">
-                    <Ionicons name={isDisliked ? "heart-dislike" : "heart-dislike-outline"} size={20} color={isDisliked ? "#12100E" : "#8B857E"} />
+                    <Ionicons name={isDisliked ? "heart-dislike" : "heart-dislike-outline"} size={20} color={isDisliked ? C.ink : C.ink3} />
                     <Text className="font-semibold text-base text-ink">{dislikeCount}</Text>
                   </TouchableOpacity>
                 </View>
@@ -626,7 +626,7 @@ const MediaDetailView = React.memo(({
               >
                 <View className="flex-row items-center gap-3">
                   <View className="bg-ink w-10 h-10 rounded-xl items-center justify-center">
-                    <Ionicons name="chatbubble" size={18} color="white" />
+                    <Ionicons name="chatbubble" size={18} color={C.paper} />
                   </View>
                   <View>
                     <Text className="font-semibold text-base text-ink">Community Feedback</Text>
@@ -905,7 +905,7 @@ export default function FyncMediaFeed() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className="flex-1 bg-paper">
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={C.barStyle} />
 
         {/* HEADER DECORATION */}
 
@@ -1090,8 +1090,8 @@ export default function FyncMediaFeed() {
                       <ActivityIndicator color={C.ink} />
                     ) : (
                       <>
-                        <Ionicons name="cloud-upload" size={20} color={C.ink} />
-                        <Text className="text-ink font-display uppercase text-sm ml-3">{editingItem ? 'Update Archive' : 'Publish Broadcast'}</Text>
+                        <Ionicons name="cloud-upload" size={20} color={C.onBrand} />
+                        <Text className="text-on-brand font-display uppercase text-sm ml-3">{editingItem ? 'Update Archive' : 'Publish Broadcast'}</Text>
                       </>
                     )}
                   </TouchableOpacity>

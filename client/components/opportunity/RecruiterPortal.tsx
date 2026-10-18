@@ -353,7 +353,7 @@ const RecruiterPortal = () => {
                                 width: 17,
                                 height: 17,
                                 borderRadius: 9,
-                                backgroundColor: 'white',
+                                backgroundColor: C.card,
                                 alignSelf: isActive ? 'flex-end' : 'flex-start',
                                 shadowColor: '#000',
                                 shadowOffset: { width: 0, height: 1 },
@@ -428,8 +428,8 @@ const RecruiterPortal = () => {
                             accessibilityRole="button"
                             accessibilityLabel={`Review ${pendingCount} new applicants`}
                         >
-                            <Ionicons name="eye-outline" size={15} color={C.ink} />
-                            <Text className="text-ink font-display uppercase text-label">Review {pendingCount}</Text>
+                            <Ionicons name="eye-outline" size={15} color={C.onBrand} />
+                            <Text className="text-on-brand font-display uppercase text-label">Review {pendingCount}</Text>
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity
@@ -438,8 +438,8 @@ const RecruiterPortal = () => {
                             accessibilityRole="button"
                             accessibilityLabel={`View all ${appliedCount} applicants`}
                         >
-                            <Ionicons name="people-outline" size={15} color="white" />
-                            <Text className="text-white font-display uppercase text-label">Applicants</Text>
+                            <Ionicons name="people-outline" size={15} color={C.paper} />
+                            <Text className="text-paper font-display uppercase text-label">Applicants</Text>
                         </TouchableOpacity>
                     )}
                     <TouchableOpacity
@@ -449,7 +449,7 @@ const RecruiterPortal = () => {
                         accessibilityRole="button"
                         accessibilityLabel={`View ${shortlistCount} shortlisted`}
                     >
-                        <Ionicons name="star" size={15} color={shortlistCount === 0 ? '#C4BEB6' : '#12100E'} />
+                        <Ionicons name="star" size={15} color={shortlistCount === 0 ? C.ink4 : C.ink} />
                         <Text className={`font-display uppercase text-label ${shortlistCount === 0 ? 'text-ink-4' : 'text-ink'}`}>
                             Shortlist {shortlistCount > 0 ? shortlistCount : ''}
                         </Text>
@@ -666,8 +666,8 @@ const RecruiterPortal = () => {
                             accessibilityRole="button"
                             accessibilityLabel={`Shortlist ${item.candidate?.name ?? 'candidate'}`}
                         >
-                            <Ionicons name="star" size={15} color={C.ink} />
-                            <Text className="text-ink font-display uppercase text-label">Shortlist</Text>
+                            <Ionicons name="star" size={15} color={C.onBrand} />
+                            <Text className="text-on-brand font-display uppercase text-label">Shortlist</Text>
                         </TouchableOpacity>
                     </>
                 )}
@@ -699,8 +699,8 @@ const RecruiterPortal = () => {
                                 accessibilityRole="button"
                                 accessibilityLabel={`Email all ${counts[activeFilter]} ${activeFilter} candidates`}
                             >
-                                <Ionicons name="mail-outline" size={14} color={C.ink} />
-                                <Text className="text-ink font-display uppercase" style={{ fontSize: 10 }}>
+                                <Ionicons name="mail-outline" size={14} color={activeFilter === 'shortlisted' ? C.onBrand : C.ink} />
+                                <Text className={`${activeFilter === 'shortlisted' ? 'text-on-brand' : 'text-ink'} font-display uppercase`} style={{ fontSize: 10 }}>
                                     Email {counts[activeFilter]}
                                 </Text>
                             </TouchableOpacity>
@@ -736,9 +736,9 @@ const RecruiterPortal = () => {
                                 accessibilityState={{ selected: on }}
                                 accessibilityLabel={`${f.label}, ${counts[f.key]}`}
                             >
-                                <Text className="text-ink font-display uppercase text-label">{f.label}</Text>
+                                <Text className={`${on ? 'text-on-brand' : 'text-ink'} font-display uppercase text-label`}>{f.label}</Text>
                                 <View className={`ml-2 px-1.5 rounded-full ${on ? 'bg-ink' : 'bg-paper-2'}`}>
-                                    <Text className={`font-display ${on ? 'text-white' : 'text-ink-2'}`} style={{ fontSize: 10 }}>
+                                    <Text className={`font-display ${on ? 'text-paper' : 'text-ink-2'}`} style={{ fontSize: 10 }}>
                                         {counts[f.key]}
                                     </Text>
                                 </View>
@@ -905,8 +905,8 @@ const RecruiterPortal = () => {
                                         accessibilityRole="button"
                                         accessibilityLabel="Post your first opportunity"
                                     >
-                                        <Ionicons name="add" size={18} color={C.ink} />
-                                        <Text className="text-ink font-display uppercase text-label">Post your first role</Text>
+                                        <Ionicons name="add" size={18} color={C.onBrand} />
+                                        <Text className="text-on-brand font-display uppercase text-label">Post your first role</Text>
                                     </TouchableOpacity>
                                 </View>
                             }
@@ -975,7 +975,7 @@ const RecruiterPortal = () => {
                 cannot be changed from here — switching audience mid-draft is
                 how the wrong message reaches the wrong people. */}
             <Modal visible={!!mailTo} transparent animationType="slide" onRequestClose={() => setMailTo(null)}>
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
                     <Pressable className="flex-1" onPress={() => setMailTo(null)} />
 
                     <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-6">
@@ -993,14 +993,14 @@ const RecruiterPortal = () => {
 
                         <View
                             className="self-start flex-row items-center px-3 py-1.5 rounded-sm mb-4"
-                            style={{ backgroundColor: mailTo === 'shortlisted' ? '#FFEDD5' : '#EDE8E0' }}
+                            style={{ backgroundColor: mailTo === 'shortlisted' ? C.brand[100] : C.paper2 }}
                         >
                             <Ionicons
                                 name={mailTo === 'shortlisted' ? 'star' : 'close-circle'}
                                 size={12}
-                                color={mailTo === 'shortlisted' ? '#C2410C' : '#57534E'}
+                                color={mailTo === 'shortlisted' ? C.brand[700] : C.ink2}
                             />
-                            <Text className="font-display uppercase ml-1.5" style={{ fontSize: 10, color: mailTo === 'shortlisted' ? '#C2410C' : '#57534E' }}>
+                            <Text className="font-display uppercase ml-1.5" style={{ fontSize: 10, color: mailTo === 'shortlisted' ? C.brand[700] : C.ink2 }}>
                                 To {mailTo ? counts[mailTo] : 0} {mailTo} candidate{mailTo && counts[mailTo] === 1 ? '' : 's'}
                             </Text>
                         </View>
@@ -1042,8 +1042,8 @@ const RecruiterPortal = () => {
                             accessibilityLabel={`Send to ${mailTo ? counts[mailTo] : 0} candidates`}
                         >
                             {mailSending
-                                ? <ActivityIndicator color={C.ink} />
-                                : <Text className="font-display text-ink uppercase">Send to {mailTo ? counts[mailTo] : 0}</Text>}
+                                ? <ActivityIndicator color={C.onBrand} />
+                                : <Text className="font-display text-on-brand uppercase">Send to {mailTo ? counts[mailTo] : 0}</Text>}
                         </TouchableOpacity>
                     </View>
                 </KeyboardAvoidingView>

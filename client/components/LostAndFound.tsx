@@ -277,7 +277,7 @@ const LostAndFound = () => {
                                         hitSlop={10}
                                         className="bg-ink px-2.5 py-1 rounded-full"
                                     >
-                                        <Text className="text-white font-display text-label uppercase">
+                                        <Text className="text-paper font-display text-label uppercase">
                                             Update Status
                                         </Text>
                                     </TouchableOpacity>
@@ -287,7 +287,7 @@ const LostAndFound = () => {
                                         hitSlop={10}
                                         className="bg-brand-500 px-2.5 py-1 rounded-full"
                                     >
-                                        <Text className="text-ink font-display text-label uppercase">
+                                        <Text className="text-on-brand font-display text-label uppercase">
                                             Contact Owner
                                         </Text>
                                     </TouchableOpacity>
@@ -302,13 +302,13 @@ const LostAndFound = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar
                     title="Lost & Found"
                     onBack={() => navigation.goBack()}
-                    right={<IconBtn name="add" size={28} color="white" boxed style={{ backgroundColor: C.ink }} onPress={() => setModalVisible(true)} />}
+                    right={<IconBtn name="add" size={28} color={C.paper} boxed style={{ backgroundColor: C.ink }} onPress={() => setModalVisible(true)} />}
                 />
                 <View className="px-gutter">
                     <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line shadow-hair">
@@ -316,13 +316,13 @@ const LostAndFound = () => {
                             onPress={() => setActiveTab('lost')}
                             className={`flex-1 py-3.5 rounded-xl items-center ${activeTab === 'lost' ? 'bg-ink' : 'bg-transparent'}`}
                         >
-                            <Text className={`font-display text-label uppercase ${activeTab === 'lost' ? 'text-white' : 'text-ink-3'}`}>Lost Assets</Text>
+                            <Text className={`font-display text-label uppercase ${activeTab === 'lost' ? 'text-paper' : 'text-ink-3'}`}>Lost Assets</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => setActiveTab('found')}
                             className={`flex-1 py-3.5 rounded-xl items-center ${activeTab === 'found' ? 'bg-brand-500' : 'bg-transparent'}`}
                         >
-                            <Text className={`font-display text-label uppercase ${activeTab === 'found' ? 'text-ink' : 'text-ink-3'}`}>Found Units</Text>
+                            <Text className={`font-display text-label uppercase ${activeTab === 'found' ? 'text-on-brand' : 'text-ink-3'}`}>Found Units</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -351,7 +351,7 @@ const LostAndFound = () => {
             </View>
 
             <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => setModalVisible(false)}>
-                <View className="flex-1 bg-ink/60 justify-end">
+                <View className="flex-1 bg-black/60 justify-end">
                     <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setModalVisible(false)} />
                     <View className="bg-paper rounded-t-sheet h-[80%] shadow-hair overflow-hidden">
                         <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
@@ -407,8 +407,8 @@ const LostAndFound = () => {
                             >
                                 {/* Ink on the ink-filled "lost" button was invisible. */}
                                 {submitting
-                                    ? <ActivityIndicator color={activeTab === 'lost' ? '#fff' : C.ink} />
-                                    : <Text className={`font-display uppercase text-sm ${activeTab === 'lost' ? 'text-white' : 'text-ink'}`}>Deploy Report to HQ</Text>}
+                                    ? <ActivityIndicator color={activeTab === 'lost' ? C.paper : C.ink} />
+                                    : <Text className={`font-display uppercase text-sm ${activeTab === 'lost' ? 'text-paper' : 'text-ink'}`}>Deploy Report to HQ</Text>}
                             </TouchableOpacity>
                         </ScrollView>
                     </View>

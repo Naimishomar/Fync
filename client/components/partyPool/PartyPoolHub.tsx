@@ -56,7 +56,7 @@ const PartyPoolHub = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
       
       {/* Background Gradient */}
       <View className="absolute top-0 w-full h-[300px] opacity-[0.15]">
@@ -99,7 +99,7 @@ const PartyPoolHub = () => {
                 style={{ shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 }}
                 activeOpacity={0.9}
               >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
+                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-danger/10 justify-center items-center mr-4">
                         <Ionicons name="skull" size={28} color={C.danger} />
                     </View>
@@ -118,7 +118,7 @@ const PartyPoolHub = () => {
                 className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
                 activeOpacity={0.9}
               >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
+                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-brand-100 justify-center items-center mr-4">
                         <MaterialCommunityIcons name="bottle-wine" size={28} color={C.brand[500]} />
                     </View>
@@ -140,9 +140,9 @@ const PartyPoolHub = () => {
                 className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
                 activeOpacity={0.9}
               >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#F5F2EC' }}>
+                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-ink justify-center items-center mr-4">
-                        <FontAwesome5 name="chess-knight" size={28} color="#fff" />
+                        <FontAwesome5 name="chess-knight" size={28} color={C.paper} />
                     </View>
                     <View className="flex-1">
                         <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
@@ -162,7 +162,7 @@ const PartyPoolHub = () => {
                 className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
                 activeOpacity={0.9}
               >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
+                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-fam-fun/10 justify-center items-center mr-4">
                         <MaterialCommunityIcons name="microphone" size={28} color={C.fam.fun} />
                     </View>
@@ -185,7 +185,7 @@ const PartyPoolHub = () => {
                     className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
                     activeOpacity={0.9}
                   >
-                    <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#F5F2EC' }}>
+                    <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper }}>
                         <View className="w-[60px] h-[60px] rounded-card bg-paper-2 justify-center items-center mr-4">
                             <MaterialCommunityIcons name="currency-usd" size={28} color={C.ink2} />
                         </View>
@@ -208,7 +208,7 @@ const PartyPoolHub = () => {
                 className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
                 activeOpacity={0.9}
               >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
+                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-fam-fun/10 justify-center items-center mr-4">
                         <Ionicons name="flash" size={28} color={C.fam.fun} />
                     </View>
@@ -230,7 +230,7 @@ const PartyPoolHub = () => {
                 className="h-[120px] rounded-card overflow-hidden border-2 border-ink"
                 activeOpacity={0.9}
               >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
+                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
                     <View className="w-[60px] h-[60px] rounded-card bg-brand-100 justify-center items-center mr-4">
                         <Ionicons name="trending-up" size={28} color={C.brand[500]} />
                     </View>
@@ -250,7 +250,7 @@ const PartyPoolHub = () => {
                     className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
                     activeOpacity={0.9}
                   >
-                    <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
+                    <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
                         <View className="w-[60px] h-[60px] rounded-card bg-success/10 justify-center items-center mr-4">
                             <Ionicons name="logo-twitter" size={28} color={C.success} />
                         </View>
@@ -274,7 +274,7 @@ const PartyPoolHub = () => {
                     className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
                     activeOpacity={0.9}
                   >
-                    <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: '#EDE8E0' }}>
+                    <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
                         <View className="w-[60px] h-[60px] rounded-card bg-fam-career/10 justify-center items-center mr-4">
                             <Ionicons name="color-palette" size={28} color={C.info} />
                         </View>

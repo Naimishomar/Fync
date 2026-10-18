@@ -307,7 +307,7 @@ const PublicProfile = () => {
                 style={{ width: COLUMN_SIZE, height: isVideo ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}
             >
                 {isVideo ? (
-                    <View className="flex-1 bg-ink justify-center items-center overflow-hidden">
+                    <View className="flex-1 bg-night justify-center items-center overflow-hidden">
                         {/* Still frame; see the note in profile.tsx. */}
                         {item.thumbnail ? (
                             <ExpoImage
@@ -505,8 +505,8 @@ const PublicProfile = () => {
                         </View>
                         <View className="flex-row gap-2 mb-2">
                             <TouchableOpacity onPress={startChat} className="bg-ink px-6 py-2.5 flex-row items-center gap-2 border-2 border-ink rounded-md">
-                                <Ionicons name="chatbubble-ellipses-outline" size={18} color="white" />
-                                <Text className="text-white font-display uppercase text-label">Message</Text>
+                                <Ionicons name="chatbubble-ellipses-outline" size={18} color={C.paper} />
+                                <Text className="text-paper font-display uppercase text-label">Message</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -526,11 +526,11 @@ const PublicProfile = () => {
                     {/* Quick Stats */}
                     <View className="flex-row bg-ink rounded-card p-5 mt-6 shadow-hair border border-ink">
                         <View className="flex-1 items-center border-r border-ink">
-                            <Text className="text-white text-xl font-display">{recruiterStats.active}</Text>
+                            <Text className="text-paper text-xl font-display">{recruiterStats.active}</Text>
                             <Text className="text-ink-3 text-label font-display uppercase mt-1">Active Roles</Text>
                         </View>
                         <View className="flex-1 items-center">
-                            <Text className="text-white text-xl font-display">{recruiterStats.total}</Text>
+                            <Text className="text-paper text-xl font-display">{recruiterStats.total}</Text>
                             <Text className="text-ink-3 text-label font-display uppercase mt-1">Total Posts</Text>
                         </View>
                     </View>
@@ -578,16 +578,16 @@ const PublicProfile = () => {
                             onPress={() => navigation.navigate('InternshipList', { recruiterId: profileUser?._id })}
                             className="flex-1 bg-brand-500 p-4 rounded-card items-center shadow-hair"
                         >
-                            <Ionicons name="school-outline" size={20} color={C.ink} className="mb-1" />
-                            <Text className="text-ink font-display uppercase text-label">View Internships</Text>
+                            <Ionicons name="school-outline" size={20} color={C.onBrand} className="mb-1" />
+                            <Text className="text-on-brand font-display uppercase text-label">View Internships</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
                             onPress={() => navigation.navigate('JobList', { recruiterId: profileUser?._id })}
                             className="flex-1 bg-ink p-4 rounded-card items-center shadow-hair"
                         >
-                            <Ionicons name="briefcase-outline" size={20} color="white" className="mb-1" />
-                            <Text className="text-white font-display uppercase text-label">View Job Openings</Text>
+                            <Ionicons name="briefcase-outline" size={20} color={C.paper} className="mb-1" />
+                            <Text className="text-paper font-display uppercase text-label">View Job Openings</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -694,7 +694,7 @@ const PublicProfile = () => {
                                     <React.Fragment key={i}>
                                         {i > 0 && <View className="w-[1px] h-8 self-center bg-card/10" />}
                                         <Pressable className="items-center flex-1" onPress={s.onPress}>
-                                            <Text className="text-xl font-display text-white">{s.value}</Text>
+                                            <Text className="text-xl font-display text-paper">{s.value}</Text>
                                             <Text className="text-ink-3 text-label font-display uppercase mt-1">{s.label}</Text>
                                         </Pressable>
                                     </React.Fragment>
@@ -708,7 +708,7 @@ const PublicProfile = () => {
                                         onPress={handleFollowToggle}
                                         className={`flex-1 py-4 rounded-card items-center justify-center border shadow-hair ${isFollowing ? 'bg-card border-line ' : 'bg-brand-500 border-brand-500 '}`}
                                     >
-                                        <Text className={`font-display uppercase text-sm ${isFollowing ? 'text-ink-3' : 'text-ink'}`}>
+                                        <Text className={`font-display uppercase text-sm ${isFollowing ? 'text-ink-3' : 'text-on-brand'}`}>
                                             {isFollowing ? "Following" : "Follow"}
                                         </Text>
                                     </Pressable>
@@ -716,7 +716,7 @@ const PublicProfile = () => {
                                         onPress={startChat}
                                         className="flex-1 bg-ink py-4 items-center justify-center border-2 border-ink rounded-md"
                                     >
-                                        <Text className="text-white font-display uppercase text-xs">Message</Text>
+                                        <Text className="text-paper font-display uppercase text-xs">Message</Text>
                                     </Pressable>
                                 </View>
                             )}
@@ -725,13 +725,13 @@ const PublicProfile = () => {
                         {/* Custom Tab Bar */}
                         <View className="flex-row border-b border-line bg-card">
                             <Pressable onPress={() => setActiveTab('posts')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'posts' ? 'border-b-[3px] border-brand-500' : ''}`}>
-                                <Ionicons name="grid" size={22} color={activeTab === 'posts' ? '#F97316' : '#8B857E'} />
+                                <Ionicons name="grid" size={22} color={activeTab === 'posts' ? C.brand[500] : C.ink3} />
                             </Pressable>
                             <Pressable onPress={() => setActiveTab('shorts')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'shorts' ? 'border-b-[3px] border-brand-500' : ''}`}>
-                                <Ionicons name="videocam" size={24} color={activeTab === 'shorts' ? '#F97316' : '#8B857E'} />
+                                <Ionicons name="videocam" size={24} color={activeTab === 'shorts' ? C.brand[500] : C.ink3} />
                             </Pressable>
                             <Pressable onPress={() => setActiveTab('tags')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'tags' ? 'border-b-[3px] border-brand-500' : ''}`}>
-                                <MaterialCommunityIcons name="account-details" size={26} color={activeTab === 'tags' ? '#F97316' : '#8B857E'} />
+                                <MaterialCommunityIcons name="account-details" size={26} color={activeTab === 'tags' ? C.brand[500] : C.ink3} />
                             </Pressable>
                         </View>
                     </View>

@@ -24,15 +24,15 @@ const PLACEMENT_COMMENTS: CommentsApi = {
     body: (text, parentId) => ({ text, parentCommentId: parentId ?? undefined }),
     replies: true,
 };
-const COMPANIES = [
+const COMPANIES = () => ([
     { name: 'Google', icon: 'google', color: '#4285F4' },
     { name: 'Amazon', icon: 'amazon', color: '#FF9900' },
     { name: 'Microsoft', icon: 'microsoft', color: '#00A4EF' },
     { name: 'Meta', icon: 'facebook', color: '#0668E1' },
-    { name: 'Apple', icon: 'apple', color: '#57534E' },
+    { name: 'Apple', icon: 'apple', color: C.ink2 },
     { name: 'Netflix', icon: 'netflix', color: '#E50914' },
-    { name: 'Uber', icon: 'car-side', color: '#12100E' },
-];
+    { name: 'Uber', icon: 'car-side', color: C.ink },
+]);
 
 const QUESTION_TYPES = ["DSA", "HR", "System Design", "Aptitude", "Core Subject"];
 const DIFFICULTIES = ["Easy", "Medium", "Hard"];
@@ -223,7 +223,7 @@ const PlacementHub = () => {
 
                     <View className="flex-row flex-wrap gap-2 mb-6">
                         <View className="bg-ink px-2.5 py-1 rounded-full">
-                            <Text className="text-white text-label font-display uppercase">{item.type}</Text>
+                            <Text className="text-paper text-label font-display uppercase">{item.type}</Text>
                         </View>
                         <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
                             <Text className="text-ink-3 text-label font-display uppercase">{item.round}</Text>
@@ -245,7 +245,7 @@ const PlacementHub = () => {
 
                         <View className="flex-row gap-4">
                             <TouchableOpacity onPress={() => handleUpvote(item._id)} className="flex-row items-center">
-                                <Ionicons name={isUpvoted ? "heart" : "heart-outline"} size={16} color={isUpvoted ? "#F97316" : "#C4BEB6"} />
+                                <Ionicons name={isUpvoted ? "heart" : "heart-outline"} size={16} color={isUpvoted ? C.brand[500] : C.ink4} />
                                 <Text className={`ml-1 text-label font-display ${isUpvoted ? 'text-accent-text' : 'text-ink-3'}`}>{item.upvotes?.length}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
@@ -256,7 +256,7 @@ const PlacementHub = () => {
                                 <Text className="ml-1 text-label font-display text-ink-3">{item.comments?.length}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => handleSave(item._id)}>
-                                <Ionicons name={isSaved ? "bookmark" : "bookmark-outline"} size={14} color={isSaved ? "#2563EB" : "#C4BEB6"} />
+                                <Ionicons name={isSaved ? "bookmark" : "bookmark-outline"} size={14} color={isSaved ? C.info : C.ink4} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -267,7 +267,7 @@ const PlacementHub = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar
@@ -334,7 +334,7 @@ const PlacementHub = () => {
                           <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                         </View>
                         <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
-                            {COMPANIES.map((c, i) => (
+                            {COMPANIES().map((c, i) => (
                                 <TouchableOpacity key={i} onPress={() => setSearch(c.name)} className="mr-6 items-center">
                                     <View className="bg-card w-16 h-16 rounded-card items-center justify-center border border-line shadow-hair">
                                         <FontAwesome5 name={c.icon} size={24} color={c.color} />
@@ -354,7 +354,7 @@ const PlacementHub = () => {
                                     onPress={() => setActiveType(type)}
                                     className={`mr-3 px-6 py-3 rounded-card border ${activeType === type ? 'bg-ink border-ink' : 'bg-card border-line shadow-hair'}`}
                                 >
-                                    <Text className={`text-label font-display uppercase ${activeType === type ? 'text-white' : 'text-ink-3'}`}>{type}</Text>
+                                    <Text className={`text-label font-display uppercase ${activeType === type ? 'text-paper' : 'text-ink-3'}`}>{type}</Text>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
@@ -402,7 +402,7 @@ const PlacementHub = () => {
                 <Modal visible={isPostModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPostModalVisible(false)}>
                     {/* Android draws this full-screen modal under the status bar. */}
                     <SafeAreaView className="flex-1 bg-paper" edges={['top', 'bottom']}>
-                        <StatusBar barStyle="dark-content" />
+                        <StatusBar barStyle={C.barStyle} />
                         <AppBar
                             inset={false}
                             title="Share Interview"
@@ -440,7 +440,7 @@ const PlacementHub = () => {
                                             key={t} onPress={() => setForm({ ...form, type: t })}
                                             className={`mr-3 px-6 py-3 rounded-card border ${form.type === t ? 'bg-ink border-ink' : 'bg-card border-line'}`}
                                         >
-                                            <Text className={`text-label font-display uppercase ${form.type === t ? 'text-white' : 'text-ink-3'}`}>{t}</Text>
+                                            <Text className={`text-label font-display uppercase ${form.type === t ? 'text-paper' : 'text-ink-3'}`}>{t}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </ScrollView>

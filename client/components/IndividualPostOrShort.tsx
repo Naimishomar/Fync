@@ -98,7 +98,7 @@ const CommentItem = memo(({
                                 </Pressable>
                             )}
                             <Pressable onPress={() => onDelete(comment._id)}>
-                                {actionLoadingId === comment._id ? <ActivityIndicator size="small" color="red" /> : <Text className="text-danger/80 text-label font-semibold uppercase">Delete</Text>}
+                                {actionLoadingId === comment._id ? <ActivityIndicator size="small" color={C.danger} /> : <Text className="text-danger/80 text-label font-semibold uppercase">Delete</Text>}
                             </Pressable>
                         </>
                     )}
@@ -143,7 +143,7 @@ const SheetAction = ({
 }) => (
   <TouchableOpacity
     onPress={onPress}
-    className="flex-row items-center bg-white border-2 border-ink rounded-card px-4 py-3 mb-3"
+    className="flex-row items-center bg-card border-2 border-ink rounded-card px-4 py-3 mb-3"
     style={{ minHeight: 60 }}
     accessibilityRole="button"
     accessibilityLabel={label}
@@ -151,9 +151,9 @@ const SheetAction = ({
   >
     <View
       className="items-center justify-center rounded-xl border-2 border-ink"
-      style={{ width: 40, height: 40, backgroundColor: destructive ? '#FEE2E2' : '#FFEDD5' }}
+      style={{ width: 40, height: 40, backgroundColor: destructive ? C.danger + '1A' : C.brand[100] }}
     >
-      <Ionicons name={icon} size={20} color={destructive ? '#DC2626' : '#EA580C'} />
+      <Ionicons name={icon} size={20} color={destructive ? C.danger : C.accentText} />
     </View>
     <View className="ml-3 flex-1">
       <Text className={`font-display ${destructive ? 'text-danger' : 'text-ink'}`} style={{ fontSize: 15 }}>
@@ -560,7 +560,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 <SafeAreaView className="bg-paper flex-1" edges={['bottom']}>
                     <AppBar
                         onBack={() => navigation.goBack()}
-                        right={<IconBtn name="ellipsis-horizontal" size={20} color="gray" onPress={() => {
+                        right={<IconBtn name="ellipsis-horizontal" size={20} color={C.ink3} onPress={() => {
                             const isOwner = data.user?._id === currentUser?._id;
                             if (isOwner) {
                                 setMenuVisible(true);
@@ -621,7 +621,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             {data.image?.length > 1 && (
                                 <View className="absolute bottom-3 left-0 right-0 flex-row justify-center gap-1.5">
                                     {data.image.map((_: any, i: number) => (
-                                        <View key={i} className={`h-1.5 w-1.5 rounded-full ${i === currentImageIndex ? 'bg-card shadow-hair' : 'bg-card/40'}`} />
+                                        <View key={i} className={`h-1.5 w-1.5 rounded-full ${i === currentImageIndex ? 'bg-white shadow-hair' : 'bg-white/40'}`} />
                                     ))}
                                 </View>
                             )}
@@ -629,7 +629,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
 
                         <View className="px-3 pt-3 flex-row items-center gap-3">
                             <TouchableOpacity onPress={handleLike} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
-                                <Ionicons name={isLiked ? "thumbs-up" : "thumbs-up-outline"} size={20} color={isLiked ? "#ff8902" : C.ink2} />
+                                <Ionicons name={isLiked ? "thumbs-up" : "thumbs-up-outline"} size={20} color={isLiked ? C.brand[500] : C.ink2} />
                                 <Text className={`font-semibold text-xs ml-1.5 ${isLiked ? 'text-accent-text' : 'text-ink-3'}`}>{likeCount}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
@@ -680,7 +680,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     <Text className="text-ink-3 text-sm">No comments yet. Be the first!</Text>
                                 )}
                                 
-                                <Pressable onPress={() => setCommentModalVisible(true)} className="mt-4 bg-white py-3 rounded-xl items-center border-2 border-ink" style={{ minHeight: 46 }}>
+                                <Pressable onPress={() => setCommentModalVisible(true)} className="mt-4 bg-card py-3 rounded-xl items-center border-2 border-ink" style={{ minHeight: 46 }}>
                                     <Text className="text-ink-2 font-semibold text-sm">Add a comment...</Text>
                                 </Pressable>
                             </View>
@@ -741,7 +741,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
 
             {/* --- MODALS --- */}
             <Modal visible={menuVisible} transparent animationType="slide" onRequestClose={() => setMenuVisible(false)}>
-                <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
+                <View className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
                     <Pressable className="flex-1" onPress={() => setMenuVisible(false)} />
 
                     <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: bottomInset + 8 }}>
@@ -847,7 +847,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
 
                         <TouchableOpacity
                             onPress={() => setMenuVisible(false)}
-                            className="mt-3 bg-white border-2 border-ink rounded-xl items-center justify-center"
+                            className="mt-3 bg-card border-2 border-ink rounded-xl items-center justify-center"
                             style={{ height: 52 }}
                             accessibilityRole="button"
                             accessibilityLabel="Close options"
@@ -864,7 +864,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 animationType="slide"
                 onRequestClose={() => { if (!isUpdating) { setIsEditing(false); setNewVideo(null); setNewImages([]); } }}
             >
-                <KeyboardAvoidingView behavior="padding" className="flex-1" style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}>
+                <KeyboardAvoidingView behavior="padding" className="flex-1" style={{ backgroundColor: C.scrim }}>
                     <View className="flex-1" />
                     <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: bottomInset + 8 }}>
                             <View className="items-center mb-3">
@@ -889,7 +889,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             {/* Media Preview / Picker */}
                             <Pressable 
                                 onPress={pickMedia}
-                                className="mb-4 aspect-video w-full bg-white overflow-hidden border-2 border-dashed border-ink justify-center items-center rounded-card"
+                                className="mb-4 aspect-video w-full bg-card overflow-hidden border-2 border-dashed border-ink justify-center items-center rounded-card"
                             >
                                 {isShort ? (
                                     newVideo ? (
@@ -959,7 +959,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 disabled={isUpdating}
                                 className="bg-brand-500 border-2 border-ink py-4 rounded-card mt-6 items-center"
                             >
-                                {isUpdating ? <ActivityIndicator color={C.ink} /> : <Text className="text-ink font-display text-lg">Save changes</Text>}
+                                {isUpdating ? <ActivityIndicator color={C.onBrand} /> : <Text className="text-on-brand font-display text-lg">Save changes</Text>}
                             </Pressable>
                     </View>
                 </KeyboardAvoidingView>

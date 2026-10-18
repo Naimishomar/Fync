@@ -382,7 +382,7 @@ const HackathonWinners = () => {
                     <MaterialCommunityIcons
                       name="trophy-variant"
                       size={16}
-                      color={row.rank === 1 ? '#D97706' : row.rank === 2 ? '#78716C' : '#B45309'}
+                      color={row.rank === 1 ? '#D97706' : row.rank === 2 ? '#78716C' : C.warning}
                     />
                     <Text className="text-ink text-sm font-display ml-2">{rankLabel(row.rank)}</Text>
                   </View>
@@ -393,7 +393,7 @@ const HackathonWinners = () => {
                       accessibilityRole="button"
                       accessibilityLabel={`Remove ${rankLabel(row.rank)}`}
                     >
-                      <Feather name="trash-2" size={15} color="#B91C1C" />
+                      <Feather name="trash-2" size={15} color={C.danger} />
                     </TouchableOpacity>
                   ) : null}
                 </View>
@@ -412,7 +412,7 @@ const HackathonWinners = () => {
                         accessibilityRole="button"
                         accessibilityState={{ selected: on }}
                       >
-                        <Text className={`text-label font-semibold ${on ? 'text-white' : 'text-ink-2'}`}>{r}</Text>
+                        <Text className={`text-label font-semibold ${on ? 'text-paper' : 'text-ink-2'}`}>{r}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -519,8 +519,8 @@ const HackathonWinners = () => {
               <ActivityIndicator size="small" color={C.ink} />
             ) : (
               <>
-                <MaterialCommunityIcons name="trophy" size={17} color={C.ink} />
-                <Text className="text-ink text-base font-display ml-2">Publish winners</Text>
+                <MaterialCommunityIcons name="trophy" size={17} color={C.onBrand} />
+                <Text className="text-on-brand text-base font-display ml-2">Publish winners</Text>
               </>
             )}
           </TouchableOpacity>

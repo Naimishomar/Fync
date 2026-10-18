@@ -53,7 +53,7 @@ export default function MasterStudyHub() {
       name: 'DSA Prep', 
       description: 'Master Data Structures', 
       icon: 'infinite-outline', 
-      bg: '#12100E', fg: '#FFFFFF',   // ink, white text 18.98:1
+      bg: C.ink, fg: C.paper,   // ink, paper text (inverts together in dark)
       onPress: () => navigation.navigate('DSAPrep')
     },
     { 
@@ -61,7 +61,7 @@ export default function MasterStudyHub() {
       name: 'Interview Prep', 
       description: 'Dynamic Subject Notes', 
       icon: 'briefcase-outline', 
-      bg: '#F97316', fg: '#12100E',   // brand-500, ink text 6.77:1
+      bg: C.brand[500], fg: '#12100E',   // brand-500, ink text 6.77:1
       onPress: () => navigation.navigate('GitHubFolderScreen', { 
         owner: '8483', 
         repo: 'notes', 
@@ -86,7 +86,7 @@ export default function MasterStudyHub() {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       {/* HEADER DECORATION */}
 
@@ -165,10 +165,10 @@ export default function MasterStudyHub() {
             ))}
 
             {/* MOTIVATIONAL CARD */}
-            <View className="mt-4 rounded-sheet bg-ink p-card-pad border border-ink">
+            <View className="mt-4 rounded-sheet bg-night p-card-pad border border-night">
               <View className="flex-row items-center mb-4">
                 <View className="bg-brand-500 p-2 rounded-xl mr-3">
-                  <Ionicons name="rocket-outline" size={20} color={C.ink} />
+                  <Ionicons name="rocket-outline" size={20} color={C.onBrand} />
                 </View>
                 <Text className="text-white font-display text-lg uppercase">Mission: Expert</Text>
               </View>
@@ -216,14 +216,14 @@ export default function MasterStudyHub() {
                 >
                   <View className="flex-row items-center mb-2">
                     <View className="bg-brand-500 px-2 py-1 rounded-sm">
-                      <Text className="font-display uppercase text-ink" style={{ fontSize: 9 }}>PDF</Text>
+                      <Text className="font-display uppercase text-on-brand" style={{ fontSize: 9 }}>PDF</Text>
                     </View>
                     <Text className="font-sans text-ink-3 ml-2 flex-1" style={{ fontSize: 11 }} numberOfLines={1}>
                       {item.source}{item.year ? ` · ${item.year}` : ''}
                     </Text>
                   </View>
 
-                  <Text className="font-display text-base text-ink" numberOfLines={3}>{item.title}</Text>
+                  <Text className="font-display text-base text-on-brand" numberOfLines={3}>{item.title}</Text>
 
                   {item.authors?.length > 0 && (
                     <Text className="font-sans text-ink-3 mt-1" style={{ fontSize: 11 }} numberOfLines={1}>
@@ -235,7 +235,7 @@ export default function MasterStudyHub() {
               ListEmptyComponent={
                 <View className="items-center mt-20 px-8">
                   <Ionicons name="document-outline" size={52} color={C.ink4} />
-                  <Text className="font-display text-base text-ink mt-4 text-center">Nothing found</Text>
+                  <Text className="font-display text-base text-on-brand mt-4 text-center">Nothing found</Text>
                   <Text className="font-sans text-ink-3 mt-2 text-center" style={{ fontSize: 13 }}>
                     Try the subject name on its own, like "operating systems".
                   </Text>

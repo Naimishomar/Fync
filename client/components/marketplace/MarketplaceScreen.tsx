@@ -180,7 +180,7 @@ const MarketplaceScreen = () => {
                         disabled={!item.is_available}
                         className={`w-full py-2.5 rounded-xl items-center justify-center flex-row ${item.is_available && canAfford ? 'bg-ink shadow-hair ' : 'bg-paper-2 border border-line'}`}
                     >
-                        <Text className={`font-display text-label uppercase ${item.is_available && canAfford ? 'text-white' : 'text-ink-3'}`}>
+                        <Text className={`font-display text-label uppercase ${item.is_available && canAfford ? 'text-paper' : 'text-ink-3'}`}>
                             {item.is_available ? (canAfford ? 'Redeem Item' : 'Low Coins') : 'Stock Out'}
                         </Text>
                     </TouchableOpacity>
@@ -191,7 +191,7 @@ const MarketplaceScreen = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar title="Reward Store" onBack={() => navigation.goBack()} />
@@ -322,7 +322,7 @@ const MarketplaceScreen = () => {
                                         ) : (
                                             <>
                                                 <Ionicons name="flash-outline" size={20} color={C.warning} />
-                                                <Text className="text-white font-display uppercase text-xs ml-2">Authorize Redemption</Text>
+                                                <Text className="text-paper font-display uppercase text-xs ml-2">Authorize Redemption</Text>
                                             </>
                                         )}
                                     </TouchableOpacity>

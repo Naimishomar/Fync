@@ -64,7 +64,7 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
                         onPress={() => item.applyLink && Linking.openURL(item.applyLink).catch(() => Alert.alert('Error', 'Could not open the apply link.'))}
                         className="flex-1 bg-ink py-4 rounded-card items-center shadow-hair"
                     >
-                        <Text className="text-white font-display text-label uppercase">Apply Protocol</Text>
+                        <Text className="text-paper font-display text-label uppercase">Apply Protocol</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => onOpenDiscussion(item)}
@@ -220,7 +220,7 @@ export default function AlumniJobs() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar
@@ -294,7 +294,7 @@ export default function AlumniJobs() {
                                     disabled={posting}
                                     className="bg-ink py-6 items-center border-2 border-ink rounded-md"
                                 >
-                                    {posting ? <ActivityIndicator color="white" /> : <Text className="text-white font-display uppercase">Commit Opening</Text>}
+                                    {posting ? <ActivityIndicator color={C.paper} /> : <Text className="text-paper font-display uppercase">Commit Opening</Text>}
                                 </TouchableOpacity>
                                 <View className="h-10" />
                             </View>

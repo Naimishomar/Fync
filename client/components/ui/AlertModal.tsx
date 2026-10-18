@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, Modal, Animated, Easing, ScrollView } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../../constants/colors';
 
 /**
  * In-app replacement for React Native's `Alert`.
@@ -77,14 +78,14 @@ const styleFor = (style: AlertButton['style']) => {
   if (style === 'cancel') {
     return { bg: 'bg-paper-2', text: 'text-ink-2', border: 'border-line' };
   }
-  return { bg: 'bg-brand-500', text: 'text-ink', border: 'border-brand-500' };
+  return { bg: 'bg-brand-500', text: 'text-on-brand', border: 'border-brand-500' };
 };
 
 const iconFor = (buttons: AlertButton[]) => {
   if (buttons.some((b) => b.style === 'destructive')) {
-    return { name: 'warning' as const, color: '#DC2626', bg: 'bg-danger/10', border: 'border-danger/25' };
+    return { name: 'warning' as const, color: C.danger, bg: 'bg-danger/10', border: 'border-danger/25' };
   }
-  return { name: 'information-circle' as const, color: '#F97316', bg: 'bg-paper-2', border: 'border-line' };
+  return { name: 'information-circle' as const, color: C.brand[500], bg: 'bg-paper-2', border: 'border-line' };
 };
 
 export const AlertHost = () => {

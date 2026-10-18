@@ -59,7 +59,7 @@ const DesiCharades = () => {
             }}
             className={`px-6 py-2 rounded-full mx-1 border ${activeCategory === cat ? 'bg-ink border-ink' : 'bg-card border-paper-2'}`}
           >
-            <Text className={`text-label font-display uppercase ${activeCategory === cat ? 'text-white' : 'text-ink-3'}`}>
+            <Text className={`text-label font-display uppercase ${activeCategory === cat ? 'text-paper' : 'text-ink-3'}`}>
               {cat}
             </Text>
           </TouchableOpacity>
@@ -70,7 +70,7 @@ const DesiCharades = () => {
       <View className="w-full h-[180px] mb-8">
         <View
             className="flex-1 rounded-sheet border border-fam-fun/10 items-center justify-center p-6"
-         style={{ backgroundColor: '#EDE8E0' }}>
+         style={{ backgroundColor: C.paper2 }}>
             {currentPrompt ? (
                 <>
                     <Text className="text-label font-display text-fam-fun uppercase mb-2">{activeCategory}</Text>
@@ -93,7 +93,7 @@ const DesiCharades = () => {
       {/* Timer Display */}
       {timer !== null && (
           <View className="flex-row items-center mb-8 bg-paper px-6 py-3 rounded-card border border-line">
-              <Ionicons name="timer-outline" size={20} color={timer < 10 ? '#db2777' : '#8B857E'} />
+              <Ionicons name="timer-outline" size={20} color={timer < 10 ? C.fam.fun : C.ink3} />
               <Text className={`text-xl font-display ml-2 ${timer < 10 ? 'text-fam-fun' : 'text-ink'}`}>
                 00:{timer < 10 ? `0${timer}` : timer}
               </Text>

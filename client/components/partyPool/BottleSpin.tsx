@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Animated, TouchableOpacity, TextInput, Dimensions, Image } from 'react-native';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -157,7 +158,7 @@ const BottleSpin = () => {
               style={{ transform: [{ translateX: x }, { translateY: y }] }}
             >
               <View className={`w-10 h-10 rounded-full justify-center items-center border border-paper-2 shadow-hair ${winner === i + 1 ? 'bg-brand-500 border-accent-text scale-[1.2]' : 'bg-card'}`}>
-                <Text className={`text-sm font-display ${winner === i + 1 ? 'text-ink' : 'text-ink-3'}`}>{i + 1}</Text>
+                <Text className={`text-sm font-display ${winner === i + 1 ? 'text-on-brand' : 'text-ink-3'}`}>{i + 1}</Text>
               </View>
             </View>
           );
@@ -179,10 +180,10 @@ const BottleSpin = () => {
         className="w-full h-[60px] rounded-card mt-10 overflow-hidden shadow-hair"
       >
         <View
-          style={{ backgroundColor: isSpinning ? '#8B857E' : '#F97316' }}
+          style={{ backgroundColor: isSpinning ? C.ink3 : C.brand[500] }}
           className="flex-1 justify-center items-center"
         >
-          <Text className="text-ink text-sm font-display uppercase">{isSpinning ? 'SCANNING...' : 'SPIN BOTTLE'}</Text>
+          <Text className={`${isSpinning ? 'text-ink' : 'text-on-brand'} text-sm font-display uppercase`}>{isSpinning ? 'SCANNING...' : 'SPIN BOTTLE'}</Text>
         </View>
       </TouchableOpacity>
     </View>

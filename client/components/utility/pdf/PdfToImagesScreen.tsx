@@ -55,7 +55,7 @@ export default function PdfToImagesScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
+    <View className="flex-1" style={{ backgroundColor: C.paper }}>
       <Host />
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="PDF to Images" onBack={() => navigation.goBack()} />
@@ -84,7 +84,7 @@ export default function PdfToImagesScreen() {
               className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-3 ${busy ? 'bg-paper-2' : 'bg-brand-500'}`}
               accessibilityRole="button">
               {busy ? <ActivityIndicator color={C.ink} />
-                : <Text className="font-display uppercase text-base text-ink">Convert to images</Text>}
+                : <Text className="font-display uppercase text-base text-on-brand">Convert to images</Text>}
             </TouchableOpacity>
           )}
 

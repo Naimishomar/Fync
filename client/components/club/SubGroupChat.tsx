@@ -248,7 +248,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar
                     title={subGroupName}
@@ -308,7 +308,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                     disabled={sending || (!text.trim())}
                                     className={`w-11 h-11 rounded-card items-center justify-center mb-1 ${text.trim() ? 'bg-ink' : 'bg-paper-2'}`}
                                 >
-                                    {sending ? <ActivityIndicator color="white" size="small" /> : <Feather name="arrow-up" size={24} color="white" />}
+                                    {sending ? <ActivityIndicator color={C.paper} size="small" /> : <Feather name="arrow-up" size={24} color={C.paper} />}
                                 </TouchableOpacity>
                             </View>
                         ) : (
@@ -363,7 +363,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                                 onPress={handleCreatePoll}
                                 className="bg-ink py-4 mt-6 items-center border-2 border-ink rounded-md"
                             >
-                                <Text className="text-white font-display uppercase">Post Poll</Text>
+                                <Text className="text-paper font-display uppercase">Post Poll</Text>
                             </TouchableOpacity>
                         </View>
                     </KeyboardAvoidingView>

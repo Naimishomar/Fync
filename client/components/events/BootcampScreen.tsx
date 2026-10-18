@@ -166,7 +166,7 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
                 {item.banner ? (
                     <ExpoImage source={{ uri: item.banner }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" />
                 ) : (
-                    <View className="w-full h-full"  style={{ backgroundColor: '#4F46E5' }} />
+                    <View className="w-full h-full"  style={{ backgroundColor: C.recruiter }} />
                 )}
 
                 <View className="absolute top-6 left-6 bg-card/90 px-4 py-2 rounded-card border border-white/20 backdrop-blur-md">
@@ -229,7 +229,7 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
                                         {contact.email && (
                                             <TouchableOpacity onPress={() => Linking.openURL(`mailto:${contact.email}`)} className="flex-row items-center">
                                                 <View className="w-5 h-5 bg-ink rounded-lg items-center justify-center mr-2">
-                                                    <Ionicons name="mail" size={8} color="white" />
+                                                    <Ionicons name="mail" size={8} color={C.paper} />
                                                 </View>
                                                 <Text className="text-ink font-display text-label uppercase">Email Intel</Text>
                                             </TouchableOpacity>
@@ -256,7 +256,7 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
 
                 {item.isCollegeSpecific && (
                     <View className="flex-row items-center bg-fam-career/10 px-3 py-1.5 rounded-full self-start mb-6 border border-fam-career/15">
-                        <Ionicons name="shield-checkmark" size={12} color="#3f8df4ff" />
+                        <Ionicons name="shield-checkmark" size={12} color={C.info} />
                         <Text className="text-fam-career text-label font-display uppercase ml-1.5">College Specific</Text>
                     </View>
                 )}
@@ -281,14 +281,14 @@ const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAt
 
                 <View className="flex-row justify-between items-center bg-ink p-5 rounded-card mt-4 shadow-hair">
                     <View>
-                        <Text className="text-white/40 font-display uppercase text-label">Entry Protocol</Text>
-                        <Text className="text-white text-xl font-display uppercase mt-0.5">{item.fee && item.fee > 0 ? `₹${item.fee}` : 'FREE ENTRY'}</Text>
+                        <Text className="text-paper/40 font-display uppercase text-label">Entry Protocol</Text>
+                        <Text className="text-paper text-xl font-display uppercase mt-0.5">{item.fee && item.fee > 0 ? `₹${item.fee}` : 'FREE ENTRY'}</Text>
                     </View>
 
                     <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => !isRegistered && item.status === 'open' && !isLimitReached && onRegister(item)}
-                        className={`px-gutter py-4 rounded-card border ${(isRegistered || item.status === 'closed' || isLimitReached) ? 'bg-ink border-ink' : 'bg-card border-white'}`}
+                        className={`px-gutter py-4 rounded-card border ${(isRegistered || item.status === 'closed' || isLimitReached) ? 'bg-ink border-ink' : 'bg-card border-card'}`}
                         disabled={isRegistered || item.status === 'closed' || isLimitReached}
                     >
                         <Text className={`${(isRegistered || item.status === 'closed' || isLimitReached) ? 'text-ink-3' : 'text-ink'} font-display text-label uppercase`}>
@@ -687,13 +687,13 @@ export default function BootcampScreen() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar title="Bootcamp Hub" onBack={() => goBack()}
                     right={<>
                         <IconBtn name="ticket" size={20} color={C.brand[500]} boxed onPress={() => setTicketsModalVisible(true)} />
-                        <IconBtn name="add" size={24} color="white" style={{ backgroundColor: C.ink, marginLeft: 12 }} onPress={() => {
+                        <IconBtn name="add" size={24} color={C.paper} style={{ backgroundColor: C.ink, marginLeft: 12 }} onPress={() => {
                             setEditData({ admin_email: user?.email });
                             setEventLogo(null);
                             setEventBanner(null);
@@ -744,8 +744,8 @@ export default function BootcampScreen() {
                             <View className="p-card-pad bg-ink h-48">
                                 <View className="flex-row justify-between items-center mb-6">
                                     <View>
-                                        <Text className="text-white font-display uppercase text-h1">Participants</Text>
-                                        <Text className="text-white/50 font-semibold text-label uppercase mt-1">Multi-Day Attendance Tracker</Text>
+                                        <Text className="text-paper font-display uppercase text-h1">Participants</Text>
+                                        <Text className="text-paper/50 font-semibold text-label uppercase mt-1">Multi-Day Attendance Tracker</Text>
                                     </View>
                                     <View className="flex-row items-center gap-2">
                                         <TouchableOpacity
@@ -758,13 +758,13 @@ export default function BootcampScreen() {
                                             }}
                                             className="w-12 h-12 bg-card/10 rounded-card items-center justify-center"
                                         >
-                                            <Ionicons name="scan" size={24} color="white" />
+                                            <Ionicons name="scan" size={24} color={C.paper} />
                                         </TouchableOpacity>
                                         <TouchableOpacity
                                             onPress={() => exportToExcel('Bootcamp_Attendees')}
                                             className="w-12 h-12 bg-card/10 rounded-card items-center justify-center"
                                         >
-                                            <Ionicons name="download-outline" size={24} color="white" />
+                                            <Ionicons name="download-outline" size={24} color={C.paper} />
                                         </TouchableOpacity>
                                         <TouchableOpacity onPress={() => setAttendeeModalVisible(false)} className="w-12 h-12 bg-card rounded-card items-center justify-center">
                                             <Ionicons name="close" size={24} color={C.recruiter} />
@@ -787,7 +787,7 @@ export default function BootcampScreen() {
                                                     onPress={() => setAttendanceDate(date)}
                                                     className={`mr-3 px-6 h-12 rounded-card items-center justify-center border ${isSelected ? 'bg-recruiter border-recruiter' : 'bg-card/10 border-white/20'}`}
                                                 >
-                                                    <Text className={`font-display text-label uppercase ${isSelected ? 'text-white' : 'text-white/40'}`}>
+                                                    <Text className={`font-display text-label uppercase ${isSelected ? 'text-white' : 'text-paper/40'}`}>
                                                         {dateObj.toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
                                                     </Text>
                                                 </TouchableOpacity>
@@ -1264,8 +1264,8 @@ export default function BootcampScreen() {
                                     disabled={saving}
                                     className="bg-ink py-4 items-center justify-center mb-20 border-2 border-ink rounded-md"
                                 >
-                                    {saving ? <ActivityIndicator color="white" /> : (
-                                        <Text className="text-white text-lg font-display uppercase">
+                                    {saving ? <ActivityIndicator color={C.paper} /> : (
+                                        <Text className="text-paper text-lg font-display uppercase">
                                             {editData._id ? "Update Bootcamp" : "Create Bootcamp"}
                                         </Text>
                                     )}
@@ -1329,7 +1329,7 @@ export default function BootcampScreen() {
                 <Modal visible={qrModalVisible} transparent onRequestClose={() => setQrModalVisible(false)}>
                     <View className="flex-1 bg-black/80 justify-center items-center px-gutter">
                         <View className="bg-card w-full rounded-sheet overflow-hidden">
-                            <View className="p-card-pad items-center flex-row justify-center" style={{ backgroundColor: '#4F46E5' }}>
+                            <View className="p-card-pad items-center flex-row justify-center" style={{ backgroundColor: C.recruiter }}>
                                 <Text className="text-white text-xl font-display text-center">{(selectedReg?.eventId as any)?.eventName}</Text>
                             </View>
                             <View className="p-card-pad items-center bg-paper-2/50">
@@ -1340,7 +1340,7 @@ export default function BootcampScreen() {
                                 </View>
                                 <Text className='font-semibold mt-2'>{user?.name}</Text>
                                 <TouchableOpacity onPress={() => setQrModalVisible(false)} className="mt-8 bg-ink w-full py-5 rounded-xl items-center shadow-hair">
-                                    <Text className="text-white font-display text-xs uppercase">CLOSE TICKET</Text>
+                                    <Text className="text-paper font-display text-xs uppercase">CLOSE TICKET</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -1352,9 +1352,9 @@ export default function BootcampScreen() {
                         <View className="bg-card w-full max-h-[70%] rounded-sheet overflow-hidden">
                             <View className="p-6 bg-ink">
                                 <View className="flex-row justify-between items-center mb-4">
-                                    <Text className="text-white text-lg font-display uppercase">Select Bootcamp Base</Text>
+                                    <Text className="text-paper text-lg font-display uppercase">Select Bootcamp Base</Text>
                                     <TouchableOpacity onPress={() => setCollegeModalVisible(false)} className="w-10 h-10 bg-card/10 rounded-xl items-center justify-center">
-                                        <Ionicons name="close" size={20} color="white" />
+                                        <Ionicons name="close" size={20} color={C.paper} />
                                     </TouchableOpacity>
                                 </View>
                                 <View className="flex-row items-center bg-card/10 rounded-card px-4 border border-white/10">
@@ -1364,7 +1364,7 @@ export default function BootcampScreen() {
                                         placeholderTextColor={C.ink3}
                                         value={collegeSearch}
                                         onChangeText={setCollegeSearch}
-                                        className="flex-1 h-12 text-white font-semibold ml-3"
+                                        className="flex-1 h-12 text-paper font-semibold ml-3"
                                     />
                                 </View>
                             </View>

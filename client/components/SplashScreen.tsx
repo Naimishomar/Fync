@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, View, Text, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { C } from '../constants/colors';
 
 /**
  * Backdrop is set type rather than imagery: a dozen fragments of campus life at
@@ -89,7 +90,7 @@ export default function SplashScreen({ navigation }: any) {
                 fontFamily: 'SpaceGrotesk_700Bold',
                 fontSize: p.size,
                 letterSpacing: -0.5,
-                color: '#12100E',
+                color: C.ink,
                 opacity: entries[i].interpolate({ inputRange: [0, 1], outputRange: [0, p.op] }),
                 transform: [
                   { rotate: `${p.angle}deg` },
@@ -117,11 +118,11 @@ export default function SplashScreen({ navigation }: any) {
             <View style={{ position: 'relative', width: 112, height: 112 }}>
               <View
                 pointerEvents="none"
-                style={{ position: 'absolute', left: 4, top: 4, width: 112, height: 112, backgroundColor: '#12100E', borderRadius: 999 }}
+                style={{ position: 'absolute', left: 4, top: 4, width: 112, height: 112, backgroundColor: C.ink, borderRadius: 999 }}
               />
               <Animated.Image
                 source={require('../assets/Fync.png')}
-                style={{ width: 112, height: 112, borderRadius: 999, borderWidth: 2, borderColor: '#12100E', backgroundColor: '#FFFFFF' }}
+                style={{ width: 112, height: 112, borderRadius: 999, borderWidth: 2, borderColor: C.ink, backgroundColor: '#FFFFFF' }}
               />
             </View>
           </Animated.View>

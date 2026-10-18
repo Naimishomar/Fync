@@ -58,7 +58,7 @@ export default function PdfToolShell({
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
+    <View className="flex-1" style={{ backgroundColor: C.paper }}>
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title={title} onBack={() => navigation.goBack()} />
 
@@ -116,7 +116,7 @@ export default function PdfToolShell({
               accessibilityRole="button"
             >
               {busy ? <ActivityIndicator color={C.ink} />
-                : <Text className={`font-display uppercase text-base ${blocked ? 'text-ink-3' : 'text-ink'}`}>{blocked ?? runLabel}</Text>}
+                : <Text className={`font-display uppercase text-base ${blocked ? 'text-ink-3' : 'text-on-brand'}`}>{blocked ?? runLabel}</Text>}
             </TouchableOpacity>
           )}
 

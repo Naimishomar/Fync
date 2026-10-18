@@ -439,7 +439,7 @@ export default function ActiveInterview() {
         onBack={() => navigation.goBack()}
         right={
           <View className="bg-paper-2 px-4 py-2 rounded-full border border-line flex-row items-center gap-2" style={{ marginRight: 11 }}>
-            <Ionicons name="time-outline" size={20} color={timeLeft < 60 ? "#DC2626" : "#F97316"} />
+            <Ionicons name="time-outline" size={20} color={timeLeft < 60 ? C.danger : C.brand[500]} />
             <Text className={`text-xl font-display ${timeLeft < 60 ? 'text-danger' : 'text-accent-text'}`}>
               {formatTime(timeLeft)}
             </Text>
@@ -460,7 +460,7 @@ export default function ActiveInterview() {
               <Ionicons
                 name={aiState === 'LISTENING' ? "mic" : "navigate"}
                 size={60}
-                color={aiState === 'LISTENING' ? "#DC2626" : "#F97316"}
+                color={aiState === 'LISTENING' ? C.danger : C.brand[500]}
               />
               <Text className="text-label font-display text-brand-300 uppercase mt-2">Laura AI</Text>
             </View>

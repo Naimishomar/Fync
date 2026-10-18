@@ -154,7 +154,7 @@ const SingleShort = React.memo(({
   };
 
   return (
-    <View style={{ height, width: SCREEN_WIDTH }} className="bg-ink">
+    <View style={{ height, width: SCREEN_WIDTH }} className="bg-night">
       <Pressable onPress={togglePlay}>
         <Video
           ref={videoRef}
@@ -250,7 +250,7 @@ const SingleShort = React.memo(({
             <Ionicons
               name={isLiked ? "heart" : "heart-outline"}
               size={34}
-              color={isLiked ? "#F97316" : "#FFFFFF"}
+              color={isLiked ? C.brand[500] : "#FFFFFF"}
             />
           </Pressable>
           <Text className="font-display text-label text-white mb-4">{item.likes || 0}</Text>
@@ -311,7 +311,7 @@ const SingleShort = React.memo(({
               <Ionicons
                 name={item.repostedBy?.some((u: any) => String(u) === String(currentUserId)) ? 'repeat' : 'repeat-outline'}
                 size={28}
-                color={item.repostedBy?.some((u: any) => String(u) === String(currentUserId)) ? '#F97316' : 'white'}
+                color={item.repostedBy?.some((u: any) => String(u) === String(currentUserId)) ? C.brand[500] : 'white'}
               />
               {!!item.reposts && (
                 <Text className="font-display text-label text-white mt-1">{item.reposts}</Text>
@@ -357,7 +357,7 @@ const DiscoverCard = React.memo(({
   // stands in for the rest, which is all the user ever sees of them.
   if (!isNear) {
     return (
-      <View style={{ height, width: SCREEN_WIDTH }} className="bg-ink">
+      <View style={{ height, width: SCREEN_WIDTH }} className="bg-night">
         {!!item.thumbnail && (
           <Image
             source={{ uri: item.thumbnail }}
@@ -392,7 +392,7 @@ const DiscoverAttribution = ({ item }: { item: ShortItem }) => (
   <View className="absolute bottom-32 left-4 right-4" pointerEvents="none">
     <View className="flex-row items-center mb-2">
       <View className="bg-brand-500 px-2 py-1 rounded-sm">
-        <Text className="font-display text-label text-ink uppercase">Tech</Text>
+        <Text className="font-display text-label text-on-brand uppercase">Tech</Text>
       </View>
       <Text className="font-sans text-sm text-white ml-2" numberOfLines={1}>
         {item.source}

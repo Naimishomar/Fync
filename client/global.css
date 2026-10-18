@@ -1,3 +1,70 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Theme tokens. Keep in step with constants/colors.ts. */
+:root {
+  --ink: 18 16 14;
+  --ink-2: 87 83 78;
+  --ink-3: 139 133 126;
+  --ink-4: 196 190 182;
+  --paper: 245 242 236;
+  --paper-2: 237 232 224;
+  --card: 255 255 255;
+  --line: 227 221 211;
+  --brand-50: 255 247 237;
+  --brand-100: 255 237 213;
+  --brand-200: 254 215 170;
+  --brand-300: 253 186 116;
+  --brand-400: 251 146 60;
+  --brand-500: 249 115 22;
+  --brand-600: 234 88 12;
+  --brand-700: 194 65 12;
+  --brand-800: 154 52 18;
+  --brand-900: 124 45 18;
+  --accent-text: 234 88 12;
+  --alumni: 180 83 9;
+  --recruiter: 79 70 229;
+  --fam-study: 124 58 237;
+  --fam-career: 37 99 235;
+  --fam-events: 234 88 12;
+  --fam-social: 8 145 178;
+  --fam-campus: 87 83 78;
+  --fam-fun: 219 39 119;
+  --success: 4 120 87;
+  --warning: 180 83 9;
+  --danger: 220 38 38;
+  --info: 37 99 235;
+}
+
+/* Dark theme: toggled by nativewind colorScheme (tailwind darkMode: 'class'). */
+.dark:root {
+  --ink: 243 239 232;
+  --ink-2: 201 194 184;
+  --ink-3: 151 144 135;
+  --ink-4: 92 86 80;
+  --paper: 15 14 12;
+  --paper-2: 29 27 24;
+  --card: 24 22 20;
+  --line: 44 40 36;
+  --brand-50: 36 20 10;
+  --brand-100: 46 24 11;
+  --brand-200: 74 37 14;
+  --brand-600: 251 146 60;
+  --brand-700: 253 186 116;
+  --brand-800: 254 215 170;
+  --brand-900: 255 237 213;
+  --accent-text: 251 146 60;
+  --alumni: 245 183 0;
+  --recruiter: 129 140 248;
+  --fam-study: 167 139 250;
+  --fam-career: 96 165 250;
+  --fam-events: 251 146 60;
+  --fam-social: 34 211 238;
+  --fam-campus: 168 162 158;
+  --fam-fun: 244 114 182;
+  --success: 52 211 153;
+  --warning: 251 191 36;
+  --danger: 248 113 113;
+  --info: 96 165 250;
+}

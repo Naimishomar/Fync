@@ -83,7 +83,7 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
                   <View
                     className="w-[100px] h-[100px] rounded-full justify-center items-center shadow-hair"
                    style={{ backgroundColor: '#F5B700' }}>
-                    <Ionicons name="flame" size={60} color={C.ink} />
+                    <Ionicons name="flame" size={60} color={C.night} />
                   </View>
                 </View>
               </View>

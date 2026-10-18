@@ -115,11 +115,11 @@ export default function AlumniSignup() {
         className="bg-paper"
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F5F2EC' }}
+          contentContainerStyle={{ flexGrow: 1, backgroundColor: C.paper }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View className="flex-1 bg-ink">
+          <View className="flex-1 bg-night">
 
             <AuthPoster mode="alumni" grow />
 
@@ -135,7 +135,7 @@ export default function AlumniSignup() {
                 />
                 <Image
                   source={require('../assets/fync-logo.jpg')}
-                  style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: '#12100E' }}
+                  style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: C.ink }}
                   resizeMode="cover"
                   accessibilityLabel="Fync"
                 />
@@ -194,9 +194,9 @@ export default function AlumniSignup() {
                     disabled={isLoading || !agreeTerms}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color={C.ink} />
+                      <ActivityIndicator color={C.onBrand} />
                     ) : (
-                      <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Send OTP</Text>
+                      <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Send OTP</Text>
                     )}
                   </Pressable>
                 </>
@@ -228,9 +228,9 @@ export default function AlumniSignup() {
                     disabled={isLoading}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color={C.ink} />
+                      <ActivityIndicator color={C.onBrand} />
                     ) : (
-                      <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Verify & Continue</Text>
+                      <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Verify & Continue</Text>
                     )}
                   </Pressable>
 

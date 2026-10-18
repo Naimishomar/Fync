@@ -262,7 +262,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
             <View className={`w-full ${isMe ? "items-end" : "items-start"} mb-2`}>
                 <View className={`flex-row items-end ${isMe ? "flex-row-reverse" : "flex-row"} max-w-[85%]`}>
                     <View className={`${isMe ? "ml-2 mb-5" : "mr-2 mb-5"}`}>
-                        <View className="w-8 h-8 rounded-full border-2 border-white shadow-hair overflow-hidden bg-paper-2">
+                        <View className="w-8 h-8 rounded-full border-2 border-card shadow-hair overflow-hidden bg-paper-2">
                             <Image
                                 source={{ uri: item.senderId?.avatar || `https://ui-avatars.com/api/?name=${item.senderId?.username}&background=f97316&color=fff` }}
                                 style={{ width: '100%', height: '100%' }}
@@ -309,7 +309,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                             className={`px-4 py-2.5 ${isMe ? "bg-ink shadow-hair " : "bg-card border border-line shadow-hair"} ${item.pending ? 'opacity-70' : ''}`}
                         >
                             {item.messageType === "text" && (
-                                <Text className={`text-sm leading-5 font-semibold ${isMe ? "text-white" : "text-ink"}`}>{item.content}</Text>
+                                <Text className={`text-sm leading-5 font-semibold ${isMe ? "text-paper" : "text-ink"}`}>{item.content}</Text>
                             )}
                             {item.messageType === "image" && (
                                 <TouchableOpacity onPress={() => setSelectedImage(item.mediaUrl)}>
@@ -347,18 +347,18 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                         Linking.openURL(item.mediaUrl).catch(() => Alert.alert("Error", "Could not open this file."));
                                     }}
                                     onLongPress={(e) => e.stopPropagation()}
-                                    className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-card/10' : 'bg-black/5'}`}
+                                    className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-card/10' : 'bg-ink/5'}`}
                                 >
                                     <View className={`w-10 h-10 rounded-lg items-center justify-center ${isMe ? 'bg-ink' : 'bg-brand-100'}`}>
-                                        <Ionicons name="document-text" size={24} color={isMe ? "white" : "#F97316"} />
+                                        <Ionicons name="document-text" size={24} color={isMe ? C.paper : C.brand[500]} />
                                     </View>
                                     <View className="ml-3 flex-1">
-                                        <Text className={`text-sm font-semibold ${isMe ? "text-white" : "text-ink"}`} numberOfLines={1}>
+                                        <Text className={`text-sm font-semibold ${isMe ? "text-paper" : "text-ink"}`} numberOfLines={1}>
                                             {item.content || 'Shared Document'}
                                         </Text>
                                         <Text className={`${isMe ? "text-ink-3" : "text-ink-3"} text-label uppercase font-semibold`}>Tap to view file</Text>
                                     </View>
-                                    <Ionicons name="chevron-forward" size={18} color={isMe ? "white" : "#C4BEB6"} />
+                                    <Ionicons name="chevron-forward" size={18} color={isMe ? C.paper : C.ink4} />
                                 </Pressable>
                             )}
                         </TouchableOpacity>
@@ -377,10 +377,10 @@ const CollegeChatScreen = ({ navigation }: any) => {
     }, [user?._id]);
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
+        <View style={{ flex: 1, backgroundColor: C.paper }}>
             {/* SOLAR GLOW */}
             <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 350, zIndex: -1 }} pointerEvents="none">
-                <LinearGradient colors={['#EDE8E0', 'rgba(255, 247, 237, 0)']} style={{ flex: 1 }} />
+                <LinearGradient colors={[C.paper2, C.paper2 + '00']} style={{ flex: 1 }} />
             </View>
 
             {/* HEADER */}

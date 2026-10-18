@@ -80,7 +80,7 @@ const CreateClubScreen = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <View className="flex-1">
                 <AppBar title="Establish Club" right={<IconBtn name="close" onPress={() => navigation.goBack()} />} />
 
@@ -105,7 +105,7 @@ const CreateClubScreen = () => {
                         {/* Logo Upload */}
                         <TouchableOpacity 
                             onPress={() => pickImage('logo')}
-                            className="w-24 h-24 rounded-card bg-card border-4 border-white shadow-hair overflow-hidden -mt-12 ml-6 items-center justify-center"
+                            className="w-24 h-24 rounded-card bg-card border-4 border-card shadow-hair overflow-hidden -mt-12 ml-6 items-center justify-center"
                         >
                             {logo ? (
                                 <Image source={{ uri: logo.uri }} className="w-full h-full" />
@@ -149,9 +149,9 @@ const CreateClubScreen = () => {
                             className="bg-ink py-5 items-center border-2 border-ink rounded-md"
                         >
                             {loading ? (
-                                <ActivityIndicator color="white" />
+                                <ActivityIndicator color={C.paper} />
                             ) : (
-                                <Text className="text-white font-display uppercase">Establish Community</Text>
+                                <Text className="text-paper font-display uppercase">Establish Community</Text>
                             )}
                         </TouchableOpacity>
                         

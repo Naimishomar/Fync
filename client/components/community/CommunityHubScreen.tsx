@@ -258,13 +258,13 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                     contact: user?.phone || '',
                     name: user?.username || user?.name
                 },
-                theme: { color: '#F97316' }
+                theme: { color: C.brand[500] }
             };
 
             const triggerWebView = () => {
                 const content = `
                 <html>
-                <body style="background-color: #F5F2EC; display: flex; justify-content: center; align-items: center; height: 100vh;">
+                <body style="background-color: ${C.paper}; display: flex; justify-content: center; align-items: center; height: 100vh;">
                     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
                     <script>
                     var options = {
@@ -489,7 +489,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                             </TouchableOpacity>
                         ) : (
                             <TouchableOpacity onPress={handleJoin} disabled={isJoining} className="flex-1 h-14 bg-brand-500 items-center justify-center border-2 border-ink rounded-md">
-                                {isJoining ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-ink font-display uppercase text-label">Join Frequency</Text>}
+                                {isJoining ? <ActivityIndicator size="small" color={C.onBrand} /> : <Text className="text-on-brand font-display uppercase text-label">Join Frequency</Text>}
                             </TouchableOpacity>
                         )}
                         <TouchableOpacity onPress={handleShare} className="w-14 h-14 bg-card border border-line rounded-card items-center justify-center shadow-hair">
@@ -533,13 +533,13 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                                 onPress={() => setRenewPlan('monthly')} 
                                                 className={`flex-1 p-4 rounded-card border ${renewPlan === 'monthly' ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
                                             >
-                                                <Text className={`font-display uppercase text-label text-center ${renewPlan === 'monthly' ? 'text-white' : 'text-ink-3'}`}>Spark (₹99)</Text>
+                                                <Text className={`font-display uppercase text-label text-center ${renewPlan === 'monthly' ? 'text-paper' : 'text-ink-3'}`}>Spark (₹99)</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity 
                                                 onPress={() => setRenewPlan('yearly')} 
                                                 className={`flex-1 p-4 rounded-card border ${renewPlan === 'yearly' ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
                                             >
-                                                <Text className={`font-display uppercase text-label text-center ${renewPlan === 'yearly' ? 'text-white' : 'text-ink-3'}`}>Eternal (₹999)</Text>
+                                                <Text className={`font-display uppercase text-label text-center ${renewPlan === 'yearly' ? 'text-paper' : 'text-ink-3'}`}>Eternal (₹999)</Text>
                                             </TouchableOpacity>
                                         </View>
                                         <TouchableOpacity 
@@ -547,7 +547,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                             disabled={renewing} 
                                             className="bg-brand-500 w-full py-5 items-center border-2 border-ink rounded-md"
                                         >
-                                            {renewing ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-ink font-display uppercase text-label">Initiate Payment</Text>}
+                                            {renewing ? <ActivityIndicator size="small" color={C.onBrand} /> : <Text className="text-on-brand font-display uppercase text-label">Initiate Payment</Text>}
                                         </TouchableOpacity>
                                     </View>
                                 )}
@@ -579,7 +579,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                             <Text className="text-ink text-xl font-display uppercase">Access Points</Text>
                             {isCreator && (
                                 <TouchableOpacity onPress={() => { setSubModalVisible(true); setTargetSubId(null); }} className="w-10 h-10 bg-ink rounded-xl items-center justify-center shadow-hair">
-                                    <Ionicons name="add" size={24} color="white" />
+                                    <Ionicons name="add" size={24} color={C.paper} />
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -684,14 +684,14 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                         <View className="w-full">
                             <View className="flex-row gap-3 mb-4">
                                 <TouchableOpacity onPress={() => setRenewPlan('monthly')} className={`flex-1 p-5 rounded-card border ${renewPlan === 'monthly' ? 'bg-ink border-ink shadow-hair' : 'bg-card border-line shadow-hair'}`}>
-                                    <Text className={`font-display uppercase text-label text-center ${renewPlan === 'monthly' ? 'text-white' : 'text-ink-3'}`}>Monthly</Text>
+                                    <Text className={`font-display uppercase text-label text-center ${renewPlan === 'monthly' ? 'text-paper' : 'text-ink-3'}`}>Monthly</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => setRenewPlan('yearly')} className={`flex-1 p-5 rounded-card border ${renewPlan === 'yearly' ? 'bg-ink border-ink shadow-hair' : 'bg-card border-line shadow-hair'}`}>
-                                    <Text className={`font-display uppercase text-label text-center ${renewPlan === 'yearly' ? 'text-white' : 'text-ink-3'}`}>Yearly</Text>
+                                    <Text className={`font-display uppercase text-label text-center ${renewPlan === 'yearly' ? 'text-paper' : 'text-ink-3'}`}>Yearly</Text>
                                 </TouchableOpacity>
                             </View>
                             <TouchableOpacity onPress={handleRenew} disabled={renewing} className="bg-brand-500 w-full py-6 items-center border-2 border-ink rounded-md">
-                                {renewing ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-ink font-display uppercase text-label">Restore Hub Signal</Text>}
+                                {renewing ? <ActivityIndicator size="small" color={C.onBrand} /> : <Text className="text-on-brand font-display uppercase text-label">Restore Hub Signal</Text>}
                             </TouchableOpacity>
                         </View>
                     )}
@@ -705,7 +705,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
 
             {/* Sub-Community Creation Modal */}
             <Modal visible={subModalVisible} transparent animationType="slide" onRequestClose={() => setSubModalVisible(false)}>
-                <View className="flex-1 bg-black/60">
+                <View className="flex-1" style={{ backgroundColor: C.scrim }}>
                     <TouchableOpacity activeOpacity={1} onPress={() => setSubModalVisible(false)} className="flex-1" />
                     <KeyboardAvoidingView 
                         behavior={KAV_BEHAVIOR}
@@ -730,7 +730,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                 </TouchableOpacity>
 
                                 <TextInput placeholder="Channel Label (e.g. Protocol)" placeholderTextColor={C.ink4} value={subName} onChangeText={setSubName} className="font-semibold text-base text-ink bg-card p-5 mb-4 border-[1.5px] border-ink rounded-md" />
-                                <TextInput placeholder="Directive parameters..." placeholderTextColor="#252d36ff" value={subDesc} onChangeText={setSubDesc} multiline className="bg-card p-5 mb-4 border-[1.5px] border-ink font-medium h-24 text-xs text-ink-2 rounded-md" textAlignVertical="top" />
+                                <TextInput placeholder="Directive parameters..." placeholderTextColor={C.ink4} value={subDesc} onChangeText={setSubDesc} multiline className="bg-card p-5 mb-4 border-[1.5px] border-ink font-medium h-24 text-xs text-ink-2 rounded-md" textAlignVertical="top" />
 
                                 <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
                                   <Text className="text-ink-3 font-display uppercase text-label">Room Type</Text>
@@ -747,8 +747,8 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                             onPress={() => setSubType(option.key)}
                                             className={`flex-1 h-14 rounded-card items-center justify-center border ${subType === option.key ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
                                         >
-                                            <Feather name={option.icon} size={15} color={subType === option.key ? '#fff' : '#8B857E'} />
-                                            <Text className={`font-display uppercase text-label mt-1 ${subType === option.key ? 'text-white' : 'text-ink-3'}`}>
+                                            <Feather name={option.icon} size={15} color={subType === option.key ? C.paper : C.ink3} />
+                                            <Text className={`font-display uppercase text-label mt-1 ${subType === option.key ? 'text-paper' : 'text-ink-3'}`}>
                                                 {option.label}
                                             </Text>
                                         </TouchableOpacity>
@@ -763,7 +763,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                     {creatingSub ? (
                                         <ActivityIndicator size="small" color={C.ink} />
                                     ) : (
-                                        <Text className="text-white font-display uppercase text-label">Initiate Room</Text>
+                                        <Text className="text-paper font-display uppercase text-label">Initiate Room</Text>
                                     )}
                                 </TouchableOpacity>
                             </ScrollView>
@@ -774,7 +774,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
 
             {/* Sub-Community Update Modal */}
             <Modal visible={editSubModal} transparent animationType="slide" onRequestClose={() => setEditSubModal(false)}>
-                <View className="flex-1 bg-black/60">
+                <View className="flex-1" style={{ backgroundColor: C.scrim }}>
                     <TouchableOpacity activeOpacity={1} onPress={() => setEditSubModal(false)} className="flex-1" />
                     <KeyboardAvoidingView 
                         behavior={KAV_BEHAVIOR}
@@ -809,7 +809,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                     {creatingSub ? (
                                         <ActivityIndicator size="small" color={C.ink} />
                                     ) : (
-                                        <Text className="text-ink font-display uppercase text-label">Apply Specs</Text>
+                                        <Text className="text-on-brand font-display uppercase text-label">Apply Specs</Text>
                                     )}
                                 </TouchableOpacity>
 
@@ -827,7 +827,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
 
             {/* Configuration Suite */}
             <Modal visible={editHubModal} transparent animationType="slide" onRequestClose={() => setEditHubModal(false)}>
-                <View className="flex-1 bg-black/60">
+                <View className="flex-1" style={{ backgroundColor: C.scrim }}>
                     <TouchableOpacity activeOpacity={1} onPress={() => setEditHubModal(false)} className="flex-1" />
                     <KeyboardAvoidingView 
                         behavior={KAV_BEHAVIOR}
@@ -854,7 +854,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                         <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Active License</Text>
                                     </View>
                                     <View className="px-4 py-2 bg-ink rounded-xl">
-                                        <Text className="text-white font-display uppercase text-label">Guardian</Text>
+                                        <Text className="text-paper font-display uppercase text-label">Guardian</Text>
                                     </View>
                                 </View>
 
@@ -904,7 +904,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                     disabled={updatingHub}
                                     className={`p-6 rounded-card items-center mb-3 shadow-hair ${updatingHub ? 'bg-paper-2' : 'bg-brand-500 '}`}
                                 >
-                                    {updatingHub ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-ink font-display uppercase text-label">Update Community</Text>}
+                                    {updatingHub ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-on-brand font-display uppercase text-label">Update Community</Text>}
                                 </TouchableOpacity>
 
                                 <TouchableOpacity 

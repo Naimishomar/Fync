@@ -5,24 +5,24 @@ import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const BADGE_CONFIG: Record<string, { icon: any; color: string; bg: string; border: string }> = {
-  Newcomer:  { icon: 'leaf', color: '#12100E', bg: '#F5F2EC',    border: '#E3DDD3' },
-  Explorer:  { icon: 'compass', color: '#12100E', bg: '#F5F2EC',    border: '#E3DDD3' },
-  Builder:   { icon: 'hammer', color: '#12100E', bg: '#F5F2EC',    border: '#E3DDD3' },
-  Innovator: { icon: 'bulb', color: '#F97316', bg: '#EDE8E0',    border: '#EDE8E0' },
-  Pioneer:   { icon: 'rocket', color: '#F97316', bg: '#EDE8E0',    border: '#EDE8E0' },
-  Legend:    { icon: 'star', color: '#F97316', bg: '#EDE8E0',    border: '#EDE8E0' },
-};
+const BADGE_CONFIG = (): Record<string, { icon: any; color: string; bg: string; border: string }> => ({
+  Newcomer:  { icon: 'leaf', color: C.ink, bg: C.paper,    border: C.line },
+  Explorer:  { icon: 'compass', color: C.ink, bg: C.paper,    border: C.line },
+  Builder:   { icon: 'hammer', color: C.ink, bg: C.paper,    border: C.line },
+  Innovator: { icon: 'bulb', color: C.brand[500], bg: C.paper2,    border: C.paper2 },
+  Pioneer:   { icon: 'rocket', color: C.brand[500], bg: C.paper2,    border: C.paper2 },
+  Legend:    { icon: 'star', color: C.brand[500], bg: C.paper2,    border: C.paper2 },
+});
 
-const CAT_COLORS: Record<string, string> = {
-  hackathon:  '#12100E',
-  coding:     '#F97316',
-  github:     '#12100E',
-  projects:   '#F97316',
-  events:     '#12100E',
-  internship: '#F97316',
-  community:  '#12100E',
-};
+const CAT_COLORS = (): Record<string, string> => ({
+  hackathon:  C.ink,
+  coding:     C.brand[500],
+  github:     C.ink,
+  projects:   C.brand[500],
+  events:     C.ink,
+  internship: C.brand[500],
+  community:  C.ink,
+});
 
 interface ScoreBreakdown {
   hackathon:  { score: number; maxScore: number };
@@ -90,7 +90,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
   if (!score) return null;
 
   const badge = score.badge || 'Newcomer';
-  const cfg = BADGE_CONFIG[badge] || BADGE_CONFIG.Newcomer;
+  const cfg = BADGE_CONFIG()[badge] || BADGE_CONFIG().Newcomer;
   const pct = Math.min((score.totalScore / 1000) * 100, 100);
   const categories = score.breakdown ? Object.entries(score.breakdown) : [];
 
@@ -134,7 +134,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
           <View className="gap-4">
             {categories.map(([cat, data]: [string, any]) => {
               const catPct = data.maxScore > 0 ? Math.min((data.score / data.maxScore) * 100, 100) : 0;
-              const color = CAT_COLORS[cat] || '#8B857E';
+              const color = CAT_COLORS()[cat] || C.ink3;
               return (
                 <View key={cat}>
                   <View className="flex-row justify-between mb-1.5 items-center">

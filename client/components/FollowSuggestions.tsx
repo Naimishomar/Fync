@@ -68,7 +68,7 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
   if (!shown.length) return null;
 
   return (
-    <View className="bg-white border-y-2 border-ink py-4 mb-3">
+    <View className="bg-card border-y-2 border-ink py-4 mb-3">
       <View className="flex-row items-center px-5 mb-3">
         <Text className="font-display text-ink uppercase" style={{ fontSize: 13, letterSpacing: 0.4 }}>
           People you may know
@@ -117,7 +117,7 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
               accessibilityRole="button"
               accessibilityLabel={followed[p._id] ? `Following ${p.name}` : `Follow ${p.name}`}
             >
-              <Text className="font-display text-ink" style={{ fontSize: 12 }}>
+              <Text className={`font-display ${followed[p._id] ? 'text-ink' : 'text-on-brand'}`} style={{ fontSize: 12 }}>
                 {followed[p._id] ? 'FOLLOWING' : 'FOLLOW'}
               </Text>
             </TouchableOpacity>

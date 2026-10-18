@@ -174,7 +174,7 @@ const HackathonList = () => {
           activeOpacity={0.9}
           className="bg-brand-500 px-gutter py-3.5 rounded-card shadow-hair border border-brand-300"
         >
-          <Text className="text-ink font-display uppercase text-sm">Participate</Text>
+          <Text className="text-on-brand font-display uppercase text-sm">Participate</Text>
         </TouchableOpacity>
       </View>
 
@@ -192,7 +192,7 @@ const HackathonList = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
         <AppBar title="Hackathons" onBack={() => navigation.goBack()} />

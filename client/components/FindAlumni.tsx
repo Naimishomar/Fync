@@ -161,7 +161,7 @@ const FindAlumni = ({ navigation }: any) => {
                     onPress={() => startChat(item)}
                     className="bg-ink w-12 h-12 rounded-card items-center justify-center shadow-hair"
                 >
-                    <Ionicons name="chatbubble" size={18} color="white" />
+                    <Ionicons name="chatbubble" size={18} color={C.paper} />
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={() => navigation.navigate("PublicProfile", { user: item })}
@@ -175,7 +175,7 @@ const FindAlumni = ({ navigation }: any) => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             {/* HEADER DECORATION */}
 
@@ -187,7 +187,7 @@ const FindAlumni = ({ navigation }: any) => {
                         <IconBtn
                             name="options"
                             boxed
-                            color={selectedBatch ? "white" : "#12100E"}
+                            color={selectedBatch ? "white" : C.ink}
                             style={selectedBatch ? { backgroundColor: C.brand[500] } : undefined}
                             onPress={() => setIsFilterVisible(true)}
                         />
@@ -303,7 +303,7 @@ const FindAlumni = ({ navigation }: any) => {
                                         }}
                                         className={`px-6 py-4 rounded-xl ${selectedBatch === batch ? 'bg-brand-500 shadow-hair ' : 'bg-paper-2 border-line'}`}
                                     >
-                                        <Text className={`font-display text-sm uppercase ${selectedBatch === batch ? 'text-ink' : 'text-ink-3'}`}>
+                                        <Text className={`font-display text-sm uppercase ${selectedBatch === batch ? 'text-on-brand' : 'text-ink-3'}`}>
                                             {batch === "" ? "Global Archive" : `Batch ${batch}`}
                                         </Text>
                                     </TouchableOpacity>
@@ -315,7 +315,7 @@ const FindAlumni = ({ navigation }: any) => {
                             onPress={() => setIsFilterVisible(false)}
                             className="bg-ink mt-10 h-16 rounded-card items-center justify-center shadow-hair"
                         >
-                            <Text className="text-white font-display uppercase text-xs">Apply Filter</Text>
+                            <Text className="text-paper font-display uppercase text-xs">Apply Filter</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

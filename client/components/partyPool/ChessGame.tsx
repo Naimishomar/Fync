@@ -232,7 +232,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
             <GestureHandlerRootView style={{ flex: 1 }}>
                 <View 
                     className="flex-1 px-4 py-12"
-                 style={{ backgroundColor: '#F5F2EC' }}>
+                 style={{ backgroundColor: C.paper }}>
                     {isInitializing ? (
                         <View className="flex-1 items-center justify-center">
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
@@ -296,7 +296,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                             <Image source={{ uri: user.avatar }} className="w-full h-full" />
                                         ) : (
                                             <View className="w-full h-full items-center justify-center bg-paper-2">
-                                                <Ionicons name="person" size={24} color={isMyTurn ? '#047857' : '#8B857E'} />
+                                                <Ionicons name="person" size={24} color={isMyTurn ? C.success : C.ink3} />
                                             </View>
                                         )}
                                     </View>

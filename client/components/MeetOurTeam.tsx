@@ -121,7 +121,7 @@ const MeetOurTeam = () => {
                         {index === 0 && (
                             <View
                                 pointerEvents="none"
-                                style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: '#12100E', borderRadius: 20 }}
+                                style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: C.ink, borderRadius: 20 }}
                             />
                         )}
                         <View className={`bg-card rounded-card p-card-pad flex-row items-center ${index === 0 ? 'border-2 border-ink' : 'border border-line'}`}>

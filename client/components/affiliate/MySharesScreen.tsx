@@ -60,7 +60,7 @@ export default function MySharesScreen() {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
       <View className="flex-1">
         <AppBar title="Your Shares" onBack={() => navigation.goBack()} />
         <View className="px-gutter">
@@ -80,7 +80,7 @@ export default function MySharesScreen() {
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.brand[500]} colors={['#F97316']} />
+              <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.brand[500]} colors={[C.brand[500]]} />
             }
             renderItem={({ item }) => (
               <View className="flex-row items-center bg-card rounded-card p-4 border border-line mb-2">
@@ -88,7 +88,7 @@ export default function MySharesScreen() {
                   <Image source={{ uri: item.product.image }} style={{ width: 44, height: 44, borderRadius: 10 }} contentFit="cover" cachePolicy="memory-disk" />
                 )}
                 <View className="flex-1 mx-3">
-                  <Text className="text-ink text-sm" numberOfLines={1}>{item.product?.name ?? 'Removed product'}</Text>
+                  <Text className="text-on-brand text-sm" numberOfLines={1}>{item.product?.name ?? 'Removed product'}</Text>
                   <Text className="text-ink-3 text-label mt-0.5">
                     {item.clicks} tap{item.clicks === 1 ? '' : 's'}
                     {item.selfClicks > 0 ? ` · ${item.selfClicks} your own` : ''}
@@ -99,7 +99,7 @@ export default function MySharesScreen() {
                   className="w-11 h-11 items-center justify-center rounded-xl border border-line bg-card"
                   accessibilityRole="button" accessibilityLabel={`Share ${item.product?.name ?? 'again'}`}
                 >
-                  <Ionicons name="share-outline" size={18} color={C.ink} />
+                  <Ionicons name="share-outline" size={18} color={C.onBrand} />
                 </TouchableOpacity>
               </View>
             )}
@@ -108,7 +108,7 @@ export default function MySharesScreen() {
                 <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
                   <Ionicons name="link-outline" size={32} color={C.ink2} />
                 </View>
-                <Text className="text-ink font-display uppercase text-h2 text-center">Nothing shared yet</Text>
+                <Text className="text-on-brand font-display uppercase text-h2 text-center">Nothing shared yet</Text>
                 <Text className="text-ink-2 text-sm text-center mt-2">
                   Share a product from Fync Store and the taps it gets will show up here.
                 </Text>
@@ -117,7 +117,7 @@ export default function MySharesScreen() {
                   className="mt-6 px-6 py-4 rounded-md items-center justify-center border-2 border-ink bg-brand-500"
                   accessibilityRole="button"
                 >
-                  <Text className="font-display uppercase text-ink text-label">Open Fync Store</Text>
+                  <Text className="font-display uppercase text-on-brand text-label">Open Fync Store</Text>
                 </TouchableOpacity>
               </View>
             }

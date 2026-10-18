@@ -15,7 +15,7 @@ import { Image as ExpoImage } from 'expo-image';
 import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import { NotificationSkeleton } from './Skeleton';
-import { C } from '../constants/colors';
+import { C, themed } from '../constants/colors';
 import { AppBar, Button, Empty } from './ui/kit';
 
 // --- TYPES ---
@@ -161,7 +161,7 @@ const Notification = () => {
     let message = '';
     let iconName: any = 'notifications';
     let iconColor = '#fff';
-    let iconBg = '#EDE8E0';
+    let iconBg = C.paper2;
     // Anonymous: never name or picture the sender of a confession tag.
     const anonymous = item.type === 'tag' && !!item.confession;
 
@@ -169,81 +169,81 @@ const Notification = () => {
       case 'follow':
         message = 'started following you.';
         iconName = 'person-add';
-        iconColor = '#2563EB'; // blue-400
+        iconColor = C.fam.career;
         iconBg = 'rgba(96, 165, 250, 0.2)';
         break;
       case 'tag':
         message = anonymous ? 'Someone confessed about you' : 'tagged you in a post.';
         iconName = 'at';
-        iconColor = '#7C3AED'; // purple-500
+        iconColor = C.fam.study;
         iconBg = 'rgba(168, 85, 247, 0.2)';
         break;
       case 'like':
         message = 'liked your post.';
         iconName = 'heart';
-        iconColor = '#DB2777'; // rose-500
+        iconColor = C.fam.fun;
         iconBg = 'rgba(244, 63, 94, 0.2)';
         break;
       case 'comment':
         message = `commented: "${item.commentText || 'Nice!'}"`;
         iconName = 'chatbubble';
-        iconColor = '#047857'; // emerald-400
+        iconColor = C.success;
         iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
       case 'story_comment':
         message = `commented: "${item.commentText || 'Nice!'} on your shorts"`;
         iconName = 'chatbubble';
-        iconColor = '#047857'; // emerald-400
+        iconColor = C.success;
         iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
       case 'story_like':
         message = 'liked your shorts.';
         iconName = 'heart-circle';
-        iconColor = '#B45309'; // amber-400
+        iconColor = C.warning;
         iconBg = 'rgba(251, 191, 36, 0.2)';
         break;
       case 'split_request':
         message = item.commentText || 'requested a split payment.';
         iconName = 'wallet';
-        iconColor = '#F5B700'; // yellow-400
+        iconColor = C.alumniLit;
         iconBg = 'rgba(250, 204, 21, 0.2)';
         break;
       case 'split_paid':
         message = item.commentText || 'paid their debt.';
         iconName = 'cash';
-        iconColor = '#047857'; // emerald-400
+        iconColor = C.success;
         iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
       case 'broadcast':
         message = item.message || 'sent an announcement.';
         iconName = 'megaphone';
-        iconColor = '#F97316';
+        iconColor = C.brand[500];
         iconBg = 'rgba(249, 115, 22, 0.15)';
         break;
       case 'hackathon_announcement':
         message = item.message || 'posted a hackathon announcement.';
         iconName = 'megaphone';
-        iconColor = '#F97316';
+        iconColor = C.brand[500];
         iconBg = 'rgba(249, 115, 22, 0.15)';
         break;
       case 'reply':
       case 'college_reply':
         message = item.commentText ? `replied: "${item.commentText}"` : 'replied to you.';
         iconName = 'return-down-forward';
-        iconColor = '#0891B2';
+        iconColor = C.fam.social;
         iconBg = 'rgba(56, 189, 248, 0.2)';
         break;
       case 'opportunity':
         message = item.message || 'sent you an opportunity update.';
         iconName = 'briefcase';
-        iconColor = '#F97316';
+        iconColor = C.brand[500];
         iconBg = 'rgba(236, 72, 153, 0.15)';
         break;
       default:
         // Fallback: always show backend message if available
         message = item.message || item.commentText || 'sent you a notification.';
         iconName = 'notifications';
-        iconColor = '#7C3AED';
+        iconColor = C.fam.study;
         iconBg = 'rgba(168, 85, 247, 0.15)';
         break;
     }
@@ -295,16 +295,16 @@ const Notification = () => {
 
         {/* Right Side: Post Image / Follow Button / Opportunity Icon */}
         {item.type === 'broadcast' && item.imageUrl ? (
-          <ExpoImage source={{ uri: item.imageUrl }} style={thumbStyle} cachePolicy="memory-disk" />
+          <ExpoImage source={{ uri: item.imageUrl }} style={s.thumb} cachePolicy="memory-disk" />
         ) : item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
           <View style={{ backgroundColor: 'rgba(249,115,22,0.12)', borderRadius: 12, padding: 8 }}>
             <Ionicons name={item.type === 'broadcast' ? 'megaphone' : 'briefcase'} size={18} color={C.brand[500]} />
           </View>
         ) : item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
-          <ExpoImage source={{ uri: item.post.image[0] }} style={thumbStyle} cachePolicy="memory-disk" />
+          <ExpoImage source={{ uri: item.post.image[0] }} style={s.thumb} cachePolicy="memory-disk" />
         ) : item.type === 'follow' ? (
           <View className="bg-ink ml-2 px-2.5 py-1 rounded-full">
-            <Text className="text-white text-label font-display uppercase">Profile</Text>
+            <Text className="text-paper text-label font-display uppercase">Profile</Text>
           </View>
         ) : null}
       </Pressable>
@@ -313,7 +313,7 @@ const Notification = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
         <AppBar title="Updates Center" onBack={() => navigation.goBack()} />
@@ -378,7 +378,7 @@ const Notification = () => {
   );
 };
 
-const thumbStyle = { width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: C.line, marginLeft: 8 };
+const s = themed(() => ({ thumb: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: C.line, marginLeft: 8 } }));
 
 // --- HELPER FUNCTION: Time Ago ---
 const getTimeAgo = (dateString: string) => {

@@ -89,7 +89,7 @@ export default function CodingArena() {
 
       {!!progress && (
         <View className="px-5">
-          <View className="bg-ink rounded-card p-4">
+          <View className="bg-night rounded-card p-4">
             <View className="flex-row">
               {[
                 { n: progress.solved,      label: 'Solved' },
@@ -115,7 +115,7 @@ export default function CodingArena() {
                   key={i}
                   style={{
                     flex: 1, height: 22, marginRight: i === 29 ? 0 : 2, borderRadius: 2,
-                    backgroundColor: on ? '#F97316' : 'rgba(255,255,255,0.10)',
+                    backgroundColor: on ? C.brand[500] : 'rgba(255,255,255,0.10)',
                   }}
                 />
               ))}
@@ -154,7 +154,7 @@ export default function CodingArena() {
             accessibilityRole="button"
             accessibilityLabel={`${progress.coins} Fync coins. Open the marketplace.`}
           >
-            <View className="items-center justify-center rounded-xl border-2 border-ink" style={{ width: 40, height: 40, backgroundColor: '#FFEDD5' }}>
+            <View className="items-center justify-center rounded-xl border-2 border-ink" style={{ width: 40, height: 40, backgroundColor: C.brand[100] }}>
               <Ionicons name="server-outline" size={20} color={C.brand[700]} />
             </View>
             <View className="ml-3 flex-1">
@@ -191,13 +191,13 @@ export default function CodingArena() {
               <TouchableOpacity
                 key={c._id}
                 onPress={() => openWeb(`/arena/contest/${c._id}`)}
-                className={`mx-5 mb-2 rounded-card border-2 border-ink p-4 ${running ? 'bg-ink' : 'bg-card'}`}
+                className={`mx-5 mb-2 rounded-card border-2 border-ink p-4 ${running ? 'bg-night' : 'bg-card'}`}
                 accessibilityRole="button"
                 accessibilityLabel={running ? `${c.title}, live, ends in ${when}` : `${c.title}, starts in ${when}`}
               >
                 <View className="flex-row items-center mb-2">
                   <View className={`px-2 py-1 rounded-sm ${running ? 'bg-brand-500' : 'bg-paper-2'}`}>
-                    <Text className="font-display text-ink uppercase" style={{ fontSize: 9 }}>
+                    <Text className={`font-display ${running ? 'text-on-brand' : 'text-ink'} uppercase`} style={{ fontSize: 9 }}>
                       {running ? 'Live now' : 'Upcoming'}
                     </Text>
                   </View>
@@ -215,8 +215,8 @@ export default function CodingArena() {
                 </Text>
 
                 <View className={`flex-row items-center justify-center mt-3 rounded-xl border-2 ${running ? 'bg-brand-500 border-brand-500' : 'bg-card border-ink'}`} style={{ minHeight: 42 }}>
-                  <Ionicons name={running ? 'flash' : 'calendar-outline'} size={15} color={C.ink} />
-                  <Text className="font-display text-ink uppercase ml-1.5" style={{ fontSize: 11 }}>
+                  <Ionicons name={running ? 'flash' : 'calendar-outline'} size={15} color={running ? C.onBrand : C.ink} />
+                  <Text className={`font-display ${running ? 'text-on-brand' : 'text-ink'} uppercase ml-1.5`} style={{ fontSize: 11 }}>
                     {running ? 'Enter on web' : 'View details'}
                   </Text>
                 </View>
@@ -248,7 +248,7 @@ export default function CodingArena() {
               >
                 <View
                   className="items-center justify-center rounded-xl border-2 border-ink"
-                  style={{ width: 46, height: 46, backgroundColor: played ? '#FFEDD5' : '#EDE8E0' }}
+                  style={{ width: 46, height: 46, backgroundColor: played ? C.brand[100] : C.paper2 }}
                 >
                   {played ? (
                     <>
@@ -284,7 +284,7 @@ export default function CodingArena() {
               accessibilityRole="button"
               accessibilityState={{ selected: scope === sc }}
             >
-              <Text className="font-display text-ink uppercase" style={{ fontSize: 9 }}>
+              <Text className={`font-display ${scope === sc ? 'text-on-brand' : 'text-ink'} uppercase`} style={{ fontSize: 9 }}>
                 {sc === 'college' ? 'My college' : 'All'}
               </Text>
             </TouchableOpacity>
@@ -296,9 +296,9 @@ export default function CodingArena() {
       {!!myRow && (
         <View className="px-5 mb-2">
           <View className="flex-row items-center bg-brand-500 border-2 border-ink rounded-card px-4 py-3">
-            <Text className="font-display text-ink" style={{ fontSize: 16, width: 34 }}>#{myRow.rank}</Text>
-            <Text className="font-display text-ink flex-1" numberOfLines={1}>You</Text>
-            <Text className="font-display text-ink" style={{ fontSize: 13 }}>{myRow.points} pts</Text>
+            <Text className="font-display text-on-brand" style={{ fontSize: 16, width: 34 }}>#{myRow.rank}</Text>
+            <Text className="font-display text-on-brand flex-1" numberOfLines={1}>You</Text>
+            <Text className="font-display text-on-brand" style={{ fontSize: 13 }}>{myRow.points} pts</Text>
           </View>
         </View>
       )}
@@ -372,8 +372,8 @@ export default function CodingArena() {
           accessibilityRole="button"
           accessibilityLabel="Open the arena in your browser to solve problems"
         >
-          <Ionicons name="laptop-outline" size={18} color={C.ink} />
-          <Text className="font-display text-ink uppercase">Solve on web</Text>
+          <Ionicons name="laptop-outline" size={18} color={C.onBrand} />
+          <Text className="font-display text-on-brand uppercase">Solve on web</Text>
         </TouchableOpacity>
       </View>
     </View>

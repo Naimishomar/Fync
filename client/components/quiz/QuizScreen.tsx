@@ -128,7 +128,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
   if (waitingForOpponent) {
     return (
       <View className="flex-1 bg-paper">
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={C.barStyle} />
         <SafeAreaView className="flex-1 justify-center items-center px-gutter">
           <View className="bg-card p-card-pad rounded-sheet border border-line items-center w-full shadow-hair">
             <View className="bg-paper-2 p-6 rounded-full mb-8 border border-line">
@@ -146,7 +146,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <SafeAreaView className="flex-1">
         {/* --- HEADER --- */}
@@ -168,7 +168,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                 </View>
               </View>
               <View className="bg-brand-500 px-2.5 py-1 rounded-full">
-                <Text className="text-ink font-display text-label uppercase">1V1 Match</Text>
+                <Text className="text-on-brand font-display text-label uppercase">1V1 Match</Text>
               </View>
             </View>
           )}
@@ -181,7 +181,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
             </View>
 
             <View className={`px-5 py-2.5 rounded-card border flex-row items-center shadow-hair ${timeLeft < 60 ? 'bg-danger/10 border-danger/15 ' : 'bg-paper-2 border-line ' }`}>
-              <Ionicons name="stopwatch" size={20} color={timeLeft < 60 ? '#DC2626' : '#F97316'} />
+              <Ionicons name="stopwatch" size={20} color={timeLeft < 60 ? C.danger : C.brand[500]} />
               <Text className={`font-display text-xl ml-3 uppercase ${timeLeft < 60 ? 'text-danger' : 'text-ink'}`}>
                 {formatTime(timeLeft)}
               </Text>
@@ -219,7 +219,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                   className={`p-6 mb-5 rounded-card border flex-row items-center transition-all ${isSelected ? 'bg-card border-brand-500 shadow-hair ' : 'bg-paper-2 border-line' }`}
                 >
                   <View className={`w-6 h-6 rounded-full border-2 mr-4 items-center justify-center ${isSelected ? 'border-brand-500 bg-brand-500' : 'border-line bg-card' }`}>
-                    {isSelected && <Ionicons name="checkmark" size={14} color={C.ink} />}
+                    {isSelected && <Ionicons name="checkmark" size={14} color={C.onBrand} />}
                   </View>
                   <Text className={`flex-1 text-base font-display uppercase ${isSelected ? 'text-ink' : 'text-ink-3'}`}>
                     {opt}
@@ -239,7 +239,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
             disabled={isFirstQuestion || submitted}
             className={`py-5 px-gutter rounded-card border ${isFirstQuestion ? 'bg-paper-2 border-line opacity-30' : 'bg-paper-2 border-line' }`}
           >
-            <Ionicons name="arrow-back" size={24} color={isFirstQuestion ? "#8B857E" : "#12100E"} />
+            <Ionicons name="arrow-back" size={24} color={isFirstQuestion ? C.ink3 : C.ink} />
           </TouchableOpacity>
 
           {/* Next / Submit Button */}
@@ -249,8 +249,8 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
               activeOpacity={0.9}
               className="py-5 px-gutter rounded-card bg-brand-500 shadow-hair flex-row items-center"
             >
-              <Text className="text-ink font-display uppercase text-sm mr-3">Next Step</Text>
-              <Ionicons name="arrow-forward" size={18} color={C.ink} />
+              <Text className="text-on-brand font-display uppercase text-sm mr-3">Next Step</Text>
+              <Ionicons name="arrow-forward" size={18} color={C.onBrand} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -259,8 +259,8 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
               activeOpacity={0.9}
               className="py-5 px-gutter rounded-card bg-brand-500 shadow-hair flex-row items-center"
             >
-              <Text className="text-ink font-display uppercase text-sm mr-3">Finalize</Text>
-              <Ionicons name="rocket" size={22} color={C.ink} />
+              <Text className="text-on-brand font-display uppercase text-sm mr-3">Finalize</Text>
+              <Ionicons name="rocket" size={22} color={C.onBrand} />
             </TouchableOpacity>
           )}
 
@@ -273,7 +273,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
           animationType="fade"
           onRequestClose={() => setShowConfirmModal(false)}
         >
-          <View className="flex-1 bg-ink/60 justify-center items-center px-gutter">
+          <View className="flex-1 justify-center items-center px-gutter" style={{ backgroundColor: C.scrim }}>
             <View className="bg-card p-card-pad rounded-sheet border border-line w-full items-center shadow-hair">
               <View className="bg-warning/10 p-6 rounded-full mb-8 border border-warning/15">
                 <Ionicons name="alert-circle" size={48} color={C.warning} />
@@ -302,7 +302,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                   onPress={submitQuiz}
                   className="flex-1 py-5 bg-brand-500 items-center border-2 border-ink rounded-md"
                 >
-                  <Text className="text-ink font-display uppercase text-sm">Confirm</Text>
+                  <Text className="text-on-brand font-display uppercase text-sm">Confirm</Text>
                 </TouchableOpacity>
               </View>
             </View>

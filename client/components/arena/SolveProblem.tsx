@@ -12,19 +12,20 @@ import { AppBar, Empty } from '../ui/kit';
 
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-zeta.vercel.app';
 
-const LEVEL_STYLE: Record<string, { bg: string; fg: string }> = {
-  Easy:   { bg: '#DCFCE7', fg: '#15803D' },
-  Medium: { bg: '#FFEDD5', fg: '#C2410C' },
-  Hard:   { bg: '#FEE2E2', fg: '#B91C1C' },
-};
+// Functions, not constants: C is read at render so the tints follow the theme.
+const levelStyle = (): Record<string, { bg: string; fg: string }> => ({
+  Easy:   { bg: C.success + '1F', fg: C.success },
+  Medium: { bg: C.brand[100], fg: C.brand[700] },
+  Hard:   { bg: C.danger + '1A', fg: C.danger },
+});
 
-const VERDICT_FG: Record<string, string> = {
-  'Accepted': '#15803D',
-  'Wrong Answer': '#B91C1C',
-  'Runtime Error': '#B91C1C',
-  'Compilation Error': '#B45309',
-  'Time Limit Exceeded': '#B45309',
-};
+const verdictFg = (): Record<string, string> => ({
+  'Accepted': C.success,
+  'Wrong Answer': C.danger,
+  'Runtime Error': C.danger,
+  'Compilation Error': C.warning,
+  'Time Limit Exceeded': C.warning,
+});
 
 /**
  * A problem, read-only, with your attempts on it.
@@ -90,7 +91,8 @@ export default function SolveProblem() {
     );
   }
 
-  const level = LEVEL_STYLE[problem?.difficulty] ?? LEVEL_STYLE.Easy;
+  const levels = levelStyle();
+  const level = levels[problem?.difficulty] ?? levels.Easy;
   const solved = attempts.some((a) => a.status === 'Accepted');
 
   return (
@@ -104,9 +106,9 @@ export default function SolveProblem() {
             </Text>
           </View>
           {solved && (
-            <View className="flex-row items-center ml-2 px-2 py-1 rounded-sm" style={{ backgroundColor: '#DCFCE7' }}>
-              <Ionicons name="checkmark-circle" size={11} color="#15803D" />
-              <Text className="font-display uppercase ml-1" style={{ fontSize: 9, color: '#15803D' }}>Solved</Text>
+            <View className="flex-row items-center ml-2 px-2 py-1 rounded-sm" style={{ backgroundColor: C.success + '1F' }}>
+              <Ionicons name="checkmark-circle" size={11} color={C.success} />
+              <Text className="font-display uppercase ml-1" style={{ fontSize: 9, color: C.success }}>Solved</Text>
             </View>
           )}
           <View className="flex-1" />
@@ -134,7 +136,7 @@ export default function SolveProblem() {
           <View className="mt-5">
             <Text className="font-display text-ink uppercase mb-2" style={{ fontSize: 12 }}>Examples</Text>
             {problem.testCases.map((tc: any, i: number) => (
-              <View key={i} className="bg-white border-2 border-ink rounded-card p-3 mb-2">
+              <View key={i} className="bg-card border-2 border-ink rounded-card p-3 mb-2">
                 <Text className="font-display text-ink-2 uppercase" style={{ fontSize: 10 }}>Input</Text>
                 <Text className="text-ink" style={{ fontFamily: 'monospace', fontSize: 12 }}>{tc.input}</Text>
                 <Text className="font-display text-ink-2 uppercase mt-2" style={{ fontSize: 10 }}>Expected</Text>
@@ -148,14 +150,14 @@ export default function SolveProblem() {
           <View className="mt-6">
             <Text className="font-display text-ink uppercase mb-2" style={{ fontSize: 12 }}>Your attempts</Text>
             {attempts.map((a) => (
-              <View key={a._id} className="flex-row items-center bg-white border-2 border-ink rounded-card px-4 py-3 mb-2">
+              <View key={a._id} className="flex-row items-center bg-card border-2 border-ink rounded-card px-4 py-3 mb-2">
                 <Ionicons
                   name={a.status === 'Accepted' ? 'checkmark-circle' : 'close-circle'}
                   size={16}
-                  color={VERDICT_FG[a.status] ?? '#8B857E'}
+                  color={verdictFg()[a.status] ?? C.ink3}
                 />
                 <View className="ml-2 flex-1">
-                  <Text className="font-display" style={{ fontSize: 13, color: VERDICT_FG[a.status] ?? '#12100E' }}>
+                  <Text className="font-display" style={{ fontSize: 13, color: verdictFg()[a.status] ?? C.ink }}>
                     {a.status}
                   </Text>
                   <Text className="font-sans text-ink-2" style={{ fontSize: 11 }}>
@@ -181,8 +183,8 @@ export default function SolveProblem() {
           accessibilityRole="button"
           accessibilityLabel="Open this problem in your browser to solve it"
         >
-          <Ionicons name="laptop-outline" size={18} color={C.ink} />
-          <Text className="font-display text-ink uppercase">
+          <Ionicons name="laptop-outline" size={18} color={C.onBrand} />
+          <Text className="font-display text-on-brand uppercase">
             {solved ? 'Open in browser' : 'Solve in browser'}
           </Text>
         </TouchableOpacity>

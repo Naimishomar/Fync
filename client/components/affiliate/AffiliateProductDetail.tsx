@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
     View, 
     Text, 
-    StyleSheet, 
     ScrollView, 
     TouchableOpacity, 
     ActivityIndicator,
@@ -16,7 +15,7 @@ import { Alert } from '../ui/AlertModal';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { useBottomInset } from '../../constants/layout';
-import { C } from '../../constants/colors';
+import { C, themed } from '../../constants/colors';
 import { AppBar, IconBtn } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
@@ -197,36 +196,36 @@ const AffiliateProductDetail = () => {
                 </View>
                 <TouchableOpacity style={[styles.buyButton, opening && { opacity: 0.6 }]} onPress={handleBuyNow} disabled={opening}>
                     <Text style={styles.buyButtonText}>Buy Now</Text>
-                    <Ionicons name="arrow-forward" size={20} color={C.ink} style={{marginLeft: 8}} />
+                    <Ionicons name="arrow-forward" size={20} color={C.onBrand} style={{marginLeft: 8}} />
                 </TouchableOpacity>
             </View>
         </View>
     );
 };
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
     container: {
         flex: 1,
-        backgroundColor: '#F5F2EC',
+        backgroundColor: C.paper,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F5F2EC',
+        backgroundColor: C.paper,
     },
     errorContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#F5F2EC',
+        backgroundColor: C.paper,
     },
     errorText: {
-        color: '#12100E',
+        color: C.ink,
         fontSize: 18,
     },
     goBackText: {
-        color: '#EA580C',
+        color: C.brand[600],
         fontFamily: 'Inter_700Bold',
         marginTop: 10,
     },
@@ -247,7 +246,7 @@ const styles = StyleSheet.create({
     },
     content: {
         padding: 20,
-        backgroundColor: '#F5F2EC',
+        backgroundColor: C.paper,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         marginTop: -30,
@@ -256,13 +255,13 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     categoryBadge: {
-        backgroundColor: '#F97316',
-        color: '#12100E',
+        backgroundColor: C.brand[500],
+        color: C.onBrand,
         paddingHorizontal: 12,
         paddingVertical: 5,
         borderRadius: 6,
         borderWidth: 2,
-        borderColor: '#12100E',
+        borderColor: C.ink,
         overflow: 'hidden',
         fontSize: 10,
         letterSpacing: 0.5,
@@ -272,7 +271,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     brandText: {
-        color: '#EA580C',
+        color: C.brand[600],
         fontSize: 14,
         fontFamily: 'Inter_700Bold',
         marginBottom: 5,
@@ -281,7 +280,7 @@ const styles = StyleSheet.create({
         fontSize: 26,
         fontFamily: 'SpaceGrotesk_700Bold',
         letterSpacing: -0.5,
-        color: '#12100E',
+        color: C.ink,
         marginBottom: 15,
         lineHeight: 32,
     },
@@ -294,23 +293,23 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontFamily: 'SpaceGrotesk_700Bold',
         fontVariant: ['tabular-nums'],
-        color: '#12100E',
+        color: C.ink,
         marginRight: 15,
     },
     originalPriceText: {
         fontSize: 18,
-        color: '#8B857E',
+        color: C.ink3,
         textDecorationLine: 'line-through',
         marginRight: 15,
     },
     discountContainer: {
-        backgroundColor: '#DC2626',
+        backgroundColor: C.danger,
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 8,
     },
     discountText: {
-        color: '#12100E',
+        color: C.ink,
         fontFamily: 'Inter_700Bold',
         fontSize: 14,
     },
@@ -323,16 +322,16 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     ratingText: {
-        color: '#12100E',
+        color: C.ink,
         marginRight: 10,
         fontFamily: 'Inter_600SemiBold',
     },
     reviewsText: {
-        color: '#8B857E',
+        color: C.ink3,
     },
     divider: {
         height: 1,
-        backgroundColor: '#E3DDD3',
+        backgroundColor: C.line,
         marginVertical: 20,
     },
     section: {
@@ -343,48 +342,48 @@ const styles = StyleSheet.create({
         fontFamily: 'SpaceGrotesk_700Bold',
         textTransform: 'uppercase',
         letterSpacing: 1,
-        color: '#12100E',
+        color: C.ink,
         paddingBottom: 8,
         marginBottom: 14,
         borderBottomWidth: 2,
-        borderBottomColor: '#12100E',
+        borderBottomColor: C.ink,
     },
     descriptionText: {
         fontSize: 15,
-        color: '#57534E',
+        color: C.ink2,
         lineHeight: 24,
     },
     disclosure: {
         flexDirection: 'row',
         alignItems: 'flex-start',
         gap: 10,
-        backgroundColor: '#EDE8E0',
+        backgroundColor: C.paper2,
         borderRadius: 14,
         padding: 14,
     },
     disclosureText: {
         flex: 1,
-        color: '#57534E',
+        color: C.ink2,
         fontSize: 12,
         lineHeight: 18,
     },
     infoCard: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: C.card,
         padding: 15,
         borderRadius: 14,
         alignItems: 'center',
         width: (width - 60) / 3,
         borderWidth: 2,
-        borderColor: '#12100E',
+        borderColor: C.ink,
     },
     infoCardTitle: {
-        color: '#12100E',
+        color: C.ink,
         fontFamily: 'Inter_700Bold',
         fontSize: 14,
         marginTop: 8,
     },
     infoCardSub: {
-        color: '#8B857E',
+        color: C.ink3,
         fontSize: 10,
         marginTop: 4,
     },
@@ -393,7 +392,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: '#F5F2EC',
+        backgroundColor: C.paper,
         paddingHorizontal: 20,
         paddingTop: 15,
         paddingBottom: 35,
@@ -401,38 +400,38 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         borderTopWidth: 2,
-        borderTopColor: '#12100E',
+        borderTopColor: C.ink,
     },
     bottomPrice: {
         flex: 1,
     },
     bottomPriceLabel: {
-        color: '#8B857E',
+        color: C.ink3,
         fontSize: 12,
     },
     bottomPriceValue: {
-        color: '#12100E',
+        color: C.ink,
         fontSize: 22,
         fontFamily: 'SpaceGrotesk_700Bold',
         fontVariant: ['tabular-nums'],
     },
     buyButton: {
-        backgroundColor: '#F97316',
+        backgroundColor: C.brand[500],
         paddingHorizontal: 20,
         paddingVertical: 14,
         borderRadius: 12,
         borderWidth: 2,
-        borderColor: '#12100E',
+        borderColor: C.ink,
         minHeight: 48,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
     },
     buyButtonText: {
-        color: '#12100E',
+        color: C.onBrand,
         fontFamily: 'Inter_700Bold',
         fontSize: 16,
     }
-});
+}));
 
 export default AffiliateProductDetail;

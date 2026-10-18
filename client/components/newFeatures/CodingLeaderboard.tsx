@@ -255,7 +255,7 @@ export default function CodingLeaderboard() {
             <View className="w-10 items-center justify-center mr-3">
                 {index < 3 ? (
                     <View className={`w-8 h-8 rounded-full items-center justify-center ${index === 0 ? 'bg-warning/10' : index === 1 ? 'bg-paper-2' : 'bg-brand-50'}`}>
-                        <MaterialCommunityIcons name="crown" size={18} color={index === 0 ? "#B45309" : index === 1 ? "#8B857E" : "#B45309"} />
+                        <MaterialCommunityIcons name="crown" size={18} color={index === 0 ? C.warning : index === 1 ? C.ink3 : C.warning} />
                     </View>
                 ) : (
                     <Text className="text-ink-4 font-display text-lg">#{index + 1}</Text>
@@ -282,7 +282,7 @@ export default function CodingLeaderboard() {
     if (!hasLinkedProfile) {
         return (
             <View className="flex-1 bg-paper">
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle={C.barStyle} />
 
                 <SafeAreaView className="flex-1" edges={['bottom']}>
                     {/* Header with Back Button */}
@@ -328,11 +328,11 @@ export default function CodingLeaderboard() {
                                 className="bg-ink mt-6 py-5 items-center border-2 border-ink rounded-md"
                             >
                                 {connecting ? (
-                                    <ActivityIndicator size="small" color="white" />
+                                    <ActivityIndicator size="small" color={C.paper} />
                                 ) : (
                                     <View className="flex-row items-center">
-                                        <Text className="text-white font-display uppercase text-label mr-2">Link Profile & Enter</Text>
-                                        <Ionicons name="rocket-outline" size={16} color="white" />
+                                        <Text className="text-paper font-display uppercase text-label mr-2">Link Profile & Enter</Text>
+                                        <Ionicons name="rocket-outline" size={16} color={C.paper} />
                                     </View>
                                 )}
                             </TouchableOpacity>
@@ -350,7 +350,7 @@ export default function CodingLeaderboard() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar
@@ -392,13 +392,13 @@ export default function CodingLeaderboard() {
                         <View className="flex-1 flex-row bg-card rounded-xl p-1.5 border border-line shadow-hair">
                             {['college', 'global'].map(scope => (
                                 <TouchableOpacity key={scope} onPress={() => setActiveScope(scope as any)} className={`flex-1 items-center py-3 rounded-md ${activeScope === scope ? 'bg-ink' : 'bg-transparent'}`}>
-                                    <Text className={`font-display text-label uppercase ${activeScope === scope ? 'text-white' : 'text-ink-3'}`}>{scope === 'college' ? 'Campus' : 'Global'}</Text>
+                                    <Text className={`font-display text-label uppercase ${activeScope === scope ? 'text-paper' : 'text-ink-3'}`}>{scope === 'college' ? 'Campus' : 'Global'}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
                         <View className="flex-1 flex-row bg-card rounded-xl p-1.5 border border-line shadow-hair">
                             <TouchableOpacity onPress={() => setTimeFilter('allTime')} className={`flex-1 items-center py-3 rounded-md ${timeFilter === 'allTime' ? 'bg-brand-500' : 'bg-transparent'}`}>
-                                <Text className={`font-display text-label uppercase ${timeFilter === 'allTime' ? 'text-ink' : 'text-ink-3'}`}>All</Text>
+                                <Text className={`font-display text-label uppercase ${timeFilter === 'allTime' ? 'text-on-brand' : 'text-ink-3'}`}>All</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setTimeFilter('weekly')} className={`flex-1 items-center py-3 rounded-md ${timeFilter === 'weekly' ? 'bg-success' : 'bg-transparent'}`}>
                                 <Text className={`font-display text-label uppercase ${timeFilter === 'weekly' ? 'text-white' : 'text-ink-3'}`}>7 Days</Text>
@@ -457,8 +457,8 @@ export default function CodingLeaderboard() {
                                                 onPress={navigateToAppProfile}
                                                 className="flex-row items-center bg-ink px-6 py-3.5 border-2 border-ink rounded-md"
                                             >
-                                                <Ionicons name="person" size={14} color="white" />
-                                                <Text className="text-white font-display text-label uppercase ml-2">Profile</Text>
+                                                <Ionicons name="person" size={14} color={C.paper} />
+                                                <Text className="text-paper font-display text-label uppercase ml-2">Profile</Text>
                                             </TouchableOpacity>
 
                                             <TouchableOpacity
@@ -484,9 +484,9 @@ export default function CodingLeaderboard() {
                                     {/* 2. Solved Stats */}
                                     <View className="flex-row gap-4 mb-8">
                                         <View className="flex-1 bg-ink p-6 rounded-sheet items-center justify-center shadow-hair">
-                                            <Text className="text-4xl font-display text-white">{lcData.solved?.solvedProblem || 0}</Text>
+                                            <Text className="text-4xl font-display text-paper">{lcData.solved?.solvedProblem || 0}</Text>
                                             <View className="mt-1 bg-card/10 px-2 py-0.5 rounded-full">
-                                                <Text className="text-white text-label font-display uppercase">Total</Text>
+                                                <Text className="text-paper text-label font-display uppercase">Total</Text>
                                             </View>
                                         </View>
                                         <View className="flex-1 gap-2">
@@ -596,7 +596,7 @@ export default function CodingLeaderboard() {
                                         onPress={() => setModalVisible(false)}
                                         className="bg-ink py-5 rounded-card items-center mb-10 shadow-hair"
                                     >
-                                        <Text className="text-white font-display uppercase text-xs">Close Profile</Text>
+                                        <Text className="text-paper font-display uppercase text-xs">Close Profile</Text>
                                     </TouchableOpacity>
                                 </ScrollView>
                             )}

@@ -196,7 +196,7 @@ export default function EditProfile() {
               className="h-24 w-24 rounded-full border-4 border-line bg-paper-2"
             />
             <View className="absolute right-0 bg-brand-500 p-1.5 rounded-full border-2 border-paper" style={{ bottom: 0 }}>
-              <Ionicons name="pencil" size={14} color={C.ink} />
+              <Ionicons name="pencil" size={14} color={C.onBrand} />
             </View>
           </Pressable>
           <Text className="text-accent-text text-sm font-semibold mt-2">Change Profile Photo</Text>

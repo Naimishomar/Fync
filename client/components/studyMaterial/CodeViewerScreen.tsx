@@ -69,7 +69,7 @@ const CodeViewerScreen = ({ route, navigation } : any) => {
   `;
 
   return (
-    <View className="flex-1 bg-ink">
+    <View className="flex-1 bg-night">
       <StatusBar barStyle="light-content" />
       {/* headerShown:false on the stack: without this the code ran under the
           status bar and there was no way back except the system gesture. */}
@@ -79,7 +79,7 @@ const CodeViewerScreen = ({ route, navigation } : any) => {
         style={{ flex: 1, backgroundColor: '#12100E' }}
         startInLoadingState={true}
         renderLoading={() => (
-          <View className="absolute inset-0 items-center justify-center bg-ink">
+          <View className="absolute inset-0 items-center justify-center bg-night">
             <ActivityIndicator size="large" color={C.brand[500]} />
           </View>
         )}

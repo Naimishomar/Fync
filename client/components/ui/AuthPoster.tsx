@@ -104,14 +104,14 @@ export default function AuthPoster({
     mode === 'recruiter' ? C.recruiter
     : mode === 'alumni'  ? C.alumniLit
     : C.brand;
-  const stampFg = mode === 'recruiter' ? '#FFFFFF' : C.ink;
+  const stampFg = mode === 'recruiter' ? '#FFFFFF' : C.night;
 
   return (
     <View
       className="overflow-hidden"
       style={[
         {
-          backgroundColor: C.ink,
+          backgroundColor: C.night,
           paddingHorizontal: 20,
           paddingTop: 26 + insets.top,
           paddingBottom: 22,

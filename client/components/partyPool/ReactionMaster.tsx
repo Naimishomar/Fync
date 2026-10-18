@@ -83,8 +83,8 @@ const ReactionMaster = () => {
                     <Ionicons name="flash-outline" size={48} color={C.ink3} />
                     <Text className="text-sm text-ink-3 font-semibold mt-[15px] mb-[30px] text-center">Ready to test your speed?</Text>
                     <TouchableOpacity onPress={startGame} className="w-full h-[54px] rounded-card overflow-hidden shadow-hair">
-                        <View className="flex-1 justify-center items-center" style={{ backgroundColor: '#12100E' }}>
-                            <Text className="text-white text-label font-display">START TEST</Text>
+                        <View className="flex-1 justify-center items-center" style={{ backgroundColor: C.ink }}>
+                            <Text className="text-paper text-label font-display">START TEST</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -129,8 +129,8 @@ const ReactionMaster = () => {
                     </View>
 
                     <TouchableOpacity onPress={startGame} className="w-full h-[58px] rounded-card overflow-hidden shadow-hair mt-8">
-                        <View className="flex-1 justify-center items-center" style={{ backgroundColor: '#F97316' }}>
-                            <Text className="text-ink text-xs font-display">RETRY PROTOCOL</Text>
+                        <View className="flex-1 justify-center items-center" style={{ backgroundColor: C.brand[500] }}>
+                            <Text className="text-on-brand text-xs font-display">RETRY PROTOCOL</Text>
                         </View>
                     </TouchableOpacity>
                 </View>

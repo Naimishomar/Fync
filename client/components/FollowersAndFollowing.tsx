@@ -122,7 +122,7 @@ const FollowersAndFollowing = () => {
             onPress={() => toggleFollow(item._id, isFollowing)}
             className={`px-4 py-2 rounded-md shadow-hair ml-2 ${ isFollowing ? "bg-paper-2 border border-line" : "bg-brand-500 " }`}
           >
-            <Text className={`font-display text-label uppercase ${isFollowing ? "text-ink-3" : "text-ink"}`}>
+            <Text className={`font-display text-label uppercase ${isFollowing ? "text-ink-3" : "text-on-brand"}`}>
               {isFollowing ? "Following" : "Follow"}
             </Text>
           </TouchableOpacity>
@@ -134,7 +134,7 @@ const FollowersAndFollowing = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
         <AppBar title={type === "following" ? "Following" : "Followers"} onBack={() => navigation.goBack()} />

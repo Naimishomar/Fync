@@ -20,7 +20,7 @@ const SelectionGroup = ({ label, options, field, formData, setFormData }: { labe
           onPress={() => setFormData({ ...formData, [field]: opt })}
           className={`px-6 py-3 rounded-card border ${formData[field as keyof typeof formData] === opt ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
         >
-          <Text className={`font-display uppercase text-label ${formData[field as keyof typeof formData] === opt ? 'text-white' : 'text-ink-3'}`}>{opt}</Text>
+          <Text className={`font-display uppercase text-label ${formData[field as keyof typeof formData] === opt ? 'text-paper' : 'text-ink-3'}`}>{opt}</Text>
         </TouchableOpacity>
       ))}
     </View>
@@ -237,7 +237,7 @@ const CreateOpportunity = () => {
                       onPress={() => setFormData({ ...formData, isPaid: opt === 'Paid' })}
                       className={`px-6 py-3 rounded-card border ${(formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
                     >
-                      <Text className={`font-display uppercase text-label ${(formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'text-white' : 'text-ink-3'}`}>{opt}</Text>
+                      <Text className={`font-display uppercase text-label ${(formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'text-paper' : 'text-ink-3'}`}>{opt}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -279,8 +279,8 @@ const CreateOpportunity = () => {
               <Switch
                 value={formData.requireResume}
                 onValueChange={(v) => setFormData({ ...formData, requireResume: v })}
-                trackColor={{ false: "#E3DDD3", true: "#DB2777" }}
-                thumbColor={formData.requireResume ? "#F97316" : "#8B857E"}
+                trackColor={{ false: C.line, true: C.fam.fun }}
+                thumbColor={formData.requireResume ? C.brand[500] : C.ink3}
               />
             </View>
 
@@ -298,9 +298,9 @@ const CreateOpportunity = () => {
               className="bg-ink h-16 items-center justify-center mt-4 border-2 border-ink rounded-md"
             >
               {loading ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color={C.paper} />
               ) : (
-                <Text className="text-white font-display uppercase text-lg">{isEdit ? 'Update Changes' : 'Post Live Opportunity'}</Text>
+                <Text className="text-paper font-display uppercase text-lg">{isEdit ? 'Update Changes' : 'Post Live Opportunity'}</Text>
               )}
             </TouchableOpacity>
           </View>

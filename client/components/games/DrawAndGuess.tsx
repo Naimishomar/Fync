@@ -179,7 +179,7 @@ const DrawAndGuess = () => {
   ).current;
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: "#F5F2EC" }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: C.paper }}>
       {/* Header */}
       <AppBar title="Draw & Guess" onBack={() => navigation.goBack()}
         right={<IconBtn name="trophy" size={24} color={C.warning} onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'DrawAndGuess' })} />} />
@@ -221,10 +221,10 @@ const DrawAndGuess = () => {
           >
             <Svg width="100%" height="100%">
               {paths.map((p, i) => (
-                <Polyline key={i} points={p.join(" ")} fill="none" stroke="#12100E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                <Polyline key={i} points={p.join(" ")} fill="none" stroke={C.ink} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
               ))}
               {currentPath.length > 0 && (
-                <Polyline points={currentPath.join(" ")} fill="none" stroke="#12100E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                <Polyline points={currentPath.join(" ")} fill="none" stroke={C.ink} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
               )}
             </Svg>
 

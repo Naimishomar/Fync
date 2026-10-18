@@ -54,18 +54,18 @@ interface Winner {
 }
 
 // ─── Status config ───────────────────────────────────────────────────────────
-const STATUS_META: Record<string, { label: string; text: string; chip: string; dot: string }> = {
-  active: { label: 'Live now', text: 'text-success', chip: 'bg-success/10 border-success/25', dot: '#047857' },
-  upcoming: { label: 'Upcoming', text: 'text-fam-career', chip: 'bg-fam-career/10 border-fam-career/25', dot: '#2563EB' },
-  completed: { label: 'Ended', text: 'text-ink-3', chip: 'bg-paper-2 border-line', dot: '#8B857E' },
-  draft: { label: 'Draft', text: 'text-ink-3', chip: 'bg-paper-2 border-line', dot: '#C4BEB6' },
-};
+const STATUS_META = (): Record<string, { label: string; text: string; chip: string; dot: string }> => ({
+  active: { label: 'Live now', text: 'text-success', chip: 'bg-success/10 border-success/25', dot: C.success },
+  upcoming: { label: 'Upcoming', text: 'text-fam-career', chip: 'bg-fam-career/10 border-fam-career/25', dot: C.info },
+  completed: { label: 'Ended', text: 'text-ink-3', chip: 'bg-paper-2 border-line', dot: C.ink3 },
+  draft: { label: 'Draft', text: 'text-ink-3', chip: 'bg-paper-2 border-line', dot: C.ink4 },
+});
 
-const RANK_META: Record<number, { label: string; medal: string; tint: string }> = {
+const RANK_META = (): Record<number, { label: string; medal: string; tint: string }> => ({
   1: { label: '1st', medal: '#D97706', tint: 'bg-warning/10 border-warning/30' },
   2: { label: '2nd', medal: '#78716C', tint: 'bg-paper-2 border-line' },
-  3: { label: '3rd', medal: '#B45309', tint: 'bg-paper-2 border-line' },
-};
+  3: { label: '3rd', medal: C.warning, tint: 'bg-paper-2 border-line' },
+});
 
 const TABS = ['Overview', 'Timeline', 'Tracks', 'Prizes', 'FAQs'];
 
@@ -125,7 +125,7 @@ const FAQItem = ({ faq }: { faq: { question: string; answer: string } }) => {
 };
 
 const WinnerCard = ({ winner, onOpenProfile }: { winner: Winner; onOpenProfile: (id: string) => void }) => {
-  const meta = RANK_META[winner.rank] ?? { label: `#${winner.rank}`, medal: '#8B857E', tint: 'bg-paper-2 border-line' };
+  const meta = RANK_META()[winner.rank] ?? { label: `#${winner.rank}`, medal: C.ink3, tint: 'bg-paper-2 border-line' };
   return (
     <View className={`border rounded-card p-4 mb-2.5 ${meta.tint}`}>
       <View className="flex-row items-center justify-between mb-2">
@@ -334,14 +334,14 @@ const HackathonDetail = () => {
         <MaterialCommunityIcons name="rocket-launch-outline" size={40} color={C.ink4} />
         <Text className="text-ink text-base font-semibold mt-4">Hackathon not found</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} className="mt-5 bg-ink px-4 py-3 rounded-md border-2 border-ink">
-          <Text className="text-white text-label font-semibold">Go back</Text>
+          <Text className="text-paper text-label font-semibold">Go back</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
   }
 
   const isDraft = hackathon.isDraft || hackathon.status === 'draft';
-  const statusMeta = STATUS_META[hackathon.status] ?? STATUS_META.upcoming;
+  const statusMeta = STATUS_META()[hackathon.status] ?? STATUS_META().upcoming;
   const winners: Winner[] = hackathon.winners ?? [];
   const hasEnded = new Date(hackathon.hackathonends) < new Date();
   const regClosed =
@@ -379,11 +379,11 @@ const HackathonDetail = () => {
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={['#F97316']} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
         contentContainerStyle={{ paddingBottom: 140 + bottomInset }}
       >
         {/* Banner */}
-        <View style={{ height: 210 }} className="bg-ink">
+        <View style={{ height: 210 }} className="bg-night">
           {hackathon.bannerImage ? (
             <Image source={{ uri: hackathon.bannerImage }} className="w-full h-full" resizeMode="cover" />
           ) : (
@@ -440,7 +440,7 @@ const HackathonDetail = () => {
 
           {hackathon.registrationends ? (
             <View className="flex-row items-center bg-card border border-line rounded-card p-3.5 mt-2.5">
-              <Feather name={regClosed ? 'lock' : 'clock'} size={13} color={regClosed ? '#8B857E' : '#C2410C'} />
+              <Feather name={regClosed ? 'lock' : 'clock'} size={13} color={regClosed ? C.ink3 : C.brand[700]} />
               <Text className="text-ink-2 text-label font-semibold ml-2">
                 {regClosed
                   ? `Registration closed ${fmtDate(hackathon.registrationends)}`
@@ -492,7 +492,7 @@ const HackathonDetail = () => {
                     accessibilityRole="tab"
                     accessibilityState={{ selected: on }}
                   >
-                    <Text className={`text-label font-semibold ${on ? 'text-white' : 'text-ink-2'}`}>{tab}</Text>
+                    <Text className={`text-label font-semibold ${on ? 'text-paper' : 'text-ink-2'}`}>{tab}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -662,7 +662,7 @@ const HackathonDetail = () => {
               hackathon.prizes?.length ? (
                 <View>
                   {hackathon.prizes.map((p: any, i: number) => {
-                    const meta = RANK_META[p.rank] ?? { label: `#${p.rank}`, medal: '#8B857E', tint: 'bg-card border-line' };
+                    const meta = RANK_META()[p.rank] ?? { label: `#${p.rank}`, medal: C.ink3, tint: 'bg-card border-line' };
                     return (
                       <View key={i} className={`flex-row items-center justify-between border rounded-card p-4 mb-2.5 ${meta.tint}`}>
                         <View className="flex-row items-center flex-1 mr-3">
@@ -706,14 +706,14 @@ const HackathonDetail = () => {
               >
                 <MaterialCommunityIcons name="trophy" size={17} color={C.brand[500]} />
                 <View className="flex-1 ml-3">
-                  <Text className="text-white text-sm font-semibold">
+                  <Text className="text-paper text-sm font-semibold">
                     {winners.length ? 'Edit winners' : 'Announce winners'}
                   </Text>
-                  <Text className="text-white/60 text-label mt-0.5">
+                  <Text className="text-paper/60 text-label mt-0.5">
                     Tag the students who won — it lands on their profile
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.5)" />
+                <Ionicons name="chevron-forward" size={16} color={C.paper + '80'} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -753,7 +753,7 @@ const HackathonDetail = () => {
                 activeOpacity={0.85}
                 accessibilityRole="button"
               >
-                <Feather name="trash-2" size={14} color="#B91C1C" />
+                <Feather name="trash-2" size={14} color={C.danger} />
                 <Text className="text-danger text-label font-semibold ml-2">Delete listing</Text>
               </TouchableOpacity>
             </View>
@@ -774,10 +774,10 @@ const HackathonDetail = () => {
           accessibilityRole="link"
           accessibilityLabel={`${hackathon.applyLabel || 'Register'} — opens ${hostOf(hackathon.applyLink)}`}
         >
-          <Text className="text-ink text-base font-display">
+          <Text className="text-on-brand text-base font-display">
             {hackathon.applyLabel || 'Register'}
           </Text>
-          <Feather name="external-link" size={15} color={C.ink} style={{ marginLeft: 8 }} />
+          <Feather name="external-link" size={15} color={C.onBrand} style={{ marginLeft: 8 }} />
         </TouchableOpacity>
         <Text className="text-ink-3 text-label font-semibold text-center mt-2" numberOfLines={1}>
           {hackathon.applyLink ? `Opens ${hostOf(hackathon.applyLink)}` : 'No registration link yet'}

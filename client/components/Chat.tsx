@@ -565,7 +565,7 @@ const Chat = ({ route, navigation }: any) => {
             >
               {/* REPLY PREVIEW */}
               {item.replyTo && (
-                <View className={`mb-2 p-2 rounded-xl border-l-2 ${isMe ? "bg-card/10 border-brand-500" : "bg-paper-2 border-brand-500" }`}>
+                <View className={`mb-2 p-2 rounded-xl border-l-2 ${isMe ? "bg-paper/10 border-brand-500" : "bg-paper-2 border-brand-500" }`}>
                   <Text className={`text-label font-display uppercase ${isMe ? "text-accent-text" : "text-accent-text"}`}>
                     REF: {item.replyTo.sender?.name || (item.replyTo.sender === user._id ? "YOU" : "USER")}
                   </Text>
@@ -576,7 +576,7 @@ const Chat = ({ route, navigation }: any) => {
               )}
 
               {(item.messageType === "text" || !item.messageType) && item.message ? (
-                <Text className={`text-sm leading-6 font-semibold ${isMe ? "text-white" : "text-ink"}`}>
+                <Text className={`text-sm leading-6 font-semibold ${isMe ? "text-paper" : "text-ink"}`}>
                   {item.message}
                 </Text>
               ) : null}
@@ -602,7 +602,7 @@ const Chat = ({ route, navigation }: any) => {
                   onLongPress={(e) => e.stopPropagation()}
                   accessibilityRole="button"
                   accessibilityLabel="Play video"
-                  className="bg-ink rounded-xl overflow-hidden shadow-hair items-center justify-center"
+                  className="bg-night rounded-xl overflow-hidden shadow-hair items-center justify-center"
                   style={{ width: mediaW, aspectRatio: 16 / 10 }}
                 >
                   <Ionicons name="play-circle" size={44} color="white" />
@@ -621,18 +621,18 @@ const Chat = ({ route, navigation }: any) => {
                     Linking.openURL(item.mediaUrl);
                   }}
                   onLongPress={(e) => e.stopPropagation()}
-                  className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-card/10' : 'bg-black/5'}`}
+                  className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-paper/10' : 'bg-ink/5'}`}
                 >
                   <View className={`w-10 h-10 rounded-lg items-center justify-center ${isMe ? 'bg-ink' : 'bg-brand-100'}`}>
-                    <Ionicons name="document-text" size={24} color={isMe ? "white" : "#F97316"} />
+                    <Ionicons name="document-text" size={24} color={isMe ? C.paper : C.brand[500]} />
                   </View>
                   <View className="ml-3 flex-1">
-                    <Text className={`text-sm font-semibold ${isMe ? "text-white" : "text-ink"}`} numberOfLines={1}>
+                    <Text className={`text-sm font-semibold ${isMe ? "text-paper" : "text-ink"}`} numberOfLines={1}>
                       {item.message || 'Shared PDF'}
                     </Text>
                     <Text className={`${isMe ? "text-ink-3" : "text-ink-3"} text-label uppercase font-semibold`}>Tap to view PDF</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color={isMe ? "white" : "#C4BEB6"} />
+                  <Ionicons name="chevron-forward" size={18} color={isMe ? C.paper : C.ink4} />
                 </Pressable>
               )}
             </TouchableOpacity>
@@ -649,7 +649,7 @@ const Chat = ({ route, navigation }: any) => {
                     <Ionicons
                       name={item.seen ? "checkmark-done" : "checkmark"}
                       size={12}
-                      color={item.seen ? "#F97316" : "#C4BEB6"}
+                      color={item.seen ? C.brand[500] : C.ink4}
                     />
                     <Text className={`text-label ml-0.5 font-display uppercase ${item.seen ? "text-accent-text" : "text-ink-4"}`}>
                       {item.seen ? "READ" : "SENT"}
@@ -674,14 +674,15 @@ const Chat = ({ route, navigation }: any) => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
+    <View style={{ flex: 1, backgroundColor: C.paper }}>
       {/* HEADER DECORATION (SOLAR GLOW) */}
       <View 
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300, zIndex: -1 }}
         pointerEvents="none"
       >
         <LinearGradient
-          colors={['#F97316', 'rgba(241, 148, 34, 0)']}
+          // Softer in dark so the cream AppBar title stays readable over it.
+          colors={[C.scheme === 'dark' ? C.brand[500] + '40' : '#F97316', 'rgba(241, 148, 34, 0)']}
           style={{ flex: 1 }}
         />
       </View>
@@ -839,7 +840,7 @@ const Chat = ({ route, navigation }: any) => {
                   style={!otherUser ? { opacity: 0.4 } : undefined}
                   className="w-11 h-11 bg-ink rounded-full items-center justify-center shadow-hair"
                 >
-                  <Ionicons name="paper-plane" size={18} color="white" />
+                  <Ionicons name="paper-plane" size={18} color={C.paper} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -851,7 +852,7 @@ const Chat = ({ route, navigation }: any) => {
         <View className="flex-1 bg-black/95 justify-center items-center">
           <TouchableOpacity
             onPress={() => setSelectedImage(null)}
-            className="absolute top-12 right-6 w-10 h-10 bg-card/10 rounded-full items-center justify-center z-50"
+            className="absolute top-12 right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
           >
             <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>
@@ -870,7 +871,7 @@ const Chat = ({ route, navigation }: any) => {
         <View className="flex-1 bg-black/95 justify-center items-center">
           <TouchableOpacity
             onPress={() => setSelectedVideo(null)}
-            className="absolute top-12 right-6 w-10 h-10 bg-card/10 rounded-full items-center justify-center z-50"
+            className="absolute top-12 right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
           >
             <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>

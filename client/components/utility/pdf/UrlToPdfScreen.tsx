@@ -40,7 +40,7 @@ export default function UrlToPdfScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
+    <View className="flex-1" style={{ backgroundColor: C.paper }}>
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Web Page to PDF" onBack={() => navigation.goBack()} />
 
@@ -62,7 +62,7 @@ export default function UrlToPdfScreen() {
             className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-3 ${busy || !url.trim() ? 'bg-paper-2' : 'bg-brand-500'}`}
             accessibilityRole="button">
             {busy ? <ActivityIndicator color={C.ink} />
-              : <Text className={`font-display uppercase text-base ${url.trim() ? 'text-ink' : 'text-ink-3'}`}>Save as PDF</Text>}
+              : <Text className={`font-display uppercase text-base ${url.trim() ? 'text-on-brand' : 'text-ink-3'}`}>Save as PDF</Text>}
           </TouchableOpacity>
 
           {pdf && (

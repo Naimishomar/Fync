@@ -69,7 +69,7 @@ const MovieList = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-ink" edges={['bottom']}>
+    <SafeAreaView className="flex-1 bg-night" edges={['bottom']}>
       {/* Header */}
       <AppBar night title={title} onBack={() => navigation.goBack()}
         right={<IconBtn name="search" size={24} color="white" onPress={() => navigation.navigate('MovieSearch')} />} />
@@ -85,7 +85,7 @@ const MovieList = () => {
             <TouchableOpacity
               key={genre.id}
               onPress={() => setSelectedGenre(genre.id)}
-              className={`mr-3 px-6 py-2 rounded-full border ${ selectedGenre === genre.id ? 'bg-danger border-danger' : 'bg-ink border-ink' }`}
+              className={`mr-3 px-6 py-2 rounded-full border ${ selectedGenre === genre.id ? 'bg-danger border-danger' : 'bg-night border-night' }`}
             >
               <Text className={`font-semibold ${ selectedGenre === genre.id ? 'text-white' : 'text-ink-3' }`}>
                 {genre.name}

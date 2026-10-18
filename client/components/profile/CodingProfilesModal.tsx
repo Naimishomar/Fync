@@ -160,8 +160,8 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
                 <ActivityIndicator color={C.brand[500]} />
               ) : (
                 <>
-                  <Feather name="save" size={16} color="white" className="mr-2" />
-                  <Text className="text-white font-display uppercase text-xs ml-2">Sync Ecosystem</Text>
+                  <Feather name="save" size={16} color={C.paper} className="mr-2" />
+                  <Text className="text-paper font-display uppercase text-xs ml-2">Sync Ecosystem</Text>
                 </>
               )}
             </Pressable>

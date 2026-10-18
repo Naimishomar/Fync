@@ -54,7 +54,7 @@ const MovieDetail = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-ink justify-center items-center">
+      <View className="flex-1 bg-night justify-center items-center">
         <ActivityIndicator size="large" color={C.fam.fun} />
       </View>
     );
@@ -63,7 +63,7 @@ const MovieDetail = () => {
   // A failed fetch used to fall through to `movie.release_date` on null and crash.
   if (!movie) {
     return (
-      <View className="flex-1 bg-ink">
+      <View className="flex-1 bg-night">
         <AppBar night title="Movie" onBack={() => navigation.goBack()} />
         <Empty icon="film-outline" title="Couldn't load this movie" hint="Check your connection and try again." />
       </View>
@@ -74,7 +74,7 @@ const MovieDetail = () => {
   const runtime = movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m` : 'N/A';
 
   return (
-    <View className="flex-1 bg-ink">
+    <View className="flex-1 bg-night">
       <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1">
         {/* Banner Section */}
         <View className="h-[450px] relative">

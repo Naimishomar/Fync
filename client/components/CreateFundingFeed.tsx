@@ -142,7 +142,7 @@ export default function CreateFundingFeed() {
 
         const content = `
         <html>
-        <body style="background-color: #F5F2EC;">
+        <body style="background-color: ${C.paper};">
             <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
             <script>
             var options = {
@@ -216,7 +216,7 @@ export default function CreateFundingFeed() {
           <Text className="text-base font-semibold text-ink mb-4">Project Overview</Text>
           <TextInput
             placeholder="Project Title"
-            placeholderTextColor="#808080ff"
+            placeholderTextColor={C.ink3}
             value={title}
             multiline
             onChangeText={setTitle}
@@ -224,7 +224,7 @@ export default function CreateFundingFeed() {
           />
           <TextInput
             placeholder="Tell everyone about your project..."
-            placeholderTextColor="#808080ff"
+            placeholderTextColor={C.ink3}
             value={description}
             onChangeText={setDescription}
             multiline
@@ -285,7 +285,7 @@ export default function CreateFundingFeed() {
               )}
 
               {video && (
-                <View className="mb-4 relative w-full h-40 shadow-hair rounded-xl overflow-hidden bg-ink border border-ink">
+                <View className="mb-4 relative w-full h-40 shadow-hair rounded-xl overflow-hidden bg-night border border-ink">
                   <Video source={{ uri: video.uri }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
                   <TouchableOpacity onPress={() => setVideo(null)} className="absolute top-2 right-2 bg-black/70 rounded-full h-8 w-8 items-center justify-center z-10">
                     <Ionicons name="close" size={18} color="white" />
@@ -304,7 +304,7 @@ export default function CreateFundingFeed() {
                 </View>
               )}
               {!video && oldVideo && (
-                <View className="mb-4 relative w-full h-40 shadow-hair rounded-xl overflow-hidden bg-ink border border-ink">
+                <View className="mb-4 relative w-full h-40 shadow-hair rounded-xl overflow-hidden bg-night border border-ink">
                   <Text className="text-white absolute top-2 left-2 z-10 bg-black/50 px-2 py-1 rounded">Active Video</Text>
                   <Video source={{ uri: oldVideo.replace(/^http:\/\//i, 'https://') }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
                 </View>
@@ -330,16 +330,16 @@ export default function CreateFundingFeed() {
         <TouchableOpacity
           onPress={handleInitiateProjectPost}
           disabled={submitting}
-          className={`py-4 rounded-full items-center shadow-hair ${submitting ? 'bg-ink' : 'bg-black/90'}`}
+          className={`py-4 rounded-full items-center shadow-hair ${submitting ? 'bg-ink' : 'bg-ink/90'}`}
         >
-          {submitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-display text-lg uppercase">{isEditing ? "Update Project" : "Post Project • ₹249"}</Text>}
+          {submitting ? <ActivityIndicator color={C.paper} /> : <Text className="text-paper font-display text-lg uppercase">{isEditing ? "Update Project" : "Post Project • ₹249"}</Text>}
         </TouchableOpacity>
       </View>
       </KeyboardAvoidingView>
 
       {/* PAYMENT MODAL */}
       <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} statusBarTranslucent onRequestClose={() => setShowPaymentParams(null)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }} edges={['bottom']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: C.paper }} edges={['bottom']}>
           <AppBar title="Secure Gateway" right={<IconBtn name="close" size={24} onPress={() => setShowPaymentParams(null)} />} />
           <WebView
             source={showPaymentParams}

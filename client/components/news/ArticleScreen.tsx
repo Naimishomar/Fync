@@ -35,7 +35,7 @@ const ArticleImage = ({ src, width }: { src: string; width: number }) => {
   return (
     <Image
       source={{ uri: src }}
-      style={{ width, height: width / ratio, borderRadius: 12, marginVertical: 14, backgroundColor: '#EDE8E0' }}
+      style={{ width, height: width / ratio, borderRadius: 12, marginVertical: 14, backgroundColor: C.paper2 }}
       contentFit="cover"
       cachePolicy="memory-disk"
       onLoad={(e) => { const { width: w, height: h } = e.source; if (w && h) setRatio(w / h); }}
@@ -73,7 +73,7 @@ export default function ArticleScreen() {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
       <View className="flex-1">
           <AppBar
             title={article?.siteName ?? source ?? 'Article'}
@@ -103,7 +103,7 @@ export default function ArticleScreen() {
               className="mt-6 px-6 py-4 rounded-md items-center justify-center border-2 border-ink bg-brand-500"
               accessibilityRole="button"
             >
-              <Text className="font-display uppercase text-ink text-label">Open the original</Text>
+              <Text className="font-display uppercase text-on-brand text-label">Open the original</Text>
             </TouchableOpacity>
           </View>
         ) : article ? (

@@ -108,7 +108,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
 
     if (loading && !itemA) {
         return (
-            <View className="grow bg-ink justify-center items-center rounded-sheet">
+            <View className="grow bg-night justify-center items-center rounded-sheet">
                 <ActivityIndicator size="large" color={C.brand[500]} />
                 <Text className="text-white mt-4 font-display uppercase">Fetching Live Trends...</Text>
             </View>
@@ -117,7 +117,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
 
     if (status === 'gameover') {
         return (
-            <View className="grow bg-ink justify-center items-center rounded-sheet p-6 border-2 border-danger/30">
+            <View className="grow bg-night justify-center items-center rounded-sheet p-6 border-2 border-danger/30">
                 <Ionicons name="close-circle" size={80} color={C.danger} />
                 <Text className="text-white text-3xl font-display uppercase mt-4 text-center">Game Over</Text>
                 <Text className="text-ink-3 text-sm font-semibold uppercase mt-2 text-center">
@@ -135,7 +135,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
                 </TouchableOpacity>
                 <TouchableOpacity 
                     onPress={onClose}
-                    className="mt-4 bg-ink px-gutter py-4 rounded-full w-full items-center border border-ink"
+                    className="mt-4 bg-night px-gutter py-4 rounded-full w-full items-center border border-night"
                 >
                     <Text className="text-white font-display uppercase">Exit</Text>
                 </TouchableOpacity>
@@ -145,15 +145,15 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
 
     // Halves are flex-1, so the card needs a floor; the hub ScrollView handles the rest.
     return (
-        <View className="grow rounded-sheet overflow-hidden bg-ink border border-ink" style={{ minHeight: 520 }}>
+        <View className="grow rounded-sheet overflow-hidden bg-night border border-night" style={{ minHeight: 520 }}>
             {/* Top Half - Item A */}
-            <View className="flex-1 justify-center items-center p-6 border-b border-ink bg-ink relative">
-                <TouchableOpacity onPress={onClose} hitSlop={8} className="absolute top-4 left-4 z-10 bg-card/10 p-2 rounded-full">
+            <View className="flex-1 justify-center items-center p-6 border-b border-night bg-night relative">
+                <TouchableOpacity onPress={onClose} hitSlop={8} className="absolute top-4 left-4 z-10 bg-white/10 p-2 rounded-full">
                     <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
                 <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
                   <Text className="text-accent-text font-display text-xs uppercase">Wikipedia Pageviews</Text>
-                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                  <View className="flex-1 bg-night" style={{ height: 2, opacity: 0.82 }} />
                 </View>
                 <Text className="text-white text-3xl font-display text-center uppercase leading-[36px]">"{itemA?.name}"</Text>
                 <Text className="text-ink-3 font-semibold text-sm uppercase mt-2">has</Text>
@@ -167,7 +167,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
             </View>
 
             {/* Bottom Half - Item B */}
-            <View className="flex-1 justify-center items-center p-6 bg-ink relative">
+            <View className="flex-1 justify-center items-center p-6 bg-night relative">
                 {loading && status === 'playing' ? (
                     <ActivityIndicator size="large" color={C.brand[500]} />
                 ) : (
@@ -183,7 +183,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
                             <View className="w-full flex-row justify-center gap-x-4">
                                 <TouchableOpacity 
                                     onPress={() => handleGuess('higher')}
-                                    className="bg-card/10 px-6 py-4 rounded-card items-center border border-white/20 flex-1"
+                                    className="bg-white/10 px-6 py-4 rounded-card items-center border border-white/20 flex-1"
                                 >
                                     <Ionicons name="caret-up" size={32} color={C.success} />
                                     <Text className="text-white font-display mt-1 uppercase text-xs">Higher</Text>
@@ -191,7 +191,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
                                 
                                 <TouchableOpacity 
                                     onPress={() => handleGuess('lower')}
-                                    className="bg-card/10 px-6 py-4 rounded-card items-center border border-white/20 flex-1"
+                                    className="bg-white/10 px-6 py-4 rounded-card items-center border border-white/20 flex-1"
                                 >
                                     <Ionicons name="caret-down" size={32} color={C.danger} />
                                     <Text className="text-white font-display mt-1 uppercase text-xs">Lower</Text>

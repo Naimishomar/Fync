@@ -59,7 +59,7 @@ const DSAPrep = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       {/* HEADER DECORATION */}
 
@@ -95,7 +95,7 @@ const DSAPrep = () => {
                       onPress={() => setActiveFilter(item)}
                       className={`mr-3 px-6 py-3 rounded-full border border-line ${activeFilter === item ? 'bg-ink' : 'bg-card'}`}
                     >
-                      <Text className={`font-display text-label uppercase ${activeFilter === item ? 'text-white' : 'text-ink-3'}`}>
+                      <Text className={`font-display text-label uppercase ${activeFilter === item ? 'text-paper' : 'text-ink-3'}`}>
                         {item}
                       </Text>
                     </TouchableOpacity>

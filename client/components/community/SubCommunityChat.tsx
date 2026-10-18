@@ -143,27 +143,27 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                         className={`rounded-card px-6 py-5 shadow-hair ${isMine ? 'bg-ink rounded-tr-none ' : 'bg-card rounded-tl-none border border-line '} ${isSenderAdmin && !isMine ? 'border-line bg-paper-2/20' : ''}`}
                     >
                         {item.repliedTo && (
-                            <View className={`mb-4 p-4 rounded-card border-l-[4px] ${isMine ? 'bg-card/5 border-white/20' : 'bg-paper-2 border-line'}`}>
-                                <Text className={`text-label font-display uppercase mb-1 ${isMine ? 'text-white/40' : 'text-ink-3'}`}>
+                            <View className={`mb-4 p-4 rounded-card border-l-[4px] ${isMine ? 'bg-paper/5 border-paper/20' : 'bg-paper-2 border-line'}`}>
+                                <Text className={`text-label font-display uppercase mb-1 ${isMine ? 'text-paper/40' : 'text-ink-3'}`}>
                                     Responding to {item.repliedTo.sender?.name}
                                 </Text>
-                                <Text className={`text-label font-medium ${isMine ? 'text-white/80' : 'text-ink-2'}`} numberOfLines={2}>{item.repliedTo.text}</Text>
+                                <Text className={`text-label font-medium ${isMine ? 'text-paper/80' : 'text-ink-2'}`} numberOfLines={2}>{item.repliedTo.text}</Text>
                             </View>
                         )}
-                        <Text className={`font-medium text-sm leading-[24px] ${isMine ? 'text-white' : 'text-ink'}`}>{item.text}</Text>
+                        <Text className={`font-medium text-sm leading-[24px] ${isMine ? 'text-paper' : 'text-ink'}`}>{item.text}</Text>
                         
                         <View className="flex-row items-center justify-between mt-4">
-                            <Text className={`text-label font-display uppercase ${isMine ? 'text-white/30' : 'text-ink-4'}`}>
+                            <Text className={`text-label font-display uppercase ${isMine ? 'text-paper/30' : 'text-ink-4'}`}>
                                 {item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                             </Text>
                             
                             <View className="flex-row items-center gap-4">
                                 <TouchableOpacity onPress={() => setReplyingTo(item)} hitSlop={15}>
-                                    <Feather name="corner-up-left" size={16} color={isMine ? "rgba(255,255,255,0.3)" : "#C4BEB6"} />
+                                    <Feather name="corner-up-left" size={16} color={isMine ? C.paper + '4D' : C.ink4} />
                                 </TouchableOpacity>
                                 {canDelete && (
                                     <TouchableOpacity onPress={() => handleDelete(item._id)} hitSlop={15}>
-                                        <Feather name="trash-2" size={16} color={isMine ? "rgba(255,255,255,0.3)" : "#C4BEB6"} />
+                                        <Feather name="trash-2" size={16} color={isMine ? C.paper + '4D' : C.ink4} />
                                     </TouchableOpacity>
                                 )}
                             </View>
@@ -176,7 +176,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+            <StatusBar barStyle={C.barStyle} translucent backgroundColor="transparent" />
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar
                     title={`#${subName}`}
@@ -247,7 +247,7 @@ const SubCommunityChat = ({ navigation, route }: any) => {
                                     disabled={!text.trim() || sending} 
                                     className={`w-14 h-14 rounded-card items-center justify-center shadow-hair mb-0.5 ${text.trim() ? 'bg-ink ' : 'bg-paper-2 shadow-none'}`}
                                 >
-                                    {sending ? <ActivityIndicator size="small" color="white" /> : <Feather name="arrow-up" size={28} color="white" />}
+                                    {sending ? <ActivityIndicator size="small" color={C.paper} /> : <Feather name="arrow-up" size={28} color={C.paper} />}
                                 </TouchableOpacity>
                             </View>
                         </View>

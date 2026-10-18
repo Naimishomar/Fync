@@ -173,7 +173,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
                   {TYPES.map(t => (
                     <Pressable key={t} onPress={() => setForm(p => ({ ...p, type: t }))}
                       className={`px-4 py-2.5 rounded-xl border items-center shadow-hair ${form.type === t ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
-                      <Text className={`text-label font-display uppercase ${form.type === t ? 'text-white' : 'text-ink-3'}`}>{t.replace('-', ' ')}</Text>
+                      <Text className={`text-label font-display uppercase ${form.type === t ? 'text-paper' : 'text-ink-3'}`}>{t.replace('-', ' ')}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -212,7 +212,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
               </View>
               <Switch value={form.isCurrentlyWorking}
                 onValueChange={v => setForm(p => ({ ...p, isCurrentlyWorking: v }))}
-                trackColor={{ true: '#F97316' }} />
+                trackColor={{ true: C.brand[500] }} />
             </View>
 
             {!form.isCurrentlyWorking && (
@@ -238,7 +238,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
                 {MODES.map(m => (
                   <Pressable key={m} onPress={() => setForm(p => ({ ...p, workMode: m }))}
                     className={`flex-1 py-3.5 rounded-card border items-center shadow-hair ${form.workMode === m ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
-                    <Text className={`text-label font-display uppercase ${form.workMode === m ? 'text-white' : 'text-ink-3'}`}>{m}</Text>
+                    <Text className={`text-label font-display uppercase ${form.workMode === m ? 'text-paper' : 'text-ink-3'}`}>{m}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -299,8 +299,8 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
               {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
                 : (
                   <>
-                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
-                    <Text className="text-white font-display uppercase text-xs ml-2">
+                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color={C.paper} className="mr-2" />
+                    <Text className="text-paper font-display uppercase text-xs ml-2">
                       {isEdit ? 'Update Record' : 'Commit Experience'}
                     </Text>
                   </>

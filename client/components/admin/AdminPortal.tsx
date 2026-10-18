@@ -802,8 +802,8 @@ const AdminPortal = ({ navigation }: any) => {
                     className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
                     activeOpacity={0.9}
                 >
-                    <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '#EA580C10' }}>
-                        <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: '#EA580C20' }}>
+                    <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: C.fam.events + '10' }}>
+                        <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: C.fam.events + '20' }}>
                             <Ionicons name="code-slash" size={24} color={C.brand[600]} />
                         </View>
                         <View className="flex-1">
@@ -822,8 +822,8 @@ const AdminPortal = ({ navigation }: any) => {
                     className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
                     activeOpacity={0.9}
                 >
-                    <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: '#EA580C10' }}>
-                        <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: '#EA580C20' }}>
+                    <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: C.fam.events + '10' }}>
+                        <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: C.fam.events + '20' }}>
                             <Ionicons name="pricetags" size={24} color={C.brand[600]} />
                         </View>
                         <View className="flex-1">
@@ -900,12 +900,12 @@ const AdminPortal = ({ navigation }: any) => {
             <View className="mt-8 p-6 bg-ink rounded-sheet shadow-hair">
                 <View className="flex-row items-center mb-4">
                     <Ionicons name="stats-chart" size={18} color={C.brand[500]} />
-                    <Text className="text-white font-display text-label uppercase ml-3">System Health</Text>
+                    <Text className="text-paper font-display text-label uppercase ml-3">System Health</Text>
                 </View>
                 <View className="flex-row justify-between">
                     <View>
                         <Text className="text-ink-3 text-label font-display uppercase">Total Users</Text>
-                        <Text className="text-white text-2xl font-display mt-1">
+                        <Text className="text-paper text-2xl font-display mt-1">
                             {userStats ? (userStats.total ?? 0).toLocaleString('en-IN') : '—'}
                         </Text>
                         {userStats ? (
@@ -916,7 +916,7 @@ const AdminPortal = ({ navigation }: any) => {
                     </View>
                     <View className="items-end">
                         <Text className="text-ink-3 text-label font-display uppercase">Collected</Text>
-                        <Text className="text-white text-2xl font-display mt-1">
+                        <Text className="text-paper text-2xl font-display mt-1">
                             {paymentStats ? `₹${Math.round((paymentStats.grossCollected ?? 0) / 100).toLocaleString('en-IN')}` : '—'}
                         </Text>
                         {paymentStats ? (
@@ -930,7 +930,7 @@ const AdminPortal = ({ navigation }: any) => {
                 {/* The breakdown an admin actually asks for: who is on the app,
                     and what is still unresolved. */}
                 {userStats ? (
-                    <View className="flex-row flex-wrap mt-5 pt-5 border-t border-white/10" style={{ gap: 10 }}>
+                    <View className="flex-row flex-wrap mt-5 pt-5 border-t border-paper/10" style={{ gap: 10 }}>
                         {[
                             ['Students', userStats.students],
                             ['Alumni', userStats.alumni],
@@ -938,9 +938,9 @@ const AdminPortal = ({ navigation }: any) => {
                             ['Pending payments', paymentStats?.pending ?? 0],
                             ['Reports', reports.length],
                         ].map(([label, value]: any) => (
-                            <View key={label} className="bg-white/5 rounded-card px-3 py-2">
+                            <View key={label} className="bg-paper/5 rounded-card px-3 py-2">
                                 <Text className="text-ink-3 text-label font-display uppercase">{label}</Text>
-                                <Text className="text-white text-sm font-display mt-0.5">{value}</Text>
+                                <Text className="text-paper text-sm font-display mt-0.5">{value}</Text>
                             </View>
                         ))}
                     </View>
@@ -952,7 +952,7 @@ const AdminPortal = ({ navigation }: any) => {
     if (!isAuthenticated) {
         return (
             <View className="flex-1 bg-paper">
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle={C.barStyle} />
                 
                 <AppBar title="Admin Access" onBack={() => navigation.goBack()} />
                 <SafeAreaView className="flex-1 justify-center px-gutter" edges={['bottom']}>
@@ -988,11 +988,11 @@ const AdminPortal = ({ navigation }: any) => {
                             className="bg-ink h-14 items-center justify-center flex-row border-2 border-ink rounded-md"
                         >
                             {verifyingPassword ? (
-                                <ActivityIndicator color="white" />
+                                <ActivityIndicator color={C.paper} />
                             ) : (
                                 <>
-                                    <Ionicons name="key" size={16} color="white" />
-                                    <Text className="text-white font-display text-label uppercase ml-3">Authorize Access</Text>
+                                    <Ionicons name="key" size={16} color={C.paper} />
+                                    <Text className="text-paper font-display text-label uppercase ml-3">Authorize Access</Text>
                                 </>
                             )}
                         </TouchableOpacity>
@@ -1011,7 +1011,7 @@ const AdminPortal = ({ navigation }: any) => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             
 
             <View className="flex-1">
@@ -1052,7 +1052,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 }}
                                 className="bg-ink ml-2 px-2.5 py-1 rounded-full"
                             >
-                                <Text className="text-white font-display text-label uppercase">Search</Text>
+                                <Text className="text-paper font-display text-label uppercase">Search</Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -1079,8 +1079,8 @@ const AdminPortal = ({ navigation }: any) => {
                             <Switch
                                 value={isSubscriptionEnabled}
                                 onValueChange={setIsSubscriptionEnabled}
-                                trackColor={{ false: "#E3DDD3", true: "#EDE8E0" }}
-                                thumbColor={isSubscriptionEnabled ? "#F97316" : "#8B857E"}
+                                trackColor={{ false: C.line, true: C.paper2 }}
+                                thumbColor={isSubscriptionEnabled ? C.brand[500] : C.ink3}
                             />
                         </View>
                         
@@ -1104,11 +1104,11 @@ const AdminPortal = ({ navigation }: any) => {
                             className="bg-ink h-14 items-center justify-center flex-row border-2 border-ink rounded-md"
                         >
                             {submitting ? (
-                                <ActivityIndicator color="white" />
+                                <ActivityIndicator color={C.paper} />
                             ) : (
                                 <>
-                                    <Ionicons name="save" size={18} color="white" />
-                                    <Text className="text-white font-display text-xs uppercase ml-2">Deploy New Pricing</Text>
+                                    <Ionicons name="save" size={18} color={C.paper} />
+                                    <Text className="text-paper font-display text-xs uppercase ml-2">Deploy New Pricing</Text>
                                 </>
                             )}
                         </TouchableOpacity>
@@ -1143,7 +1143,7 @@ const AdminPortal = ({ navigation }: any) => {
                         <Ionicons
                             name={reach && reach.devices === 0 ? 'warning-outline' : 'phone-portrait-outline'}
                             size={18}
-                            color={reach && reach.devices === 0 ? '#DC2626' : '#57534E'}
+                            color={reach && reach.devices === 0 ? C.danger : C.ink2}
                         />
                         <Text className="text-ink-2 text-sm ml-3 flex-1">
                             {reach === null
@@ -1222,11 +1222,11 @@ const AdminPortal = ({ navigation }: any) => {
                         className="bg-ink h-14 items-center justify-center flex-row border-2 border-ink rounded-md"
                     >
                         {sendingBroadcast ? (
-                            <ActivityIndicator color="white" />
+                            <ActivityIndicator color={C.paper} />
                         ) : (
                             <>
-                                <Ionicons name="send" size={18} color="white" />
-                                <Text className="text-white font-display text-xs uppercase ml-2">Send Broadcast</Text>
+                                <Ionicons name="send" size={18} color={C.paper} />
+                                <Text className="text-paper font-display text-xs uppercase ml-2">Send Broadcast</Text>
                             </>
                         )}
                     </TouchableOpacity>
@@ -1312,7 +1312,7 @@ const AdminPortal = ({ navigation }: any) => {
                                                     accessibilityRole="button"
                                                     accessibilityState={{ selected: on }}
                                                 >
-                                                    <Text className={`text-label font-semibold ${on ? 'text-white' : 'text-ink-2'}`}>{f.label}</Text>
+                                                    <Text className={`text-label font-semibold ${on ? 'text-paper' : 'text-ink-2'}`}>{f.label}</Text>
                                                 </TouchableOpacity>
                                             );
                                         })}
@@ -1465,8 +1465,8 @@ const AdminPortal = ({ navigation }: any) => {
                                         <Switch
                                             value={isActive}
                                             onValueChange={setIsActive}
-                                            trackColor={{ false: "#E3DDD3", true: "#EDE8E0" }}
-                                            thumbColor={isActive ? "#F97316" : "#8B857E"}
+                                            trackColor={{ false: C.line, true: C.paper2 }}
+                                            thumbColor={isActive ? C.brand[500] : C.ink3}
                                         />
                                     </View>
                                 )}
@@ -1476,7 +1476,7 @@ const AdminPortal = ({ navigation }: any) => {
                                     disabled={submitting}
                                     className={`py-4 rounded-xl items-center flex-row justify-center ${submitting ? 'bg-brand-300' : 'bg-brand-500'}`}
                                 >
-                                    {submitting ? <ActivityIndicator color={C.ink} /> : <Text className="text-ink font-display uppercase text-sm">{editingAd || editingProduct ? 'Save Changes' : activeTab === 'ads' ? 'Publish Ad' : 'Add to Store'}</Text>}
+                                    {submitting ? <ActivityIndicator color={C.onBrand} /> : <Text className="text-on-brand font-display uppercase text-sm">{editingAd || editingProduct ? 'Save Changes' : activeTab === 'ads' ? 'Publish Ad' : 'Add to Store'}</Text>}
                                 </TouchableOpacity>
                             </ScrollView>
                         </View>

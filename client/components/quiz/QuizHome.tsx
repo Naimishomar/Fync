@@ -64,7 +64,7 @@ const QuizHome = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar title="Quiz Arena" onBack={() => navigation.goBack()} />
@@ -77,7 +77,7 @@ const QuizHome = () => {
                         <LightCard
                             title="Create Room"
                             subtitle="HOST A MATCH"
-                            neonColor="#0891b2"
+                            neonColor={C.fam.social}
                             iconName="add-circle"
                             onPress={() => navigation.navigate("CreateRoom")}
                         />
@@ -86,7 +86,7 @@ const QuizHome = () => {
                         <LightCard
                             title="Join Room"
                             subtitle="ENTER CODE"
-                            neonColor="#7c3aed"
+                            neonColor={C.fam.study}
                             iconName="key-outline"
                             onPress={() => navigation.navigate("JoinRoomInput")}
                         />
@@ -95,7 +95,7 @@ const QuizHome = () => {
                         <LightCard
                             title="1v1 Battle"
                             subtitle="FIND OPPONENT"
-                            neonColor="#DB2777"
+                            neonColor={C.fam.fun}
                             iconName="flash"
                             onPress={() => navigation.navigate("OneVsOneSetup")}
                         />
@@ -104,7 +104,7 @@ const QuizHome = () => {
                         <LightCard
                             title="AI Interview"
                             subtitle="PRACTICE MODE"
-                            neonColor="#B45309"
+                            neonColor={C.warning}
                             iconName="mic"
                             onPress={() => navigation.navigate("InterviewSetup")}
                         />

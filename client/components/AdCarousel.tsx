@@ -113,7 +113,7 @@ const AdCarousel = () => {
           {ads.map((_, index) => (
             <View
               key={index}
-              className={`h-2 rounded-full transition-all ${ currentIndex === index ? "bg-brand-500 w-4" : "bg-card/60 w-2" }`}
+              className={`h-2 rounded-full transition-all ${ currentIndex === index ? "bg-brand-500 w-4" : "bg-white/60 w-2" }`}
             />
           ))}
         </View>

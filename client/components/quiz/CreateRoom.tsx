@@ -130,7 +130,7 @@ const CreateRoom = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <SafeAreaView className="flex-1" edges={['bottom']}>
 
@@ -216,7 +216,7 @@ const CreateRoom = () => {
                   mode="datetime"
                   display="spinner"
                   onChange={onIOSChange}
-                  textColor="#12100E"
+                  textColor={C.ink}
                   themeVariant="light"
                 />
               </View>
@@ -268,7 +268,7 @@ const CreateRoom = () => {
                   <View
                     className={`w-6 h-6 mr-4 rounded-full border-2 items-center justify-center transition-all ${q.correctAnswer === i ? "bg-brand-500 border-brand-500 shadow-hair " : "border-line bg-card" }`}
                   >
-                    {q.correctAnswer === i && <Ionicons name="checkmark" size={14} color={C.ink} />}
+                    {q.correctAnswer === i && <Ionicons name="checkmark" size={14} color={C.onBrand} />}
                   </View>
 
                   <TextInput
@@ -291,11 +291,11 @@ const CreateRoom = () => {
             className={`py-6 rounded-sheet mb-16 shadow-hair flex-row justify-center items-center ${loading ? 'bg-brand-400' : 'bg-brand-500 ' }`}
           >
             {loading ? (
-              <ActivityIndicator color={C.ink} />
+              <ActivityIndicator color={C.onBrand} />
             ) : (
               <>
-                <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Finalize Node</Text>
-                <Ionicons name="rocket" size={20} color={C.ink} />
+                <Text className="font-display text-on-brand uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Finalize Node</Text>
+                <Ionicons name="rocket" size={20} color={C.onBrand} />
               </>
             )}
           </TouchableOpacity>

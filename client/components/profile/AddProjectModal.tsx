@@ -156,7 +156,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
                 {STATUSES.map(s => (
                   <Pressable key={s} onPress={() => setForm(p => ({ ...p, status: s }))}
                     className={`flex-1 py-3 rounded-xl border items-center shadow-hair ${form.status === s ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
-                    <Text className={`text-label font-display uppercase ${form.status === s ? 'text-white' : 'text-ink-3'}`}>{s.replace('-', ' ')}</Text>
+                    <Text className={`text-label font-display uppercase ${form.status === s ? 'text-paper' : 'text-ink-3'}`}>{s.replace('-', ' ')}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -237,8 +237,8 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
               {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
                 : (
                   <>
-                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
-                    <Text className="text-white font-display uppercase text-xs ml-2">
+                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color={C.paper} className="mr-2" />
+                    <Text className="text-paper font-display uppercase text-xs ml-2">
                       {isEdit ? 'Update Artifact' : 'Commit Deployment'}
                     </Text>
                   </>

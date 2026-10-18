@@ -291,7 +291,7 @@ const ClubAdminPanel = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <View className="flex-1">
                 <AppBar title="Control Panel" onBack={() => navigation.goBack()} />
                 <Meta style={{ paddingHorizontal: 20, paddingBottom: 8 }} numberOfLines={1}>{club.name}</Meta>
@@ -372,7 +372,7 @@ const ClubAdminPanel = () => {
                                                 hitSlop={10}
                                                 className="bg-ink px-2.5 py-1 rounded-full"
                                             >
-                                                <Text className="text-white font-semibold text-label uppercase">Invite</Text>
+                                                <Text className="text-paper font-semibold text-label uppercase">Invite</Text>
                                             </TouchableOpacity>
                                         </View>
                                     ))}
@@ -471,7 +471,7 @@ const ClubAdminPanel = () => {
                                 <Switch 
                                     value={isJoinCodeEnabled}
                                     onValueChange={setIsJoinCodeEnabled}
-                                    trackColor={{ false: "#E3DDD3", true: "#047857" }}
+                                    trackColor={{ false: C.line, true: C.success }}
                                     thumbColor="white"
                                 />
                             </View>
@@ -484,15 +484,15 @@ const ClubAdminPanel = () => {
                                 <View className="flex-row mb-8">
                                     <TouchableOpacity onPress={() => pickImage('logo')} className="relative">
                                         <Image source={{ uri: newLogo?.uri || club.logo }} className="w-16 h-16 rounded-card bg-paper-2 border border-line" />
-                                        <View className="absolute -bottom-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-white">
-                                            <Feather name="camera" size={10} color="white" />
+                                        <View className="absolute -bottom-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-card">
+                                            <Feather name="camera" size={10} color={C.paper} />
                                         </View>
                                     </TouchableOpacity>
                                     
                                     <TouchableOpacity onPress={() => pickImage('banner')} className="flex-1 ml-4 relative">
                                         <Image source={{ uri: newBanner?.uri || club.banner }} className="w-full h-16 rounded-card bg-paper-2 border border-line" />
-                                        <View className="absolute -bottom-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-white">
-                                            <Feather name="image" size={10} color="white" />
+                                        <View className="absolute -bottom-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-card">
+                                            <Feather name="image" size={10} color={C.paper} />
                                         </View>
                                     </TouchableOpacity>
                                 </View>
@@ -521,8 +521,8 @@ const ClubAdminPanel = () => {
                                     disabled={updating}
                                     className="bg-ink py-4 items-center border-2 border-ink rounded-md"
                                 >
-                                    {updating ? <ActivityIndicator color="white" /> : (
-                                        <Text className="text-white font-display uppercase text-xs">Synchronize Profile</Text>
+                                    {updating ? <ActivityIndicator color={C.paper} /> : (
+                                        <Text className="text-paper font-display uppercase text-xs">Synchronize Profile</Text>
                                     )}
                                 </TouchableOpacity>
                             </View>

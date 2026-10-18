@@ -54,7 +54,7 @@ export default function QRCodeToolScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
+    <View className="flex-1" style={{ backgroundColor: C.paper }}>
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="QR Generator" onBack={() => navigation.goBack()} />
 
@@ -81,7 +81,7 @@ export default function QRCodeToolScreen() {
 
         {qrValue !== '' && (
           <View className="items-center bg-card rounded-card p-card-pad border border-line shadow-hair mb-10">
-            <View className="bg-card p-4 shadow-hair border border-line rounded-card mb-6">
+            <View className="bg-white p-4 shadow-hair border border-line rounded-card mb-6">
               <QRCode
                 value={qrValue}
                 size={200}
@@ -94,8 +94,8 @@ export default function QRCodeToolScreen() {
               onPress={shareQR}
               className="w-full py-4 items-center justify-center flex-row bg-ink border-2 border-ink rounded-md"
             >
-              <Ionicons name="share-outline" size={20} color="white" className="mr-2" />
-              <Text className="text-white font-semibold text-base ml-2">Save / Share QR</Text>
+              <Ionicons name="share-outline" size={20} color={C.paper} className="mr-2" />
+              <Text className="text-paper font-semibold text-base ml-2">Save / Share QR</Text>
             </TouchableOpacity>
           </View>
         )}

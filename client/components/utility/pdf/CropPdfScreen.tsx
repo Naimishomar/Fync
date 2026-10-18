@@ -25,7 +25,7 @@ export default function CropPdfScreen() {
                 className={`flex-1 items-center justify-center rounded-md border-2 ${pt === a.pt ? 'bg-brand-500 border-ink' : 'bg-card border-line'}`}
                 style={{ minHeight: 48 }} accessibilityRole="button"
               >
-                <Text className={`font-display uppercase text-label ${pt === a.pt ? 'text-ink' : 'text-ink-2'}`}>{a.label}</Text>
+                <Text className={`font-display uppercase text-label ${pt === a.pt ? 'text-on-brand' : 'text-ink-2'}`}>{a.label}</Text>
               </TouchableOpacity>
             ))}
           </View>

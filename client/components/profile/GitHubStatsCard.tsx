@@ -92,7 +92,7 @@ export default function GitHubStatsCard({
       <View className="mx-4 mb-6 bg-card rounded-sheet p-card-pad items-center shadow-hair border border-line">
         <View
           className="w-20 h-20 rounded-card items-center justify-center mb-6 shadow-hair"
-         style={{ backgroundColor: '#12100E' }}>
+         style={{ backgroundColor: C.ink }}>
           <Ionicons name="logo-github" size={40} color={C.brand[500]} />
         </View>
         <Text className="text-ink font-display text-xl text-center">Open Source Identity</Text>
@@ -103,8 +103,8 @@ export default function GitHubStatsCard({
           onPress={onConnect}
           className="mt-8 bg-ink w-full py-4 flex-row items-center justify-center gap-3 border-2 border-ink rounded-md"
         >
-          <Ionicons name="logo-github" size={18} color="white" />
-          <Text className="text-white font-display uppercase text-label">Connect GitHub</Text>
+          <Ionicons name="logo-github" size={18} color={C.paper} />
+          <Text className="text-paper font-display uppercase text-label">Connect GitHub</Text>
         </Pressable>
       </View>
     );
@@ -120,10 +120,10 @@ export default function GitHubStatsCard({
             <View className="relative">
               <ExpoImage 
                 source={{ uri: stats?.avatarUrl || `https://github.com/${username}.png` }}
-                style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: '#EDE8E0', borderWidth: 2, borderColor: '#F5F2EC' }}
+                style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: C.paper2, borderWidth: 2, borderColor: C.paper }}
               />
-              <View className="absolute -bottom-1 -right-1 bg-ink p-1 rounded-lg border-2 border-white">
-                <Ionicons name="logo-github" size={10} color="white" />
+              <View className="absolute -bottom-1 -right-1 bg-ink p-1 rounded-lg border-2 border-card">
+                <Ionicons name="logo-github" size={10} color={C.paper} />
               </View>
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>

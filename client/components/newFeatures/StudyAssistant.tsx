@@ -99,7 +99,7 @@ export default function StudyAssistant() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar title="Study AI" onBack={() => navigation.goBack()} />
@@ -122,7 +122,7 @@ export default function StudyAssistant() {
                                 onPress={() => { setPdfContent(''); setChat([]); setHistory([]); }}
                                 className="bg-card p-3 rounded-card border border-line shadow-hair"
                             >
-                                <Ionicons name="trash-outline" size={20} color="#ff4b4b" />
+                                <Ionicons name="trash-outline" size={20} color={C.danger} />
                             </TouchableOpacity>
                         )}
                     </View>
@@ -174,10 +174,10 @@ export default function StudyAssistant() {
                                 >
                                     <View
                                         className="p-6 flex-row items-center justify-between"
-                                     style={{ backgroundColor: '#F97316' }}>
+                                     style={{ backgroundColor: C.brand[500] }}>
                                         <View className="flex-row items-center">
-                                            <Ionicons name="flash" size={18} color={C.ink} />
-                                            <Text className="text-ink font-display ml-4 text-label uppercase">Generate Protocol Guide</Text>
+                                            <Ionicons name="flash" size={18} color={C.onBrand} />
+                                            <Text className="text-on-brand font-display ml-4 text-label uppercase">Generate Protocol Guide</Text>
                                         </View>
                                         <Ionicons name="arrow-forward" size={18} color="white" />
                                     </View>
@@ -196,7 +196,7 @@ export default function StudyAssistant() {
                                         key={i}
                                         className={`p-6 rounded-sheet mb-5 max-w-[90%] shadow-hair ${msg.role === 'user' ? 'bg-ink self-end rounded-tr-none ' : 'bg-card self-start border border-line rounded-tl-none ' }`}
                                     >
-                                        <Text className={`text-sm leading-6 ${msg.role === 'user' ? 'text-white font-display uppercase ' : 'text-ink-2 font-medium '}`}>
+                                        <Text className={`text-sm leading-6 ${msg.role === 'user' ? 'text-paper font-display uppercase ' : 'text-ink-2 font-medium '}`}>
                                             {msg.role === 'bot' ? `"${msg.text}"` : msg.text}
                                         </Text>
                                     </View>
@@ -226,7 +226,7 @@ export default function StudyAssistant() {
                                 onPress={() => runAiTask('CHAT')}
                                 className="bg-ink w-14 h-14 rounded-card items-center justify-center shadow-hair"
                             >
-                                <Ionicons name="send" size={18} color="white" />
+                                <Ionicons name="send" size={18} color={C.paper} />
                             </TouchableOpacity>
                         </View>
                     )}

@@ -5,16 +5,16 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { C } from '../../constants/colors';
 
-const CAT_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
-  coding:        { color: '#12100E', bg: '#F5F2EC', icon: 'code-slash' },
-  design:        { color: '#12100E', bg: '#F5F2EC', icon: 'color-palette' },
-  cloud:         { color: '#12100E', bg: '#F5F2EC', icon: 'cloud' },
-  'ai-ml':       { color: '#F97316', bg: '#EDE8E0', icon: 'hardware-chip' },
-  cybersecurity: { color: '#F97316', bg: '#EDE8E0', icon: 'shield-checkmark' },
-  management:    { color: '#12100E', bg: '#F5F2EC', icon: 'people' },
-  'data-science':{ color: '#F97316', bg: '#EDE8E0', icon: 'bar-chart' },
-  other:         { color: '#12100E', bg: '#F5F2EC', icon: 'ribbon' },
-};
+const CAT_CONFIG = (): Record<string, { color: string; bg: string; icon: string }> => ({
+  coding:        { color: C.ink, bg: C.paper, icon: 'code-slash' },
+  design:        { color: C.ink, bg: C.paper, icon: 'color-palette' },
+  cloud:         { color: C.ink, bg: C.paper, icon: 'cloud' },
+  'ai-ml':       { color: C.brand[500], bg: C.paper2, icon: 'hardware-chip' },
+  cybersecurity: { color: C.brand[500], bg: C.paper2, icon: 'shield-checkmark' },
+  management:    { color: C.ink, bg: C.paper, icon: 'people' },
+  'data-science':{ color: C.brand[500], bg: C.paper2, icon: 'bar-chart' },
+  other:         { color: C.ink, bg: C.paper, icon: 'ribbon' },
+});
 
 interface Certificate {
   _id: string;
@@ -39,7 +39,7 @@ const fmtDate = (d?: string) => {
 };
 
 export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Props) {
-  const cat = CAT_CONFIG[cert.category || 'other'] || CAT_CONFIG.other;
+  const cat = CAT_CONFIG()[cert.category || 'other'] || CAT_CONFIG().other;
 
   return (
     <View className="bg-card rounded-card border border-line p-4 flex-row items-center shadow-hair">
@@ -53,7 +53,7 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
         />
       ) : (
         <View className="w-16 h-16 rounded-card items-center justify-center mr-4 flex-shrink-0"
-          style={{ backgroundColor: cat.bg, borderWidth: 1, borderColor: '#EDE8E0' }}>
+          style={{ backgroundColor: cat.bg, borderWidth: 1, borderColor: C.paper2 }}>
           <Ionicons name={cat.icon as any} size={24} color={cat.color} />
         </View>
       )}
@@ -81,7 +81,7 @@ export default function CertificateCard({ cert, isOwner, onEdit, onDelete }: Pro
         {isOwner && (
           <>
             <Pressable onPress={() => onEdit?.(cert)} hitSlop={8} className="w-8 h-8 items-center justify-center bg-ink rounded-xl">
-              <Feather name="edit-3" size={12} color="white" />
+              <Feather name="edit-3" size={12} color={C.paper} />
             </Pressable>
             <Pressable onPress={() => onDelete?.(cert._id)} hitSlop={8} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
               <Ionicons name="trash-outline" size={14} color={C.danger} />

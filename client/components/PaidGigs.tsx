@@ -127,13 +127,13 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
                     >
                         <View
                             className="py-5 flex-row items-center justify-center"
-                         style={{ backgroundColor: '#F97316' }}>
+                         style={{ backgroundColor: C.brand[500] }}>
                             {connectingId === item._id ? (
-                                <ActivityIndicator size="small" color={C.ink} />
+                                <ActivityIndicator size="small" color={C.onBrand} />
                             ) : (
                                 <>
-                                    <Ionicons name="chatbubble-ellipses" size={18} color={C.ink} />
-                                    <Text className="text-ink font-display text-label uppercase ml-2">Initiate Contact</Text>
+                                    <Ionicons name="chatbubble-ellipses" size={18} color={C.onBrand} />
+                                    <Text className="text-on-brand font-display text-label uppercase ml-2">Initiate Contact</Text>
                                 </>
                             )}
                         </View>
@@ -418,7 +418,7 @@ export default function PaidGigs({ navigation }: any) {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar
@@ -438,7 +438,7 @@ export default function PaidGigs({ navigation }: any) {
                                 onPress={() => setActiveTab(t.key as any)}
                                 className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === t.key ? 'bg-ink' : 'bg-transparent'}`}
                             >
-                                <Text className={`font-display text-label uppercase ${activeTab === t.key ? 'text-white' : 'text-ink-3'}`}>
+                                <Text className={`font-display text-label uppercase ${activeTab === t.key ? 'text-paper' : 'text-ink-3'}`}>
                                     {t.label}
                                 </Text>
                             </TouchableOpacity>
@@ -481,7 +481,7 @@ export default function PaidGigs({ navigation }: any) {
             {/* CREATE / EDIT MODAL */}
             <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeModal}>
                 <View className="flex-1 bg-paper">
-                    <StatusBar barStyle="dark-content" />
+                    <StatusBar barStyle={C.barStyle} />
                     <AppBar inset={false} title={editMode ? 'Edit Gig' : 'New Gig'} right={<IconBtn name="close" onPress={closeModal} />} />
 
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
@@ -504,7 +504,7 @@ export default function PaidGigs({ navigation }: any) {
                                     onPress={() => setVisibility('College')}
                                     className={`flex-1 py-3.5 items-center rounded-xl ${visibility === 'College' ? 'bg-ink' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-display text-label uppercase ${visibility === 'College' ? 'text-white' : 'text-ink-3'}`}>
+                                    <Text className={`font-display text-label uppercase ${visibility === 'College' ? 'text-paper' : 'text-ink-3'}`}>
                                         Campus Only
                                     </Text>
                                 </TouchableOpacity>
@@ -512,7 +512,7 @@ export default function PaidGigs({ navigation }: any) {
                                     onPress={() => setVisibility('Global')}
                                     className={`flex-1 py-3.5 items-center rounded-xl ${visibility === 'Global' ? 'bg-brand-500' : 'bg-transparent'}`}
                                 >
-                                    <Text className={`font-display text-label uppercase ${visibility === 'Global' ? 'text-ink' : 'text-ink-3'}`}>
+                                    <Text className={`font-display text-label uppercase ${visibility === 'Global' ? 'text-on-brand' : 'text-ink-3'}`}>
                                         Global Unit
                                     </Text>
                                 </TouchableOpacity>
@@ -542,10 +542,10 @@ export default function PaidGigs({ navigation }: any) {
                             >
                                 {submitting ? <ActivityIndicator color={C.brand[500]} /> : (
                                     <>
-                                        <Text className="text-white font-display uppercase text-xs mr-3">
+                                        <Text className="text-paper font-display uppercase text-xs mr-3">
                                             {editMode ? 'Sync Changes' : 'Deploy Gig'}
                                         </Text>
-                                        <Ionicons name={editMode ? "checkmark-circle" : "paper-plane"} size={16} color="white" />
+                                        <Ionicons name={editMode ? "checkmark-circle" : "paper-plane"} size={16} color={C.paper} />
                                     </>
                                 )}
                             </TouchableOpacity>

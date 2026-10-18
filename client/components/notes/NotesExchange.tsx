@@ -99,10 +99,10 @@ export default function NotesExchange() {
   };
 
   const renderNote = ({ item }: { item: Note }) => (
-    <View className="bg-white border-2 border-ink rounded-card p-4 mb-3">
+    <View className="bg-card border-2 border-ink rounded-card p-4 mb-3">
       <View className="flex-row items-center mb-2">
         <View className="bg-brand-500 px-2 py-1 rounded-sm">
-          <Text className="font-display text-label text-ink uppercase" style={{ fontSize: 9 }}>
+          <Text className="font-display text-label text-on-brand uppercase" style={{ fontSize: 9 }}>
             {KIND_LABEL[item.kind] ?? 'NOTES'}
           </Text>
         </View>
@@ -139,11 +139,11 @@ export default function NotesExchange() {
           accessibilityLabel={`Open ${item.title}`}
         >
           {unlocking === item._id ? (
-            <ActivityIndicator size="small" color={C.ink} />
+            <ActivityIndicator size="small" color={C.onBrand} />
           ) : (
             <>
-              <Ionicons name="document-text-outline" size={15} color={C.ink} />
-              <Text className="font-display text-ink ml-1" style={{ fontSize: 12 }}>
+              <Ionicons name="document-text-outline" size={15} color={C.onBrand} />
+              <Text className="font-display text-on-brand ml-1" style={{ fontSize: 12 }}>
                 {item.owned ? 'OPEN' : 'DOWNLOAD'}
               </Text>
             </>
@@ -164,13 +164,13 @@ export default function NotesExchange() {
           <View className="flex-1" />
           {/* Coins earned from sharing. Kept visible because uploading still
               pays — but nothing here costs anything to read. */}
-          <View className="flex-row items-center bg-white border-2 border-ink rounded-xl px-3 py-1">
+          <View className="flex-row items-center bg-card border-2 border-ink rounded-xl px-3 py-1">
             <Ionicons name="server-outline" size={14} color={C.brand[600]} />
             <Text className="font-display text-ink ml-1" style={{ fontSize: 13 }}>{coins}</Text>
           </View>
         </View>
 
-        <View className="flex-row items-center bg-white border-2 border-ink rounded-xl px-3 mb-3" style={{ height: 48 }}>
+        <View className="flex-row items-center bg-card border-2 border-ink rounded-xl px-3 mb-3" style={{ height: 48 }}>
           <Ionicons name="search" size={18} color={C.ink3} />
           <TextInput
             className="flex-1 ml-2 text-ink"
@@ -190,15 +190,15 @@ export default function NotesExchange() {
             <TouchableOpacity
               key={k.id || 'all'}
               onPress={() => setKind(k.id)}
-              className={`px-4 py-2 rounded-xl border-2 border-ink mr-2 ${kind === k.id ? 'bg-brand-500' : 'bg-white'}`}
+              className={`px-4 py-2 rounded-xl border-2 border-ink mr-2 ${kind === k.id ? 'bg-brand-500' : 'bg-card'}`}
               style={{ minHeight: 40, justifyContent: 'center' }}
             >
-              <Text className="font-display text-ink" style={{ fontSize: 12 }}>{k.label}</Text>
+              <Text className={`font-display ${kind === k.id ? 'text-on-brand' : 'text-ink'}`} style={{ fontSize: 12 }}>{k.label}</Text>
             </TouchableOpacity>
           ))}
           <TouchableOpacity
             onPress={() => setSort(sort === 'recent' ? 'popular' : 'recent')}
-            className="px-4 py-2 rounded-xl border-2 border-ink mr-2 bg-white flex-row items-center"
+            className="px-4 py-2 rounded-xl border-2 border-ink mr-2 bg-card flex-row items-center"
             style={{ minHeight: 40 }}
           >
             <Ionicons name="swap-vertical-outline" size={14} color={C.ink} />
@@ -241,8 +241,8 @@ export default function NotesExchange() {
         accessibilityRole="button"
         accessibilityLabel="Share notes"
       >
-        <Ionicons name="cloud-upload-outline" size={20} color={C.ink} />
-        <Text className="font-display text-ink ml-2">SHARE</Text>
+        <Ionicons name="cloud-upload-outline" size={20} color={C.onBrand} />
+        <Text className="font-display text-on-brand ml-2">SHARE</Text>
       </TouchableOpacity>
 
       <UploadSheet
@@ -319,7 +319,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       {/* The fields sit at the bottom of the screen, right where the keyboard opens. */}
-      <KeyboardAvoidingView behavior="padding" className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18,16,14,0.4)' }}>
+      <KeyboardAvoidingView behavior="padding" className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
         <Pressable className="flex-1" onPress={onClose} />
         <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-8">
           <View className="items-center mb-4">
@@ -330,7 +330,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
 
           <TouchableOpacity
             onPress={pick}
-            className="bg-white border-2 border-ink rounded-card px-4 flex-row items-center mb-3"
+            className="bg-card border-2 border-ink rounded-card px-4 flex-row items-center mb-3"
             style={{ height: 56 }}
           >
             <Ionicons name={file ? 'document-text' : 'add-circle-outline'} size={22} color={C.brand[600]} />
@@ -340,7 +340,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
           </TouchableOpacity>
 
           <TextInput
-            className="bg-white border-2 border-ink rounded-xl px-4 text-ink mb-3"
+            className="bg-card border-2 border-ink rounded-xl px-4 text-ink mb-3"
             style={{ height: 50 }}
             placeholder="Title, e.g. Unit 3 - Trees"
             placeholderTextColor={C.ink3}
@@ -349,7 +349,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
           />
           <View className="flex-row mb-3">
             <TextInput
-              className="bg-white border-2 border-ink rounded-xl px-4 text-ink flex-1 mr-2"
+              className="bg-card border-2 border-ink rounded-xl px-4 text-ink flex-1 mr-2"
               style={{ height: 50 }}
               placeholder="Subject"
               placeholderTextColor={C.ink3}
@@ -357,7 +357,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
               onChangeText={setSubject}
             />
             <TextInput
-              className="bg-white border-2 border-ink rounded-xl px-4 text-ink"
+              className="bg-card border-2 border-ink rounded-xl px-4 text-ink"
               style={{ height: 50, width: 96 }}
               placeholder="Sem"
               placeholderTextColor={C.ink3}
@@ -372,10 +372,10 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
               <TouchableOpacity
                 key={k}
                 onPress={() => setKind(k)}
-                className={`px-4 py-2 rounded-xl border-2 border-ink mr-2 ${kind === k ? 'bg-brand-500' : 'bg-white'}`}
+                className={`px-4 py-2 rounded-xl border-2 border-ink mr-2 ${kind === k ? 'bg-brand-500' : 'bg-card'}`}
                 style={{ minHeight: 40, justifyContent: 'center' }}
               >
-                <Text className="font-display text-ink" style={{ fontSize: 12 }}>{KIND_LABEL[k]}</Text>
+                <Text className={`font-display ${kind === k ? 'text-on-brand' : 'text-ink'}`} style={{ fontSize: 12 }}>{KIND_LABEL[k]}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -386,7 +386,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
             className="bg-brand-500 border-2 border-ink rounded-xl items-center justify-center"
             style={{ height: 54, opacity: busy ? 0.6 : 1 }}
           >
-            {busy ? <ActivityIndicator color={C.ink} /> : <Text className="font-display text-ink">SHARE AND EARN</Text>}
+            {busy ? <ActivityIndicator color={C.onBrand} /> : <Text className="font-display text-on-brand">SHARE AND EARN</Text>}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

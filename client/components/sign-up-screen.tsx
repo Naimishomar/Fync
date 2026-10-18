@@ -131,11 +131,11 @@ export default function SignUpScreen() {
       className="bg-paper"
     >
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F5F2EC' }}
+        contentContainerStyle={{ flexGrow: 1, backgroundColor: C.paper }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 bg-ink">
+        <View className="flex-1 bg-night">
 
           <AuthPoster mode="signup" grow />
 
@@ -165,7 +165,7 @@ export default function SignUpScreen() {
                   height: 72,
                   borderRadius: 36,
                   borderWidth: 2,
-                  borderColor: '#12100E',
+                  borderColor: C.ink,
                 }}
                 resizeMode="cover"
                 accessibilityLabel="Fync"
@@ -230,7 +230,7 @@ export default function SignUpScreen() {
                 >
                   {isLoading
                     ? <ActivityIndicator size="small" color={C.ink} />
-                    : <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
+                    : <Text className={`font-display ${agreeTerms ? 'text-on-brand' : 'text-ink'} uppercase`} style={{ fontSize: 14, letterSpacing: 0.3 }}>
                         {otpSent ? 'Verify & Continue' : 'Send OTP'}
                       </Text>}
                 </Pressable>

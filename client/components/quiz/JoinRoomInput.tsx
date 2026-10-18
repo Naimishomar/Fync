@@ -37,7 +37,7 @@ const JoinRoomInput = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <SafeAreaView className="flex-1" edges={['bottom']}>
 
@@ -83,8 +83,8 @@ const JoinRoomInput = () => {
                 <ActivityIndicator color={C.ink} size="small" />
               ) : (
                 <>
-                  <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Initialize</Text>
-                  <Ionicons name="rocket" size={20} color={C.ink} />
+                  <Text className="font-display text-on-brand uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Initialize</Text>
+                  <Ionicons name="rocket" size={20} color={C.onBrand} />
                 </>
               )}
             </TouchableOpacity>

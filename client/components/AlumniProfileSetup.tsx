@@ -164,7 +164,7 @@ export default function AlumniProfileSetup() {
                 onPress={() => setGender(g)}
                 className={`mr-4 px-6 py-2 rounded-full border ${ gender === g ? 'bg-ink border-ink' : 'bg-transparent border-line' }`}
               >
-                <Text className={gender === g ? 'text-white' : 'text-ink-2'}>
+                <Text className={gender === g ? 'text-paper' : 'text-ink-2'}>
                   {g}
                 </Text>
               </Pressable>
@@ -195,7 +195,7 @@ export default function AlumniProfileSetup() {
                 onPress={() => setExperienceLevel(level)}
                 className={`mr-2 mb-2 px-4 py-2 rounded-full border ${ experienceLevel === level ? 'bg-ink border-ink' : 'bg-transparent border-line' }`}
               >
-                <Text className={experienceLevel === level ? 'text-white' : 'text-ink-2'}>
+                <Text className={experienceLevel === level ? 'text-paper' : 'text-ink-2'}>
                   {level}
                 </Text>
               </Pressable>
@@ -225,7 +225,7 @@ export default function AlumniProfileSetup() {
             className="bg-brand-500 py-4 items-center border-2 border-ink rounded-md"
             onPress={handleNext}
           >
-            <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Next Step</Text>
+            <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Next Step</Text>
           </Pressable>
 
           <Text className="mt-5 text-center text-ink-3">Step 2 of 3</Text>

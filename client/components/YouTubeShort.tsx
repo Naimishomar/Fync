@@ -149,7 +149,7 @@ export default function YouTubeShort({
       : 'This one would not play.';
 
     return (
-      <View style={{ flex: 1, width: SCREEN_WIDTH }} className="bg-ink items-center justify-center px-10">
+      <View style={{ flex: 1, width: SCREEN_WIDTH }} className="bg-night items-center justify-center px-10">
         <Ionicons name="cloud-offline-outline" size={48} color={C.ink3} />
         <Text className="font-sans text-sm text-night-3 mt-3 text-center">
           {reason} Swipe on.
@@ -162,7 +162,7 @@ export default function YouTubeShort({
   }
 
   return (
-    <View style={{ flex: 1, width: SCREEN_WIDTH }} className="bg-ink">
+    <View style={{ flex: 1, width: SCREEN_WIDTH }} className="bg-night">
       {!loaded && !!thumbnail && (
         <Image
           source={{ uri: thumbnail }}

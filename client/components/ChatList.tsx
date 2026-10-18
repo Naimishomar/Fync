@@ -337,7 +337,7 @@ const ChatList = () => {
               
               {unread > 0 && (
                 <View className="bg-brand-500 min-w-[18px] min-h-4 px-1 flex justify-center items-center rounded-full">
-                  <Text className="text-ink text-label font-display" maxFontSizeMultiplier={1.2}>
+                  <Text className="text-on-brand text-label font-display" maxFontSizeMultiplier={1.2}>
                     {unread > 9 ? '9+' : unread}
                   </Text>
                 </View>
@@ -379,7 +379,7 @@ const ChatList = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
         <AppBar title="Messages" onBack={showBack ? () => navigation.goBack() : undefined} />
@@ -449,7 +449,7 @@ const ChatList = () => {
                           <Ionicons name="school" size={24} color={C.brand[500]} />
                         </View>
                         <View className="flex-1">
-                          <Text className="font-semibold text-base text-ink">{user.college} Area</Text>
+                          <Text className="font-semibold text-base text-on-brand">{user.college} Area</Text>
                           <Text className="text-ink-3 text-label font-semibold mt-1">24hr Expiring Zone</Text>
                         </View>
                         <View className="bg-brand-500 w-2 h-2 rounded-full" />
@@ -466,7 +466,7 @@ const ChatList = () => {
                           <Ionicons name="people" size={24} color={C.recruiter} />
                         </View>
                         <View className="flex-1">
-                          <Text className="font-semibold text-base text-ink">Student-Alumni Chat</Text>
+                          <Text className="font-semibold text-base text-on-brand">Student-Alumni Chat</Text>
                           <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Global Networking Zone</Text>
                         </View>
                         <View className="bg-recruiter px-2.5 py-1 rounded-full">
@@ -482,14 +482,14 @@ const ChatList = () => {
                         className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair"
                       >
                         <View className="w-12 h-12 rounded-card bg-ink items-center justify-center mr-4">
-                          <Ionicons name="briefcase" size={24} color="white" />
+                          <Ionicons name="briefcase" size={24} color={C.paper} />
                         </View>
                         <View className="flex-1">
-                          <Text className="font-semibold text-base text-ink">Professional Hub</Text>
+                          <Text className="font-semibold text-base text-on-brand">Professional Hub</Text>
                           <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Global Alumni Network</Text>
                         </View>
                         <View className="bg-ink px-2.5 py-1 rounded-full">
-                          <Text className="text-label text-white font-display">PRO</Text>
+                          <Text className="text-label text-paper font-display">PRO</Text>
                         </View>
                       </TouchableOpacity>
                     )}
@@ -518,7 +518,7 @@ const ChatList = () => {
                     color={C.ink4}
                   />
                 </View>
-                <Text className="font-semibold text-base text-ink text-center">
+                <Text className="font-semibold text-base text-on-brand text-center">
                   {search.length > 0 ? "Registry Empty" : "No Transmissions"}
                 </Text>
                 <Text className="font-sans text-sm text-ink-3 mt-2 text-center">

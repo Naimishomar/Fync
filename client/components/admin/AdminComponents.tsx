@@ -82,7 +82,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                                     onPress={() => onToggleStatus(item._id, prod._id)}
                                     className={`w-7 h-7 rounded-full items-center justify-center border ${prod.isProcessed ? 'bg-success border-success' : 'bg-card border-line'}`}
                                 >
-                                    <Ionicons name="checkmark" size={16} color={prod.isProcessed ? "white" : "#C4BEB6"} />
+                                    <Ionicons name="checkmark" size={16} color={prod.isProcessed ? "white" : C.ink4} />
                                 </TouchableOpacity>
                             </View>
                             <View className="flex-row items-center gap-1.5">
@@ -118,7 +118,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
 
 export const MarketPlaceItem = ({ item, onEdit, onDelete }: any) => (
     <View className="bg-card rounded-card mb-4 border border-line overflow-hidden">
-        <View style={{ width: '100%', aspectRatio: 1, backgroundColor: '#EDE8E0' }}>
+        <View style={{ width: '100%', aspectRatio: 1, backgroundColor: C.paper2 }}>
             <Image
                 source={{ uri: item.product_image }}
                 style={{ width: '100%', height: '100%' }}
@@ -260,7 +260,7 @@ export const ContactMessageItem = ({ item, onDelete, onToggleRead }: any) => (
                     onPress={() => onToggleRead(item._id)}
                     className={`w-9 h-9 rounded-full items-center justify-center border ${item.isRead ? 'bg-success border-success' : 'bg-card border-line'}`}
                 >
-                    <Ionicons name="checkmark" size={16} color={item.isRead ? "white" : "#C4BEB6"} />
+                    <Ionicons name="checkmark" size={16} color={item.isRead ? "white" : C.ink4} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => onDelete(item._id, 'message')} className="w-9 h-9 bg-danger/10 rounded-full items-center justify-center border border-danger/15">
                     <Ionicons name="trash" size={16} color={C.danger} />
@@ -311,7 +311,7 @@ export const UserItem = ({ item, onToggleBan }: any) => (
                         onPress={() => onToggleBan(item._id, item.isBanned)}
                         className={`w-9 h-9 rounded-xl items-center justify-center border ${item.isBanned ? 'bg-ink border-ink' : 'bg-card border-paper-2'}`}
                     >
-                        <Ionicons name={item.isBanned ? "lock-open" : "lock-closed"} size={16} color={item.isBanned ? "white" : "#12100E"} />
+                        <Ionicons name={item.isBanned ? "lock-open" : "lock-closed"} size={16} color={item.isBanned ? C.paper : C.ink} />
                     </TouchableOpacity>
                 )}
             </View>
@@ -383,7 +383,7 @@ export const PaymentItem = ({ item, onCopy }: any) => {
                 </View>
                 <View className={`flex-row items-center border px-2.5 py-1.5 rounded-md ${status.chip}`}>
                     <Ionicons name={status.icon as any} size={12} color={
-                        item.status === 'paid' ? '#047857' : item.status === 'failed' ? '#DC2626' : '#B45309'
+                        item.status === 'paid' ? C.success : item.status === 'failed' ? C.danger : C.warning
                     } />
                     <Text className={`text-label font-semibold ml-1.5 ${status.text}`}>{status.label}</Text>
                 </View>

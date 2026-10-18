@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, Animated, TouchableOpacity, Dimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -42,8 +43,8 @@ const CoinToss = () => {
         <Animated.View className="w-[180px] h-[180px] rounded-full shadow-hair shadow-[#F97316]" style={{ transform: [{ rotateY: spin }] }}>
           <View
             className="w-full h-full rounded-full justify-center items-center border-[8px] border-white/20"
-           style={{ backgroundColor: '#F97316' }}>
-            <View className="w-[140px] h-[140px] rounded-full bg-card/10 justify-center items-center border border-white/30">
+           style={{ backgroundColor: C.brand[500] }}>
+            <View className="w-[140px] h-[140px] rounded-full bg-white/10 justify-center items-center border border-white/30">
                 <Ionicons 
                     name={result === 'Tails' ? "logo-bitcoin" : "flash"} 
                     size={60} 
@@ -64,7 +65,7 @@ const CoinToss = () => {
             <Text className="text-2xl font-display text-brand-500">{result.toUpperCase()}</Text>
           </View>
         ) : (
-          <Text className="text-sm color-[#8B857E] font-semibold italic">Awaiting Transmission...</Text>
+          <Text className="text-sm text-ink-3 font-semibold italic">Awaiting Transmission...</Text>
         )}
       </View>
 
@@ -75,7 +76,7 @@ const CoinToss = () => {
         className="w-full h-16 rounded-card overflow-hidden shadow-hair"
       >
         <View
-          style={{ backgroundColor: flipping ? '#8B857E' : '#12100E' }}
+          style={{ backgroundColor: flipping ? C.ink3 : C.ink }}
           className="flex-1 justify-center items-center"
         >
           <Text className="text-paper text-sm font-display uppercase">{flipping ? 'FLIPPING...' : 'EXECUTE TOSS'}</Text>

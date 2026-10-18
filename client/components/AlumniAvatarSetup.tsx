@@ -153,9 +153,9 @@ export default function AlumniAvatarSetup() {
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color={C.ink} />
+              <ActivityIndicator color={C.onBrand} />
             ) : (
-              <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Finish Setup</Text>
+              <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Finish Setup</Text>
             )}
           </Pressable>
 

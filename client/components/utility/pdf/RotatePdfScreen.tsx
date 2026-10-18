@@ -21,7 +21,7 @@ export default function RotatePdfScreen() {
                 className={`flex-1 items-center justify-center rounded-md border-2 ${turn === t ? 'bg-brand-500 border-ink' : 'bg-card border-line'}`}
                 style={{ minHeight: 48 }} accessibilityRole="button"
               >
-                <Text className={`font-display ${turn === t ? 'text-ink' : 'text-ink-2'}`}>{t}°</Text>
+                <Text className={`font-display ${turn === t ? 'text-on-brand' : 'text-ink-2'}`}>{t}°</Text>
               </TouchableOpacity>
             ))}
           </View>

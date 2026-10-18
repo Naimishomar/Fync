@@ -43,7 +43,7 @@ function CompletenessBar({ pct }: { pct: number }) {
         <View className="h-full rounded-full overflow-hidden" style={{ width: `${pct}%` }}>
           <View
             className="h-full w-full"
-           style={{ backgroundColor: '#F97316' }} />
+           style={{ backgroundColor: C.brand[500] }} />
         </View>
       </View>
       {pct < 100 && (
@@ -425,7 +425,7 @@ export default function FyncProfileBuilder() {
                   <ActivityIndicator color={C.recruiter} size="small" />
                 ) : (
                   <>
-                    <Feather name={profile?.user?.resumeUrl ? "check-circle" : "upload-cloud"} size={18} color={profile?.user?.resumeUrl ? "#047857" : "#8B857E"} />
+                    <Feather name={profile?.user?.resumeUrl ? "check-circle" : "upload-cloud"} size={18} color={profile?.user?.resumeUrl ? C.success : C.ink3} />
                     <Text className={`font-display uppercase text-label ${profile?.user?.resumeUrl ? 'text-recruiter' : 'text-ink-3'}`}>
                       {profile?.user?.resumeUrl ? (profile?.user?.resumeName || "Update Resume") : "Upload Resume (PDF)"}
                     </Text>
@@ -589,7 +589,7 @@ export default function FyncProfileBuilder() {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
         <AppBar
@@ -600,7 +600,7 @@ export default function FyncProfileBuilder() {
               style={{ marginRight: 11 }}
               className="bg-ink px-4 py-3 flex-row items-center border-2 border-ink rounded-md">
               <Feather name="file-text" size={14} color={C.brand[500]} />
-              <Text className="text-white font-display uppercase text-label ml-2">Resume</Text>
+              <Text className="text-paper font-display uppercase text-label ml-2">Resume</Text>
             </Pressable>
           }
         />
@@ -613,7 +613,7 @@ export default function FyncProfileBuilder() {
               className={`flex-1 items-center py-4 relative`}
             >
               <Ionicons name={tab.icon as any} size={20}
-                color={activeTab === tab.key ? '#F97316' : '#8B857E'} />
+                color={activeTab === tab.key ? C.brand[500] : C.ink3} />
               <Text className={`text-label font-display uppercase mt-1.5 ${activeTab === tab.key ? 'text-ink' : 'text-ink-3'}`}>
                 {tab.label}
               </Text>

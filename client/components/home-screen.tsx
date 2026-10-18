@@ -36,10 +36,8 @@ import { readRecentFeatureIds, recordFeatureUse } from '../utils/recentFeatures'
 import { visibleFeatures, artUrl, type Feature } from '../constants/features';
 
 // One colour per family rather than forty, matching ExploreHub.
-const FAMILY: Record<string, string> = {
-  study: '#7C3AED', career: '#2563EB', events: '#EA580C',
-  social: '#0891B2', campus: '#57534E', fun: '#DB2777', account: '#57534E',
-};
+const fam = (k: string): string | undefined =>
+  k === 'account' ? C.fam.campus : (C.fam as Record<string, string>)[k];
 
 /** Shown until this user has opened anything; a first-run grid, not a fixed one. */
 const DEFAULT_QUICK = ['academy', 'jobs', 'utilities', 'techPulse'];
@@ -380,7 +378,7 @@ const MAX_CHAR_LIMIT = 150;
         {(item.image?.length || 0) > 1 && (
           <View className="flex-row justify-center gap-1.5 absolute bottom-4 w-full">
             {(item.image || []).map((_, i) => (
-              <View key={i} className={`h-1.5 rounded-full ${activeIndex === i ? 'w-4 bg-card' : 'w-1.5 bg-card/50'}`} />
+              <View key={i} className={`h-1.5 rounded-full ${activeIndex === i ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`} />
             ))}
           </View>
         )}
@@ -398,7 +396,7 @@ const MAX_CHAR_LIMIT = 150;
           </Text>
           {(item.description?.length || 0) > MAX_CHAR_LIMIT && (
             <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} className="mt-1">
-              <Text className="text-black font-semibold text-sm">
+              <Text className="text-ink font-semibold text-sm">
                 {isExpanded ? 'Show Less' : 'Show More'}
               </Text>
             </TouchableOpacity>
@@ -422,7 +420,7 @@ const MAX_CHAR_LIMIT = 150;
             <Ionicons
               name={liked ? 'thumbs-up' : 'thumbs-up-outline'}
               size={20}
-              color={liked ? "#ff8902" : C.ink}
+              color={liked ? C.brand[500] : C.ink}
             />
             {likeCount > 0 && (
               <Text
@@ -459,9 +457,9 @@ const MAX_CHAR_LIMIT = 150;
             accessibilityState={{ selected: !!reposted }}
             accessibilityLabel={reposted ? 'Remove your repost' : 'Repost this'}
           >
-            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={20} color={reposted ? '#ff8902' : C.ink} />
+            <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={20} color={reposted ? C.brand[500] : C.ink} />
             {repostCount > 0 && (
-              <Text className={`font-display ml-1.5 ${reposted ? 'text-[#ff8902]' : 'text-ink'}`} style={{ fontSize: 12 }}>
+              <Text className={`font-display ml-1.5 ${reposted ? 'text-accent-text' : 'text-ink'}`} style={{ fontSize: 12 }}>
                 {formatCount(repostCount)}
               </Text>
             )}
@@ -872,7 +870,7 @@ export default function HomeScreen() {
         onPress={() => setShowLeaderboard(true)}
         className="flex-row items-center bg-brand-100 px-2 py-1 rounded-full border border-ink"
       >
-        <MaterialCommunityIcons name="fire" size={16} color="#F97316" />
+        <MaterialCommunityIcons name="fire" size={16} color={C.brand[500]} />
         <Text className="font-display text-xs ml-0.5 text-brand-700">
           {(user as any)?.streakCount || 0}
         </Text>
@@ -969,11 +967,11 @@ export default function HomeScreen() {
             >
               {/* One colour per family, the same mapping Explore uses */}
               <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center"
-                style={{ backgroundColor: (FAMILY[item.category] ?? item.tint) + '1A' }}>
+                style={{ backgroundColor: (fam(item.category) ?? item.tint) + '1A' }}>
                 {artUrl(item.art) ? (
                   <ExpoImage source={{ uri: artUrl(item.art) }} style={{ width: 34, height: 34 }} contentFit="contain" cachePolicy="disk" transition={120} />
                 ) : (
-                  <Ionicons name={item.icon} size={24} color={FAMILY[item.category] ?? item.tint} />
+                  <Ionicons name={item.icon} size={24} color={fam(item.category) ?? item.tint} />
                 )}
               </View>
 
@@ -1010,7 +1008,7 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
       
       <AppBar right={appBarRight}>{appBarTitle}</AppBar>
 

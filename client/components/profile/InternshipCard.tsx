@@ -4,14 +4,14 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import { C } from '../../constants/colors';
 
-const TYPE_CONFIG: Record<string, { icon: string; color: string; bg: string }> = {
-  internship:   { icon: 'school-outline',    color: '#12100E', bg: '#F5F2EC' },
-  'full-time':  { icon: 'briefcase',         color: '#F97316', bg: '#EDE8E0' },
-  'part-time':  { icon: 'briefcase-outline', color: '#12100E', bg: '#F5F2EC' },
-  freelance:    { icon: 'laptop-outline',    color: '#F97316', bg: '#EDE8E0' },
-  contract:     { icon: 'document-outline', color: '#12100E', bg: '#F5F2EC' },
-  'open-source':{ icon: 'code-slash-outline',color: '#F97316', bg: '#EDE8E0' },
-};
+const TYPE_CONFIG = (): Record<string, { icon: string; color: string; bg: string }> => ({
+  internship:   { icon: 'school-outline',    color: C.ink, bg: C.paper },
+  'full-time':  { icon: 'briefcase',         color: C.brand[500], bg: C.paper2 },
+  'part-time':  { icon: 'briefcase-outline', color: C.ink, bg: C.paper },
+  freelance:    { icon: 'laptop-outline',    color: C.brand[500], bg: C.paper2 },
+  contract:     { icon: 'document-outline', color: C.ink, bg: C.paper },
+  'open-source':{ icon: 'code-slash-outline',color: C.brand[500], bg: C.paper2 },
+});
 
 interface Internship {
   _id: string;
@@ -43,7 +43,7 @@ const fmtDate = (d?: string) =>
   parse(d)?.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) ?? '';
 
 export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Props) {
-  const type = TYPE_CONFIG[item.type || 'internship'] || TYPE_CONFIG.internship;
+  const type = TYPE_CONFIG()[item.type || 'internship'] || TYPE_CONFIG().internship;
   const start = fmtDate(item.startDate);
   const end = item.isCurrentlyWorking ? 'Present' : fmtDate(item.endDate);
 
@@ -61,7 +61,7 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
     <View className="mx-4 mb-4 bg-card rounded-card border border-line p-6 shadow-hair">
       <View className="flex-row">
         <View className="w-12 h-12 rounded-card items-center justify-center mr-4 flex-shrink-0 shadow-hair"
-          style={{ backgroundColor: type.bg, borderWidth: 1, borderColor: '#EDE8E0' }}>
+          style={{ backgroundColor: type.bg, borderWidth: 1, borderColor: C.paper2 }}>
           <Ionicons name={type.icon as any} size={20} color={type.color} />
         </View>
 
@@ -100,7 +100,7 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
             <View className="flex-row flex-wrap gap-2 mt-4">
               {item.techStack.slice(0, 4).map((t, i) => (
                 <View key={i} className="bg-ink px-2.5 py-1 rounded-full">
-                  <Text className="text-white text-label font-display uppercase">{t}</Text>
+                  <Text className="text-paper text-label font-display uppercase">{t}</Text>
                 </View>
               ))}
             </View>
@@ -110,7 +110,7 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
         {isOwner && (
           <View className="ml-4 gap-3 border-l border-line pl-4">
             <Pressable onPress={() => onEdit?.(item)} hitSlop={8} className="w-8 h-8 items-center justify-center bg-ink rounded-xl">
-              <Feather name="edit-3" size={12} color="white" />
+              <Feather name="edit-3" size={12} color={C.paper} />
             </Pressable>
             <Pressable onPress={() => onDelete?.(item._id)} hitSlop={8} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
               <Ionicons name="trash-outline" size={14} color={C.danger} />

@@ -135,7 +135,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
       {/* Sub Button 2 (e.g., Create Post) */}
       <Animated.View style={[item1Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreatePost'); }}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreatePost'); }}>
           <Ionicons name="aperture-outline" size={20} color={C.brand[500]} />
         </TouchableOpacity>
         <Text className="text-white text-label font-display uppercase mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", letterSpacing: 0.6, overflow: "hidden" }}>Add Post</Text>
@@ -143,7 +143,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
       {/* Sub Button 1 (e.g., Create Video) */}
       <Animated.View style={[item2Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateShorts'); }}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateShorts'); }}>
           <Ionicons name="videocam" size={20} color={C.brand[500]} />
         </TouchableOpacity>
         <Text className="text-white text-label font-display uppercase mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", letterSpacing: 0.6, overflow: "hidden" }}>Add Shorts</Text>
@@ -151,7 +151,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
       {startupArm && (
       <Animated.View style={[item3Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-ink items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
           <Ionicons name="bulb-outline" size={20} color={C.brand[500]} />
         </TouchableOpacity>
         <Text className="text-white text-label font-display uppercase mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", letterSpacing: 0.6, overflow: "hidden" }}>Add Startup</Text>
@@ -167,9 +167,9 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
           fault that was blackening the bar. */}
       <View
         style={{
-          backgroundColor: '#F97316',
+          backgroundColor: C.brand[500],
           borderRadius: 999,
-          shadowColor: '#F97316', shadowOffset: { width: 0, height: 6 },
+          shadowColor: C.brand[500], shadowOffset: { width: 0, height: 6 },
           shadowOpacity: 0.5, shadowRadius: 16, elevation: 8
         }}
       >
@@ -177,12 +177,12 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
           onPress={toggleMenu}
           activeOpacity={0.9}
           className="w-14 h-14 rounded-full items-center justify-center border-2 border-ink"
-          style={{ backgroundColor: '#F97316' }}
+          style={{ backgroundColor: C.brand[500] }}
           accessibilityRole="button"
           accessibilityLabel="Create"
         >
           <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-            <Ionicons name="add" size={28} color={C.ink} />
+            <Ionicons name="add" size={28} color={C.onBrand} />
           </Animated.View>
         </TouchableOpacity>
       </View>
@@ -412,7 +412,7 @@ export default function TabLayout() {
                   height: 28, 
                   borderRadius: 14, 
                   borderWidth: focused ? 1.5 : 0, 
-                  borderColor: '#F97316',
+                  borderColor: C.brand[500],
                   justifyContent: 'center',
                   alignItems: 'center'
                 }}>

@@ -118,13 +118,13 @@ const CreateCommunityScreen = () => {
                     contact: user?.phone || '',
                     name: user?.username || user?.name
                 },
-                theme: { color: '#F97316' }
+                theme: { color: C.brand[500] }
             };
 
             const triggerWebView = () => {
                 const content = `
                 <html>
-                <body style="background-color: #F5F2EC; display: flex; justify-content: center; align-items: center; height: 100vh;">
+                <body style="background-color: ${C.paper}; display: flex; justify-content: center; align-items: center; height: 100vh;">
                     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
                     <script>
                     var options = {
@@ -204,7 +204,8 @@ const CreateCommunityScreen = () => {
     return (
         <KeyboardAvoidingView 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1 bg-black/60"
+            className="flex-1"
+            style={{ backgroundColor: C.scrim }}
         >
             <StatusBar barStyle="light-content" />
             
@@ -290,17 +291,17 @@ const CreateCommunityScreen = () => {
                             onPress={() => setPlan('monthly')}
                             className={`flex-1 p-5 rounded-card border ${plan === 'monthly' ? 'bg-ink border-ink shadow-hair ' : 'bg-card border-line shadow-hair '}`}
                         >
-                            <Text className={`font-display uppercase text-label ${plan === 'monthly' ? 'text-white' : 'text-ink'}`}>Monthly</Text>
-                            <Text className={`font-semibold text-label mt-1 ${plan === 'monthly' ? 'text-white/60' : 'text-ink-3'}`}>₹99 / 30 Days</Text>
+                            <Text className={`font-display uppercase text-label ${plan === 'monthly' ? 'text-paper' : 'text-ink'}`}>Monthly</Text>
+                            <Text className={`font-semibold text-label mt-1 ${plan === 'monthly' ? 'text-paper/60' : 'text-ink-3'}`}>₹99 / 30 Days</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
                             onPress={() => setPlan('yearly')}
                             className={`flex-1 p-5 rounded-card border ${plan === 'yearly' ? 'bg-brand-500 border-brand-500 shadow-hair ' : 'bg-card border-line shadow-hair '}`}
                         >
                             <View className="flex-row justify-between items-center">
-                                <Text className={`font-display uppercase text-label ${plan === 'yearly' ? 'text-ink' : 'text-ink'}`}>Yearly</Text>
+                                <Text className={`font-display uppercase text-label ${plan === 'yearly' ? 'text-on-brand' : 'text-ink'}`}>Yearly</Text>
                                 <View className="bg-card/20 px-2.5 py-1 rounded-full">
-                                    <Text className="text-label text-ink font-display uppercase">Elite</Text>
+                                    <Text className={`text-label ${plan === 'yearly' ? 'text-on-brand' : 'text-ink'} font-display uppercase`}>Elite</Text>
                                 </View>
                             </View>
                             <Text className={`font-semibold text-label mt-1 ${plan === 'yearly' ? 'text-white/90' : 'text-ink-3'}`}>₹999 / 365 Days</Text>
@@ -330,8 +331,8 @@ const CreateCommunityScreen = () => {
                     >
                         {loading ? <ActivityIndicator color={C.brand[500]} /> : (
                             <View className="flex-row items-center">
-                                <Text className="text-white font-display uppercase text-xs mr-3">Deploy Ecosystem Hub</Text>
-                                <Ionicons name="rocket" size={18} color="white" />
+                                <Text className="text-paper font-display uppercase text-xs mr-3">Deploy Ecosystem Hub</Text>
+                                <Ionicons name="rocket" size={18} color={C.paper} />
                             </View>
                         )}
                     </TouchableOpacity>
@@ -350,7 +351,7 @@ const CreateCommunityScreen = () => {
                         javaScriptEnabled={true}
                         domStorageEnabled={true}
                         originWhitelist={['*']}
-                        style={{ flex: 1, backgroundColor: '#F5F2EC' }}
+                        style={{ flex: 1, backgroundColor: C.paper }}
                     />
                 </SafeAreaView>
             </Modal>

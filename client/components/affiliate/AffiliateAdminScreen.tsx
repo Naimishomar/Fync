@@ -160,16 +160,16 @@ export default function AffiliateAdminScreen() {
     );
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
+    <View className="flex-1" style={{ backgroundColor: C.paper }}>
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Store Admin" onBack={() => navigation.goBack()} />
 
         <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand[500]} colors={['#F97316']} />}>
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand[500]} colors={[C.brand[500]]} />}>
 
           {/* the one stamped card on this screen */}
           <View style={{ position: 'relative', marginBottom: 24 }}>
-            <View pointerEvents="none" style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: '#12100E', borderRadius: 20 }} />
+            <View pointerEvents="none" style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: C.ink, borderRadius: 20 }} />
             <View className="bg-card border-2 border-ink rounded-card p-card-pad">
               <Text className="text-ink-3 font-display uppercase text-label mb-1">Commission per sale</Text>
               <Text className="text-ink font-display" style={{ fontSize: 34, fontVariant: ['tabular-nums'] }}>
@@ -235,7 +235,7 @@ export default function AffiliateAdminScreen() {
                 <TouchableOpacity key={c} onPress={() => setCategory(c)}
                   className={`px-4 rounded-full border-2 items-center justify-center ${category === c ? 'bg-brand-500 border-ink' : 'bg-card border-line'}`}
                   style={{ minHeight: 44 }} accessibilityRole="button">
-                  <Text className={`font-display uppercase text-label ${category === c ? 'text-ink' : 'text-ink-2'}`}>{c}</Text>
+                  <Text className={`font-display uppercase text-label ${category === c ? 'text-on-brand' : 'text-ink-2'}`}>{c}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -245,7 +245,7 @@ export default function AffiliateAdminScreen() {
             className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-6 ${saving ? 'bg-paper-2' : 'bg-brand-500'}`}
             accessibilityRole="button">
             {saving ? <ActivityIndicator color={C.ink} />
-              : <Text className="font-display uppercase text-base text-ink">List in Fync Store</Text>}
+              : <Text className="font-display uppercase text-base text-on-brand">List in Fync Store</Text>}
           </TouchableOpacity>
 
           <View className="flex-row items-center mt-2 mb-3" style={{ gap: 12 }}>

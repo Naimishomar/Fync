@@ -17,12 +17,12 @@ export default function UtilityHubScreen() {
       id: 'organize',
       title: 'Organize',
       tools: [
-        { id: 'merge', title: 'Merge PDF', description: 'Join several PDFs into one file, in the order you pick.', icon: 'git-merge-outline', color: '#F97316', route: 'MergePdfScreen' },
-        { id: 'split', title: 'Split PDF', description: 'Pull a page range out into its own document.', icon: 'cut-outline', color: '#F97316', route: 'SplitPdfScreen' },
-        { id: 'extract', title: 'Extract Pages', description: 'Keep only the pages you name.', icon: 'documents-outline', color: '#F97316', route: 'ExtractPagesScreen' },
-        { id: 'remove', title: 'Remove Pages', description: 'Delete pages you do not need.', icon: 'trash-outline', color: '#F97316', route: 'RemovePagesScreen' },
-        { id: 'organize', title: 'Reorder Pages', description: 'Put pages in any order, or reverse them.', icon: 'swap-vertical-outline', color: '#F97316', route: 'OrganizePagesScreen' },
-        { id: 'rotate', title: 'Rotate PDF', description: 'Turn sideways scans the right way up.', icon: 'refresh-outline', color: '#F97316', route: 'RotatePdfScreen' },
+        { id: 'merge', title: 'Merge PDF', description: 'Join several PDFs into one file, in the order you pick.', icon: 'git-merge-outline', color: C.brand[500], route: 'MergePdfScreen' },
+        { id: 'split', title: 'Split PDF', description: 'Pull a page range out into its own document.', icon: 'cut-outline', color: C.brand[500], route: 'SplitPdfScreen' },
+        { id: 'extract', title: 'Extract Pages', description: 'Keep only the pages you name.', icon: 'documents-outline', color: C.brand[500], route: 'ExtractPagesScreen' },
+        { id: 'remove', title: 'Remove Pages', description: 'Delete pages you do not need.', icon: 'trash-outline', color: C.brand[500], route: 'RemovePagesScreen' },
+        { id: 'organize', title: 'Reorder Pages', description: 'Put pages in any order, or reverse them.', icon: 'swap-vertical-outline', color: C.brand[500], route: 'OrganizePagesScreen' },
+        { id: 'rotate', title: 'Rotate PDF', description: 'Turn sideways scans the right way up.', icon: 'refresh-outline', color: C.brand[500], route: 'RotatePdfScreen' },
       ],
     },
     {
@@ -57,7 +57,7 @@ export default function UtilityHubScreen() {
   const toolCount = groups.reduce((n, g) => n + g.tools.length, 0);
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#F5F2EC' }}>
+    <View className="flex-1" style={{ backgroundColor: C.paper }}>
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <AppBar title="Utility Hub" onBack={() => navigation.goBack()}
           right={<Ionicons name="construct-outline" size={24} color={C.brand[500]} style={{ marginRight: 11 }} />} />

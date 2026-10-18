@@ -151,11 +151,11 @@ const LeaderboardScreen = () => {
   const renderItem = ({ item, index }: { item: any; index: number }) => {
     // Styling for Top 3 Ranks
     let rankColor = 'text-ink-3';
-    let iconColor = '#8B857E';
+    let iconColor = C.ink3;
     let cardBg = 'bg-card';
-    if (index === 0) { rankColor = 'text-warning'; iconColor = '#B45309'; cardBg = 'bg-warning/10'; } // Gold
-    else if (index === 1) { rankColor = 'text-ink-3'; iconColor = '#8B857E'; cardBg = 'bg-paper-2/50'; } // Silver
-    else if (index === 2) { rankColor = 'text-accent-text'; iconColor = '#EA580C'; cardBg = 'bg-brand-50/50'; } // Bronze
+    if (index === 0) { rankColor = 'text-warning'; iconColor = C.warning; cardBg = 'bg-warning/10'; } // Gold
+    else if (index === 1) { rankColor = 'text-ink-3'; iconColor = C.ink3; cardBg = 'bg-paper-2/50'; } // Silver
+    else if (index === 2) { rankColor = 'text-accent-text'; iconColor = C.brand[600]; cardBg = 'bg-brand-50/50'; } // Bronze
 
     return (
       <View className={`flex-row items-center ${cardBg} p-5 mb-4 mx-gutter rounded-card border border-line shadow-hair`}>
@@ -197,7 +197,7 @@ const LeaderboardScreen = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <SafeAreaView className="flex-1" edges={['bottom']}>
         {/* HEADER — kit AppBar; there's no back here (reached via replace), so Home leads the actions. */}

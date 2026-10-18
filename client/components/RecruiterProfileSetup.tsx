@@ -168,7 +168,7 @@ export default function RecruiterProfileSetup() {
                 </View>
               )}
               <View className="absolute right-0 bg-brand-500 border-2 border-ink h-8 w-8 items-center justify-center border-paper rounded-md bottom-0">
-                <Ionicons name="camera" size={14} color={C.ink} />
+                <Ionicons name="camera" size={14} color={C.onBrand} />
               </View>
             </Pressable>
             <Text className="text-ink-3 font-medium text-xs mt-3">Upload Profile Picture</Text>
@@ -176,14 +176,14 @@ export default function RecruiterProfileSetup() {
 
           <Text className="text-sm font-semibold text-ink mb-2 mt-4">Personal Details</Text>
           <TextInput
-            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
             placeholderTextColor={C.ink3}
             placeholder="Full Name"
             value={name}
             onChangeText={setName}
           />
           <TextInput
-            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
             placeholderTextColor={C.ink3}
             placeholder="Password"
             value={password}
@@ -193,21 +193,21 @@ export default function RecruiterProfileSetup() {
 
           <Text className="text-sm font-semibold text-ink mb-2 mt-4">Company Verification</Text>
           <TextInput
-            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
             placeholderTextColor={C.ink3}
             placeholder="Company Name"
             value={company}
             onChangeText={setCompany}
           />
           <TextInput
-            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
             placeholderTextColor={C.ink3}
             placeholder="Designation / Role"
             value={role}
             onChangeText={setRole}
           />
           <TextInput
-            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
             placeholderTextColor={C.ink3}
             placeholder="Company Website URL (Optional)"
             value={companyWebsite}
@@ -215,14 +215,14 @@ export default function RecruiterProfileSetup() {
             onChangeText={setCompanyWebsite}
           />
           <TextInput
-            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
             placeholderTextColor={C.ink3}
             placeholder="Industry (e.g. IT, Finance) (Optional)"
             value={industry}
             onChangeText={setIndustry}
           />
           <TextInput
-            className="mb-4 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
             placeholderTextColor={C.ink3}
             placeholder="Number of Employees (Optional)"
             value={companySize}
@@ -231,7 +231,7 @@ export default function RecruiterProfileSetup() {
           />
           <Text className="text-sm font-semibold text-ink mb-2 mt-4">Professional Link</Text>
           <TextInput
-            className="mb-8 bg-white border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
+            className="mb-8 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
             placeholderTextColor={C.ink3}
             placeholder="LinkedIn Profile URL (Optional)"
             value={linkedIn}
@@ -247,7 +247,7 @@ export default function RecruiterProfileSetup() {
             {isLoading ? (
               <ActivityIndicator color={C.ink} />
             ) : (
-              <Text className="text-white text-base font-semibold">Complete Setup</Text>
+              <Text className="text-paper text-base font-semibold">Complete Setup</Text>
             )}
           </Pressable>
         </View>

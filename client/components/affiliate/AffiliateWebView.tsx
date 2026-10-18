@@ -7,7 +7,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
-import { C } from '../../constants/colors';
+import { C, themed } from '../../constants/colors';
 import { AppBar, IconBtn, Meta } from '../ui/kit';
 
 const AffiliateWebView = () => {
@@ -134,10 +134,10 @@ const AffiliateWebView = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
     container: {
         flex: 1,
-        backgroundColor: '#F5F2EC',
+        backgroundColor: C.paper,
     },
     url: {
         paddingHorizontal: 20,
@@ -153,12 +153,12 @@ const styles = StyleSheet.create({
     },
     loadingOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: '#F5F2EC',
+        backgroundColor: C.paper,
         justifyContent: 'center',
         alignItems: 'center',
     },
     loadingText: {
-        color: '#8B857E',
+        color: C.ink3,
         marginTop: 15,
         fontSize: 14,
     },
@@ -168,8 +168,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 15,
         borderTopWidth: 1,
-        borderTopColor: '#E3DDD3',
-        backgroundColor: '#FFFFFF',
+        borderTopColor: C.line,
+        backgroundColor: C.card,
     },
     navControls: {
         flexDirection: 'row',
@@ -182,16 +182,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     doneButton: {
-        backgroundColor: '#EA580C',
+        backgroundColor: C.brand[600],
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 10,
     },
     doneButtonText: {
-        color: '#12100E',
+        color: C.onBrand,
         fontFamily: 'Inter_700Bold',
         fontSize: 14,
     }
-});
+}));
 
 export default AffiliateWebView;

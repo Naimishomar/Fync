@@ -30,7 +30,7 @@ const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) =
                         cachePolicy="memory-disk"
                     />
                     {!isInvitation && (
-                        <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full border-4 border-white shadow-hair" />
+                        <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full border-4 border-card shadow-hair" />
                     )}
                 </View>
 
@@ -54,7 +54,7 @@ const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) =
                                 onPress={() => onAccept(item._id)}
                                 className="bg-ink px-2.5 py-1 rounded-full"
                             >
-                                <Text className="text-white text-label font-display uppercase">Accept Intel</Text>
+                                <Text className="text-paper text-label font-display uppercase">Accept Intel</Text>
                             </TouchableOpacity>
                         ) : (
                             <>
@@ -63,7 +63,7 @@ const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) =
                                 </View>
                                 {hasId(item.admins, userId) && (
                                     <View className="bg-ink px-2.5 py-1 rounded-full">
-                                        <Text className="text-white text-label font-display uppercase">Admin Access</Text>
+                                        <Text className="text-paper text-label font-display uppercase">Admin Access</Text>
                                     </View>
                                 )}
                             </>
@@ -152,7 +152,7 @@ const ClubListScreen = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             
             {/* Background Protocol Gradient */}
 
@@ -174,13 +174,13 @@ const ClubListScreen = () => {
                                 </View>
                                 <View className="ml-6">
                                     <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
-                                      <Text className="text-white font-display uppercase text-xs">Establish Hub</Text>
+                                      <Text className="text-paper font-display uppercase text-xs">Establish Hub</Text>
                                       <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                                     </View>
-                                    <Text className="text-white/40 text-label font-semibold uppercase italic">New Community Protocol</Text>
+                                    <Text className="text-paper/40 text-label font-semibold uppercase italic">New Community Protocol</Text>
                                 </View>
                             </View>
-                            <Ionicons name="chevron-forward" size={24} color="white" opacity={0.3} />
+                            <Ionicons name="chevron-forward" size={24} color={C.paper} opacity={0.3} />
                         </TouchableOpacity>
                     }
                     data={[
@@ -216,7 +216,7 @@ const ClubListScreen = () => {
                             <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
                                 <MaterialCommunityIcons name="shield-lock-outline" size={48} color={C.ink4} />
                             </View>
-                            <Text className="font-semibold text-base text-ink text-center">Hub Empty</Text>
+                            <Text className="font-semibold text-base text-on-brand text-center">Hub Empty</Text>
                             <Text className="font-sans text-sm text-ink-4 mt-2 text-center">
                                 Your authorization space is empty.{"\n"}Establish a hub or wait for a clearance signal.
                             </Text>
@@ -263,8 +263,8 @@ const ClubListScreen = () => {
                                 disabled={verifying || joinCode.length !== 6}
                                 className={`mt-10 w-full py-5 rounded-card items-center border-2 border-ink ${joinCode.length === 6 ? 'bg-brand-500' : 'bg-paper-2'}`}
                             >
-                                {verifying ? <ActivityIndicator color={C.ink} /> : (
-                                    <Text className={`font-display uppercase ${joinCode.length === 6 ? 'text-ink' : 'text-ink-4'}`} style={{ fontSize: 14, letterSpacing: 0.3 }}>
+                                {verifying ? <ActivityIndicator color={joinCode.length === 6 ? C.onBrand : C.ink} /> : (
+                                    <Text className={`font-display uppercase ${joinCode.length === 6 ? 'text-on-brand' : 'text-ink-4'}`} style={{ fontSize: 14, letterSpacing: 0.3 }}>
                                         Join Club
                                     </Text>
                                 )}

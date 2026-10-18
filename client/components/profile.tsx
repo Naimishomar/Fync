@@ -43,7 +43,7 @@ type UserType = {
 
 
 // ─── SECTION HEADER ──────────────────────────────────────────────────────────
-const SH = ({ title, icon, accent = '#F97316' }: { title: string; icon: string; accent?: string }) => (
+const SH = ({ title, icon, accent = C.brand[500] }: { title: string; icon: string; accent?: string }) => (
   <View className="flex-row items-center mb-3 mt-6" style={{ gap: 12 }}>
 
     <View className="hidden">
@@ -144,7 +144,7 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
           <Pressable onPress={onClose} hitSlop={10}><Ionicons name="close" size={24} color={C.ink2} /></Pressable>
           <Text className="font-display text-h2 text-ink">Update Coding Stats</Text>
           <Pressable onPress={save} disabled={saving} className="bg-brand-500 px-4 py-2 rounded-xl">
-            {saving ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-ink font-semibold">Save</Text>}
+            {saving ? <ActivityIndicator size="small" color={C.onBrand} /> : <Text className="text-on-brand font-semibold">Save</Text>}
           </Pressable>
         </View>
         </SafeAreaView>
@@ -218,8 +218,8 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
               </View>
 
               <View className="mt-4 border-2 border-ink bg-brand-500 items-center justify-center flex-row rounded-md" style={{ minHeight: 48 }}>
-                <Ionicons name={BADGE_ICON[user.fyncBadge || 'Newcomer']} size={16} color={C.ink} style={{ marginRight: 8 }} />
-                <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Boost Score</Text>
+                <Ionicons name={BADGE_ICON[user.fyncBadge || 'Newcomer']} size={16} color={C.onBrand} style={{ marginRight: 8 }} />
+                <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Boost Score</Text>
               </View>
             </View>
           </StampCard>
@@ -237,7 +237,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       {/* ── Skills ──────────────────────────────────────────────────────── */}
       {skills.length > 0 && (
         <View className="mx-4 mt-4 bg-card rounded-sheet p-6 border border-line shadow-hair">
-          <SH title="Skills & Stack" icon="code-slash-outline" accent="#7C3AED" />
+          <SH title="Skills & Stack" icon="code-slash-outline" accent={C.fam.study} />
           <View className="flex-row flex-wrap gap-2">
             {skills.map((s, i) => <SkillChip key={i} label={s} />)}
           </View>
@@ -247,7 +247,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       {/* ── Interests & Hobbies ─────────────────────────────────────────── */}
       {!!(user?.interest || user?.hobbies) && (
         <View className="mx-4 mt-4 bg-card rounded-sheet p-6 border border-line shadow-hair">
-          <SH title="Vibe & Interests" icon="heart-outline" accent="#DB2777" />
+          <SH title="Vibe & Interests" icon="heart-outline" accent={C.fam.fun} />
           <View className="flex-row flex-wrap gap-3">
             {(Array.isArray(user.interest) ? user.interest : [user.interest]).filter(Boolean).map((t, i) => (
               <View key={`i${i}`} className="flex-row items-center bg-paper-2 px-4 py-2 rounded-card border border-line">
@@ -294,7 +294,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
         <View className="mx-4 mt-4 bg-paper-2 rounded-sheet p-1">
           <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
             <View className="flex-row items-center justify-between mb-5">
-              <SH title="Coding Stats" icon="code-slash-outline" accent="#0891B2" />
+              <SH title="Coding Stats" icon="code-slash-outline" accent={C.fam.social} />
               {isOwner && (
                 <Pressable onPress={() => setShowCodingModal(true)}
                   className="bg-fam-career/10 px-3 py-1.5 rounded-xl border border-fam-career/15">
@@ -311,7 +311,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
                     <Text className="text-ink-3 font-display text-label uppercase">Total Solved</Text>
                     <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
                   </View>
-                  <Text className="text-white font-display text-2xl">{cs.totalSolved}</Text>
+                  <Text className="text-paper font-display text-2xl">{cs.totalSolved}</Text>
                 </View>
                 <View className="w-12 h-12 bg-card/10 rounded-card items-center justify-center">
                   <Ionicons name="trophy" size={24} color="#F89F1B" />
@@ -322,19 +322,19 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
             <View className="flex-row gap-3">
               <CodingPlatformCard
                 icon="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0"
-                name="LeetCode" color="#F89F1B" bg="#EDE8E0"
+                name="LeetCode" color="#F89F1B" bg={C.paper2}
                 username={cp.leetcode} solved={cs.leetcodeSolved} rating={cs.leetcodeRating}
                 profileUrl={`https://leetcode.com/${cp.leetcode}`}
               />
               <CodingPlatformCard
                 icon="https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png"
-                name="GFG" color={C.success} bg="#EDE8E0"
+                name="GFG" color={C.success} bg={C.paper2}
                 username={cp.gfg} solved={cs.gfgSolved} rating={cs.gfgRating}
                 profileUrl={`https://www.geeksforgeeks.org/user/${cp.gfg}`}
               />
               <CodingPlatformCard
                 icon="https://cdn.codechef.com/images/cc-logo.svg"
-                name="CodeChef" color="#6F4E37" bg="#EDE8E0"
+                name="CodeChef" color="#6F4E37" bg={C.paper2}
                 username={cp.codechef} solved={cs.codechefSolved} rating={cs.codechefRating}
                 profileUrl={`https://www.codechef.com/users/${cp.codechef}`}
               />
@@ -346,7 +346,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       {/* ── Social Links ─────────────────────────────────────────────────── */}
       {!!(user?.github_id || user?.linkedIn_id || user?.githubUsername) && (
         <View className="mx-4 mt-6 bg-card rounded-sheet p-6 border border-line shadow-hair">
-          <SH title="Connected Accounts" icon="share-outline" accent="#57534E" />
+          <SH title="Connected Accounts" icon="share-outline" accent={C.ink2} />
           <View className="gap-3">
             {!!user?.github_id && (
               <Pressable onPress={() => Linking.openURL(user.github_id!).catch(() => {})}
@@ -676,7 +676,7 @@ function Profile() {
             <React.Fragment key={i}>
               {i > 0 && <View className="w-[1px] h-8 self-center bg-card/10" />}
               <Pressable className="items-center flex-1" onPress={s.onPress}>
-                <Text className="text-xl font-display text-white">{s.value}</Text>
+                <Text className="text-xl font-display text-paper">{s.value}</Text>
                 <Text className="text-ink-3 text-label font-display uppercase mt-1">{s.label}</Text>
               </Pressable>
             </React.Fragment>
@@ -688,7 +688,7 @@ function Profile() {
           <View className="w-full mt-4 bg-paper-2 border border-line px-5 py-3 flex-row items-center justify-between rounded-md">
             <View className="flex-row items-center">
               <View className="w-8 h-8 bg-brand-500 rounded-xl items-center justify-center mr-3">
-                <Ionicons name="flash" size={16} color={C.ink} />
+                <Ionicons name="flash" size={16} color={C.onBrand} />
               </View>
               <View>
                 <Text className="text-brand-900 font-display text-label uppercase">
@@ -717,7 +717,7 @@ function Profile() {
           >
              <View className="flex-row items-center">
               <View className="w-8 h-8 bg-brand-500 rounded-xl items-center justify-center mr-3">
-                <Ionicons name="alert-circle" size={18} color={C.ink} />
+                <Ionicons name="alert-circle" size={18} color={C.onBrand} />
               </View>
               <View>
                 <Text className="text-brand-900 font-display text-label uppercase">Plan Expired</Text>
@@ -736,7 +736,7 @@ function Profile() {
           </Pressable>
           <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')}
             className="flex-1 bg-brand-500 py-4 rounded-card items-center shadow-hair">
-            <Text className="text-ink font-display uppercase text-sm">Portfolio</Text>
+            <Text className="text-on-brand font-display uppercase text-sm">Portfolio</Text>
           </Pressable>
         </View>
       </View>
@@ -757,7 +757,7 @@ function Profile() {
           <Pressable key={t.key} onPress={() => setActiveTab(t.key as any)} className="flex-1 items-center py-2 relative">
             <View className={`w-14 h-10 rounded-card items-center justify-center ${isActive ? 'bg-paper-2' : 'bg-transparent'}`}>
               <Ionicons name={(isActive ? t.activeIcon : t.icon) as any} size={24}
-                color={isActive ? '#F97316' : '#C4BEB6'} />
+                color={isActive ? C.brand[500] : C.ink4} />
             </View>
             {isActive && <View className="absolute bottom-[-4px] w-1 h-1 bg-brand-500 rounded-full" />}
           </Pressable>
@@ -828,7 +828,7 @@ function Profile() {
     // Plain View: tabBarClearance already includes the bottom inset, and a
     // bottom SafeAreaView counted it a second time.
     <View className="flex-1 bg-paper">
-      <StatusBar style="dark" />
+      <StatusBar style={C.statusStyle} />
       <AppBar title="Profile" />
       {/* key={activeTab} forces a remount when the column count changes,
           which both list implementations require. */}

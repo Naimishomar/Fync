@@ -91,7 +91,7 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             {/* HEADER DECORATION - MATCHING LEADERBOARD */}
 
@@ -139,7 +139,7 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                                                 onPress={() => setActiveFilter(chip.id as any)}
                                                 className={`flex-1 items-center py-3 rounded-md ${activeFilter === chip.id ? 'bg-ink' : 'bg-transparent'}`}
                                             >
-                                                <Text className={`font-display text-label uppercase ${activeFilter === chip.id ? 'text-white' : 'text-ink-3'}`}>{chip.label}</Text>
+                                                <Text className={`font-display text-label uppercase ${activeFilter === chip.id ? 'text-paper' : 'text-ink-3'}`}>{chip.label}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </View>

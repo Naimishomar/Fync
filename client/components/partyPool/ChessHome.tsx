@@ -109,13 +109,13 @@ const ChessHome = () => {
         <View className="flex-1 w-full mt-4">
             <View 
                 className="rounded-sheet p-card-pad shadow-hair border border-line overflow-hidden"
-             style={{ backgroundColor: '#ffffff' }}>
+             style={{ backgroundColor: C.card }}>
                 {/* Decorative background elements */}
                 <View className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-recruiter/10 rounded-full blur-3xl" />
                 <View className="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-brand-500/10 rounded-full blur-3xl" />
 
                 <View className="items-center mb-10 mt-4">
-                    <View className="w-24 h-24 bg-ink rounded-sheet justify-center items-center mb-6 shadow-hair border-2 border-recruiter/20">
+                    <View className="w-24 h-24 bg-night rounded-sheet justify-center items-center mb-6 shadow-hair border-2 border-recruiter/20">
                         <FontAwesome5 name="chess-knight" size={44} color={C.recruiter} />
                     </View>
                     <Text className="text-2xl font-display text-ink uppercase text-center leading-8">Fync Chess Arena</Text>
@@ -149,7 +149,7 @@ const ChessHome = () => {
                                 className="flex-1 flex-row items-center justify-between px-6"
                              style={{ backgroundColor: '#171320' }}>
                                 <View className="flex-row items-center">
-                                    <View className="w-12 h-12 bg-card/10 rounded-full items-center justify-center border border-white/10">
+                                    <View className="w-12 h-12 bg-white/10 rounded-full items-center justify-center border border-white/10">
                                         <Ionicons name="globe" size={24} color={C.recruiter} />
                                     </View>
                                     <View className="ml-4">
@@ -157,7 +157,7 @@ const ChessHome = () => {
                                         <Text className="text-recruiter font-semibold text-label mt-0.5 uppercase">1v1 Matchmaking</Text>
                                     </View>
                                 </View>
-                                <View className="w-8 h-8 bg-card/10 rounded-full items-center justify-center">
+                                <View className="w-8 h-8 bg-white/10 rounded-full items-center justify-center">
                                     <Ionicons name="chevron-forward" size={16} color={C.recruiter} />
                                 </View>
                             </View>

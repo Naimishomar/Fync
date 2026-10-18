@@ -109,7 +109,7 @@ const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete,
                         <Ionicons
                             name={item.liked_by?.includes(user?._id || user?.id) ? "heart" : "heart-outline"}
                             size={20}
-                            color={item.liked_by?.includes(user?._id || user?.id) ? "#DC2626" : "#8B857E"}
+                            color={item.liked_by?.includes(user?._id || user?.id) ? C.danger : C.ink3}
                         />
                         <Text className="text-ink-2 ml-2 text-xs font-display">{item.likes || 0}</Text>
                     </TouchableOpacity>
@@ -369,7 +369,7 @@ const ConfessionFeed = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar
@@ -484,7 +484,7 @@ const ConfessionFeed = () => {
                                 {submitting ? (
                                     <ActivityIndicator color={C.ink} />
                                 ) : (
-                                    <Text className="text-ink font-display uppercase text-sm">
+                                    <Text className="text-on-brand font-display uppercase text-sm">
                                         {editingConfession ? 'Execute Update' : 'Secure Broadcast'}
                                     </Text>
                                 )}

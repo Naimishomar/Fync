@@ -287,7 +287,7 @@ export default function EventCommunityChat({ route }: any) {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar title={eventName} onBack={() => goBack()} />
 

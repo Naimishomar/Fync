@@ -439,7 +439,7 @@ const HackathonCreate = () => {
                       accessibilityRole="button"
                       accessibilityState={{ selected: on }}
                     >
-                      <Text className={`font-semibold text-label ${on ? 'text-white' : 'text-ink-2'}`}>{m}</Text>
+                      <Text className={`font-semibold text-label ${on ? 'text-paper' : 'text-ink-2'}`}>{m}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -482,7 +482,7 @@ const HackathonCreate = () => {
                       accessibilityRole="button"
                       accessibilityState={{ selected: on }}
                     >
-                      <Text className={`font-semibold text-label ${on ? 'text-ink' : 'text-ink-2'}`}>{label}</Text>
+                      <Text className={`font-semibold text-label ${on ? 'text-on-brand' : 'text-ink-2'}`}>{label}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -652,7 +652,7 @@ const HackathonCreate = () => {
                       <View className="flex-row">
                         {['Title', 'Platinum', 'Gold', 'Silver', 'Bronze', 'Partner'].slice(0, 3).map(lvl => (
                           <TouchableOpacity key={lvl} onPress={() => updateSponsor(i, 'level', lvl)} className={`px-3 py-1 rounded-lg border mr-2 ${s.level === lvl ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
-                            <Text className={`text-label font-semibold ${s.level === lvl ? 'text-white' : 'text-ink-3'}`}>{lvl}</Text>
+                            <Text className={`text-label font-semibold ${s.level === lvl ? 'text-paper' : 'text-ink-3'}`}>{lvl}</Text>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -706,7 +706,7 @@ const HackathonCreate = () => {
             <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
               {prizes.map((p, i) => (
                 <View key={i} className="flex-row items-center gap-3 mb-4">
-                  <View className="w-10 h-10 rounded-xl bg-ink items-center justify-center border border-ink shadow-hair"><Text className="font-semibold text-white text-label">#{p.rank}</Text></View>
+                  <View className="w-10 h-10 rounded-xl bg-ink items-center justify-center border border-ink shadow-hair"><Text className="font-semibold text-paper text-label">#{p.rank}</Text></View>
                   <TextInput value={p.title} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, title: t } : x))} placeholder="Prize title" placeholderTextColor={C.ink3} className="flex-1 bg-paper rounded-card px-5 py-3 font-semibold text-xs text-ink border border-line" />
                   <TextInput value={p.amount} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, amount: t } : x))} placeholder="Amount" placeholderTextColor={C.ink3} className="flex-1 bg-paper rounded-card px-5 py-3 font-semibold text-xs text-ink border border-line" />
                 </View>
@@ -718,11 +718,11 @@ const HackathonCreate = () => {
             </View>
 
             <TouchableOpacity onPress={handleSubmit} disabled={loading} className="mt-12 overflow-hidden rounded-sheet shadow-hair">
-              <View className="py-6 items-center justify-center flex-row" style={{ backgroundColor: '#F97316' }}>
-                {loading ? <ActivityIndicator size="small" color={C.ink} /> : (
+              <View className="py-6 items-center justify-center flex-row" style={{ backgroundColor: C.brand[500] }}>
+                {loading ? <ActivityIndicator size="small" color={C.onBrand} /> : (
                   <>
-                    <Text className="text-ink font-display mr-3 text-lg">{isEdit ? 'Save changes' : 'Create hackathon'}</Text>
-                    <Ionicons name="rocket" size={24} color={C.ink} />
+                    <Text className="text-on-brand font-display mr-3 text-lg">{isEdit ? 'Save changes' : 'Create hackathon'}</Text>
+                    <Ionicons name="rocket" size={24} color={C.onBrand} />
                   </>
                 )}
               </View>

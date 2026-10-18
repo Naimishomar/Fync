@@ -132,9 +132,9 @@ const MultiSelectSheet = ({
                 <Ionicons
                   name={allSelected ? 'checkmark-circle' : 'ellipse-outline'}
                   size={20}
-                  color={allSelected ? '#12100E' : '#8B857E'}
+                  color={allSelected ? C.onBrand : C.ink3}
                 />
-                <Text className="text-ink text-sm font-semibold ml-3">{allLabel}</Text>
+                <Text className={`${allSelected ? 'text-on-brand' : 'text-ink'} text-sm font-semibold ml-3`}>{allLabel}</Text>
               </TouchableOpacity>
             }
             renderItem={({ item }) => {
@@ -150,7 +150,7 @@ const MultiSelectSheet = ({
                   <Ionicons
                     name={on ? 'checkbox' : 'square-outline'}
                     size={19}
-                    color={on ? '#C2410C' : '#8B857E'}
+                    color={on ? C.brand[700] : C.ink3}
                   />
                   <Text className="text-ink text-sm font-semibold ml-3 flex-1">{item}</Text>
                 </TouchableOpacity>
@@ -177,7 +177,7 @@ const MultiSelectSheet = ({
               activeOpacity={0.9}
               accessibilityRole="button"
             >
-              <Text className="text-white text-sm font-semibold">
+              <Text className="text-paper text-sm font-semibold">
                 {allSelected ? allLabel : `Done · ${selected.length} selected`}
               </Text>
             </TouchableOpacity>

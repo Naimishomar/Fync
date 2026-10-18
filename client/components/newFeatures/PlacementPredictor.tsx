@@ -67,7 +67,7 @@ const PlacementPredictor = () => {
     if (result) {
         return (
             <View className="flex-1 bg-paper">
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle={C.barStyle} />
                 <SafeAreaView className="flex-1" edges={['bottom']}>
                     <AppBar title="Analysis Report" onBack={() => setResult(null)} />
 
@@ -110,10 +110,10 @@ const PlacementPredictor = () => {
                         {/* Salary Estimate */}
                         <View
                             className="p-6 rounded-sheet mb-6 flex-row items-center justify-between"
-                         style={{ backgroundColor: '#12100E' }}>
+                         style={{ backgroundColor: C.ink }}>
                             <View>
-                                <Text className="text-white/60 text-label font-semibold uppercase">Est. Market Value (INR)</Text>
-                                <Text className="text-white text-xl font-display">{result.salary_estimate}</Text>
+                                <Text className="text-paper/60 text-label font-semibold uppercase">Est. Market Value (INR)</Text>
+                                <Text className="text-paper text-xl font-display">{result.salary_estimate}</Text>
                             </View>
                             <View className="bg-brand-500/20 w-12 h-12 rounded-card items-center justify-center border border-white/10">
                                 <MaterialCommunityIcons name="currency-inr" size={24} color={C.brand[500]} />
@@ -171,7 +171,7 @@ const PlacementPredictor = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar title="Placement Predictor" onBack={() => navigation.goBack()} />
 
@@ -198,7 +198,7 @@ const PlacementPredictor = () => {
                         className={`p-card-pad rounded-sheet border-2 border-dashed items-center justify-center ${resume ? 'bg-brand-50 border-ink' : 'bg-paper-2 border-line'}`}
                     >
                         <View className={`w-16 h-16 rounded-card items-center justify-center mb-4 ${resume ? 'bg-brand-500' : 'bg-paper-2'}`}>
-                            <Ionicons name={resume ? "document-text" : "cloud-upload"} size={32} color={C.ink} />
+                            <Ionicons name={resume ? "document-text" : "cloud-upload"} size={32} color={resume ? C.onBrand : C.ink} />
                         </View>
                         <Text className={`font-display uppercase text-sm text-center ${resume ? 'text-accent-text' : 'text-ink-3'}`}>
                             {resume ? resume.name : 'Upload PDF Resume'}
@@ -223,13 +223,13 @@ const PlacementPredictor = () => {
                     >
                         <View
                             className="py-4 rounded-card flex-row justify-center items-center shadow-hair"
-                         style={{ backgroundColor: '#F97316' }}>
+                         style={{ backgroundColor: C.brand[500] }}>
                             {loading ? (
-                                <ActivityIndicator color={C.ink} />
+                                <ActivityIndicator color={C.onBrand} />
                             ) : (
                                 <View className='flex-row rounded-card'>
-                                    <Text className="text-ink font-display text-lg mr-1 uppercase">Generate Prediction</Text>
-                                    <Ionicons name="flash" size={22} color={C.ink} />
+                                    <Text className="text-on-brand font-display text-lg mr-1 uppercase">Generate Prediction</Text>
+                                    <Ionicons name="flash" size={22} color={C.onBrand} />
                                 </View>
                             )}
                         </View>

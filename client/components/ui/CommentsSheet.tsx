@@ -156,7 +156,7 @@ const CommentRow = React.memo(function CommentRow({
                 onChangeText={ctx.setEditingText}
                 multiline
                 autoFocus
-                className="bg-white border-2 border-ink rounded-xl px-3 py-2 text-ink"
+                className="bg-card border-2 border-ink rounded-xl px-3 py-2 text-ink"
                 style={{ fontSize: 13 }}
               />
               <View className="flex-row mt-2">
@@ -166,7 +166,7 @@ const CommentRow = React.memo(function CommentRow({
                   className="bg-brand-500 border-2 border-ink rounded-xl px-4 items-center justify-center mr-2"
                   style={{ minHeight: 36 }}
                 >
-                  <Text className="font-display text-ink" style={{ fontSize: 11 }}>SAVE</Text>
+                  <Text className="font-display text-on-brand" style={{ fontSize: 11 }}>SAVE</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={ctx.onCancelEdit}
@@ -533,7 +533,7 @@ export default function CommentsSheet({
           )}
 
           <View
-            className="border-t-2 border-ink bg-white px-3 pt-2"
+            className="border-t-2 border-ink bg-card px-3 pt-2"
             style={{ paddingBottom: keyboardUp ? 8 : bottomInset }}
           >
             {replyingTo && (
@@ -569,8 +569,8 @@ export default function CommentsSheet({
                 accessibilityLabel={replyingTo ? 'Post reply' : 'Post comment'}
               >
                 {posting
-                  ? <ActivityIndicator size="small" color={C.ink} />
-                  : <Ionicons name="arrow-up" size={20} color={!text.trim() ? '#8B857E' : '#12100E'} />}
+                  ? <ActivityIndicator size="small" color={C.onBrand} />
+                  : <Ionicons name="arrow-up" size={20} color={!text.trim() ? C.ink3 : C.onBrand} />}
               </TouchableOpacity>
             </View>
           </View>

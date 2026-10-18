@@ -111,7 +111,7 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
               </View>
               <Switch value={form.isCurrent}
                 onValueChange={v => setForm(p => ({ ...p, isCurrent: v }))}
-                trackColor={{ true: '#F97316' }} />
+                trackColor={{ true: C.brand[500] }} />
             </View>
 
             {!form.isCurrent && (
@@ -148,8 +148,8 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
               {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
                 : (
                   <>
-                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
-                    <Text className="text-white font-display uppercase text-xs ml-2">
+                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color={C.paper} className="mr-2" />
+                    <Text className="text-paper font-display uppercase text-xs ml-2">
                       {isEdit ? 'Update Record' : 'Commit Education'}
                     </Text>
                   </>

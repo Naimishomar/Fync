@@ -144,7 +144,7 @@ const OneVsOneSetup = () => {
     if (searching) {
         return (
             <View className="flex-1 bg-paper">
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle={C.barStyle} />
                 <SafeAreaView className="flex-1 justify-center items-center px-gutter">
                     <Animated.View style={{ transform: [{ scale: pulseAnim }] }} className="mb-10">
                         <View className="w-48 h-48 rounded-full border-4 border-brand-500/10 items-center justify-center">
@@ -178,7 +178,7 @@ const OneVsOneSetup = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar title="Choose Arena" onBack={() => navigation.goBack()} right={
@@ -215,7 +215,7 @@ const OneVsOneSetup = () => {
                                     <MaterialCommunityIcons
                                         name={arena.icon as any}
                                         size={24}
-                                        color={domain === arena.name ? '#F97316' : '#8B857E'}
+                                        color={domain === arena.name ? C.brand[500] : C.ink3}
                                     />
                                 </View>
                                 <Text className={`font-display uppercase text-label ${domain === arena.name ? 'text-ink' : 'text-ink-3'}`}>{arena.name}</Text>
@@ -253,8 +253,8 @@ const OneVsOneSetup = () => {
                         activeOpacity={0.8}
                         className='flex-row items-center justify-center bg-brand-500 border-2 border-ink py-4 rounded-card'
                     >
-                        <Text className="text-ink font-display text-lg uppercase mr-3">Locate Rival</Text>
-                        <Ionicons name="flash" size={22} color={C.ink} />
+                        <Text className="text-on-brand font-display text-lg uppercase mr-3">Locate Rival</Text>
+                        <Ionicons name="flash" size={22} color={C.onBrand} />
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>

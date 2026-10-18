@@ -81,7 +81,7 @@ export default function InterviewSetup() {
         const order = resOrder.data.order;
         const razorpayHtml = `
           <html>
-            <body style="background-color: #fff;">
+            <body style="background-color: ${C.card};">
               <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
               <script>
                 var options = {
@@ -323,8 +323,8 @@ export default function InterviewSetup() {
                   <ActivityIndicator color={C.ink} />
                 ) : (
                   <>
-                    <Text className="font-display text-ink uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>{paidDuration ? 'Retry Start' : 'Start Interview'}</Text>
-                    <Ionicons name="arrow-forward" size={16} color={C.ink} />
+                    <Text className="font-display text-on-brand uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>{paidDuration ? 'Retry Start' : 'Start Interview'}</Text>
+                    <Ionicons name="arrow-forward" size={16} color={C.onBrand} />
                   </>
                 )}
               </TouchableOpacity>
@@ -346,7 +346,7 @@ export default function InterviewSetup() {
           Alert.alert("Cancelled", "Payment was cancelled.");
         }}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: C.card }} edges={['bottom']}>
           <AppBar
             title="Secure Checkout"
             right={<IconBtn name="close" onPress={() => {

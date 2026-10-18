@@ -167,8 +167,8 @@ const FlappyBird = () => {
             transform: [{ rotate: `${Math.min(Math.max(velocity * 3, -30), 90)}deg` }]
           }}
         >
-           <View className="w-2 h-2 bg-card rounded-full absolute right-2 top-2">
-             <View className="w-1 h-1 bg-ink rounded-full absolute right-0 top-0" />
+           <View className="w-2 h-2 bg-white rounded-full absolute right-2 top-2">
+             <View className="w-1 h-1 bg-black rounded-full absolute right-0 top-0" />
            </View>
         </View>
 

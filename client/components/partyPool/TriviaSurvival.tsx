@@ -139,7 +139,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
     if (loading) {
         return (
-            <View className="grow bg-ink justify-center items-center rounded-sheet">
+            <View className="grow bg-night justify-center items-center rounded-sheet">
                 <ActivityIndicator size="large" color={C.danger} />
                 <Text className="text-white mt-4 font-display uppercase">Loading Trivia...</Text>
             </View>
@@ -148,7 +148,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
     if (status === 'gameover') {
         return (
-            <View className="grow bg-ink justify-center items-center rounded-sheet p-6 border-2 border-danger/30">
+            <View className="grow bg-night justify-center items-center rounded-sheet p-6 border-2 border-danger/30">
                 <Ionicons name="skull" size={80} color={C.danger} />
                 <Text className="text-white text-3xl font-display uppercase mt-4 text-center">You Died</Text>
                 
@@ -164,7 +164,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
                 </TouchableOpacity>
                 <TouchableOpacity 
                     onPress={onClose}
-                    className="mt-4 bg-ink px-gutter py-4 rounded-full w-full items-center border border-ink"
+                    className="mt-4 bg-night px-gutter py-4 rounded-full w-full items-center border border-night"
                 >
                     <Text className="text-white font-display uppercase">Exit</Text>
                 </TouchableOpacity>
@@ -174,16 +174,16 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
     const q = questions[currentIdx];
     // Dynamic health bar color
-    const healthColor = health > 50 ? '#047857' : health > 20 ? '#B45309' : '#DC2626';
+    const healthColor = health > 50 ? C.success : health > 20 ? C.warning : C.danger;
 
     return (
-        <View className="grow w-full rounded-sheet overflow-hidden bg-ink border border-ink">
+        <View className="grow w-full rounded-sheet overflow-hidden bg-night border border-night">
             {/* Top Bar - Health & Score */}
-            <View className="flex-row items-center justify-between p-6 bg-ink">
-                <TouchableOpacity onPress={onClose} hitSlop={8} className="bg-card/10 p-2 rounded-full">
+            <View className="flex-row items-center justify-between p-6 bg-night">
+                <TouchableOpacity onPress={onClose} hitSlop={8} className="bg-white/10 p-2 rounded-full">
                     <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
-                <View className="flex-1 mx-4 h-6 bg-ink rounded-full overflow-hidden border border-ink relative">
+                <View className="flex-1 mx-4 h-6 bg-night rounded-full overflow-hidden border border-night relative">
                     <View 
                         style={{ width: `${health}%`, backgroundColor: healthColor }} 
                         className="h-full rounded-full"
@@ -192,7 +192,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
                         Time Left: {(health / 10).toFixed(1)}s
                     </Text>
                 </View>
-                <View className="bg-card/10 px-4 py-2 rounded-full border border-white/10">
+                <View className="bg-white/10 px-4 py-2 rounded-full border border-white/10">
                     <Text className="font-display text-xs text-white">{score}</Text>
                 </View>
             </View>
@@ -217,7 +217,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
                     <TouchableOpacity 
                         key={i}
                         onPress={() => handleAnswer(opt)}
-                        className="bg-ink px-6 h-[64px] justify-center rounded-card border border-ink"
+                        className="bg-night px-6 h-[64px] justify-center rounded-card border border-night"
                     >
                         <Text 
                             className="text-white text-sm font-display text-center"

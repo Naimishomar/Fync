@@ -338,11 +338,11 @@ export default function TwelveAMClub() {
             {!isMe && (
                 <Image
                     source={{ uri: identity.avatar }}
-                    style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: C.ink, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginRight: 8, alignSelf: 'flex-end', marginBottom: 4 }}
+                    style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: C.night, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginRight: 8, alignSelf: 'flex-end', marginBottom: 4 }}
                     cachePolicy="memory-disk"
                 />
             )}
-            <View className={`max-w-[80%] rounded-xl px-4 py-3 ${isMe ? 'bg-recruiter' : 'bg-ink/90 border border-white/5'}`}>
+            <View className={`max-w-[80%] rounded-xl px-4 py-3 ${isMe ? 'bg-recruiter' : 'bg-night/90 border border-white/5'}`}>
                 <Pressable
                   onLongPress={() => mode === 'global' && openMessageMenu(item)}
                   delayLongPress={300}
@@ -352,7 +352,7 @@ export default function TwelveAMClub() {
                     )}
 
                     {mode === 'global' && item.replyTo && (
-                        <View className="bg-ink/50 border-l-2 border-recruiter rounded-md mb-2 p-2">
+                        <View className="bg-night/50 border-l-2 border-recruiter rounded-md mb-2 p-2">
                              <Text className="text-recruiter text-label font-display uppercase">{item.replyTo.senderName}</Text>
                              <Text className="text-white/50 text-xs" numberOfLines={1}>{item.replyTo.text}</Text>
                         </View>
@@ -393,7 +393,7 @@ export default function TwelveAMClub() {
 
   if (!isOpen) {
     return (
-      <View className="flex-1 bg-ink justify-center items-center">
+      <View className="flex-1 bg-night justify-center items-center">
         <Image source={{ uri: BG_IMAGE }} style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0.6 }} />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.95)']} className="absolute w-full h-full" />
         {/* No way out on iOS without this: the locked state had no back button. */}
@@ -411,7 +411,7 @@ export default function TwelveAMClub() {
   }
 
   return (
-    <View className="flex-1 bg-ink">
+    <View className="flex-1 bg-night">
         <StatusBar barStyle="light-content" />
         <Image source={{ uri: BG_IMAGE }} style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0.3 }} />
         <LinearGradient colors={['rgba(79, 70, 229, 0.1)', 'rgba(0,0,0,0.9)', '#12100E']} className="absolute w-full h-full" />
@@ -426,7 +426,7 @@ export default function TwelveAMClub() {
                             <TouchableOpacity
                                 onPress={reportPartner}
                                 accessibilityLabel="Report and leave"
-                                className="bg-ink border border-danger/40 px-2.5 py-1 rounded-full mr-2"
+                                className="bg-night border border-danger/40 px-2.5 py-1 rounded-full mr-2"
                             >
                                 <Text className="text-danger text-label font-display uppercase">Report</Text>
                             </TouchableOpacity>
@@ -434,7 +434,7 @@ export default function TwelveAMClub() {
                         {mode === 'private' && matchRoomId && (
                             <TouchableOpacity
                                 onPress={skipMatch}
-                                className="bg-ink border border-white/10 px-2.5 py-1 rounded-full mr-2"
+                                className="bg-night border border-white/10 px-2.5 py-1 rounded-full mr-2"
                             >
                                 <Text className="text-recruiter text-label font-display uppercase">Next</Text>
                             </TouchableOpacity>
@@ -464,7 +464,7 @@ export default function TwelveAMClub() {
                     </View>
                 ) : mode === 'private' && !matchRoomId ? (
                     <View className="flex-1 justify-center items-center px-gutter">
-                        <MaterialCommunityIcons name="comment-search-outline" size={60} color={C.ink2} />
+                        <MaterialCommunityIcons name="comment-search-outline" size={60} color={C.night3} />
                         <Text className="text-white text-xl font-display uppercase mt-4 text-center">Ready to Chat?</Text>
                         <Text className="text-night-3 text-sm text-center mt-2 leading-5">Match with someone anonymous and start a private conversation. Completely secret.</Text>
                         <TouchableOpacity 
@@ -503,20 +503,20 @@ export default function TwelveAMClub() {
                       </Text>
                     </View>
                     <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                      <Ionicons name="close-circle" size={20} color={C.ink3} />
+                      <Ionicons name="close-circle" size={20} color={C.night3} />
                     </TouchableOpacity>
                   </BlurView>
                 )}
 
                 {/* Hide input if searching or no match in private mode */}
                 {!(mode === 'private' && (isSearching || !matchRoomId)) && (
-                  <View className="bg-ink/80 px-5 pt-4 pb-8 border-t border-white/5">
+                  <View className="bg-night/80 px-5 pt-4 pb-8 border-t border-white/5">
                       <View className="flex-row items-end gap-3">
                           {mode === 'global' && (
                               <TouchableOpacity 
                                   onPress={pickImage}
                                   disabled={isProcessing}
-                                  className="w-11 h-11 bg-ink items-center justify-center mb-1 border-2 border-ink rounded-md"
+                                  className="w-11 h-11 bg-night items-center justify-center mb-1 border-2 border-night rounded-md"
                               >
                                   {isProcessing ? (
                                       <ActivityIndicator size="small" color={C.recruiter} />
@@ -526,10 +526,10 @@ export default function TwelveAMClub() {
                               </TouchableOpacity>
                           )}
                           
-                          <View className="flex-1 min-h-[44px] max-h-32 bg-ink/50 rounded-card px-4 border border-white/5 justify-center">
+                          <View className="flex-1 min-h-[44px] max-h-32 bg-night/50 rounded-card px-4 border border-white/5 justify-center">
                               <TextInput 
                                   placeholder={isProcessing ? "Sending binary data..." : mode === 'global' ? `Posting as ${myIdentity.username}...` : "Type a secret message..."}
-                                  placeholderTextColor={C.ink2}
+                                  placeholderTextColor={C.night3}
                                   className="text-white text-sm font-semibold"
                                   multiline
                                   value={inputText}
@@ -541,9 +541,9 @@ export default function TwelveAMClub() {
                           <TouchableOpacity 
                               onPress={sendMessage}
                               disabled={isProcessing || !inputText.trim()}
-                              className={`w-11 h-11 rounded-card items-center justify-center mb-1 ${inputText.trim() ? 'bg-recruiter' : 'bg-ink'}`}
+                              className={`w-11 h-11 rounded-card items-center justify-center mb-1 ${inputText.trim() ? 'bg-recruiter' : 'bg-night'}`}
                           >
-                              <Feather name="arrow-up" size={24} color={inputText.trim() ? "white" : "#57534E"} />
+                              <Feather name="arrow-up" size={24} color={inputText.trim() ? "white" : C.night3} />
                           </TouchableOpacity>
                       </View>
                       

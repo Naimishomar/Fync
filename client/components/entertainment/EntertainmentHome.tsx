@@ -66,7 +66,7 @@ const EntertainmentHome = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-ink justify-center items-center">
+      <View className="flex-1 bg-night justify-center items-center">
         <ActivityIndicator size="large" color={C.fam.fun} />
       </View>
     );
@@ -97,7 +97,7 @@ const EntertainmentHome = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-ink" edges={['bottom']}>
+    <SafeAreaView className="flex-1 bg-night" edges={['bottom']}>
       <StatusBar barStyle="light-content" />
       <AppBar night title="Fync Cinema" onBack={() => navigation.goBack()}
         right={<IconBtn name="search-outline" color="white" onPress={() => navigation.navigate('MovieSearch')} />} />
@@ -127,7 +127,7 @@ const EntertainmentHome = () => {
                 </Text>
                 <View className="flex-row items-center gap-2">
                   <View
-                    className="bg-danger px-2.5 py-1 border-2 border-ink"
+                    className="bg-danger px-2.5 py-1 border-2 border-night"
                     style={{
                       borderRadius: 4, transform: [{ rotate: '-1.6deg' }],
                       shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
@@ -169,7 +169,7 @@ const EntertainmentHome = () => {
             <TouchableOpacity
               key={cat}
               onPress={() => navigation.navigate('MovieList', { title: cat, genre })}
-              className="bg-ink px-6 py-2.5 rounded-full border border-ink"
+              className="bg-night px-6 py-2.5 rounded-full border border-night"
             >
               <Text className="text-white font-medium text-sm">{cat}</Text>
             </TouchableOpacity>

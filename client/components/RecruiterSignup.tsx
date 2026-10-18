@@ -125,11 +125,11 @@ export default function RecruiterSignup() {
         className="bg-paper"
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F5F2EC' }}
+          contentContainerStyle={{ flexGrow: 1, backgroundColor: C.paper }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View className="flex-1 bg-ink">
+          <View className="flex-1 bg-night">
 
             {/* The recruiter cut of the masthead. Same structure as the student
                 screens, different pitch and audience colour — a recruiter has no
@@ -148,7 +148,7 @@ export default function RecruiterSignup() {
                 />
                 <Image
                   source={require('../assets/fync-logo.jpg')}
-                  style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: '#12100E' }}
+                  style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: C.ink }}
                   resizeMode="cover"
                   accessibilityLabel="Fync"
                 />
@@ -223,7 +223,7 @@ export default function RecruiterSignup() {
                     {isLoading ? (
                       <ActivityIndicator color={C.ink} />
                     ) : (
-                      <Text className="text-white text-base font-semibold">Request Access</Text>
+                      <Text className="text-paper text-base font-semibold">Request Access</Text>
                     )}
                   </Pressable>
                 </>
@@ -255,9 +255,9 @@ export default function RecruiterSignup() {
                     disabled={isLoading}
                   >
                     {isLoading ? (
-                      <ActivityIndicator color={C.ink} />
+                      <ActivityIndicator color={C.onBrand} />
                     ) : (
-                      <Text className="text-ink text-base font-semibold">Verify OTP</Text>
+                      <Text className="text-on-brand text-base font-semibold">Verify OTP</Text>
                     )}
                   </Pressable>
 

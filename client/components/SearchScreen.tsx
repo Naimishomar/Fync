@@ -141,7 +141,7 @@ const SearchScreen = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       {/* HEADER DECORATION */}
 

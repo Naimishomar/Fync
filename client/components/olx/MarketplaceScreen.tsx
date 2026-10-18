@@ -119,7 +119,7 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
                                     onPress={() => setCategory(cat)}
                                     className={`px-6 py-3 rounded-card border mr-3 ${category === cat ? 'bg-ink border-ink shadow-hair ' : 'bg-card border-line shadow-hair'}`}
                                 >
-                                    <Text className={`font-display uppercase text-label ${category === cat ? 'text-white' : 'text-ink-3'}`}>{cat}</Text>
+                                    <Text className={`font-display uppercase text-label ${category === cat ? 'text-paper' : 'text-ink-3'}`}>{cat}</Text>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
@@ -128,7 +128,7 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
                         <TextInput value={desc} onChangeText={setDesc} multiline numberOfLines={4} className="bg-card text-ink p-5 border-[1.5px] border-ink shadow-hair mb-10 font-medium text-xs leading-5 rounded-md" placeholder="Operational status, physical condition, etc." placeholderTextColor={C.ink4} textAlignVertical="top" />
 
                         <TouchableOpacity onPress={handleSell} disabled={loading} className={`p-5 rounded-card items-center mb-20 shadow-hair ${loading ? 'bg-paper-2' : 'bg-ink '}`}>
-                            {loading ? <ActivityIndicator color={C.brand[500]} /> : <Text className="text-white font-display uppercase text-xs">Deploy to Marketplace</Text>}
+                            {loading ? <ActivityIndicator color={C.brand[500]} /> : <Text className="text-paper font-display uppercase text-xs">Deploy to Marketplace</Text>}
                         </TouchableOpacity>
                     </ScrollView>
                 </View>
@@ -159,7 +159,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                 <View className="flex-1">
                                     <View className="flex-row items-center mb-1">
                                         <View className="bg-brand-500 px-2 py-0.5 rounded mr-2">
-                                            <Text className="text-ink font-display text-label uppercase">{product.product_type}</Text>
+                                            <Text className="text-on-brand font-display text-label uppercase">{product.product_type}</Text>
                                         </View>
                                         <Text className="text-ink-3 text-label font-semibold uppercase">Listing ID: {product._id.slice(-6)}</Text>
                                     </View>
@@ -207,7 +207,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
 
                             <View className="flex-row gap-3 mb-10">
                                 <View className="bg-ink border border-ink px-2.5 py-1 rounded-full">
-                                    <Text className="text-white text-label font-display uppercase">{product.product_type}</Text>
+                                    <Text className="text-paper text-label font-display uppercase">{product.product_type}</Text>
                                 </View>
                                 <View className="bg-card border border-line px-2.5 py-1 rounded-full">
                                     <Text className="text-ink-3 text-label font-display uppercase">Listed {new Date(product.createdAt).toLocaleDateString()}</Text>
@@ -234,8 +234,8 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                                         }
                                     }}
                                 >
-                                    <Ionicons name="chatbubbles" size={20} color={C.ink} />
-                                    <Text className="text-ink font-display uppercase text-xs">Chat with Seller</Text>
+                                    <Ionicons name="chatbubbles" size={20} color={C.onBrand} />
+                                    <Text className="text-on-brand font-display uppercase text-xs">Chat with Seller</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -318,7 +318,7 @@ const MarketplaceScreen = () => {
             {index === 0 && (
                 <View
                     pointerEvents="none"
-                    style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: '#12100E', borderRadius: 20 }}
+                    style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: C.ink, borderRadius: 20 }}
                 />
             )}
         <Pressable
@@ -335,7 +335,7 @@ const MarketplaceScreen = () => {
                 />
                 {/* Badge */}
                 <View className="absolute bottom-2 left-2 bg-brand-500 px-2 py-0.5 rounded-md">
-                    <Text className="text-ink text-label font-display uppercase">{item.product_type}</Text>
+                    <Text className="text-on-brand text-label font-display uppercase">{item.product_type}</Text>
                 </View>
             </View>
 
@@ -370,7 +370,7 @@ const MarketplaceScreen = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar
@@ -404,7 +404,7 @@ const MarketplaceScreen = () => {
                                 onPress={() => setActiveTab(tab)}
                                 className={`px-6 py-3 rounded-xl border border-line mr-3 ${activeTab === tab ? 'bg-ink shadow-hair ' : 'bg-card shadow-hair'}`}
                             >
-                                <Text className={`font-display text-label uppercase ${activeTab === tab ? 'text-white' : 'text-ink-3'}`}>{tab}</Text>
+                                <Text className={`font-display text-label uppercase ${activeTab === tab ? 'text-paper' : 'text-ink-3'}`}>{tab}</Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>

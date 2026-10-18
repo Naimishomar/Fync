@@ -45,7 +45,7 @@ const StoryRow = memo(({ item, index, ranked, onRead }: { item: Story; index: nu
     {index === 0 && (
       <View
         pointerEvents="none"
-        style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: '#12100E', borderRadius: 20 }}
+        style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: C.ink, borderRadius: 20 }}
       />
     )}
     <TouchableOpacity
@@ -61,7 +61,7 @@ const StoryRow = memo(({ item, index, ranked, onRead }: { item: Story; index: nu
               shows the position instead of a number that would always read 0. */}
           <View
             className="items-center justify-center"
-            style={{ width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderStyle: 'dashed', borderColor: '#12100E', backgroundColor: '#FFEDD5' }}
+            style={{ width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderStyle: 'dashed', borderColor: C.ink, backgroundColor: C.brand[100] }}
           >
             <Text className="font-display text-ink" style={{ fontSize: ranked ? 15 : 17, fontVariant: ['tabular-nums'], letterSpacing: -0.5 }}>
               {ranked ? item.points : index + 1}
@@ -147,7 +147,7 @@ export default function TechPulseScreen() {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
       <View className="flex-1">
         <AppBar title="Tech Pulse" onBack={() => navigation.goBack()} />
         <View className="px-gutter">
@@ -165,7 +165,7 @@ export default function TechPulseScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`${f.label} news`}
               >
-                <Text className={`font-display uppercase text-label ${feed === f.id ? 'text-ink' : 'text-ink-2'}`}>{f.label}</Text>
+                <Text className={`font-display uppercase text-label ${feed === f.id ? 'text-on-brand' : 'text-ink-2'}`}>{f.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -192,7 +192,7 @@ export default function TechPulseScreen() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={() => { setRefreshing(true); load(); }}
-                tintColor={C.brand[500]} colors={['#F97316']}
+                tintColor={C.brand[500]} colors={[C.brand[500]]}
               />
             }
             ListEmptyComponent={

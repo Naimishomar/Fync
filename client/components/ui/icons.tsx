@@ -1,6 +1,7 @@
 import React from 'react';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { C } from '../../constants/colors';
 
 /**
  * The handful of icons the app used from `lucide-react-native`, redrawn from
@@ -26,7 +27,7 @@ type IconProps = {
 };
 
 const feather = (name: React.ComponentProps<typeof Feather>['name']) => {
-  const Component = ({ size = 24, color = '#12100E', style }: IconProps) => (
+  const Component = ({ size = 24, color = C.ink, style }: IconProps) => (
     <Feather name={name} size={size} color={color} style={style} />
   );
   Component.displayName = `Feather(${name})`;
@@ -34,7 +35,7 @@ const feather = (name: React.ComponentProps<typeof Feather>['name']) => {
 };
 
 const ionicon = (name: React.ComponentProps<typeof Ionicons>['name']) => {
-  const Component = ({ size = 24, color = '#12100E', style }: IconProps) => (
+  const Component = ({ size = 24, color = C.ink, style }: IconProps) => (
     <Ionicons name={name} size={size} color={color} style={style} />
   );
   Component.displayName = `Ionicons(${name})`;

@@ -131,12 +131,12 @@ const ContactUs = () => {
     if (isSubmitted) {
         return (
             <View className="flex-1 bg-paper items-center justify-center">
-                <StatusBar barStyle="dark-content" />
-                <View className="absolute inset-0"  style={{ backgroundColor: '#EDE8E0' }} />
+                <StatusBar barStyle={C.barStyle} />
+                <View className="absolute inset-0"  style={{ backgroundColor: C.paper2 }} />
                 
                 <View className="items-center px-gutter">
                     <View className="w-24 h-24 bg-brand-500 rounded-full items-center justify-center mb-10 shadow-hair">
-                        <Ionicons name="checkmark-done" size={48} color={C.ink} />
+                        <Ionicons name="checkmark-done" size={48} color={C.onBrand} />
                     </View>
                     
                     <Text className="text-ink text-4xl font-[900] text-center leading-[45px] mb-8">
@@ -147,7 +147,7 @@ const ContactUs = () => {
                         className="bg-ink w-full py-6 items-center border-2 border-ink rounded-md"
                         onPress={() => navigation.navigate('Tabs')}
                     >
-                        <Text className="text-white text-base font-semibold">Take me back home</Text>
+                        <Text className="text-paper text-base font-semibold">Take me back home</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -156,7 +156,7 @@ const ContactUs = () => {
 
     return (
         <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             
             <AppBar title="Contact Us" onBack={() => navigation.goBack()} />
 
@@ -286,7 +286,7 @@ const ContactUs = () => {
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
-                                    <ActivityIndicator color="white" />
+                                    <ActivityIndicator color={C.paper} />
                                 ) : (
                                     <Text className="font-display text-paper uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Deploy Transmission</Text>
                                 )}

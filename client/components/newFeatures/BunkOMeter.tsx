@@ -54,8 +54,8 @@ export default function BunkOMeter() {
             const canBunk = Math.floor(maxTotal - held);
 
             analysis.status = 'SAFE';
-            analysis.color = '#F97316'; // Platform Orange
-            analysis.bg = ['#EDE8E0', '#EDE8E0'];
+            analysis.color = C.brand[500]; // Platform Orange
+            analysis.bg = [C.paper2, C.paper2];
             analysis.icon = 'checkmark-circle';
             if (canBunk > 0) {
                 analysis.message = `Safe to Bunk ${canBunk} Classes!`;
@@ -70,8 +70,8 @@ export default function BunkOMeter() {
 
             if (decimalTarget >= 1) {
                 analysis.status = 'DANGER';
-                analysis.color = '#DC2626';
-                analysis.bg = ['#EDE8E0', '#EDE8E0'];
+                analysis.color = C.danger;
+                analysis.bg = [C.paper2, C.paper2];
                 analysis.icon = 'alert-circle';
                 analysis.message = `Impossible`;
                 analysis.detail = `You cannot reach 100% if you have already missed a class.`;
@@ -80,8 +80,8 @@ export default function BunkOMeter() {
                 const toAttend = Math.ceil(needed);
 
                 analysis.status = 'DANGER';
-                analysis.color = '#DC2626';
-                analysis.bg = ['#EDE8E0', '#EDE8E0'];
+                analysis.color = C.danger;
+                analysis.bg = [C.paper2, C.paper2];
                 analysis.icon = 'warning';
                 analysis.message = `Attend Next ${toAttend} Classes`;
                 analysis.detail = `You must attend the next ${toAttend} lectures continuously to reach ${target}%.`;
@@ -93,7 +93,7 @@ export default function BunkOMeter() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar title="Bunk-O-Meter" onBack={() => navigation.goBack()} />
@@ -161,7 +161,7 @@ export default function BunkOMeter() {
                                 activeOpacity={0.9}
                                 className="bg-ink h-16 flex-row items-center justify-center border-2 border-ink rounded-md"
                             >
-                                <Text className="text-white font-display uppercase text-label">Execute Analysis</Text>
+                                <Text className="text-paper font-display uppercase text-label">Execute Analysis</Text>
                             </TouchableOpacity>
                         </View>
 
@@ -170,7 +170,7 @@ export default function BunkOMeter() {
                             <StampCard radius={26} style={{ marginHorizontal: 20, marginTop: 32 }}>
                                 <View
                                     className="p-card-pad items-center"
-                                 style={{ backgroundColor: '#EDE8E0' }}>
+                                 style={{ backgroundColor: C.paper2 }}>
                                     <Text className="font-display text-label text-ink-3 uppercase mb-3" style={{ letterSpacing: 1.4 }}>Attendance Score</Text>
 
                                     {/* Circular Percentage */}

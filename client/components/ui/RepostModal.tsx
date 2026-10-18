@@ -52,7 +52,7 @@ export default function RepostModal({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={close}>
-      <Pressable className="flex-1 bg-black/40 justify-end" onPress={close}>
+      <Pressable className="flex-1 justify-end" style={{ backgroundColor: C.scrim }} onPress={close}>
         <KeyboardAvoidingView behavior="padding">
           {/* Stops a tap inside the sheet from closing it. */}
           <Pressable onPress={() => {}} className="bg-card rounded-t-sheet p-5" style={{ paddingBottom: bottomInset + 8 }}>
@@ -102,11 +102,11 @@ export default function RepostModal({
                 accessibilityLabel="Confirm repost"
               >
                 {busy ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={C.paper} />
                 ) : (
                   <>
-                    <Ionicons name="repeat" size={16} color="#FFFFFF" />
-                    <Text className="font-semibold text-sm text-white ml-2">Repost</Text>
+                    <Ionicons name="repeat" size={16} color={C.paper} />
+                    <Text className="font-semibold text-sm text-paper ml-2">Repost</Text>
                   </>
                 )}
               </Pressable>

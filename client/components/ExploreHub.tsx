@@ -26,10 +26,8 @@ import { AppBar } from './ui/kit';
 
 // A category reads as one colour instead of forty. `feature.tint` stays in
 // constants/features.ts as a fallback for anything not yet categorised.
-const FAMILY: Record<string, string> = {
-  study: '#7C3AED', career: '#2563EB', events: '#EA580C',
-  social: '#0891B2', campus: '#57534E', fun: '#DB2777', account: '#57534E',
-};
+const fam = (k: string): string | undefined =>
+  k === 'account' ? C.fam.campus : (C.fam as Record<string, string>)[k];
 
 
 // Declared at module scope on purpose: inside the component these are a new
@@ -55,7 +53,7 @@ const Tile = ({ feature, columns, onOpen }: { feature: Feature; columns: number;
           transition={120}
         />
       ) : (
-        <Ionicons name={feature.icon} size={24} color={FAMILY[feature.category] ?? feature.tint} />
+        <Ionicons name={feature.icon} size={24} color={fam(feature.category) ?? feature.tint} />
       )}
     </View>
     <Text
@@ -76,12 +74,12 @@ const Row = ({ feature, onOpen }: { feature: Feature; onOpen: (f: Feature) => vo
   >
     <View
       className="w-11 h-11 rounded-xl items-center justify-center mr-3"
-      style={{ backgroundColor: `${FAMILY[feature.category] ?? feature.tint}1A` }}
+      style={{ backgroundColor: `${fam(feature.category) ?? feature.tint}1A` }}
     >
       {artUrl(feature.art) ? (
         <ExpoImage source={{ uri: artUrl(feature.art) }} style={{ width: 26, height: 26 }} contentFit="contain" cachePolicy="disk" />
       ) : (
-        <Ionicons name={feature.icon} size={20} color={FAMILY[feature.category] ?? feature.tint} />
+        <Ionicons name={feature.icon} size={20} color={fam(feature.category) ?? feature.tint} />
       )}
     </View>
     <View className="flex-1 min-w-0">
@@ -125,9 +123,9 @@ const CategoryCard = ({
     >
       <View
         className="items-center justify-center rounded-xl border-2 border-ink"
-        style={{ width: 42, height: 42, backgroundColor: `${FAMILY[cat.id] ?? '#F97316'}1A` }}
+        style={{ width: 42, height: 42, backgroundColor: `${fam(cat.id) ?? C.brand[500]}1A` }}
       >
-        <Ionicons name={cat.icon} size={20} color={FAMILY[cat.id] ?? '#F97316'} />
+        <Ionicons name={cat.icon} size={20} color={fam(cat.id) ?? C.brand[500]} />
       </View>
 
       <View className="flex-1 ml-3 min-w-0">
@@ -227,7 +225,7 @@ const ExploreHub = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
         <AppBar title="Explore" />

@@ -130,15 +130,15 @@ const RecruiterProfile = () => {
                 {/* Corporate Stats Card */}
                 <View className="flex-row bg-ink rounded-card p-5 mt-6 shadow-hair border border-ink">
                     <View className="flex-1 items-center border-r border-ink">
-                        <Text className="text-white text-xl font-display">{stats.activePosts}</Text>
+                        <Text className="text-paper text-xl font-display">{stats.activePosts}</Text>
                         <Text className="text-ink-3 text-label font-display uppercase mt-1">Active Roles</Text>
                     </View>
                     <View className="flex-1 items-center border-r border-ink">
-                        <Text className="text-white text-xl font-display">{stats.totalApplicants}</Text>
+                        <Text className="text-paper text-xl font-display">{stats.totalApplicants}</Text>
                         <Text className="text-ink-3 text-label font-display uppercase mt-1">Total Applicants</Text>
                     </View>
                     <View className="flex-1 items-center">
-                        <Text className="text-white text-xl font-display">{stats.totalPosts}</Text>
+                        <Text className="text-paper text-xl font-display">{stats.totalPosts}</Text>
                         <Text className="text-ink-3 text-label font-display uppercase mt-1">Total Posts</Text>
                     </View>
                 </View>
@@ -224,8 +224,8 @@ const RecruiterProfile = () => {
                     onPress={() => navigation.navigate('ContactUs')}
                     className="flex-row items-center justify-center gap-2 bg-ink py-4 rounded-card"
                 >
-                    <Ionicons name="chatbubbles-outline" size={18} color="white" />
-                    <Text className="text-white font-display uppercase text-label">Contact Support</Text>
+                    <Ionicons name="chatbubbles-outline" size={18} color={C.paper} />
+                    <Text className="text-paper font-display uppercase text-label">Contact Support</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -233,7 +233,7 @@ const RecruiterProfile = () => {
 
     return (
         <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
-            <StatusBar style="dark" />
+            <StatusBar style={C.statusStyle} />
             <AppBar
                 title="Profile"
                 right={

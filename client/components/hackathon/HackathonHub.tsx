@@ -63,12 +63,12 @@ interface Hackathon {
 // Semantic tokens from tailwind.config.js — success / info / warning / slate.
 // The accent (brand-500) is reserved for interactive affordances, so it is
 // deliberately not used as a status colour here.
-const STATUS_META: Record<string, { label: string; chip: string; text: string; dot: string }> = {
-  active: { label: 'Live', chip: 'bg-success/10 border-success/25', text: 'text-success', dot: '#047857' },
-  upcoming: { label: 'Upcoming', chip: 'bg-fam-career/10 border-fam-career/25', text: 'text-fam-career', dot: '#2563EB' },
-  completed: { label: 'Ended', chip: 'bg-paper-2 border-line', text: 'text-ink-3', dot: '#8B857E' },
-  draft: { label: 'Draft', chip: 'bg-paper-2 border-line', text: 'text-ink-3', dot: '#C4BEB6' },
-};
+const STATUS_META = (): Record<string, { label: string; chip: string; text: string; dot: string }> => ({
+  active: { label: 'Live', chip: 'bg-success/10 border-success/25', text: 'text-success', dot: C.success },
+  upcoming: { label: 'Upcoming', chip: 'bg-fam-career/10 border-fam-career/25', text: 'text-fam-career', dot: C.info },
+  completed: { label: 'Ended', chip: 'bg-paper-2 border-line', text: 'text-ink-3', dot: C.ink3 },
+  draft: { label: 'Draft', chip: 'bg-paper-2 border-line', text: 'text-ink-3', dot: C.ink4 },
+});
 
 const FILTERS = [
   { label: 'All', value: '' },
@@ -151,7 +151,7 @@ const HackathonCard = memo(
     onOpen: (id: string) => void;
   }) => {
     const derived = deriveStatus(item);
-    const status = STATUS_META[derived] ?? STATUS_META.upcoming;
+    const status = STATUS_META()[derived] ?? STATUS_META().upcoming;
     const hasWinners = !!item.winners?.length;
     const remaining = countdown(item, derived);
 
@@ -176,13 +176,13 @@ const HackathonCard = memo(
           {({ pressed }) => (
           <View style={{ opacity: pressed ? 0.9 : 1 }}>
           {/* Banner */}
-          <View style={{ height: BANNER_H }} className="bg-ink">
+          <View style={{ height: BANNER_H }} className="bg-night">
             {item.bannerImage ? (
               <Image source={{ uri: item.bannerImage }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={item.bannerImage} />
             ) : (
               <View
                 className="w-full h-full items-center justify-center"
-               style={{ backgroundColor: '#12100E' }}>
+               style={{ backgroundColor: C.night }}>
                 <MaterialCommunityIcons name="code-braces" size={40} color="rgba(255,255,255,0.12)" />
               </View>
             )}
@@ -207,7 +207,7 @@ const HackathonCard = memo(
 
             {/* My role, when this is one of mine */}
             {item.myRole ? (
-              <View className="absolute top-3 right-3 bg-ink/80 px-2.5 py-1.5 rounded-lg">
+              <View className="absolute top-3 right-3 bg-night/80 px-2.5 py-1.5 rounded-lg">
                 <Text className="text-label font-semibold text-white">{ROLE_LABEL[item.myRole] ?? item.myRole}</Text>
               </View>
             ) : null}
@@ -359,7 +359,7 @@ const ListHeader = memo(
               className={`flex-1 flex-row items-center justify-center py-2.5 rounded-lg ${on ? 'bg-card' : ''}`}
               activeOpacity={0.8}
             >
-              <Ionicons name={t.icon as any} size={14} color={on ? '#F97316' : '#8B857E'} />
+              <Ionicons name={t.icon as any} size={14} color={on ? C.brand[500] : C.ink3} />
               <Text className={`ml-1.5 text-label font-semibold ${on ? 'text-ink' : 'text-ink-3'}`}>
                 {t.label}
               </Text>
@@ -385,7 +385,7 @@ const ListHeader = memo(
                 className={`px-3.5 py-2 rounded-lg border ${ on ? 'bg-ink border-ink' : 'bg-card border-line' }`}
                 activeOpacity={0.8}
               >
-                <Text className={`text-label font-semibold ${on ? 'text-white' : 'text-ink-2'}`}>
+                <Text className={`text-label font-semibold ${on ? 'text-paper' : 'text-ink-2'}`}>
                   {f.label}
                 </Text>
               </TouchableOpacity>
@@ -521,7 +521,7 @@ const HackathonHub = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={C.barStyle} backgroundColor="transparent" translucent />
       <View className="flex-1">
         <AppBar
           title="Hackathon Hub"
@@ -536,7 +536,7 @@ const HackathonHub = () => {
               accessibilityLabel="Host a hackathon"
             >
               <MaterialCommunityIcons name="plus" size={15} color={C.brand[500]} />
-              <Text className="text-white text-label font-semibold ml-1">Host</Text>
+              <Text className="text-paper text-label font-semibold ml-1">Host</Text>
             </TouchableOpacity>
           }
         />
@@ -551,7 +551,7 @@ const HackathonHub = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={['#F97316']} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />
           }
           onEndReached={onEndReached}
           onEndReachedThreshold={0.6}
@@ -605,7 +605,7 @@ const HackathonHub = () => {
                     activeOpacity={0.85}
                   >
                     <MaterialCommunityIcons name="plus" size={15} color={C.brand[500]} />
-                    <Text className="text-white text-label font-semibold ml-1.5">Host a hackathon</Text>
+                    <Text className="text-paper text-label font-semibold ml-1.5">Host a hackathon</Text>
                   </TouchableOpacity>
                 ) : null}
               </View>

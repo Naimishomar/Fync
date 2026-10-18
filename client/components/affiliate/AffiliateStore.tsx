@@ -5,7 +5,6 @@ import {
     FlatList, 
     TouchableOpacity, 
     TextInput, 
-    StyleSheet, 
     ScrollView,
     ActivityIndicator,
     RefreshControl
@@ -13,7 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { C } from '../../constants/colors';
+import { C, themed } from '../../constants/colors';
 import { AppBar } from '../ui/kit';
 import { Image } from 'expo-image';
 
@@ -166,13 +165,13 @@ const AffiliateStore = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
     container: {
         flex: 1,
-        backgroundColor: '#F5F2EC',
+        backgroundColor: C.paper,
     },
     header: {
-        backgroundColor: '#F5F2EC',
+        backgroundColor: C.paper,
     },
     headerBody: {
         paddingHorizontal: 20,
@@ -182,10 +181,10 @@ const styles = StyleSheet.create({
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: C.card,
         borderRadius: 12,
         borderWidth: 2,
-        borderColor: '#12100E',
+        borderColor: C.ink,
         paddingHorizontal: 15,
         height: 50,
     },
@@ -194,7 +193,7 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        color: '#12100E',
+        color: C.ink,
         fontSize: 14,
     },
     categoriesContainer: {
@@ -207,24 +206,24 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 20,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: C.card,
         marginRight: 10,
         minHeight: 44,
         justifyContent: 'center',
         borderWidth: 2,
-        borderColor: '#12100E',
+        borderColor: C.ink,
     },
     categoryButtonActive: {
-        backgroundColor: '#F97316',
-        borderColor: '#12100E',
+        backgroundColor: C.brand[500],
+        borderColor: C.ink,
     },
     categoryText: {
-        color: '#57534E',
+        color: C.ink2,
         fontSize: 14,
         fontFamily: 'Inter_600SemiBold',
     },
     categoryTextActive: {
-        color: '#12100E',
+        color: C.onBrand,
     },
     productList: {
         // + productCard margin 5 = 20 gutter
@@ -233,12 +232,12 @@ const styles = StyleSheet.create({
     },
     productCard: {
         flex: 0.5,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: C.card,
         borderRadius: 16,
         margin: 5,
         overflow: 'hidden',
         borderWidth: 2,
-        borderColor: '#12100E',
+        borderColor: C.ink,
     },
     imageContainer: {
         width: '100%',
@@ -253,12 +252,12 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 10,
         left: 10,
-        backgroundColor: '#DC2626',
+        backgroundColor: C.danger,
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 6,
         borderWidth: 2,
-        borderColor: '#12100E',
+        borderColor: C.ink,
     },
     discountText: {
         color: '#FFFFFF',
@@ -270,7 +269,7 @@ const styles = StyleSheet.create({
     },
     brandText: {
         fontSize: 10,
-        color: '#EA580C',
+        color: C.brand[600],
         fontFamily: 'Inter_700Bold',
         textTransform: 'uppercase',
         marginBottom: 4,
@@ -278,7 +277,7 @@ const styles = StyleSheet.create({
     productName: {
         fontSize: 14,
         fontFamily: 'Inter_700Bold',
-        color: '#12100E',
+        color: C.ink,
         marginBottom: 8,
         height: 36,
     },
@@ -290,12 +289,12 @@ const styles = StyleSheet.create({
     priceText: {
         fontSize: 16,
         fontFamily: 'Inter_700Bold',
-        color: '#12100E',
+        color: C.ink,
         marginRight: 8,
     },
     originalPriceText: {
         fontSize: 12,
-        color: '#8B857E',
+        color: C.ink3,
         textDecorationLine: 'line-through',
     },
     ratingRow: {
@@ -304,12 +303,12 @@ const styles = StyleSheet.create({
     },
     ratingText: {
         fontSize: 12,
-        color: '#8B857E',
+        color: C.ink3,
         marginLeft: 4,
     },
     reviewsText: {
         fontSize: 11,
-        color: '#57534E',
+        color: C.ink2,
         marginLeft: 4,
     },
     loadingContainer: {
@@ -318,7 +317,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     loadingText: {
-        color: '#8B857E',
+        color: C.ink3,
         marginTop: 15,
     },
     emptyContainer: {
@@ -328,10 +327,10 @@ const styles = StyleSheet.create({
         marginTop: 100,
     },
     emptyText: {
-        color: '#8B857E',
+        color: C.ink3,
         marginTop: 15,
         fontSize: 16,
     }
-});
+}));
 
 export default AffiliateStore;

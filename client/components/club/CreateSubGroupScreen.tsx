@@ -74,7 +74,7 @@ const CreateSubGroupScreen = () => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <View className="flex-1">
                 <AppBar title="Generate Room" onBack={() => navigation.goBack()} />
 
@@ -92,8 +92,8 @@ const CreateSubGroupScreen = () => {
                                         <Text className="text-label font-display uppercase text-ink-3 mt-2">Add Logo</Text>
                                     </View>
                                 )}
-                                <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-white">
-                                    <Feather name="plus" size={14} color="white" />
+                                <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-card">
+                                    <Feather name="plus" size={14} color={C.paper} />
                                 </View>
                             </TouchableOpacity>
                         </View>
@@ -125,9 +125,9 @@ const CreateSubGroupScreen = () => {
                             className="bg-ink py-5 items-center border-2 border-ink rounded-md"
                         >
                             {loading ? (
-                                <ActivityIndicator color="white" />
+                                <ActivityIndicator color={C.paper} />
                             ) : (
-                                <Text className="text-white font-display uppercase">Launch Room</Text>
+                                <Text className="text-paper font-display uppercase">Launch Room</Text>
                             )}
                         </TouchableOpacity>
                         

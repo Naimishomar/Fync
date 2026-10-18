@@ -16,6 +16,7 @@ import { AppBar } from './ui/kit';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 import axios from '../context/axiosConfig';
+import { loadThemePref, setThemePref, type ThemePref } from '../utils/theme';
 
 type Row = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -33,6 +34,17 @@ export default function SettingsScreen() {
   const navigation = useNavigation<any>();
   const { user, logout } = useAuth();
   const [cacheSize, setCacheSize] = useState<number | null>(null);
+  const [themePref, setThemePrefState] = useState<ThemePref>('system');
+  useEffect(() => { loadThemePref().then(setThemePrefState); }, []);
+  const THEME_LABEL: Record<ThemePref, string> = { system: 'System', light: 'Light', dark: 'Dark' };
+  const pickTheme = () =>
+    Alert.alert('Appearance', 'Choose how Fync looks.', [
+      ...(['system', 'light', 'dark'] as ThemePref[]).map((p) => ({
+        text: THEME_LABEL[p] + (p === themePref ? '  ✓' : ''),
+        onPress: () => { setThemePrefState(p); setThemePref(p); },
+      })),
+      { text: 'Cancel', style: 'cancel' as const },
+    ]);
 
   /**
    * Only the screen caches are measured and cleared. Wiping all of AsyncStorage
@@ -132,6 +144,7 @@ export default function SettingsScreen() {
       title: 'Account',
       rows: [
         { icon: 'person-outline', label: 'Edit profile', onPress: () => navigation.navigate('EditProfile') },
+        { icon: 'contrast-outline', label: 'Appearance', hint: 'System, light or dark', value: THEME_LABEL[themePref], onPress: pickTheme },
         { icon: 'ribbon-outline', label: 'Profile builder', hint: 'Skills, projects, resume', onPress: () => navigation.navigate('FyncProfileBuilder') },
         ...(isFeatureOn('fyncProPaid') ? [{ icon: 'diamond-outline', label: 'Subscription', hint: 'Fync Pro plan and billing', onPress: () => navigation.navigate('SubscriptionScreen') } as Row] : []),
         ...(isFeatureOn('myShares') ? [{ icon: 'link-outline', label: 'Your shares', hint: 'Links you shared from Fync Store', onPress: () => navigation.navigate('MySharesScreen') } as Row] : []),
@@ -173,7 +186,7 @@ export default function SettingsScreen() {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
       <View className="flex-1">
         <AppBar title="Settings & More" onBack={() => navigation.goBack()} />
         <View className="px-gutter">

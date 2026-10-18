@@ -139,7 +139,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
                   {CATEGORIES.map(c => (
                     <Pressable key={c} onPress={() => setForm(p => ({ ...p, category: c }))}
                       className={`px-4 py-2.5 rounded-xl border items-center shadow-hair ${form.category === c ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
-                      <Text className={`text-label font-display uppercase ${form.category === c ? 'text-white' : 'text-ink-3'}`}>
+                      <Text className={`text-label font-display uppercase ${form.category === c ? 'text-paper' : 'text-ink-3'}`}>
                         {c.replace('-', ' ')}
                       </Text>
                     </Pressable>
@@ -213,8 +213,8 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
               {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
                 : (
                   <>
-                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color="white" className="mr-2" />
-                    <Text className="text-white font-display uppercase text-xs ml-2">
+                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color={C.paper} className="mr-2" />
+                    <Text className="text-paper font-display uppercase text-xs ml-2">
                       {isEdit ? 'Update Certificate' : 'Verify Achievement'}
                     </Text>
                   </>

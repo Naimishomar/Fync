@@ -113,7 +113,7 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <AppBar title="The Lobby" onBack={() => navigation.goBack()} />
 

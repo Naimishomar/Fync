@@ -196,7 +196,7 @@ const YouTubeVideoPlayer = ({
   };
 
   return (
-    <View className="bg-ink relative overflow-hidden w-full h-[300px]">
+    <View className="bg-night relative overflow-hidden w-full h-[300px]">
       <GestureDetector gesture={videoGesture}>
         <Animated.View style={[{ width: '100%', height: '100%' }, animatedStyle]}>
           <Video
@@ -252,7 +252,7 @@ const YouTubeVideoPlayer = ({
               </Text>
             </View>
             <Pressable onPress={handleSeek} onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)} className="w-full h-3 justify-center">
-              <View className="w-full h-1 bg-card/20 rounded-full overflow-hidden">
+              <View className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
                 <View className="h-full bg-brand-600 rounded-full" style={{ width: status ? `${(status.positionMillis / (status.durationMillis || 1)) * 100}%` : '0%' }} />
               </View>
             </Pressable>
@@ -375,7 +375,7 @@ const ProjectCard = memo(({
                 return (
                   <Image
                     source={{ uri: secureUrl }}
-                    style={{ width: mediaWidth, height: 320, backgroundColor: C.ink }}
+                    style={{ width: mediaWidth, height: 320, backgroundColor: C.night }}
                     contentFit="cover"
                     cachePolicy="memory-disk"
                     recyclingKey={secureUrl}
@@ -410,7 +410,7 @@ const ProjectCard = memo(({
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-6">
             <Pressable onPress={() => toggleLike(item)} className="flex-row items-center">
-              <Ionicons name={isLiked ? "heart" : "heart-outline"} size={30} color={isLiked ? "#F97316" : "#12100E"} />
+              <Ionicons name={isLiked ? "heart" : "heart-outline"} size={30} color={isLiked ? C.brand[500] : C.ink} />
               <Text className="ml-2 text-ink font-display text-sm uppercase">{item.likes}</Text>
             </Pressable>
 
@@ -423,8 +423,8 @@ const ProjectCard = memo(({
                 onPress={() => author._id && navigation.navigate("PublicProfile", { user: author })}
                 className="flex-row items-center bg-ink px-5 py-3 rounded-card shadow-hair"
               >
-                <Ionicons name="chatbubbles-outline" size={16} color="#fff" />
-                <Text className="text-white text-label font-display uppercase ml-2">Connect</Text>
+                <Ionicons name="chatbubbles-outline" size={16} color={C.paper} />
+                <Text className="text-paper text-label font-display uppercase ml-2">Connect</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -574,7 +574,7 @@ export default function FundingFeed() {
   return (
     <GestureHandlerRootView className="flex-1">
       <View className="flex-1 bg-paper">
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={C.barStyle} />
         
         {/* Background Protocol Gradient */}
 

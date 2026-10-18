@@ -6,11 +6,11 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Feather from '@expo/vector-icons/Feather';
 import { C } from '../../constants/colors';
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  completed:    { label: 'Completed',    color: '#12100E', bg: '#F5F2EC' },
-  'in-progress':{ label: 'In Progress',  color: '#F97316', bg: '#EDE8E0' },
-  archived:     { label: 'Archived',     color: '#8B857E', bg: '#F5F2EC' },
-};
+const STATUS_CONFIG = (): Record<string, { label: string; color: string; bg: string }> => ({
+  completed:    { label: 'Completed',    color: C.ink, bg: C.paper },
+  'in-progress':{ label: 'In Progress',  color: C.brand[500], bg: C.paper2 },
+  archived:     { label: 'Archived',     color: C.ink3, bg: C.paper },
+});
 
 interface Project {
   _id: string;
@@ -41,7 +41,7 @@ interface Props {
 export default function ProjectCard({
   project, isOwner, onEdit, onDelete, onToggleFeatured, onLike, currentUserId
 }: Props) {
-  const status = STATUS_CONFIG[project.status || 'completed'] || STATUS_CONFIG.completed;
+  const status = STATUS_CONFIG()[project.status || 'completed'] || STATUS_CONFIG().completed;
   const isLiked = project.likes?.includes(currentUserId || '');
 
   return (
@@ -106,7 +106,7 @@ export default function ProjectCard({
           <View className="flex-row flex-wrap gap-2 mb-6">
             {project.techStack.slice(0, 5).map((tech, i) => (
               <View key={i} className="bg-ink px-2.5 py-1 rounded-full">
-                <Text className="text-white text-label font-display uppercase">{tech}</Text>
+                <Text className="text-paper text-label font-display uppercase">{tech}</Text>
               </View>
             ))}
             {project.techStack.length > 5 && (
@@ -139,7 +139,7 @@ export default function ProjectCard({
           <View className="flex-row items-center gap-4">
             <Pressable onPress={() => onLike?.(project._id)} className="flex-row items-center gap-1.5 bg-paper-2 px-3 py-2 rounded-xl">
               <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={14}
-                color={isLiked ? '#DC2626' : '#8B857E'} />
+                color={isLiked ? C.danger : C.ink3} />
               <Text className="text-ink-3 font-display text-label">{project.likes?.length || 0}</Text>
             </Pressable>
 
@@ -148,10 +148,10 @@ export default function ProjectCard({
               <View className="flex-row items-center gap-2 border-l border-line pl-4">
                 <Pressable onPress={() => onToggleFeatured?.(project._id)} hitSlop={6} className="w-8 h-8 items-center justify-center bg-paper-2 rounded-xl">
                   <Ionicons name={project.isFeatured ? 'star' : 'star-outline'} size={14}
-                    color={project.isFeatured ? '#F97316' : '#8B857E'} />
+                    color={project.isFeatured ? C.brand[500] : C.ink3} />
                 </Pressable>
                 <Pressable onPress={() => onEdit?.(project)} hitSlop={6} className="w-8 h-8 items-center justify-center bg-ink rounded-xl">
-                  <Feather name="edit-3" size={12} color="white" />
+                  <Feather name="edit-3" size={12} color={C.paper} />
                 </Pressable>
                 <Pressable onPress={() => onDelete?.(project._id)} hitSlop={6} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
                   <Ionicons name="trash-outline" size={14} color={C.danger} />

@@ -40,7 +40,7 @@ export default function TwelveAMLockScreen() {
   };
 
   return (
-    <View className="flex-1 bg-ink">
+    <View className="flex-1 bg-night">
       <StatusBar barStyle="light-content" />
       
       {/* 1. Background Image (Full Screen) */}
@@ -66,7 +66,7 @@ export default function TwelveAMLockScreen() {
             title="12 AM Club"
             onBack={() => navigation.goBack()}
             right={
-              <View className={`px-4 py-2 rounded-full border flex-row items-center ${ isOpen ? 'bg-success/20 border-success' : 'bg-card/10 border-white/10' }`} style={{ marginRight: 11 }}>
+              <View className={`px-4 py-2 rounded-full border flex-row items-center ${ isOpen ? 'bg-success/20 border-success' : 'bg-white/10 border-white/10' }`} style={{ marginRight: 11 }}>
                 <View key={isOpen ? "live" : "offline"} className={`w-2 h-2 rounded-full mr-2 ${isOpen ? 'bg-success animate-pulse' : 'bg-ink-4'}`} />
                 <Text className={`text-xs font-semibold ${isOpen ? 'text-violet' : 'text-night-3'}`}>
                     {isOpen ? 'LIVE' : 'OFFLINE'}
@@ -80,7 +80,7 @@ export default function TwelveAMLockScreen() {
         {/* --- CENTER CONTENT (Timer) --- */}
         <View className="items-center">
             {/* Logo/Icon */}
-            <View className={`mb-6 p-6 rounded-full border shadow-hair ${ isOpen ? 'bg-brand-500/20 border-brand-500/30 ' : 'bg-card/10 border-white/10' }`}>
+            <View className={`mb-6 p-6 rounded-full border shadow-hair ${ isOpen ? 'bg-brand-500/20 border-brand-500/30 ' : 'bg-white/10 border-white/10' }`}>
                 <MaterialCommunityIcons name="moon-waning-crescent" size={64} color={isOpen ? "#DB2777" : "#8B857E"} />
             </View>
 
@@ -111,12 +111,12 @@ export default function TwelveAMLockScreen() {
             <TouchableOpacity disabled={!isOpen} onPress={handleEnter} activeOpacity={0.8}>
                 {isOpen ? (
                     <Pressable className="flex-row items-center justify-center rounded-full bg-brand-500 py-3" onPress={handleEnter}>
-                        <Text className="text-ink font-display text-lg mr-2">ENTER CLUB</Text>
-                        <Ionicons name="arrow-forward" size={20} color={C.ink} />
+                        <Text className="text-night font-display text-lg mr-2">ENTER CLUB</Text>
+                        <Ionicons name="arrow-forward" size={20} color={C.night} />
                     </Pressable>
                 ) : (
                     <View className="flex-row items-center justify-center bg-brand-500/20 py-3 rounded-full">
-                        <Ionicons name="lock-closed" size={20} color={C.ink3} style={{ marginRight: 8 }} />
+                        <Ionicons name="lock-closed" size={20} color={C.night3} style={{ marginRight: 8 }} />
                         <Text className="text-night-3 font-display text-lg">LOCKED</Text>
                     </View>
                 )}

@@ -110,7 +110,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center">
                     <View className="bg-card/20 w-12 h-12 rounded-card items-center justify-center mr-4">
-                      <Text className="text-ink font-display text-xl">#{userRank > 0 ? userRank : '--'}</Text>
+                      <Text className="text-on-brand font-display text-xl">#{userRank > 0 ? userRank : '--'}</Text>
                     </View>
                     <View>
                       <View className="flex-row items-center mt-6 mb-0.5" style={{ gap: 12 }}>

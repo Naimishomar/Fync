@@ -154,7 +154,7 @@ const ReelItem = React.memo(function ReelItem({
   return (
     <View style={{ width: SCREEN_WIDTH, height: pageHeight }} className="bg-night">
       {/* Video Container */}
-      <View style={{ width: SCREEN_WIDTH, height: videoHeight }} className="bg-ink relative">
+      <View style={{ width: SCREEN_WIDTH, height: videoHeight }} className="bg-night relative">
         {isActive && trailerKey ? (
           <WebView
             ref={webViewRef}
@@ -168,11 +168,11 @@ const ReelItem = React.memo(function ReelItem({
             source={webViewSource}
           />
         ) : (
-          <View className="flex-1 bg-ink justify-center items-center">
+          <View className="flex-1 bg-night justify-center items-center">
             {loading ? (
               <ActivityIndicator size="small" color={C.fam.fun} />
             ) : (
-              <Ionicons name="videocam-off-outline" size={40} color={C.ink4} />
+              <Ionicons name="videocam-off-outline" size={40} color={C.night3} />
             )}
           </View>
         )}
@@ -209,14 +209,14 @@ const ReelItem = React.memo(function ReelItem({
           <View className="flex-row gap-3">
             <TouchableOpacity 
               onPress={handleShare}
-              className="w-12 h-12 bg-card/5 rounded-card items-center justify-center border border-white/10"
+              className="w-12 h-12 bg-white/5 rounded-card items-center justify-center border border-white/10"
             >
               <Ionicons name="share-social-outline" size={20} color="white" />
             </TouchableOpacity>
 
             <TouchableOpacity 
               onPress={onToggleMute}
-              className="w-12 h-12 bg-card/5 rounded-card items-center justify-center border border-white/10"
+              className="w-12 h-12 bg-white/5 rounded-card items-center justify-center border border-white/10"
             >
               <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={22} color="white" />
             </TouchableOpacity>
@@ -226,7 +226,7 @@ const ReelItem = React.memo(function ReelItem({
         {/* Extended Metadata */}
         <View className="flex-row flex-wrap gap-2 mb-8">
            {['Action', 'Blockbuster', 'Trending', 'Hot'].map((tag) => (
-             <View key={tag} className="bg-ink/50 border border-white/5 px-2.5 py-1 rounded-full">
+             <View key={tag} className="bg-night/50 border border-white/5 px-2.5 py-1 rounded-full">
                 <Text className="text-ink-3 text-label font-display uppercase">{tag}</Text>
              </View>
            ))}
@@ -235,18 +235,18 @@ const ReelItem = React.memo(function ReelItem({
         <View className="mb-4">
           <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
             <Text className="text-danger font-display text-xs uppercase">Synopsis</Text>
-            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+            <View className="flex-1 bg-night" style={{ height: 2, opacity: 0.82 }} />
           </View>
-          <Text className="text-ink-4 text-base leading-7 font-medium">
+          <Text className="text-night-ink/80 text-base leading-7 font-medium">
             {movie.overview || "No description available for this cinematic masterpiece."}
           </Text>
         </View>
 
         {/* Production Details Card */}
-        <View className="bg-ink/50 p-card-pad rounded-sheet border border-white/5 mb-4">
+        <View className="bg-night/50 p-card-pad rounded-sheet border border-white/5 mb-4">
             <View className="flex-row items-center mt-6 mb-6" style={{ gap: 12 }}>
               <Text className="text-white font-display text-sm uppercase">Production Details</Text>
-              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+              <View className="flex-1 bg-night" style={{ height: 2, opacity: 0.82 }} />
             </View>
             <View className="flex-row justify-between mb-4">
                <Text className="text-ink-3 font-semibold uppercase text-label">Original Language</Text>
@@ -342,14 +342,14 @@ const TrailerReels = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-ink justify-center items-center">
+      <View className="flex-1 bg-night justify-center items-center">
         <ActivityIndicator size="large" color={C.fam.fun} />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-ink" onLayout={(e) => setPageHeight(Math.round(e.nativeEvent.layout.height))}>
+    <View className="flex-1 bg-night" onLayout={(e) => setPageHeight(Math.round(e.nativeEvent.layout.height))}>
       {pageHeight > 0 && (
       <FlatList keyboardShouldPersistTaps="handled"
         data={movies}

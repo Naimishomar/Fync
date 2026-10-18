@@ -57,11 +57,11 @@ const MovieSearch = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-ink" edges={['bottom']}>
+    <SafeAreaView className="flex-1 bg-night" edges={['bottom']}>
       <AppBar night title="Search Movies" onBack={() => navigation.goBack()} />
       <View className="px-5 pb-4">
-        <View className="flex-1 bg-ink rounded-full flex-row items-center px-4 py-2 border border-ink">
-          <Ionicons name="search" size={20} color={C.ink4} />
+        <View className="flex-1 bg-night rounded-full flex-row items-center px-4 py-2 border border-night">
+          <Ionicons name="search" size={20} color={C.night3} />
           <TextInput
             autoFocus
             placeholder="Search movies, trailers..."
@@ -72,7 +72,7 @@ const MovieSearch = () => {
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')} hitSlop={12}>
-              <Ionicons name="close-circle" size={20} color={C.ink4} />
+              <Ionicons name="close-circle" size={20} color={C.night3} />
             </TouchableOpacity>
           )}
         </View>

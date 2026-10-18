@@ -183,7 +183,7 @@ function CreatePost() {
 
   return (
     <View className='flex-1 bg-paper'>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
       <KeyboardAvoidingView 
         behavior="padding"
@@ -240,9 +240,9 @@ function CreatePost() {
                       <Pressable
                         onPress={() => removeImage(index)}
                         hitSlop={10}
-                        className="absolute -top-2 -right-2 bg-ink h-7 w-7 rounded-full items-center justify-center border-2 border-white shadow-hair"
+                        className="absolute -top-2 -right-2 bg-ink h-7 w-7 rounded-full items-center justify-center border-2 border-card shadow-hair"
                       >
-                        <Ionicons name="close" size={14} color="white" />
+                        <Ionicons name="close" size={14} color={C.paper} />
                       </Pressable>
                     </View>
                   ))}
@@ -312,7 +312,7 @@ function CreatePost() {
               >
                 <View className="flex-row items-center">
                   <View className={`w-10 h-10 rounded-card items-center justify-center border ${isPrivate ? 'bg-paper-2 border-line' : 'bg-paper-2 border-line'}`}>
-                    <Ionicons name={isPrivate ? "lock-closed" : "earth"} size={18} color={isPrivate ? "#F97316" : "#8B857E"} />
+                    <Ionicons name={isPrivate ? "lock-closed" : "earth"} size={18} color={isPrivate ? C.brand[500] : C.ink3} />
                   </View>
                   <View className="ml-4">
                       <Text className="text-ink font-display uppercase text-label">Visibility</Text>
@@ -340,11 +340,11 @@ function CreatePost() {
                 className="bg-ink h-16 flex-row items-center justify-center border-2 border-ink rounded-md"
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={C.paper} />
                 ) : (
                   <>
-                      <Text className="text-white font-display uppercase text-xs">Initiate Post</Text>
-                      <Ionicons name="send" size={16} color="white" style={{ marginLeft: 10 }} />
+                      <Text className="text-paper font-display uppercase text-xs">Initiate Post</Text>
+                      <Ionicons name="send" size={16} color={C.paper} style={{ marginLeft: 10 }} />
                   </>
                 )}
               </TouchableOpacity>
@@ -360,7 +360,7 @@ function CreatePost() {
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1 justify-end"
-          style={{ backgroundColor: 'rgba(18,16,14,0.45)' }}
+          style={{ backgroundColor: C.scrim }}
         >
           <Pressable className="flex-1" onPress={() => { setOtherOpen(false); setLocationOpen(false); }} />
 
@@ -389,7 +389,7 @@ function CreatePost() {
                 accessibilityRole="button"
                 accessibilityLabel={user?.college ? `Use ${user.college}` : 'No college on your profile'}
               >
-                <Ionicons name="school-outline" size={20} color={user?.college ? '#EA580C' : '#8B857E'} />
+                <Ionicons name="school-outline" size={20} color={user?.college ? C.accentText : C.ink3} />
                 <Text className={`font-display uppercase mt-1 ${user?.college ? 'text-ink' : 'text-ink-3'}`} style={{ fontSize: 12 }}>
                   College
                 </Text>
@@ -408,9 +408,9 @@ function CreatePost() {
                 accessibilityState={{ expanded: otherOpen }}
                 accessibilityLabel="Enter a different location"
               >
-                <Ionicons name="create-outline" size={20} color={C.ink} />
-                <Text className="font-display text-ink uppercase mt-1" style={{ fontSize: 12 }}>Other</Text>
-                <Text className="font-sans text-ink-2 mt-[2px]" style={{ fontSize: 10 }}>Type a place</Text>
+                <Ionicons name="create-outline" size={20} color={otherOpen ? C.onBrand : C.ink} />
+                <Text className={`font-display ${otherOpen ? 'text-on-brand' : 'text-ink'} uppercase mt-1`} style={{ fontSize: 12 }}>Other</Text>
+                <Text className={`font-sans ${otherOpen ? 'text-on-brand/70' : 'text-ink-2'} mt-[2px]`} style={{ fontSize: 10 }}>Type a place</Text>
               </TouchableOpacity>
             </View>
 
@@ -451,7 +451,7 @@ function CreatePost() {
                   accessibilityRole="button"
                   accessibilityLabel="Use this location"
                 >
-                  <Ionicons name="checkmark" size={20} color={customLocation.trim() ? '#12100E' : '#8B857E'} />
+                  <Ionicons name="checkmark" size={20} color={customLocation.trim() ? C.onBrand : C.ink3} />
                 </TouchableOpacity>
               </View>
             )}

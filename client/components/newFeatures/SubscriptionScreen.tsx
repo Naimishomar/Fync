@@ -66,7 +66,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                             contact: ${JSON.stringify(String(user?.mobileNumber || ''))}
                         },
                         theme: {
-                            color: "#F97316"
+                            color: C.brand[500]
                         },
                         handler: function (response) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -155,7 +155,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar title="Fync Pro" onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
@@ -173,18 +173,18 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                                 {/* This heading was text-ink on bg-ink — a contrast ratio of
                                     1.00, meaning the same colour as its own background. It
                                     was not faint, it was invisible. */}
-                                <Text className="text-white font-display uppercase" style={{ fontSize: 15 }}>Full Access Pass</Text>
+                                <Text className="text-paper font-display uppercase" style={{ fontSize: 15 }}>Full Access Pass</Text>
                                 <Text className="text-brand-400 font-display uppercase mt-1" style={{ fontSize: 10, letterSpacing: 1.2 }}>
                                     Limited time offer
                                 </Text>
                             </View>
                             <View className="items-end">
-                                <Text className="text-white font-display" style={{ fontSize: 30 }}>₹{subscriptionAmount}</Text>
+                                <Text className="text-paper font-display" style={{ fontSize: 30 }}>₹{subscriptionAmount}</Text>
                                 <Text className="text-night-3 font-display uppercase" style={{ fontSize: 10 }}>/ month</Text>
                             </View>
                         </View>
 
-                        <View className="h-[2px] bg-white/15 mb-5" />
+                        <View className="h-[2px] bg-paper/15 mb-5" />
 
                         <View className="mb-6">
                             {PERKS.map((item, index) => (
@@ -195,7 +195,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                                     <View className="w-8 h-8 rounded-xl items-center justify-center mr-3 border-2 border-brand-500">
                                         <Ionicons name={item.icon as any} size={15} color={C.brand[500]} />
                                     </View>
-                                    <Text className="text-white font-sans flex-1" style={{ fontSize: 13 }}>{item.text}</Text>
+                                    <Text className="text-paper font-sans flex-1" style={{ fontSize: 13 }}>{item.text}</Text>
                                 </View>
                             ))}
                         </View>
@@ -210,15 +210,15 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                             accessibilityLabel={user?.is_subscribed ? "Extend subscription" : "Unlock premium"}
                         >
                             {loading ? (
-                                <ActivityIndicator size="small" color={C.ink} />
+                                <ActivityIndicator size="small" color={C.onBrand} />
                             ) : (
                                 <View className="flex-row items-center">
                                     {/* Ink on brand-500 measures 6.77:1; white on it is 2.80
                                         and would fail, which is why this is not white. */}
-                                    <Text className="text-ink font-display uppercase mr-2" style={{ fontSize: 13 }}>
+                                    <Text className="text-on-brand font-display uppercase mr-2" style={{ fontSize: 13 }}>
                                         {user?.is_subscribed ? "Extend subscription" : "Unlock premium"}
                                     </Text>
-                                    <Ionicons name="chevron-forward" size={15} color={C.ink} />
+                                    <Ionicons name="chevron-forward" size={15} color={C.onBrand} />
                                 </View>
                             )}
                         </TouchableOpacity>
@@ -240,14 +240,14 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
 
                         <TouchableOpacity
                             onPress={confirmLogout}
-                            className="flex-row items-center bg-white border-2 border-ink rounded-card px-4 py-3"
+                            className="flex-row items-center bg-card border-2 border-ink rounded-card px-4 py-3"
                             style={{ minHeight: 56 }}
                             accessibilityRole="button"
                             accessibilityLabel="Log out"
                         >
                             <View
                                 className="items-center justify-center rounded-xl border-2 border-ink"
-                                style={{ width: 40, height: 40, backgroundColor: '#FEE2E2' }}
+                                style={{ width: 40, height: 40, backgroundColor: C.danger + '1A' }}
                             >
                                 <Ionicons name="log-out-outline" size={20} color={C.danger} />
                             </View>
@@ -270,7 +270,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                 transparent={false}
                 onRequestClose={() => { setShowWebView(false); Alert.alert("Cancelled", "Payment was cancelled."); }}
             >
-                <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+                <SafeAreaView style={{ flex: 1, backgroundColor: C.card }}>
                     {html ? (
                         <WebView
                             source={{ html }}

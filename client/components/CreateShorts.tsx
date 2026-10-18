@@ -76,7 +76,7 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
         </View>
         {isSelected && (
           <View className="absolute top-2 right-2 bg-brand-500 rounded-full w-6 h-6 items-center justify-center shadow-hair">
-            <Ionicons name="checkmark" size={14} color={C.ink} />
+            <Ionicons name="checkmark" size={14} color={C.onBrand} />
           </View>
         )}
       </View>
@@ -247,7 +247,7 @@ const CreateShorts = () => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
       
       <SafeAreaView className="flex-1" edges={['bottom']}>
       <AppBar title="Create Short" onBack={() => navigation.goBack()}
@@ -285,7 +285,7 @@ const CreateShorts = () => {
                           {permissionError ? "Permission Denied" : "No Content Found"}
                       </Text>
                       <TouchableOpacity onPress={pickFromSystem} className="mt-4 bg-brand-500 px-6 py-3 rounded-card">
-                          <Text className="text-ink font-display uppercase text-label">Browse Vault</Text>
+                          <Text className="text-on-brand font-display uppercase text-label">Browse Vault</Text>
                       </TouchableOpacity>
                    </View>
                  )}
@@ -324,7 +324,7 @@ const CreateShorts = () => {
                           Unable to access gallery. Please use the system browser to select a video.
                       </Text>
                       <TouchableOpacity onPress={pickFromSystem} className="mt-6 bg-ink px-gutter py-3 rounded-card shadow-hair">
-                          <Text className="text-white font-display uppercase text-label">Open Browser</Text>
+                          <Text className="text-paper font-display uppercase text-label">Open Browser</Text>
                       </TouchableOpacity>
                   </View>
               }
@@ -418,12 +418,12 @@ const CreateShorts = () => {
                 >
                   <View
                     className="h-16 rounded-full items-center justify-center flex-row"
-                   style={{ backgroundColor: '#F97316' }}>
+                   style={{ backgroundColor: C.brand[500] }}>
                     {loading ? (
                       <>
-                        <ActivityIndicator color={C.ink} size="small" />
+                        <ActivityIndicator color={C.onBrand} size="small" />
                         {compressProgress > 0 && compressProgress < 1 && (
-                          <Text className="text-ink font-display uppercase ml-3 text-xs">
+                          <Text className="text-on-brand font-display uppercase ml-3 text-xs">
                             Optimising {Math.round(compressProgress * 100)}%
                           </Text>
                         )}

@@ -49,16 +49,16 @@ class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F2EC' }}>
-          <StatusBar barStyle="dark-content" />
+        <SafeAreaView style={{ flex: 1, backgroundColor: C.paper }}>
+          <StatusBar barStyle={C.barStyle} />
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             <View style={{ 
               width: 80, 
               height: 80, 
-              backgroundColor: '#EDE8E0', 
+              backgroundColor: C.paper2, 
               borderRadius: 16, 
               borderWidth: 2,
-              borderColor: '#12100E', 
+              borderColor: C.ink, 
               alignItems: 'center', 
               justifyContent: 'center',
               marginBottom: 24
@@ -67,7 +67,7 @@ class ErrorBoundary extends Component<Props, State> {
             </View>
             
             <Text style={{ 
-              color: '#12100E', 
+              color: C.ink, 
               fontSize: 26, 
               fontFamily: 'SpaceGrotesk_700Bold', 
               letterSpacing: -0.6, 
@@ -78,7 +78,7 @@ class ErrorBoundary extends Component<Props, State> {
             </Text>
             
             <Text style={{ 
-              color: '#57534E', 
+              color: C.ink2, 
               fontSize: 15, 
               fontFamily: 'Inter_400Regular', 
               textAlign: 'center',
@@ -94,24 +94,24 @@ class ErrorBoundary extends Component<Props, State> {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: '#F97316',
+                backgroundColor: C.brand[500],
                 paddingVertical: 14,
                 paddingHorizontal: 28,
                 borderRadius: 12,
                 borderWidth: 2,
-                borderColor: '#12100E',
+                borderColor: C.ink,
                 minHeight: 48
               }}
             >
-              <RefreshCcw size={18} color={C.ink} style={{ marginRight: 8 }} />
-              <Text style={{ color: '#12100E', fontFamily: 'SpaceGrotesk_700Bold', fontSize: 14, letterSpacing: 0.3, textTransform: 'uppercase' }}>Reload App</Text>
+              <RefreshCcw size={18} color={C.onBrand} style={{ marginRight: 8 }} />
+              <Text style={{ color: C.onBrand, fontFamily: 'SpaceGrotesk_700Bold', fontSize: 14, letterSpacing: 0.3, textTransform: 'uppercase' }}>Reload App</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               onPress={() => this.setState({ hasError: false, error: null })}
               style={{ marginTop: 20 }}
             >
-              <Text style={{ color: '#57534E', fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>Try to ignore</Text>
+              <Text style={{ color: C.ink2, fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>Try to ignore</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

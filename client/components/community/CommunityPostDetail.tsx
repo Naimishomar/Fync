@@ -89,7 +89,7 @@ export default function CommunityPostDetail() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
             <View className="flex-1">
                 <View className="flex-1">
                     <AppBar title={subName} onBack={() => navigation.goBack()} />
@@ -111,11 +111,11 @@ export default function CommunityPostDetail() {
                             <View className="flex-row items-center mt-5 gap-5">
                                 <View className="flex-row items-center bg-paper-2 rounded-card px-3 h-11 border border-line">
                                     <TouchableOpacity onPress={() => vote(1)} hitSlop={8}>
-                                        <Ionicons name={post?.myVote === 1 ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={24} color={post?.myVote === 1 ? '#F97316' : '#8B857E'} />
+                                        <Ionicons name={post?.myVote === 1 ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={24} color={post?.myVote === 1 ? C.brand[500] : C.ink3} />
                                     </TouchableOpacity>
                                     <Text className="text-ink font-display text-sm mx-3">{post?.score ?? 0}</Text>
                                     <TouchableOpacity onPress={() => vote(-1)} hitSlop={8}>
-                                        <Ionicons name={post?.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={24} color={post?.myVote === -1 ? '#2563EB' : '#8B857E'} />
+                                        <Ionicons name={post?.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={24} color={post?.myVote === -1 ? C.info : C.ink3} />
                                     </TouchableOpacity>
                                 </View>
                                 <TouchableOpacity onPress={() => setCommentsOpen(true)} hitSlop={8} className="flex-row items-center">

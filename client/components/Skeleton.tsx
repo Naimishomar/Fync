@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet, Dimensions, ViewStyle, StyleProp } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { C } from '../constants/colors';
 
 interface SkeletonProps {
   width?: number | string;
@@ -47,13 +48,13 @@ const Skeleton = ({ width, height, borderRadius = 8, style, className, lightMode
         height: height as any, 
         borderRadius, 
         overflow: 'hidden', 
-        backgroundColor: lightMode ? '#EDE8E0' : '#171320' 
+        backgroundColor: lightMode ? C.paper2 : '#171320' 
       }, style]} 
       className={className}
     >
       <Animated.View style={{ flex: 1, opacity }}>
         <LinearGradient
-          colors={lightMode ? ['#E3DDD3', '#C4BEB6', '#E3DDD3'] : ['#171320', '#0D0B12', '#171320']}
+          colors={lightMode ? [C.line, C.ink4, C.line] : ['#171320', '#0D0B12', '#171320']}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
           style={StyleSheet.absoluteFill}
@@ -123,7 +124,7 @@ export const ProfileSkeleton = () => (
 
         <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
             <View className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
-                <View className="rounded-full overflow-hidden border-4 border-white">
+                <View className="rounded-full overflow-hidden border-4 border-card">
                     <Skeleton width={110} height={110} borderRadius={55} lightMode />
                 </View>
             </View>

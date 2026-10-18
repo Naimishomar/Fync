@@ -210,10 +210,10 @@ export default function FocusProductivity() {
     // on the one element this screen is built around.
     const getTreeStage = (): { name: any; size: number; color: string } => {
         const progress = seconds <= 0 ? 1 : 1 - (seconds / initialSeconds);
-        if (progress < 0.25) return { name: 'leaf-outline', size: 44, color: '#C4BEB6' };
-        if (progress < 0.5)  return { name: 'leaf-outline', size: 58, color: '#8B857E' };
+        if (progress < 0.25) return { name: 'leaf-outline', size: 44, color: C.ink4 };
+        if (progress < 0.5)  return { name: 'leaf-outline', size: 58, color: C.ink3 };
         if (progress < 0.75) return { name: 'leaf', size: 68, color: '#34A853' };
-        return { name: 'leaf', size: 76, color: '#047857' };
+        return { name: 'leaf', size: 76, color: C.success };
     };
 
     const renderSetup = () => (
@@ -228,7 +228,7 @@ export default function FocusProductivity() {
                         className={`p-6 rounded-sheet border ${sessionType === type ? 'border-success bg-card' : 'border-line bg-card'}`}
                     >
                         <View className={`w-12 h-12 rounded-card items-center justify-center mb-4 ${sessionType === type ? 'bg-success' : 'bg-paper-2'}`}>
-                            <Ionicons name={SESSION_THEMES[type].icon as any} size={24} color={sessionType === type ? 'white' : '#C4BEB6'} />
+                            <Ionicons name={SESSION_THEMES[type].icon as any} size={24} color={sessionType === type ? 'white' : C.ink4} />
                         </View>
                         <Text className={`font-display text-label uppercasest ${sessionType === type ? 'text-ink' : 'text-ink-3'}`}>{SESSION_THEMES[type].label}</Text>
                     </TouchableOpacity>
@@ -263,7 +263,7 @@ export default function FocusProductivity() {
                 }}
             >
                 <View className="py-5 items-center justify-center">
-                    <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Plant a Tree</Text>
+                    <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Plant a Tree</Text>
                 </View>
             </TouchableOpacity>
         </View>
@@ -283,7 +283,7 @@ export default function FocusProductivity() {
                 width={8}
                 fill={((initialSeconds - seconds) / initialSeconds) * 100}
                 tintColor={SESSION_THEMES[sessionType].colors[0]}
-                backgroundColor="#EDE8E0"
+                backgroundColor={C.paper2}
                 rotation={0}
                 lineCap="round"
             >
@@ -306,7 +306,7 @@ export default function FocusProductivity() {
                         onPress={() => { setActiveTab('setup'); setSeconds(25 * 60); }}
                         className="bg-ink px-gutter py-5 rounded-card"
                     >
-                        <Text className="text-white font-display uppercase text-xs">Claim Tree</Text>
+                        <Text className="text-paper font-display uppercase text-xs">Claim Tree</Text>
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity
@@ -366,7 +366,7 @@ export default function FocusProductivity() {
                         <View className="flex-row items-center justify-between bg-card p-4 rounded-card mb-3 border border-line">
                             <View className="flex-row items-center">
                                 <View className={`w-12 h-12 rounded-xl items-center justify-center mr-4 ${item.status === 'success' ? 'bg-success/10' : 'bg-danger/10'}`}>
-                                    <Ionicons name={item.status === 'success' ? 'leaf' : 'leaf-outline'} size={22} color={item.status === 'success' ? '#047857' : '#DC2626'} />
+                                    <Ionicons name={item.status === 'success' ? 'leaf' : 'leaf-outline'} size={22} color={item.status === 'success' ? C.success : C.danger} />
                                 </View>
                                 <View>
                                     <Text className="text-ink font-display text-sm">{SESSION_THEMES[item.type as SessionType].label}</Text>
@@ -387,7 +387,7 @@ export default function FocusProductivity() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             {/* Locked session has no bar, so it still needs the status-bar inset itself. */}
             <SafeAreaView className="flex-1" edges={isAppLocked ? ['top'] : []}>
@@ -413,7 +413,7 @@ export default function FocusProductivity() {
                         count={200}
                         origin={{ x: width / 2, y: height }}
                         fadeOut={true}
-                        colors={['#F97316', '#F5B700', '#047857', '#7C3AED']}
+                        colors={[C.brand[500], '#F5B700', C.success, '#7C3AED']}
                     />
                 )}
             </SafeAreaView>

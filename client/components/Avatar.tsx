@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getFullUrl, getThumbUrl } from '../utils/imageUtils';
-import { C } from '../constants/colors';
+import { C, themed } from '../constants/colors';
 
 interface AvatarProps {
   user: {
@@ -31,8 +31,8 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
         source={{ uri: avatarUrl }}
         style={[
           { width: size, height: size, borderRadius: size / 2 },
-          isAlumni && { borderWidth: 2, borderColor: '#F5B700' },
-          isRecruiter && { borderWidth: 2, borderColor: '#4F46E5' }
+          isAlumni && { borderWidth: 2, borderColor: C.alumniLit },
+          isRecruiter && { borderWidth: 2, borderColor: C.recruiter }
         ]}
         className="rounded-full"
         cachePolicy="memory-disk"
@@ -43,7 +43,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
           style={[
             styles.badge, 
             { 
-              backgroundColor: '#F5B700',
+              backgroundColor: C.alumniLit,
               width: size * 0.4, 
               height: size * 0.4, 
               borderRadius: (size * 0.4) / 2,
@@ -60,7 +60,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
           style={[
             styles.badge, 
             { 
-              backgroundColor: '#4F46E5',
+              backgroundColor: C.recruiter,
               width: size * 0.4, 
               height: size * 0.4, 
               borderRadius: (size * 0.4) / 2,
@@ -76,15 +76,15 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = themed(() => ({
   badge: {
     position: 'absolute',
-    backgroundColor: '#F5B700',
+    backgroundColor: C.alumniLit,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#F5F2EC',
+    borderColor: C.paper,
   },
-});
+}));
 
 export default memo(Avatar);

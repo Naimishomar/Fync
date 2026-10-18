@@ -24,7 +24,7 @@ export default function PageNumbersScreen() {
               className={`flex-row items-center rounded-md border-2 px-4 mb-2 ${spot === s.id ? 'bg-brand-500 border-ink' : 'bg-card border-line'}`}
               style={{ minHeight: 48 }} accessibilityRole="button"
             >
-              <Text className={`font-display uppercase text-label ${spot === s.id ? 'text-ink' : 'text-ink-2'}`}>{s.label}</Text>
+              <Text className={`font-display uppercase text-label ${spot === s.id ? 'text-on-brand' : 'text-ink-2'}`}>{s.label}</Text>
             </TouchableOpacity>
           ))}
         </View>

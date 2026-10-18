@@ -71,7 +71,7 @@
       "@react-native-firebase/crashlytics"
     ],
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "androidStatusBar": {
       "translucent": true,
       "backgroundColor": "#00000000",

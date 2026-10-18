@@ -67,11 +67,11 @@ export default function LoginScreen() {
       className="bg-paper"
     >
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F5F2EC' }}
+        contentContainerStyle={{ flexGrow: 1, backgroundColor: C.paper }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 bg-ink">
+        <View className="flex-1 bg-night">
 
           <AuthPoster mode="login" grow />
 
@@ -101,7 +101,7 @@ export default function LoginScreen() {
                   height: 72,
                   borderRadius: 36,
                   borderWidth: 2,
-                  borderColor: '#12100E',
+                  borderColor: C.ink,
                 }}
                 resizeMode="cover"
                 accessibilityLabel="Fync"
@@ -163,8 +163,8 @@ export default function LoginScreen() {
                   accessibilityRole="button"
                 >
                   {isLoading
-                    ? <ActivityIndicator size="small" color={C.ink} />
-                    : <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Login</Text>}
+                    ? <ActivityIndicator size="small" color={C.onBrand} />
+                    : <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Login</Text>}
                 </Pressable>
 
                 <View className="mt-4 flex-row justify-center items-center">

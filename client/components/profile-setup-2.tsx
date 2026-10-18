@@ -179,7 +179,7 @@ export default function ProfileSetup2() {
               {/* Continue */}
               {isLoading ? (
                 <Pressable className="bg-brand-500 items-center justify-center mb-4 border-2 border-ink rounded-md" style={{ minHeight: 48 }}>
-                  <ActivityIndicator size="small" color={C.ink} />
+                  <ActivityIndicator size="small" color={C.onBrand} />
                 </Pressable>
               ) : (
                 <Pressable
@@ -188,7 +188,7 @@ export default function ProfileSetup2() {
                   onPress={submitRegistration}
                   accessibilityRole="button"
                 >
-                  <Text className="font-display text-ink uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
+                  <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
                     Continue
                   </Text>
                 </Pressable>

@@ -302,7 +302,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
         <View className="relative">
           <Avatar user={item as any} size={44} />
           <View
-            className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white ${ busy ? 'bg-brand-500' : 'bg-success' }`}
+            className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-card ${ busy ? 'bg-brand-500' : 'bg-success' }`}
           />
         </View>
 
@@ -335,7 +335,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
           <Ionicons
             name={isVideo ? 'videocam' : 'call'}
             size={20}
-            color={busy ? '#C4BEB6' : '#FFFFFF'}
+            color={busy ? C.ink4 : '#FFFFFF'}
           />
         </Pressable>
       </View>
@@ -346,7 +346,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
 
 
       <View className="flex-1">
@@ -424,7 +424,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
 
       {/* Incoming call — accept or decline. */}
       <Modal visible={!!incomingCall} transparent animationType="slide" onRequestClose={rejectCall}>
-        <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(18, 16, 14,0.6)' }}>
+        <View className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
           <View className="bg-paper rounded-t-sheet px-gutter pt-8" style={{ paddingBottom: bottomInset + 24 }}>
             <View className="items-center">
               <Avatar user={caller as any} size={88} />

@@ -23,27 +23,27 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
           body {
             font-family: 'Inter', -apple-system, sans-serif;
             padding: 24px;
-            color: #57534E;
+            color: ${C.ink2};
             line-height: 1.6;
-            background-color: #ffffff;
+            background-color: ${C.card};
           }
           h1, h2, h3 {
-            color: #12100E;
+            color: ${C.ink};
             margin-top: 1.5em;
             margin-bottom: 0.5em;
             font-weight: 700;
           }
-          h1 { font-size: 1.875rem; border-bottom: 2px solid #F5F2EC; padding-bottom: 0.5em; }
+          h1 { font-size: 1.875rem; border-bottom: 2px solid ${C.paper}; padding-bottom: 0.5em; }
           h2 { font-size: 1.5rem; }
           code {
-            background-color: #F5F2EC;
+            background-color: ${C.paper};
             padding: 2px 4px;
             border-radius: 4px;
             font-family: monospace;
             font-size: 0.875em;
           }
           pre {
-            background-color: #F5F2EC;
+            background-color: ${C.paper};
             padding: 16px;
             border-radius: 12px;
             overflow-x: auto;
@@ -54,9 +54,9 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
             padding: 0;
           }
           blockquote {
-            border-left: 4px solid #2563EB;
+            border-left: 4px solid ${C.info};
             padding-left: 16px;
-            color: #57534E;
+            color: ${C.ink2};
             margin: 1em 0;
             font-style: italic;
           }
@@ -74,7 +74,7 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
           }
           hr {
             border: 0;
-            border-top: 1px solid #E3DDD3;
+            border-top: 1px solid ${C.line};
             margin: 2em 0;
           }
           table {
@@ -83,12 +83,12 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
             margin: 1em 0;
           }
           th, td {
-            border: 1px solid #E3DDD3;
+            border: 1px solid ${C.line};
             padding: 8px 12px;
             text-align: left;
           }
           th {
-            background-color: #EDE8E0;
+            background-color: ${C.paper2};
             font-weight: 600;
           }
         </style>
@@ -111,13 +111,13 @@ const MarkdownViewerScreen = ({ route, navigation } : any) => {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={C.barStyle} />
       {/* The stack runs headerShown:false, so setOptions({ title }) above never
           showed anything — the page sat under the status bar with no back. */}
       <AppBar title={title} onBack={() => navigation.goBack()} />
       <WebView 
         source={{ html: htmlContent }} 
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: C.card }}
         startInLoadingState={true}
         renderLoading={() => (
           <View className="absolute inset-0 items-center justify-center bg-card">

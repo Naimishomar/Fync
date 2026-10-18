@@ -232,11 +232,11 @@ export default function FindTeammate() {
                 <TouchableOpacity onPress={() => handleMessage(item)} disabled={connectingId !== null} className='rounded-card overflow-hidden'>
                     <View className="px-6 py-3 bg-ink flex-row items-center">
                         {connectingId === item._id ? (
-                            <ActivityIndicator size="small" color="white" />
+                            <ActivityIndicator size="small" color={C.paper} />
                         ) : (
                             <>
-                                <Ionicons name="chatbubble" size={16} color="white" />
-                                <Text className="text-white font-display ml-2 text-label uppercase">Chat</Text>
+                                <Ionicons name="chatbubble" size={16} color={C.paper} />
+                                <Text className="text-paper font-display ml-2 text-label uppercase">Chat</Text>
                             </>
                         )}
                     </View>
@@ -248,7 +248,7 @@ export default function FindTeammate() {
 
     return (
         <View className="flex-1 bg-paper">
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle={C.barStyle} />
 
             {/* HEADER DECORATION */}
 
@@ -280,8 +280,8 @@ export default function FindTeammate() {
                         className={`flex-1 py-3.5 rounded-xl items-center justify-center flex-row ${activeTab === 'global' ? 'bg-ink' : 'bg-transparent'}`}
                         onPress={() => setActiveTab('global')}
                     >
-                        <Ionicons name="globe-outline" size={16} color={activeTab === 'global' ? 'white' : '#8B857E'} />
-                        <Text className={`font-display text-label uppercase ml-2 ${activeTab === 'global' ? 'text-white' : 'text-ink-3'}`}>
+                        <Ionicons name="globe-outline" size={16} color={activeTab === 'global' ? C.paper : C.ink3} />
+                        <Text className={`font-display text-label uppercase ml-2 ${activeTab === 'global' ? 'text-paper' : 'text-ink-3'}`}>
                             Global
                         </Text>
                     </TouchableOpacity>
@@ -290,8 +290,8 @@ export default function FindTeammate() {
                         className={`flex-1 py-3.5 rounded-xl items-center justify-center flex-row ${activeTab === 'college' ? 'bg-ink' : 'bg-transparent'}`}
                         onPress={() => setActiveTab('college')}
                     >
-                        <Ionicons name="school-outline" size={16} color={activeTab === 'college' ? 'white' : '#8B857E'} />
-                        <Text className={`font-display text-label uppercase ml-2 ${activeTab === 'college' ? 'text-white' : 'text-ink-3'}`}>
+                        <Ionicons name="school-outline" size={16} color={activeTab === 'college' ? C.paper : C.ink3} />
+                        <Text className={`font-display text-label uppercase ml-2 ${activeTab === 'college' ? 'text-paper' : 'text-ink-3'}`}>
                             Campus
                         </Text>
                     </TouchableOpacity>
@@ -310,7 +310,7 @@ export default function FindTeammate() {
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={['#F97316']} />
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />
                         }
                         // A local search filters what is already loaded, so paging
                         // while filtering would append rows the filter then hides.
