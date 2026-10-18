@@ -7,6 +7,7 @@ import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
 import { FEATURES, artUrl, isFeatureOn } from '../../constants/features';
 import Skeleton from '../Skeleton';
+import { daysLeftLabel } from '../../utils/deadline';
 
 type FeaturedType = 'hackathon' | 'internship' | 'job' | 'bootcamp' | 'speaker';
 type FeaturedItem = {
@@ -17,6 +18,7 @@ type FeaturedItem = {
   image?: string;
   logo?: string;
   chips: string[];
+  deadline?: string;
 };
 
 // type -> feature id (for gating + art) and the screen its list opens.
@@ -172,7 +174,9 @@ const FeaturedCarousel = () => {
           setIndex(Math.min(count - 1, Math.max(0, Math.round(e.nativeEvent.contentOffset.x / step))));
           release();
         }}
-        renderItem={({ item }) => (
+        renderItem={({ item }) => {
+          const due = daysLeftLabel(item.deadline);
+          return (
           <Pressable
             onPress={() => {
               const [route, params] = META[item.type].open(item.id);
@@ -181,13 +185,18 @@ const FeaturedCarousel = () => {
             style={{ width: cardW }}
             className="active:opacity-80"
             accessibilityRole="button"
-            accessibilityLabel={[item.title, item.org, ...item.chips].filter(Boolean).join('. ')}
+            accessibilityLabel={[item.title, item.org, due?.label, ...item.chips].filter(Boolean).join('. ')}
           >
             <View className="rounded-2xl border border-line overflow-hidden bg-card">
               <Poster item={item} w={cardW} h={cardH} />
             </View>
-            {item.chips.length > 0 ? (
+            {item.chips.length > 0 || due ? (
               <View className="flex-row flex-wrap mt-2.5" style={{ gap: 6 }}>
+                {due ? (
+                  <View className={`flex-row items-center rounded-full px-2 py-0.5 border ${due.urgent ? 'bg-brand-50 border-brand-500/30' : 'border-line'}`}>
+                    <Text className="font-sans text-xs text-accent-text">⏳ {due.label}</Text>
+                  </View>
+                ) : null}
                 {item.chips.map((c) => (
                   <View key={c} className="rounded-full border border-line px-2 py-0.5">
                     <Text className="font-sans text-xs text-ink-2">{c}</Text>
@@ -204,7 +213,8 @@ const FeaturedCarousel = () => {
               </Text>
             ) : null}
           </Pressable>
-        )}
+          );
+        }}
       />
       {count > 1 ? (
         <View className="flex-row justify-center mt-3" style={{ gap: 6 }}>

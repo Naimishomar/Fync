@@ -1,110 +1,13 @@
-import React, { useEffect, useState, useCallback, useRef, memo } from 'react';
-import {View, Text, FlatList, Image, ActivityIndicator, Pressable, Linking, TextInput, TouchableOpacity, StatusBar, Modal} from 'react-native'
+import React, { useState, useCallback, useRef } from 'react';
+import {View, Text, FlatList, Image, ActivityIndicator, Linking, TextInput, TouchableOpacity, StatusBar, Modal} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image as ExpoImage } from 'expo-image';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar } from '../ui/kit';
-
-// --- 🌌 BACKGROUND IMAGE ---
-const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
-
-// --- 1. MEMOIZED INTERNSHIP CARD (Arena Theme) ---
-const InternshipCard = memo(({ item, onApply, hideApply }: { item: any; onApply: (item: any) => void; hideApply?: boolean }) => {
-  return (
-    <View className="bg-card rounded-card mb-6 mx-gutter p-6 border border-line shadow-hair">
-
-      <View className="flex-row gap-4 items-center">
-        {/* Company Logo */}
-        <View className="w-16 h-16 rounded-card border border-line overflow-hidden bg-paper-2 items-center justify-center p-2">
-          <ExpoImage
-            source={{ uri: item.companyLogo }}
-            style={{ width: 48, height: 48, borderRadius: 12 }}
-            contentFit="contain"
-            cachePolicy="memory-disk"
-          />
-        </View>
-
-        {/* Title & Company */}
-        <View className="flex-1">
-          <Text className="text-ink text-base font-display uppercase leading-5" numberOfLines={2}>
-            {item.title}
-          </Text>
-          <Text className="text-ink-3 text-label font-display uppercase mt-1" numberOfLines={1}>
-            {item.company}
-          </Text>
-        </View>
-      </View>
-
-      {/* Tags Row */}
-      <View className="mt-5 flex-row flex-wrap gap-2">
-        {/* Experience/Duration */}
-        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons name="calendar" size={14} color={C.ink3} />
-          <Text className="text-label font-display uppercase text-ink-3 ml-2">
-            {item.duration || "Self-Paced"}
-          </Text>
-        </View>
-
-        {/* Location */}
-        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons name="location-sharp" size={14} color={C.ink3} />
-          <Text className="text-label font-display uppercase text-ink-3 ml-2">
-            {item.location}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Text className="text-label text-accent-text font-display uppercase">
-            {item.opportunityType}
-          </Text>
-        </View>
-      </View>
-
-      {/* Description */}
-      {item.description && (
-        <View className="mt-5 bg-paper-2/50 p-4 rounded-card border border-dashed border-line">
-          <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
-            <Text className="text-ink-3 font-display uppercase text-label">Protocol Details</Text>
-            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-          </View>
-          <Text className="text-ink-2 text-xs leading-5 font-medium">
-            {item.description}
-          </Text>
-        </View>
-      )}
-
-      {/* Footer / CTA */}
-      <View className="mt-6 flex-row items-center justify-between border-t border-line pt-5">
-        <View>
-          <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
-            <Text className="text-ink-3 font-display uppercase text-label">Monthly Stipend</Text>
-            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-          </View>
-          <Text className="text-ink text-lg font-display uppercase">
-            {item.isPaid ? (String(item.stipend ?? '').startsWith('₹') ? item.stipend : `₹${item.stipend ?? ''}`) : "Voluntary"}
-          </Text>
-        </View>
-
-        {!hideApply && (
-          <TouchableOpacity
-            onPress={() => !item.hasApplied && onApply(item)}
-            activeOpacity={item.hasApplied ? 1 : 0.9}
-            className={`${item.hasApplied ? 'bg-paper-2 border-line' : 'bg-ink'} px-gutter py-3.5 rounded-card shadow-hair`}
-          >
-            <Text className={`${item.hasApplied ? 'text-ink-3' : 'text-paper'} font-display uppercase text-label`}>
-              {item.hasApplied ? 'Registered' : 'Apply Now'}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-    </View>
-  );
-});
+import { OpportunityCard, ListingSwitcher } from './OpportunityCard';
 
 const InternshipList = () => {
   const route = useRoute<any>();
@@ -251,7 +154,7 @@ const InternshipList = () => {
   const isRecruiter = user?.user_access === 'recruiter';
 
   const renderItem = useCallback(({ item }: { item: any }) => (
-    <InternshipCard item={item} onApply={handleApply} hideApply={isRecruiter} />
+    <OpportunityCard item={item} onApply={handleApply} hideApply={isRecruiter} />
   ), [handleApply, isRecruiter]);
 
   const renderFooter = () => {
@@ -269,6 +172,8 @@ const InternshipList = () => {
 
       <View className="flex-1">
         <AppBar title="Internships" onBack={() => navigation.goBack()} />
+
+        {!recruiterId && <ListingSwitcher current="internships" />}
 
         {/* Arena Tabs */}
         {/* Segmented tabs with the brand underline. The previous pill pair put

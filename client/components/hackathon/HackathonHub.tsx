@@ -22,6 +22,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { C } from '../../constants/colors';
 import { Image } from 'expo-image';
 import { AppBar } from '../ui/kit';
+import { ListingSwitcher } from '../opportunity/OpportunityCard';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 // Fixed pixel heights, not percentages of the screen. The banner used to be
@@ -540,6 +541,7 @@ const HackathonHub = () => {
             </TouchableOpacity>
           }
         />
+        <ListingSwitcher current="hackathons" />
         <FlatList
           data={filtered}
           keyExtractor={(item) => item._id}
