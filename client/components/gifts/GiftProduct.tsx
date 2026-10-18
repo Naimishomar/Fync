@@ -8,7 +8,7 @@ import Toast from 'react-native-toast-message';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
 import { AppBar, Screen, Chip, Button, BottomBar, Empty, Label } from '../ui/kit';
-import { GiftProduct as Product, rupees, optValue, priceWith, deliveryBy, uploadGiftPhotos } from './shared';
+import { GiftProduct as Product, rupees, optValue, priceWith, deliveryBy, uploadGiftOriginals } from './shared';
 
 /** One gift: gallery, price, delivery estimate and the customization form. */
 const GiftProduct = () => {
@@ -22,6 +22,7 @@ const GiftProduct = () => {
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(0);
 
   useEffect(() => {
     axios.get(`/gifts/products/${id}`)
@@ -52,7 +53,7 @@ const GiftProduct = () => {
     const left = maxPhotos - photos.length;
     if (left <= 0) return;
     const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'], allowsMultipleSelection: left > 1, selectionLimit: left, quality: 0.9,
+      mediaTypes: ['images'], allowsMultipleSelection: left > 1, selectionLimit: left, quality: 1, // full quality: these get printed
     });
     if (!res.canceled) setPhotos((prev) => [...prev, ...res.assets.map((a) => a.uri)].slice(0, maxPhotos));
   };
@@ -62,7 +63,7 @@ const GiftProduct = () => {
     if (cz.text?.required && !text.trim()) return Toast.show({ type: 'error', text1: `${cz.text.label} is required` });
     setBusy(true);
     try {
-      const urls = photos.length ? await uploadGiftPhotos(photos) : [];
+      const urls = photos.length ? await uploadGiftOriginals(photos, (d) => setSent(d)) : [];
       navigation.navigate('GiftCheckout', { product, customization: { photos: urls, text: text.trim(), options: picked } });
     } catch (e: any) {
       Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Photo upload failed. Try again.' });
@@ -153,7 +154,7 @@ const GiftProduct = () => {
           </View>
         </ScrollView>
         <BottomBar>
-          <Button title={busy ? 'Uploading photos…' : `Continue · ${rupees(total)}`} variant="primary" block disabled={busy} onPress={proceed} />
+          <Button title={busy ? `Uploading photos ${Math.min(sent + 1, photos.length)}/${photos.length}…` : `Continue · ${rupees(total)}`} variant="primary" block disabled={busy} onPress={proceed} />
         </BottomBar>
       </KeyboardAvoidingView>
     </Screen>

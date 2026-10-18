@@ -57,6 +57,28 @@ export const uploadGiftPhotos = async (uris: string[]): Promise<string[]> => {
   return out;
 };
 
+const PRINT_TYPES: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif' };
+
+/**
+ * Customer photos for printing: sent untouched, one per request (a full-size
+ * phone photo is several MB; ten in one body is slow and fragile on mobile data).
+ */
+export const uploadGiftOriginals = async (uris: string[], onProgress?: (done: number, total: number) => void): Promise<string[]> => {
+  const out: string[] = [];
+  for (let i = 0; i < uris.length; i++) {
+    onProgress?.(i, uris.length);
+    const ext = (uris[i].split('?')[0].split('.').pop() || 'jpg').toLowerCase();
+    const type = PRINT_TYPES[ext] ?? 'image/jpeg';
+    const fd = new FormData();
+    // @ts-ignore React Native FormData file
+    fd.append('photo', { uri: uris[i], type, name: `print_${i}.${PRINT_TYPES[ext] ? ext : 'jpg'}` });
+    const res = await axios.post('/gifts/upload/original', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    out.push(res.data.url);
+  }
+  onProgress?.(uris.length, uris.length);
+  return out;
+};
+
 export const deliveryBy = (days: number) => {
   const d = new Date(Date.now() + days * 86400000);
   return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });

@@ -72,7 +72,11 @@ export const getR2PublicUrl = (key) => {
 // runs; anything outside this list is stored as a download instead.
 const INERT_TYPE = /^(image\/(jpeg|jpg|png|webp|gif|heic|heif|bmp)|video\/(mp4|quicktime)|audio\/[\w.+-]+|application\/pdf)$/i;
 
-export const uploadToR2 = async (buffer, folder, originalname, mimetype) => {
+/**
+ * `keepOriginal`: store the file byte-for-byte (print orders need full
+ * resolution); only the `_sm` grid thumbnail is generated.
+ */
+export const uploadToR2 = async (buffer, folder, originalname, mimetype, { keepOriginal = false } = {}) => {
   mimetype = String(mimetype || "");
   let uploadBuffer = buffer;
   const inert = INERT_TYPE.test(mimetype);
@@ -104,10 +108,12 @@ export const uploadToR2 = async (buffer, folder, originalname, mimetype) => {
         decoded.clone().resize({ width: 400, withoutEnlargement: true }).webp({ quality: 70 }).toBuffer(),
       ]);
 
-      uploadBuffer = full;
       smallBuffer = small;
-      uploadMime = "image/webp";
-      uploadExt = ".webp";
+      if (!keepOriginal) {
+        uploadBuffer = full;
+        uploadMime = "image/webp";
+        uploadExt = ".webp";
+      }
       console.log(`✅ Optimized ${originalname}: ${buffer.length} -> ${full.length} (+${small.length} thumb)`);
     } catch (err) {
       console.error(`⚠️ Optimization failed for ${originalname}, uploading original:`, err.message);
@@ -115,6 +121,8 @@ export const uploadToR2 = async (buffer, folder, originalname, mimetype) => {
     }
   }
 
+  // keepOriginal: the `_sm` twin keeps the original's extension (clients and
+  // deleteFromR2 derive it that way) but holds WebP bytes with a WebP content type.
   const key = `${folder}/${nanoid()}${uploadExt}`;
 
   if (smallBuffer) {
@@ -206,6 +214,13 @@ export const upload = multer({
     const allowed = ["image/jpeg", "image/png", "image/jpg", "application/pdf", "image/webp"];
     cb(null, allowed.includes(file.mimetype));
   },
+});
+
+/** One full-resolution print photo per request — 25 MB (nginx allows more). */
+export const printPhotoUpload = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 1024 * 1024 * 25, files: 1 },
+  fileFilter: (_req, file, cb) => cb(null, /^image\/(jpeg|jpg|png|webp|heic|heif)$/i.test(file.mimetype)),
 });
 
 /** Short video upload — 20 MB limit */

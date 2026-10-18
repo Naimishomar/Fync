@@ -1,3 +1,4 @@
+import { uploadToR2 } from "../utils/r2.js";
 import mongoose from "mongoose";
 import GiftProduct from "../models/gift/giftProduct.model.js";
 import GiftOrder from "../models/gift/giftOrder.model.js";
@@ -73,6 +74,13 @@ const photoPrefix = () => {
   const base = process.env.R2_PUBLIC_URL?.trim().replace(/\/$/, "");
   return base ? `${base}/` : undefined;
 };
+// Upload responses go out through mediaUrlMiddleware, so the app holds
+// MEDIA_PUBLIC_URL/... links; map them back to the stored R2 form before checking.
+const toR2Url = (u) => {
+  const media = process.env.MEDIA_PUBLIC_URL?.trim().replace(/\/$/, "");
+  const r2 = process.env.R2_PUBLIC_URL?.trim().replace(/\/$/, "");
+  return typeof u === "string" && media && r2 && u.startsWith(`${media}/`) ? r2 + u.slice(media.length) : u;
+};
 const bad = (res, message, code = 400) => res.status(code).json({ success: false, message });
 const isId = (id) => mongoose.isValidObjectId(id);
 
@@ -103,6 +111,20 @@ export const uploadPhotos = (req, res) => {
   res.json({ success: true, urls });
 };
 
+const EXT = { "image/jpeg": ".jpg", "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/heic": ".heic", "image/heif": ".heif" };
+
+/** Full-resolution print photo: stored byte-for-byte, plus a `_sm` preview. */
+export const uploadPrintPhoto = async (req, res, next) => {
+  try {
+    const f = req.file;
+    if (!f) return bad(res, "Upload a JPG, PNG, WebP or HEIC photo");
+    const ext = EXT[String(f.mimetype).toLowerCase()];
+    if (!ext) return bad(res, "Upload a JPG, PNG, WebP or HEIC photo");
+    const url = await uploadToR2(f.buffer, "gift_prints", `photo${ext}`, f.mimetype, { keepOriginal: true });
+    res.json({ success: true, url, urls: [url] });
+  } catch (e) { next(e); }
+};
+
 export const createGiftOrder = async (req, res, next) => {
   try {
     const { productId, customization, shipping } = req.body || {};
@@ -110,6 +132,7 @@ export const createGiftOrder = async (req, res, next) => {
     const product = await GiftProduct.findOne({ _id: productId, active: true }).lean();
     if (!product) return bad(res, "This gift is no longer available");
 
+    if (Array.isArray(customization?.photos)) customization.photos = customization.photos.map(toR2Url);
     const c = validateCustomization(product.customization, customization, photoPrefix());
     if (!c.ok) return bad(res, c.error);
     const a = validateAddress(shipping);

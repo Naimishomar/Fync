@@ -1,9 +1,9 @@
 import express from "express";
 import { authMiddleware, isAdmin } from "../middlewares/auth.middleware.js";
-import { upload } from "../utils/r2.js";
+import { upload, printPhotoUpload } from "../utils/r2.js";
 import { r2UploadMiddleware } from "../utils/r2Upload.js";
 import {
-  listProducts, getProduct, uploadPhotos, createGiftOrder, myGiftOrders,
+  listProducts, getProduct, uploadPhotos, uploadPrintPhoto, createGiftOrder, myGiftOrders,
   adminListProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct, adminListOrders, adminUpdateOrder,
 } from "../controllers/gift.controller.js";
 
@@ -17,6 +17,11 @@ const photos = (req, res, next) =>
 router.get("/products", authMiddleware, listProducts);
 router.get("/products/:id", authMiddleware, getProduct);
 router.post("/upload", authMiddleware, photos, r2UploadMiddleware({ photos: "gift_photos" }), uploadPhotos);
+// Customer photos for printing: one file per request, stored at full resolution.
+router.post("/upload/original", authMiddleware, (req, res, next) =>
+  printPhotoUpload.single("photo")(req, res, (err) =>
+    err ? res.status(400).json({ success: false, message: "One JPG, PNG, WebP or HEIC photo under 25 MB." }) : next()),
+  uploadPrintPhoto);
 router.post("/orders", authMiddleware, createGiftOrder);
 router.get("/orders/mine", authMiddleware, myGiftOrders);
 

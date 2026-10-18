@@ -8,6 +8,7 @@ import assert from 'assert/strict';
 process.env.RAZORPAY_WEBHOOK_SECRET = 'w';
 process.env.RAZORPAY_KEY_ID ??= 'k'; process.env.RAZORPAY_KEY_SECRET ??= 's';
 process.env.R2_PUBLIC_URL = 'https://cdn.test';
+process.env.MEDIA_PUBLIC_URL = 'https://api.test/media';
 const m = await MongoMemoryServer.create(); await mongoose.connect(m.getUri('t'));
 const { default: PO } = await import('../models/paymentOrder.model.js');
 const { default: GO } = await import('../models/gift/giftOrder.model.js');
@@ -35,6 +36,11 @@ const giftOrderId = String(r.b.giftOrderId);
 
 r = await call(gift.createGiftOrder, { user: { id: u }, body: { ...body, customization: { ...body.customization, photos: ['https://evil.test/x.jpg'] } } });
 assert.equal(r.c, 400, 'foreign photo host rejected');
+
+// The app only ever sees /media URLs (mediaUrlMiddleware); they must map back and be accepted.
+r = await call(gift.createGiftOrder, { user: { id: u }, body: { ...body, customization: { ...body.customization, photos: ['https://api.test/media/gift_prints/b.jpg'] } } });
+assert.equal(r.c, 201, 'media-host photo accepted');
+assert.equal((await GO.findById(r.b.giftOrderId).lean()).customization.photos[0], 'https://cdn.test/gift_prints/b.jpg', 'stored as R2 url');
 
 // /payment/order resolution
 const priced = await resolvePurchase('couple_gift', { giftOrderId, amount: 1 }, u);
