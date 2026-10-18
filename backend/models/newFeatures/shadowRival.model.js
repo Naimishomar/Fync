@@ -9,7 +9,7 @@ const snapshotSchema = new mongoose.Schema({
 }, { _id: false });
 
 const shadowRivalSchema = new mongoose.Schema({
-    season: { type: String, required: true, index: true },
+    season: { type: String, required: true },
     a: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     b: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     startA: { type: snapshotSchema, required: true },

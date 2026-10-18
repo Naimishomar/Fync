@@ -220,12 +220,6 @@ export const calculateFyncScore = async (userId) => {
                 "breakdown.community.followers":    communityResult.followers,
 
                 lastCalculated: new Date()
-            },
-            $push: {
-                scoreHistory: {
-                    $each: [{ score: totalScore, badge, recordedAt: new Date() }],
-                    $slice: -30  // keep last 30 snapshots
-                }
             }
         },
         { upsert: true, new: true }

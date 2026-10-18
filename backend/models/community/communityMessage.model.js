@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const communityMessageSchema = new mongoose.Schema({
     subCommunityId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubCommunity', required: true },
     sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    text: { type: String },
+    text: { type: String, maxlength: 10000 },
     image: { type: String },
     video: { type: String },
     repliedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'CommunityMessage' },

@@ -53,8 +53,7 @@ const userSchema = new mongoose.Schema({
     },
     college: {
         type: String,
-        required: function() { return this.user_access === 'user'; },
-        index: true
+        required: function() { return this.user_access === 'user'; }
     },
     year: {
         type: Number,
@@ -246,10 +245,6 @@ const userSchema = new mongoose.Schema({
         }
     },
     weeklyStats: {
-        startOfWeekScore: {
-            type: Number,
-            default: 0
-        },
         questionsThisWeek: {
             type: Number,
             default: 0
@@ -422,7 +417,6 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ name: 'text', username: 'text' }); // Fast Search
 userSchema.index({ fyncScore: -1 });                 // Leaderboard speed
 userSchema.index({ codingRating: -1 });              // Arena Leaderboard
-userSchema.index({ college: 1, user_access: 1 });    // Campus filtering
 userSchema.index({ createdAt: -1 });                 // New user sorting
 // Campus Legends. Without this the leaderboard sorted the entire users
 // collection in memory, which past ~32MB of matching documents does not just
@@ -430,9 +424,8 @@ userSchema.index({ createdAt: -1 });                 // New user sorting
 userSchema.index({ streakCount: -1, updatedAt: 1 });
 // 1v1 quiz leaderboard, same shape.
 userSchema.index({ oneVsOnePoints: -1 });
-// Campus Alumni: filter by college + role, newest first. The existing
-// { college, user_access } index stopped short of the sort key, so every page
-// still sorted in memory.
+// Campus Alumni: filter by college + role, newest first. Also serves {college}
+// and {college, user_access} queries as a prefix, so those single indexes are gone.
 userSchema.index({ college: 1, user_access: 1, createdAt: -1 });
 
 // The auth middleware caches a projection of this document in Redis. Invalidate

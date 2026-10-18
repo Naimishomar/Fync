@@ -13,8 +13,7 @@ const affiliateShareSchema = new mongoose.Schema({
     code: {
         type: String,
         required: true,
-        unique: true,
-        index: true
+        unique: true
     },
     sharer: {
         type: mongoose.Schema.Types.ObjectId,
@@ -36,10 +35,6 @@ const affiliateShareSchema = new mongoose.Schema({
     selfClicks: {
         type: Number,
         default: 0
-    },
-    lastClickedAt: {
-        type: Date,
-        default: null
     }
 }, { timestamps: true });
 

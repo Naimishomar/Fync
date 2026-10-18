@@ -19,6 +19,7 @@ const collegeChatSchema = new mongoose.Schema({
     content: {
         type: String,
         default: "",
+        maxlength: 10000,
     },
     mediaUrl: {
         type: String,

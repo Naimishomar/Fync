@@ -16,7 +16,6 @@ const codingSubmissionSchema = new mongoose.Schema({
     ], 
     default: 'Pending' 
   },
-  judge0Token: { type: String }, // For polling results
   executionTime: { type: Number }, // ms
   memoryUsage: { type: Number }, // KB
   passedCount: { type: Number, default: 0 },

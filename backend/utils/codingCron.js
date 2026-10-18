@@ -11,17 +11,10 @@ const startCronJobs = () => {
         runSyncTick().catch((err) => console.error("LeetCode sync tick error:", err.message));
     });
 
-    // Weekly leaderboard reset. Was a find-all loop with one save() per user —
-    // a full serial write per account every Sunday. One pipeline update does it
-    // server-side.
+    // Weekly leaderboard reset: one server-side update, not a save() per user.
     cron.schedule('0 0 * * 0', async () => {
         try {
-            const res = await User.updateMany({}, [{
-                $set: {
-                    "weeklyStats.startOfWeekScore": { $ifNull: ["$codingStats.totalSolved", 0] },
-                    "weeklyStats.questionsThisWeek": 0,
-                }
-            }]);
+            const res = await User.updateMany({}, { $set: { "weeklyStats.questionsThisWeek": 0 } });
             console.log(`📅 Weekly leaderboard reset: ${res.modifiedCount} users`);
         } catch (err) {
             console.error("Weekly reset error:", err.message);

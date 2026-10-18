@@ -13,6 +13,7 @@ const mentorshipMessageSchema = new mongoose.Schema({
     },
     message: {
         type: String,
+        maxlength: 10000,
     },
     messageType: {
         type: String,

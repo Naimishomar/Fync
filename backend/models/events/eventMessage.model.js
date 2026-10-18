@@ -17,7 +17,8 @@ const EventMessageSchema = new mongoose.Schema({
     },
     text: {
         type: String,
-        required: true
+        required: true,
+        maxlength: 10000
     },
     image: {
         type: String

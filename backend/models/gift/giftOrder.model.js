@@ -22,7 +22,7 @@ const giftOrderSchema = new mongoose.Schema(
       select: false,
     },
     amount: { type: Number, required: true }, // paise, server-computed
-    status: { type: String, enum: STATUSES, default: "pending_payment", index: true },
+    status: { type: String, enum: STATUSES, default: "pending_payment" },
     paymentOrderId: String, // razorpayOrderId of the PaymentOrder that paid it
     paidAt: Date,
     tracking: { courier: String, awb: String, url: String },
@@ -32,5 +32,11 @@ const giftOrderSchema = new mongoose.Schema(
 );
 
 giftOrderSchema.index({ status: 1, createdAt: -1 });
+// Never-paid checkouts expire with their PaymentOrder (7 days). Paid and later
+// states are orders and are kept.
+giftOrderSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 7 * 24 * 60 * 60, partialFilterExpression: { status: "pending_payment" } }
+);
 
 export default mongoose.model("GiftOrder", giftOrderSchema);

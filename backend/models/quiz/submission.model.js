@@ -10,6 +10,8 @@ const submissionSchema = new mongoose.Schema({
 });
 
 submissionSchema.index({ roomId: 1, user: 1 }, { unique: true });
+// Only read as the leaderboard of a live room; rooms expire within hours.
+submissionSchema.index({ submittedAt: 1 }, { expireAfterSeconds: 7 * 24 * 60 * 60 });
 
 const Submission = mongoose.model("Submission", submissionSchema);
 export default Submission;

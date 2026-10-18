@@ -96,7 +96,6 @@ export const predictPlacement = async (req, res) => {
         const prediction = await PlacementPrediction.create({
             user: req.user.id,
             gpa: parseFloat(gpa) || 0,
-            resumeText: resumeText.substring(0, 8000), 
             resumeHash,
             analysis
         });

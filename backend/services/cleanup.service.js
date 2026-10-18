@@ -2,6 +2,27 @@ import cron from 'node-cron';
 import ClubMessage from '../models/club/clubMessage.model.js';
 import { deleteFromR2 } from '../utils/r2.js';
 import { runNightlyScoreUpdate } from './nightlyScore.service.js';
+import InterviewSession from '../models/interview.model.js';
+
+/**
+ * Interview sessions are deleted when the student ends or cancels. One still
+ * here a day later was abandoned mid-call (app killed): it holds the resume
+ * text and transcript, and its audio/resume files sit in R2 for nothing.
+ * Sessions last at most 15 minutes, so a day is far past any live one.
+ */
+export const purgeAbandonedInterviews = async () => {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const stale = await InterviewSession.find({ createdAt: { $lt: cutoff } })
+        .select('resumePublicId audioPublicIds')
+        .lean();
+    if (!stale.length) return 0;
+    await Promise.allSettled(
+        stale.flatMap((s) => [...(s.audioPublicIds || []), s.resumePublicId].filter(Boolean).map((u) => deleteFromR2(u)))
+    );
+    await InterviewSession.deleteMany({ _id: { $in: stale.map((s) => s._id) } });
+    console.log(`🧹 Purged ${stale.length} abandoned interview sessions`);
+    return stale.length;
+};
 
 /**
  * Cleanup Task: Purge messages and media older than 30 days.
@@ -14,38 +35,25 @@ const startCleanupCron = () => {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            // Find messages with media that are older than 30 days
+            // Only messages carrying a file need an R2 delete. (This used to read
+            // `mediaUrl`/`messageType`, which ClubMessage does not have, so no
+            // club file was ever removed from R2.)
             const expiredMessages = await ClubMessage.find({
-                createdAt: { $lt: thirtyDaysAgo }
-            });
+                createdAt: { $lt: thirtyDaysAgo },
+                fileUrl: { $nin: [null, ''] },
+            }).select('fileUrl').lean();
 
-            console.log(`Found ${expiredMessages.length} expired records.`);
+            await Promise.allSettled(expiredMessages.map((msg) => deleteFromR2(msg.fileUrl)));
 
-            if (expiredMessages.length > 0) {
-                console.log(`🧹 Processing ${expiredMessages.length} expired club records...`);
-                
-                const deletions = expiredMessages
-                    .filter(msg => msg.mediaUrl)
-                    .map(msg => {
-                        const fileName = msg.mediaUrl.split('/').pop();
-                        let folder = 'clubs/media';
-                        if (msg.messageType === 'image') folder = 'clubs/images';
-                        else if (msg.messageType === 'video') folder = 'clubs/videos';
-                        else if (msg.messageType === 'file') folder = 'clubs/files';
-                        return deleteFromR2(folder, fileName).catch(e => console.error(`Failed to delete media: ${msg.mediaUrl}`, e.message));
-                    });
-                
-                await Promise.allSettled(deletions);
-
-                const result = await ClubMessage.deleteMany({
-                    createdAt: { $lt: thirtyDaysAgo }
-                });
-
-                console.log(`✅ Successfully purged ${result.deletedCount} messages from database.`);
-            }
+            const result = await ClubMessage.deleteMany({ createdAt: { $lt: thirtyDaysAgo } });
+            if (result.deletedCount) console.log(`✅ Purged ${result.deletedCount} club messages.`);
         } catch (error) {
             console.error("Cleanup cron failed:", error.message);
         }
+    });
+
+    cron.schedule('30 0 * * *', () => {
+        purgeAbandonedInterviews().catch((err) => console.error('Interview cleanup error:', err.message));
     });
 
     // ─── Nightly Fync Score + GitHub Sync — 2:00 AM IST (20:30 UTC) ──────────

@@ -9,7 +9,7 @@ import mongoose from "mongoose";
  */
 const noteSchema = new mongoose.Schema(
   {
-    uploader: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    uploader: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     // Denormalised from the uploader so listings do not need a join to filter,
     // and so a note survives its uploader changing college.
     college: { type: String, required: true },
@@ -45,7 +45,6 @@ const noteSchema = new mongoose.Schema(
      * way the entry survives and can say what happened.
      */
     expired: { type: Boolean, default: false },
-    expiredAt: { type: Date, default: null },
 
     reports: { type: Number, default: 0 },
     reportedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

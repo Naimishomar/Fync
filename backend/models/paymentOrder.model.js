@@ -36,8 +36,15 @@ const paymentOrderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Sweeps unpaid orders so abandoned checkouts don't accumulate forever.
 paymentOrderSchema.index({ createdAt: -1 });
+
+// Abandoned checkouts expire after 7 days -- far past Razorpay's 24h webhook
+// retry window. Only 'created' and 'failed'; a 'paid' row is a financial
+// record and is never touched. Two indexes because a partial filter can't use
+// $in before MongoDB 6.0; 'failed' counts from when it failed (updatedAt).
+const WEEK = 7 * 24 * 60 * 60;
+paymentOrderSchema.index({ createdAt: 1 }, { expireAfterSeconds: WEEK, partialFilterExpression: { status: "created" } });
+paymentOrderSchema.index({ updatedAt: 1 }, { expireAfterSeconds: WEEK, partialFilterExpression: { status: "failed" } });
 
 const PaymentOrder = mongoose.model("PaymentOrder", paymentOrderSchema);
 export default PaymentOrder;

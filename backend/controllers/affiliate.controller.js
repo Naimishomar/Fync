@@ -336,7 +336,7 @@ export const resolveShareLink = async (req, res) => {
         const isSelf = String(share.sharer) === String(req.user.id);
         await AffiliateShare.updateOne(
             { _id: share._id },
-            { $inc: isSelf ? { selfClicks: 1 } : { clicks: 1 }, $set: { lastClickedAt: new Date() } }
+            { $inc: isSelf ? { selfClicks: 1 } : { clicks: 1 } }
         );
 
         const product = await AffiliateProduct.findById(share.product).lean();

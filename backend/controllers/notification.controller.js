@@ -184,7 +184,7 @@ export const broadcastNotification = async (req, res) => {
                             sender: req.user.id,
                             type: "broadcast",
                             message: body,
-                            imageUrl: imageUrl || "",
+                            imageUrl: imageUrl || undefined,
                         })),
                         { ordered: false }
                     );

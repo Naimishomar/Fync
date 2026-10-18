@@ -10,10 +10,6 @@ const placementPredictionSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    resumeText: {
-        type: String,
-        required: true
-    },
     resumeHash: {
         type: String,
         required: true

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const clubMessageSchema = new mongoose.Schema({
     subGroupId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubGroup', required: true },
     sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    text: { type: String },
+    text: { type: String, maxlength: 10000 },
     
     // File/Media Support (Cloudflare R2)
     fileUrl: { type: String },
@@ -13,11 +13,6 @@ const clubMessageSchema = new mongoose.Schema({
 
     // WhatsApp-style features
     repliedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'ClubMessage' },
-    readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    reactions: [{
-        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        emoji: { type: String }
-    }],
 
     // Advanced features
     isPoll: { type: Boolean, default: false },

@@ -35,7 +35,7 @@ export const purgeExpiredNotes = async () => {
   // night forever.
   await Note.updateMany(
     { _id: { $in: stale.map((n) => n._id) } },
-    { $set: { expired: true, expiredAt: new Date(), fileUrl: "" } },
+    { $set: { expired: true, fileUrl: "" } },
   );
 
   console.log(`🧹 Notes purge: ${stale.length} files older than ${RETENTION_DAYS} days removed`);

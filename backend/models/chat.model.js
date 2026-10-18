@@ -13,7 +13,8 @@ const messageSchema = new mongoose.Schema({
   },
   message: {
     type: String,
-    required: false // Optional for media-only messages
+    required: false, // Optional for media-only messages
+    maxlength: 10000
   },
   messageType: {
     type: String,

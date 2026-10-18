@@ -4,9 +4,7 @@ const fyncScoreSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true,
-        unique: true,
-        index: true
+        required: true
     },
     totalScore: {
         type: Number,
@@ -70,14 +68,6 @@ const fyncScoreSchema = new mongoose.Schema({
             followers: { type: Number, default: 0 }
         }
     },
-    // Score history for tracking growth
-    scoreHistory: [
-        {
-            score: Number,
-            badge: String,
-            recordedAt: { type: Date, default: Date.now }
-        }
-    ],
     lastCalculated: {
         type: Date,
         default: null

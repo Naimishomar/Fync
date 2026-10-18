@@ -8,7 +8,8 @@ const nightChatSchema = new mongoose.Schema({
     },
     message: {
         type: String,
-        trim: true
+        trim: true,
+        maxlength: 10000
     },
     messageType: {
         type: String,
