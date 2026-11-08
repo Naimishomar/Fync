@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableWithoutFeedback, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableWithoutFeedback, Dimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../../context/axiosConfig';
+import { Button, IconBtn } from '../ui/kit';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const GRAVITY = 0.8;
@@ -139,17 +140,12 @@ const FlappyBird = () => {
       <View className="flex-1 bg-fam-social overflow-hidden relative">
         {/* Header */}
         <View className="absolute left-5 z-10" style={{ top: Math.max(insets.top, 24) + 8 }}>
-          <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
+<IconBtn name="arrow-back" overlay color="#fff" onPress={() => navigation.goBack()} accessibilityLabel="Go back" style={{ marginLeft: -4 }} />
         </View>
 
         {/* Score */}
         <View className="absolute w-full items-center z-10" style={{ top: Math.max(insets.top, 24) + 40 }}>
-          <Text className="text-white text-5xl font-display shadow-hair">{score}</Text>
+          <Text className="text-white text-5xl font-display">{score}</Text>
         </View>
 
         {/* Bird */}
@@ -212,15 +208,11 @@ const FlappyBird = () => {
         {!isPlaying && (
           <View className="absolute inset-0 bg-black/40 justify-center items-center">
             {isGameOver ? (
-              <View className="bg-card p-6 rounded-card items-center shadow-hair">
-                <Text className="text-3xl font-display text-danger mb-2">GAME OVER</Text>
-                <Text className="text-lg text-ink-3 mb-6">Score: {score}</Text>
-                <TouchableOpacity onPress={resetGame} className="bg-fam-social px-gutter py-3 rounded-full">
-                  <Text className="text-white font-display text-lg">Play Again</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'FlappyBird' })} className="mt-4">
-                  <Text className="text-fam-social font-semibold">View Leaderboard</Text>
-                </TouchableOpacity>
+              <View className="bg-card p-6 rounded-2xl items-center border border-line" style={{ width: 280, gap: 12 }}>
+                <Text className="text-2xl font-display text-ink" accessibilityRole="header">Game over</Text>
+                <Text className="text-base text-ink-3 mb-2">Score: {score}</Text>
+                <Button variant="primary" title="Play again" icon="refresh" onPress={resetGame} block />
+                <Button variant="tertiary" title="View leaderboard" onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'FlappyBird' })} block />
               </View>
             ) : (
               <View className="items-center">

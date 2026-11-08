@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
-  ActivityIndicator,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -24,6 +23,7 @@ import axios from '../context/axiosConfig';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
 import { C } from '../constants/colors';
+import { Button } from './ui/kit';
 
 
 
@@ -161,15 +161,17 @@ export default function ProfileSetup2() {
           {/* Bottom Sheet */}
           <View className="rounded-t-sheet bg-paper px-6 pt-8 pb-16">
             <ScrollView keyboardShouldPersistTaps="handled">
-              <Text className="font-display mb-6 text-center text-h1 text-ink">
-                Profile Setup
+              <Text className="font-display mb-6 text-center text-h1 text-ink" accessibilityRole="header">
+                Profile setup
               </Text>
 
               {/* Avatar */}
               <View className="items-center mb-8">
                 <Pressable
                   onPress={handleUploadProfilePic}
-                  className="h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-paper-2 border-2 border-dashed border-ink-4"
+                  className="h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-paper-2 border border-dashed border-line active:opacity-70"
+                  accessibilityRole="button"
+                  accessibilityLabel={profileImageUri ? 'Change profile photo' : 'Upload profile photo'}
                 >
                   {profileImageUri ? (
                     <Image
@@ -181,44 +183,15 @@ export default function ProfileSetup2() {
                     <Ionicons name="camera-outline" size={36} color={C.ink3} />
                   )}
                 </Pressable>
-                <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>Upload Profile Photo</Text>
+                <Text className="font-semibold text-sm text-ink-3 mt-3">Upload profile photo</Text>
               </View>
 
-              {/* Continue */}
-              {isLoading ? (
-                <Pressable className="bg-brand-500 items-center justify-center mb-4 border-2 border-ink rounded-md" style={{ minHeight: 48 }}>
-                  <ActivityIndicator size="small" color={C.onBrand} />
-                </Pressable>
-              ) : (
-                <Pressable
-                  className="bg-brand-500 items-center justify-center mb-4 border-2 border-ink rounded-md"
-                  style={{ minHeight: 48 }}
-                  onPress={() => submitRegistration(true)}
-                  accessibilityRole="button"
-                >
-                  <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>
-                    Continue
-                  </Text>
-                </Pressable>
-              )}
+              <View style={{ gap: 12 }}>
+                <Button variant="primary" block title="Continue" loading={isLoading} onPress={() => submitRegistration(true)} />
+                <Button block title="Skip for now" disabled={isLoading} onPress={() => submitRegistration(false)} />
+              </View>
 
-              {/* Skip */}
-              {isLoading ? (
-                <Pressable className="rounded-full border border-line py-4 items-center">
-                  <ActivityIndicator size="small" color={C.ink3} />
-                </Pressable>
-              ) : (
-                <Pressable
-                  className="rounded-full border border-line py-4 items-center"
-                  onPress={() => submitRegistration(false)}
-                >
-                  <Text className="text-ink-2 text-lg font-semibold">
-                    Skip for now
-                  </Text>
-                </Pressable>
-              )}
-
-              <Text className="mt-5 text-center text-ink-3">
+              <Text className="mt-5 text-center text-sm text-ink-3">
                 Step 2 of 2
               </Text>
             </ScrollView>

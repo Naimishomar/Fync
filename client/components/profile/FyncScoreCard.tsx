@@ -3,15 +3,17 @@ import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
+import { Card, IconTile, Num } from '../ui/kit';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const BADGE_CONFIG = (): Record<string, { icon: any; color: string; bg: string; border: string }> => ({
-  Newcomer:  { icon: 'leaf', color: C.ink, bg: C.paper,    border: C.line },
-  Explorer:  { icon: 'compass', color: C.ink, bg: C.paper,    border: C.line },
-  Builder:   { icon: 'hammer', color: C.ink, bg: C.paper,    border: C.line },
-  Innovator: { icon: 'bulb', color: C.brand[500], bg: C.paper2,    border: C.paper2 },
-  Pioneer:   { icon: 'rocket', color: C.brand[500], bg: C.paper2,    border: C.paper2 },
-  Legend:    { icon: 'star', color: C.brand[500], bg: C.paper2,    border: C.paper2 },
+// color: text/icon (AA on card); bar: the progress fill.
+const BADGE_CONFIG = (): Record<string, { icon: any; color: string; bar: string }> => ({
+  Newcomer:  { icon: 'leaf-outline',    color: C.ink,        bar: C.ink },
+  Explorer:  { icon: 'compass-outline', color: C.ink,        bar: C.ink },
+  Builder:   { icon: 'hammer-outline',  color: C.ink,        bar: C.ink },
+  Innovator: { icon: 'bulb-outline',    color: C.accentText, bar: C.brand[500] },
+  Pioneer:   { icon: 'rocket-outline',  color: C.accentText, bar: C.brand[500] },
+  Legend:    { icon: 'star-outline',    color: C.accentText, bar: C.brand[500] },
 });
 
 const CAT_COLORS = (): Record<string, string> => ({
@@ -82,9 +84,9 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
   };
 
   if (loading) return (
-    <View className="mx-4 my-3 bg-card rounded-card p-6 border border-line items-center justify-center h-28 shadow-hair">
+    <Card style={{ marginHorizontal: 16, marginVertical: 12, height: 112, alignItems: 'center', justifyContent: 'center' }}>
       <ActivityIndicator color={C.brand[500]} />
-    </View>
+    </Card>
   );
 
   if (!score) return null;
@@ -95,51 +97,43 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
   const categories = score.breakdown ? Object.entries(score.breakdown) : [];
 
   return (
-    <View className="mx-4 my-3 rounded-card overflow-hidden border border-line bg-card shadow-hair">
-      <Pressable onPress={() => setExpanded(e => !e)} className="flex-row items-center p-6">
-        <View
-          className="w-16 h-16 rounded-card items-center justify-center mr-4 shadow-hair"
-          style={{ backgroundColor: cfg.bg, borderWidth: 1, borderColor: cfg.border }}
-        >
-          <Ionicons name={cfg.icon} size={26} color={cfg.color} />
+    <Card style={{ marginHorizontal: 16, marginVertical: 12, padding: 0, overflow: 'hidden' }}>
+      <Pressable
+        onPress={() => setExpanded(e => !e)}
+        accessibilityRole="button"
+        accessibilityLabel={`Fync score ${score.totalScore} of 1000, level ${badge}`}
+        accessibilityState={{ expanded }}
+        className="flex-row items-center p-4 active:opacity-70"
+        style={{ gap: 12 }}
+      >
+        <IconTile icon={cfg.icon} size={56} iconSize={26} color={cfg.color} />
+
+        <View className="flex-1" style={{ minWidth: 0 }}>
+          <View className="flex-row items-baseline" style={{ gap: 6 }}>
+            <Num style={{ fontSize: 24, lineHeight: 28 }}>{String(score.totalScore)}</Num>
+            <Text className="text-ink-3 font-sans text-sm">/ 1000 pts</Text>
+          </View>
+          <Text className="font-semibold text-sm mt-0.5" style={{ color: cfg.color }}>{badge}</Text>
+          <View className="mt-2 h-1.5 bg-paper-2 rounded-full overflow-hidden">
+            <View className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: cfg.bar }} />
+          </View>
         </View>
 
-        <View className="flex-1">
-          <View className="flex-row items-baseline gap-2 mb-1">
-            <Text className="text-ink font-display text-2xl">{score.totalScore}</Text>
-            <Text className="text-ink-3 font-display uppercase text-label">/ 1000 Pts</Text>
-          </View>
-          <Text className="font-display uppercase text-label" style={{ color: cfg.color }}>Level: {badge}</Text>
-          <View className="mt-2.5 h-1.5 bg-paper-2 rounded-full overflow-hidden">
-            <View
-              className="h-full rounded-full"
-              style={{ width: `${pct}%`, backgroundColor: cfg.color }}
-            />
-          </View>
-        </View>
-
-        <View className="items-end ml-4 gap-3">
-          <View className="w-8 h-8 bg-paper-2 rounded-xl items-center justify-center border border-line">
-            <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={C.ink} />
-          </View>
-        </View>
+        <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={C.ink3} />
       </Pressable>
 
-      {expanded && (
-        <View className="px-6 pb-8 border-t border-line pt-4">
-          <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-            <Text className="text-ink-3 text-label font-display uppercase">Score Breakdown</Text>
-            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-          </View>
-          <View className="gap-4">
+      {expanded ? (
+        <View className="px-4 pb-4 pt-4 border-t border-line">
+          <Text className="text-ink-2 text-sm font-semibold mb-3">Score breakdown</Text>
+          <View style={{ gap: 12 }}>
             {categories.map(([cat, data]: [string, any]) => {
               const catPct = data.maxScore > 0 ? Math.min((data.score / data.maxScore) * 100, 100) : 0;
               const color = CAT_COLORS()[cat] || C.ink3;
               return (
                 <View key={cat}>
                   <View className="flex-row justify-between mb-1.5 items-center">
-                    <Text className="text-ink text-label font-display uppercase">{cat}</Text>
-                    <Text className="text-ink-3 font-semibold text-label uppercase">{data.score} <Text className="text-ink-4">/</Text> {data.maxScore}</Text>
+                    <Text className="text-ink text-sm font-semibold">{cat.charAt(0).toUpperCase() + cat.slice(1)}</Text>
+                    <Text className="text-ink-3 font-sans text-xs">{data.score} / {data.maxScore}</Text>
                   </View>
                   <View className="h-1 bg-paper-2 rounded-full overflow-hidden">
                     <View className="h-full rounded-full" style={{ width: `${catPct}%`, backgroundColor: color }} />
@@ -149,7 +143,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
             })}
           </View>
         </View>
-      )}
-    </View>
+      ) : null}
+    </Card>
   );
 }

@@ -15,6 +15,7 @@ import { Video, ResizeMode } from "expo-av";
 import { ActivityIndicator, Modal } from "react-native";
 import { Alert } from './ui/AlertModal';
 import { AppBar, Button, Empty, IconBtn } from './ui/kit';
+import Avatar from './Avatar';
 import { confirmBlock, report } from '../utils/safety';
 import { C } from '../constants/colors';
 import { tapHaptic } from '../utils/haptics';
@@ -528,18 +529,8 @@ const Chat = ({ route, navigation }: any) => {
       <View className={`w-full ${isMe ? "items-end" : "items-start"} mb-2`}>
         <View className={`flex-row items-end ${isMe ? "flex-row-reverse" : "flex-row"} max-w-[85%]`}>
           {/* AVATAR */}
-          <View className={`${isMe ? "ml-3" : "mr-3"}`}>
-            <View className="w-9 h-9 rounded-card border-2 border-card shadow-hair overflow-hidden bg-paper-2">
-              <Image
-                source={{
-                  uri: isMe
-                    ? (user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=333&color=fff`)
-                    : (item.sender?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.sender?.username || 'U')}&background=f97316&color=fff`),
-                }}
-                style={{ width: '100%', height: '100%' }}
-                cachePolicy="memory-disk"
-              />
-            </View>
+          <View className={`${isMe ? "ml-2" : "mr-2"}`}>
+            <Avatar user={isMe ? user : item.sender} size={32} showBadge={false} />
           </View>
 
           <View className={`${isMe ? "items-end" : "items-start"} flex-1`}>
@@ -547,9 +538,9 @@ const Chat = ({ route, navigation }: any) => {
               activeOpacity={0.8}
               onLongPress={() => {
                 if (isMe) {
-                  Alert.alert("Transmission Control", "Select operation", [
+                  Alert.alert("Message", undefined, [
                     { text: "Reply", onPress: () => setReplyingTo(item) },
-                    { text: "Terminate (Delete)", style: "destructive", onPress: () => deleteMessage(item._id) },
+                    { text: "Delete", style: "destructive", onPress: () => deleteMessage(item._id) },
                     { text: "Cancel", style: "cancel" }
                   ]);
                 } else {
@@ -558,33 +549,33 @@ const Chat = ({ route, navigation }: any) => {
               }}
               delayLongPress={500}
               style={{
-                borderTopLeftRadius: isMe ? 16 : 6,
-                borderBottomLeftRadius: isMe ? 16 : 6,
-                borderTopRightRadius: isMe ? 6 : 16,
-                borderBottomRightRadius: isMe ? 6 : 16,
+                borderTopLeftRadius: 20,
+                borderBottomLeftRadius: isMe ? 20 : 6,
+                borderTopRightRadius: 20,
+                borderBottomRightRadius: isMe ? 6 : 20,
               }}
-              className={`px-5 py-3 ${isMe ? "bg-ink shadow-hair " : "bg-card border border-line shadow-hair" }`}
+              className={`px-4 py-2.5 ${isMe ? "bg-ink" : "bg-card border border-line" }`}
             >
               {/* REPLY PREVIEW */}
               {item.replyTo && (
                 <View className={`mb-2 p-2 rounded-xl border-l-2 ${isMe ? "bg-paper/10 border-brand-500" : "bg-paper-2 border-brand-500" }`}>
-                  <Text className={`text-label font-display uppercase ${isMe ? "text-accent-text" : "text-accent-text"}`}>
-                    REF: {item.replyTo.sender?.name || (item.replyTo.sender === user._id ? "YOU" : "USER")}
+                  <Text className="text-xs font-semibold text-accent-text">
+                    {item.replyTo.sender?.name || (item.replyTo.sender === user._id ? "You" : "User")}
                   </Text>
-                  <Text className={`${isMe ? "text-ink-4" : "text-ink-3"} text-label font-medium`} numberOfLines={1}>
+                  <Text className={`${isMe ? "text-ink-4" : "text-ink-3"} text-xs`} numberOfLines={1}>
                     {item.replyTo.message}
                   </Text>
                 </View>
               )}
 
               {(item.messageType === "text" || !item.messageType) && item.message ? (
-                <Text className={`text-sm leading-6 font-semibold ${isMe ? "text-paper" : "text-ink"}`}>
+                <Text className={`text-[15px] leading-5 font-sans ${isMe ? "text-paper" : "text-ink"}`}>
                   {item.message}
                 </Text>
               ) : null}
 
               {item.messageType === "image" && (
-                <TouchableOpacity onPress={() => setSelectedImage(item.mediaUrl)}>
+                <TouchableOpacity onPress={() => setSelectedImage(item.mediaUrl)} accessibilityRole="imagebutton" accessibilityLabel="Open photo">
                   <Image
                     source={{ uri: item.mediaUrl }}
                     style={{ width: mediaW, aspectRatio: 1, borderRadius: 12 }}
@@ -632,7 +623,7 @@ const Chat = ({ route, navigation }: any) => {
                     <Text className={`text-sm font-semibold ${isMe ? "text-paper" : "text-ink"}`} numberOfLines={1}>
                       {item.message || 'Shared PDF'}
                     </Text>
-                    <Text className={`${isMe ? "text-ink-3" : "text-ink-3"} text-label uppercase font-semibold`}>Tap to view PDF</Text>
+                    <Text className="text-ink-3 text-xs">Tap to view PDF</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={18} color={isMe ? C.paper : C.ink4} />
                 </Pressable>
@@ -642,7 +633,7 @@ const Chat = ({ route, navigation }: any) => {
             {/* TIMESTAMP & STATUS */}
             <View className={`mt-1.5 ${isMe ? "items-end" : "items-start"}`}>
               <View className="flex-row items-center">
-                <Text className="text-label text-ink-3 font-display uppercase">
+                <Text className="text-xs text-ink-3">
                   {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </Text>
                 
@@ -653,8 +644,8 @@ const Chat = ({ route, navigation }: any) => {
                       size={12}
                       color={item.seen ? C.brand[500] : C.ink4}
                     />
-                    <Text className={`text-label ml-0.5 font-display uppercase ${item.seen ? "text-accent-text" : "text-ink-4"}`}>
-                      {item.seen ? "READ" : "SENT"}
+                    <Text className={`text-xs ml-0.5 ${item.seen ? "text-accent-text" : "text-ink-3"}`}>
+                      {item.seen ? "Read" : "Sent"}
                     </Text>
                   </View>
                 )}
@@ -695,6 +686,7 @@ const Chat = ({ route, navigation }: any) => {
         right={otherUser ? (
           <IconBtn
             name="ellipsis-vertical"
+            accessibilityLabel="Chat options"
             onPress={() => Alert.alert(otherUser.name || 'Options', undefined, [
               { text: 'Report user', onPress: () => report({ targetType: 'user', targetId: otherUser._id }) },
               { text: 'Block user', style: 'destructive', onPress: () => confirmBlock(otherUser._id, otherUser.name, () => navigation.goBack()) },
@@ -707,6 +699,8 @@ const Chat = ({ route, navigation }: any) => {
               <TouchableOpacity
                 className="flex-row items-center"
                 style={{ minWidth: 0 }}
+                accessibilityRole="button"
+                accessibilityLabel={`${otherUser.name}, view profile`}
                 onPress={() =>
                   navigation.navigate("PublicProfile", {
                     user: otherUser,
@@ -714,32 +708,22 @@ const Chat = ({ route, navigation }: any) => {
                 }
               >
                 <View className="relative">
-                  <View className="w-9 h-9 rounded-full border-2 border-card shadow-hair overflow-hidden">
-                    <Image
-                      source={{
-                        uri:
-                          otherUser.avatar ||
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser.username || 'U')}`,
-                      }}
-                      style={{ width: '100%', height: '100%' }}
-                      cachePolicy="memory-disk"
-                    />
-                  </View>
+                  <Avatar user={otherUser} size={36} showBadge={false} />
                   {onlineUsers.has(otherUser?._id) && (
                     <View className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-success rounded-full border-2 border-card" />
                   )}
                 </View>
 
                 <View className="ml-3 flex-1" style={{ minWidth: 0 }}>
-                  <Text className="font-display text-ink text-base" numberOfLines={1}>
+                  <Text className="font-semibold text-ink text-base" numberOfLines={1}>
                     {otherUser.name}
                   </Text>
                   {isTyping ? (
-                    <Text className="text-label text-success font-semibold uppercase">
-                      typing...
+                    <Text className="text-xs text-success font-semibold">
+                      typing…
                     </Text>
                   ) : (
-                    <Text className="text-label text-accent-text font-display" numberOfLines={1}>
+                    <Text className="text-xs text-ink-3" numberOfLines={1}>
                       @{otherUser.username}
                     </Text>
                   )}
@@ -757,7 +741,7 @@ const Chat = ({ route, navigation }: any) => {
       >
         <View style={{ flex: 1 }}>
             {/* MESSAGE CONTAINER (ROUNDED CARD) */}
-          <View className="flex-1 bg-paper shadow-hair overflow-hidden border-t border-line">
+          <View className="flex-1 bg-paper overflow-hidden border-t border-line">
             {loading ? (
               <View className="flex-1 p-6">
                 {[1, 2, 3, 4, 5, 6].map(i => <ChatSkeleton key={i} isMe={i % 2 === 0} />)}
@@ -795,10 +779,10 @@ const Chat = ({ route, navigation }: any) => {
 
           {/* ✅ reply indicator */}
           {replyingTo && (
-            <View className="mx-gutter mb-2 p-3 bg-card rounded-card border border-line shadow-hair flex-row items-center justify-between">
+            <View className="mx-gutter mb-2 p-3 bg-card rounded-2xl border border-line flex-row items-center justify-between">
               <View className="flex-1 border-l-2 border-brand-500 pl-3">
-                <Text className="text-accent-text text-label font-display uppercase mb-1">
-                  Reference: {replyingTo.sender?.name || (replyingTo.sender === user._id ? "You" : "User")}
+                <Text className="text-accent-text text-xs font-semibold mb-0.5">
+                  Replying to {replyingTo.sender?.name || (replyingTo.sender === user._id ? "You" : "User")}
                 </Text>
                 <Text className="text-ink-2 text-xs font-semibold" numberOfLines={1}>
                   {replyingTo.message}
@@ -806,8 +790,10 @@ const Chat = ({ route, navigation }: any) => {
               </View>
               <TouchableOpacity
                 onPress={() => setReplyingTo(null)}
-                className="ml-3 w-6 h-6 items-center justify-center rounded-full bg-paper-2"
+                className="ml-3 w-7 h-7 items-center justify-center rounded-full bg-paper-2"
                 hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel reply"
               >
                 <Ionicons name="close" size={14} color={C.ink3} />
               </TouchableOpacity>
@@ -818,19 +804,20 @@ const Chat = ({ route, navigation }: any) => {
           {/* Card ground on the inset strip too, so the composer doesn't sit on a two-tone band. */}
           <View style={{ backgroundColor: C.card, paddingBottom: isKeyboardVisible ? 20 : (insets.bottom > 0 ? insets.bottom : 12) }}>
             <View className="px-5 pb-2 pt-2 bg-card">
-              <View className="flex-row items-center bg-paper-2 p-2 rounded-card border border-line shadow-hair">
-                <TouchableOpacity onPress={handlePickImage} className="w-10 h-10 items-center justify-center" hitSlop={2}>
+              <View className="flex-row items-end bg-paper-2 p-1 rounded-3xl border border-line">
+                <TouchableOpacity onPress={handlePickImage} className="w-11 h-11 items-center justify-center" accessibilityRole="button" accessibilityLabel="Send a photo">
                   <Ionicons name="image-outline" size={22} color={C.ink3} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handlePickDocument} className="w-10 h-10 items-center justify-center mr-1" hitSlop={2}>
+                <TouchableOpacity onPress={handlePickDocument} className="w-11 h-11 items-center justify-center" accessibilityRole="button" accessibilityLabel="Attach a file">
                   <Ionicons name="attach-outline" size={24} color={C.ink3} />
                 </TouchableOpacity>
                 <TextInput
                   value={text}
                   onChangeText={handleTyping}
-                  placeholder="Encrypting transmission..."
-                  placeholderTextColor={C.ink4}
-                  className="flex-1 px-3 text-ink font-semibold text-sm py-2 placeholder:text-ink"
+                  placeholder="Message…"
+                  placeholderTextColor={C.ink3}
+                  accessibilityLabel="Message"
+                  className="flex-1 px-2 text-ink font-sans text-[15px] py-2.5"
                   multiline={true}
                   numberOfLines={1}
                   style={{ maxHeight: 120 }}
@@ -841,9 +828,11 @@ const Chat = ({ route, navigation }: any) => {
                   // otherUser is still loading (or failed to): sending would silently no-op.
                   disabled={!otherUser}
                   style={!otherUser ? { opacity: 0.4 } : undefined}
-                  className="w-11 h-11 bg-ink rounded-full items-center justify-center shadow-hair"
+                  className="w-11 h-11 bg-brand-500 rounded-full items-center justify-center"
+                  accessibilityRole="button"
+                  accessibilityLabel="Send"
                 >
-                  <Ionicons name="paper-plane" size={18} color={C.paper} />
+                  <Ionicons name="paper-plane" size={18} color={C.onBrand} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -855,7 +844,9 @@ const Chat = ({ route, navigation }: any) => {
         <View className="flex-1 bg-black/95 justify-center items-center">
           <TouchableOpacity
             onPress={() => setSelectedImage(null)}
-            className="absolute right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
+            className="absolute right-5 w-11 h-11 bg-white/10 rounded-full items-center justify-center z-50"
+            accessibilityRole="button"
+            accessibilityLabel="Close"
             style={{ top: insets.top + 12 }}
           >
             <Ionicons name="close" size={24} color="white" />
@@ -875,7 +866,9 @@ const Chat = ({ route, navigation }: any) => {
         <View className="flex-1 bg-black/95 justify-center items-center">
           <TouchableOpacity
             onPress={() => setSelectedVideo(null)}
-            className="absolute right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
+            className="absolute right-5 w-11 h-11 bg-white/10 rounded-full items-center justify-center z-50"
+            accessibilityRole="button"
+            accessibilityLabel="Close"
             style={{ top: insets.top + 12 }}
           >
             <Ionicons name="close" size={24} color="white" />

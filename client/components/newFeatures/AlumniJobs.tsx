@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
-import {View, Text, TouchableOpacity, TextInput, FlatList, Modal, ActivityIndicator, KeyboardAvoidingView, Linking, StatusBar} from 'react-native'
+import { View, Text, Pressable, FlatList, ActivityIndicator, Linking, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Button, Empty, Sheet, FormField } from '../ui/kit';
+import { ListingCard, type ListingTag } from '../opportunity/OpportunityCard';
 import CommentsSheet, { CommentsApi } from '../ui/CommentsSheet';
 
 // Backend: GET /job-openings/comments/:id -> { comments } (getCommentThread, commentor populated);
@@ -23,77 +21,61 @@ const JOB_COMMENTS: CommentsApi = {
 };
 
 const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, isOwner, navigation }: any) => {
+    const posted = item.createdAt && !isNaN(new Date(item.createdAt).getTime())
+        ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })
+        : '';
+    const tags: ListingTag[] = [{ icon: 'cash-outline', label: item.salary || 'Competitive' }];
+    if (posted) tags.push({ icon: 'time-outline', label: posted });
     return (
-        <View className="bg-card rounded-sheet mb-8 mx-gutter overflow-hidden border border-line shadow-hair">
-            <View className="p-card-pad">
-                <View className="flex-row justify-between items-start mb-6">
-                    <View className="flex-1 mr-4">
-                        <Text className="text-ink text-2xl font-display uppercase leading-tight mb-2" numberOfLines={2}>
-                            {item.title}
-                        </Text>
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('PublicProfile', { userId: item.alumni?._id })}
-                            className="flex-row items-center"
-                        >
-                            <Image
-                                source={{ uri: item.alumni?.avatar || 'https://ui-avatars.com/api/?name=User' }}
-                                style={{ width: 24, height: 24, borderRadius: 12, marginRight: 8, backgroundColor: C.paper2 }}
-                                cachePolicy="memory-disk"
-                            />
-                            <Text className="text-ink-3 text-label font-display uppercase flex-1" numberOfLines={1}>{item.alumni?.name} • {item.alumni?.company}</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <View className="items-end">
-                        <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                            <Text className="text-accent-text font-display text-label uppercase">{item.salary || 'Competitive'}</Text>
-                        </View>
-                        <Text className="text-ink-3 text-label font-display uppercase mt-2">
-                            {item.createdAt && !isNaN(new Date(item.createdAt).getTime())
-                                ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })
-                                : ''}
-                        </Text>
-                    </View>
-                </View>
+        <ListingCard title={item.title} subtitle={item.alumni?.company} tags={tags}>
+            <Pressable
+                onPress={() => navigation.navigate('PublicProfile', { userId: item.alumni?._id })}
+                className="flex-row items-center mt-3 active:opacity-70"
+                accessibilityRole="button"
+                accessibilityLabel={`Posted by ${item.alumni?.name ?? 'alumni'}`}
+                hitSlop={8}
+            >
+                <Image
+                    source={{ uri: item.alumni?.avatar || 'https://ui-avatars.com/api/?name=User' }}
+                    style={{ width: 24, height: 24, borderRadius: 12, marginRight: 8, backgroundColor: C.paper2 }}
+                    cachePolicy="memory-disk"
+                />
+                <Text className="text-ink-3 text-sm font-sans flex-1" numberOfLines={1}>Posted by {item.alumni?.name}</Text>
+            </Pressable>
 
-                <Text className="text-ink-2 text-sm leading-6 mb-8" numberOfLines={3}>
-                    "{item.description}"
-                </Text>
+            {item.description ? (
+                <Text className="text-ink-2 text-sm font-sans leading-5 mt-3" numberOfLines={3}>{item.description}</Text>
+            ) : null}
 
-                <View className="flex-row gap-3">
-                    <TouchableOpacity
-                        onPress={() => item.applyLink && Linking.openURL(item.applyLink).catch(() => Alert.alert('Error', 'Could not open the apply link.'))}
-                        className="flex-1 bg-ink py-4 rounded-card items-center shadow-hair"
-                    >
-                        <Text className="text-paper font-display text-label uppercase">Apply Protocol</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => onOpenDiscussion(item)}
-                        className="bg-paper-2 px-5 py-4 rounded-card items-center flex-row border border-line"
-                    >
-                        <Ionicons name="chatbubbles-outline" size={18} color={C.ink} />
-                        <Text className="text-ink ml-2 text-label font-display uppercase">{item.comments?.length || 0}</Text>
-                    </TouchableOpacity>
-                    {isOwner && (
-                        <TouchableOpacity
-                            onPress={() => onDeleteJob(item._id)}
-                            className="bg-danger/10 px-5 py-4 rounded-card items-center border border-danger/15"
-                        >
-                            <Ionicons name="trash-outline" size={18} color={C.danger} />
-                        </TouchableOpacity>
-                    )}
-                </View>
-
-                {!isOwner && (
-                    <TouchableOpacity
-                        onPress={() => onMessageAlumni(item.alumni)}
-                        className="mt-4 flex-row items-center justify-center py-4 bg-paper-2/50 rounded-card border border-line/50"
-                    >
-                        <Ionicons name="mail-outline" size={14} color={C.ink3} />
-                        <Text className="text-ink-3 font-display text-label uppercase ml-2">Message Personnel</Text>
-                    </TouchableOpacity>
-                )}
+            <View className="flex-row items-center mt-4" style={{ gap: 8 }}>
+                <Button
+                    title="Apply"
+                    variant="primary"
+                    style={{ flex: 1 }}
+                    onPress={() => item.applyLink && Linking.openURL(item.applyLink).catch(() => Alert.alert('Error', 'Could not open the apply link.'))}
+                />
+                <Button
+                    title={String(item.comments?.length || 0)}
+                    icon="chatbubbles-outline"
+                    accessibilityLabel={`Discussion, ${item.comments?.length || 0} comments`}
+                    onPress={() => onOpenDiscussion(item)}
+                />
+                {isOwner ? (
+                    <IconBtn name="trash-outline" boxed color={C.danger} accessibilityLabel="Delete posting" onPress={() => onDeleteJob(item._id)} />
+                ) : null}
             </View>
-        </View>
+
+            {!isOwner ? (
+                <Button
+                    title="Message alumni"
+                    icon="mail-outline"
+                    variant="tertiary"
+                    block
+                    style={{ marginTop: 8 }}
+                    onPress={() => onMessageAlumni(item.alumni)}
+                />
+            ) : null}
+        </ListingCard>
     );
 });
 
@@ -226,7 +208,7 @@ export default function AlumniJobs() {
                 <AppBar
                     title="Alumni Jobs"
                     onBack={() => navigation.goBack()}
-                    right={isAlumni ? <IconBtn name="add" boxed onPress={() => setPostModalVisible(true)} /> : undefined}
+                    right={isAlumni ? <IconBtn name="add" boxed accessibilityLabel="Post a job" onPress={() => setPostModalVisible(true)} /> : undefined}
                 />
                 <FlatList keyboardShouldPersistTaps="handled"
                     data={jobs}
@@ -237,70 +219,23 @@ export default function AlumniJobs() {
                     onRefresh={onRefresh}
                     refreshing={refreshing}
                     ListEmptyComponent={!loading ? (
-                        <View className="items-center justify-center mt-20 px-gutter">
-                            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                <Ionicons name="briefcase-outline" size={48} color={C.ink4} />
-                            </View>
-                            <Text className="font-semibold text-base text-ink text-center">No Jobs Found</Text>
-                            <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Check back later for new opportunities from your alumni network.</Text>
-                        </View>
+                        <Empty icon="briefcase-outline" title="No jobs yet" hint="Check back later for new openings from your alumni network." />
                     ) : <ActivityIndicator size="large" color={C.brand[500]} className="mt-20" />}
                 />
 
-                {/* --- POST JOB MODAL --- */}
-                <Modal visible={isPostModalVisible} animationType="slide" transparent statusBarTranslucent onRequestClose={() => setPostModalVisible(false)}>
-                    <View className="flex-1 bg-black/50 justify-end">
-                        <KeyboardAvoidingView behavior="padding">
-                            <View className="bg-paper rounded-t-sheet p-card-pad">
-                                <View className="flex-row justify-between items-center mb-10">
-                                    <Text className="text-ink font-display uppercase text-h1">Initialize Post</Text>
-                                    <TouchableOpacity onPress={() => setPostModalVisible(false)} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                        <Ionicons name="close" size={24} color={C.ink} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                <TextInput
-                                    placeholder="Position Intel (e.g. Software Engineer)"
-                                    placeholderTextColor={C.ink3}
-                                    className="bg-card px-6 py-5 mb-4 font-display text-ink border-[1.5px] border-ink rounded-md"
-                                    value={form.title}
-                                    onChangeText={t => setForm({ ...form, title: t })}
-                                />
-                                <TextInput
-                                    placeholder="Opportunity Description"
-                                    multiline
-                                    placeholderTextColor={C.ink3}
-                                    className="bg-card px-6 py-5 mb-4 font-display text-ink border-[1.5px] border-ink h-32 rounded-md"
-                                    value={form.description}
-                                    onChangeText={t => setForm({ ...form, description: t })}
-                                    textAlignVertical="top"
-                                />
-                                <TextInput
-                                    placeholder="Source / Apply Link"
-                                    placeholderTextColor={C.ink3}
-                                    className="bg-card px-6 py-5 mb-4 font-display text-ink border-[1.5px] border-ink rounded-md"
-                                    value={form.applyLink}
-                                    onChangeText={t => setForm({ ...form, applyLink: t })}
-                                />
-                                <TextInput
-                                    placeholder="Compensation (Optional)"
-                                    placeholderTextColor={C.ink3}
-                                    className="bg-card px-6 py-5 mb-10 font-display text-ink border-[1.5px] border-ink rounded-md"
-                                    value={form.salary}
-                                    onChangeText={t => setForm({ ...form, salary: t })}
-                                />
-                                <TouchableOpacity
-                                    onPress={handleCreateJob}
-                                    disabled={posting}
-                                    className="bg-ink py-6 items-center border-2 border-ink rounded-md"
-                                >
-                                    {posting ? <ActivityIndicator color={C.paper} /> : <Text className="text-paper font-display uppercase">Commit Opening</Text>}
-                                </TouchableOpacity>
-                                <View className="h-10" />
-                            </View>
-                        </KeyboardAvoidingView>
+                <Sheet
+                    visible={isPostModalVisible}
+                    onClose={() => setPostModalVisible(false)}
+                    title="Post a job"
+                    footer={<Button title="Post opening" variant="primary" block loading={posting} onPress={handleCreateJob} />}
+                >
+                    <View style={{ gap: 12 }}>
+                        <FormField label="Role" placeholder="e.g. Software Engineer" value={form.title} onChangeText={t => setForm({ ...form, title: t })} />
+                        <FormField label="Description" multiline placeholder="What the role involves" value={form.description} onChangeText={t => setForm({ ...form, description: t })} />
+                        <FormField label="Apply link" placeholder="https://" autoCapitalize="none" keyboardType="url" value={form.applyLink} onChangeText={t => setForm({ ...form, applyLink: t })} />
+                        <FormField label="Compensation (optional)" placeholder="e.g. ₹12 LPA" value={form.salary} onChangeText={t => setForm({ ...form, salary: t })} />
                     </View>
-                </Modal>
+                </Sheet>
 
                 <CommentsSheet
                     visible={isDiscussionVisible}

@@ -1,26 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Linking,
-  RefreshControl,
-  TextInput,
-  Dimensions,
-  StatusBar
-} from 'react-native';
+import { View, FlatList, ActivityIndicator, Linking, RefreshControl, StatusBar } from 'react-native';
 import axios from 'axios';
-import { Image as ExpoImage } from 'expo-image';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
-
-// --- 🌌 BACKGROUND IMAGE ---
-const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
+import { AppBar, Empty, SearchField } from '../ui/kit';
+import { ListingCard, FooterStat } from './OpportunityCard';
 
 interface Workshop {
   id: number;
@@ -36,93 +20,24 @@ interface Workshop {
   };
 }
 
-// --- 1. MEMOIZED WORKSHOP CARD (Arena Theme) ---
-const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: string) => void }) => {
-  const imageUrl = item.organisation?.logoUrl || item.logoUrl2;
-  const bannerUrl = item.banner_mobile?.url;
-  const orgName = item.organisation?.name || "Global Organisation";
+const dateOr = (d: string | undefined, fallback: string) => (d ? new Date(d).toLocaleDateString() : fallback);
 
-  return (
-    <View className="bg-card rounded-xl mb-6 mx-gutter p-6 border border-line shadow-hair">
-
-      <View className="flex-row gap-4 items-center">
-        {/* Organisation Logo */}
-        <View className="w-16 h-16 rounded-card border border-line overflow-hidden bg-paper-2 items-center justify-center p-2">
-          <ExpoImage
-            source={{ uri: imageUrl }}
-            style={{ width: 48, height: 48, borderRadius: 12 }}
-            contentFit="contain"
-            cachePolicy="memory-disk"
-          />
-        </View>
-
-        {/* Title & Organisation */}
-        <View className="flex-1">
-          <Text className="text-ink text-base font-display uppercase leading-5" numberOfLines={2}>
-            {item.title}
-          </Text>
-          <Text className="text-ink-3 text-label font-display uppercase mt-1" numberOfLines={1}>
-            {orgName}
-          </Text>
-        </View>
-      </View>
-
-      {/* Optional Banner */}
-      {bannerUrl && (
-        <View className="mt-5 w-full h-32 rounded-card overflow-hidden border border-line">
-          <ExpoImage source={{ uri: bannerUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" />
-        </View>
-      )}
-
-      {/* Tags Row */}
-      <View className="mt-5 flex-row flex-wrap gap-2">
-        {/* Start Date */}
-        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons name="calendar" size={14} color={C.ink3} />
-          <Text className="text-label font-display uppercase text-ink-3 ml-2">
-            {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'Active Session'}
-          </Text>
-        </View>
-
-        {/* Location */}
-        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons name="location-sharp" size={14} color={C.ink3} />
-          <Text className="text-label font-display uppercase text-ink-3 ml-2">
-            {item.filters?.location || "Remote Hub"}
-          </Text>
-        </View>
-
-        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Text className="text-label text-accent-text font-display uppercase">
-            Workshop
-          </Text>
-        </View>
-      </View>
-
-      {/* Footer / CTA */}
-      <View className="mt-6 flex-row items-center justify-between border-t border-line pt-5">
-        <View>
-          <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
-            <Text className="text-ink-3 font-display uppercase text-label">Registration Ends</Text>
-            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-          </View>
-          <Text className="text-ink text-sm font-display mt-0.5 uppercase">
-            {item.regn_deadline ? new Date(item.regn_deadline).toLocaleDateString() : "Open Registry"}
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={() => onPress(item.seo_url)}
-          className="bg-ink px-gutter py-3.5 rounded-xl shadow-hair"
-        >
-          <Text className="text-paper font-display uppercase text-label">Access Portal</Text>
-        </TouchableOpacity>
-      </View>
-
-    </View>
-  );
-});
+const WorkshopCard = memo(({ item, onPress }: { item: Workshop; onPress: (url: string) => void }) => (
+  <ListingCard
+    title={item.title}
+    subtitle={item.organisation?.name || 'Global organisation'}
+    logo={item.organisation?.logoUrl || item.logoUrl2}
+    logoKey={String(item.id)}
+    banner={item.banner_mobile?.url}
+    tags={[
+      { icon: 'calendar-outline', label: dateOr(item.start_date, 'Active session') },
+      { icon: 'location-outline', label: item.filters?.location || 'Remote' },
+      { label: 'Workshop' },
+    ]}
+    footer={<FooterStat label="Registration ends" value={dateOr(item.regn_deadline, 'Open')} />}
+    action={{ title: 'Open', variant: 'solid', onPress: () => onPress(item.seo_url) }}
+  />
+));
 
 export default function WorkshopList() {
   const navigation = useNavigation<any>();
@@ -222,26 +137,14 @@ export default function WorkshopList() {
       <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
-        <AppBar title="Workshop Hub" onBack={() => navigation.goBack()} />
+        <AppBar title="Workshops" onBack={() => navigation.goBack()} />
 
-        {/* 🔍 Arena Search Dock */}
-        <View className="px-gutter mb-3">
-          <View className="flex-row items-center bg-card px-5 h-14 border-2 border-ink shadow-hair rounded-md">
-            <Ionicons name="search" size={20} color={C.brand[500]} />
-            <TextInput
-              placeholder="Search labs, workshops, skills..."
-              placeholderTextColor={C.ink3}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              className="flex-1 ml-3 text-ink text-sm font-display uppercase"
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")} hitSlop={10} className="bg-paper-2 p-1.5 rounded-xl">
-                <Ionicons name="close" size={16} color={C.ink3} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+        <SearchField
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search workshops or skills"
+          containerStyle={{ marginHorizontal: 20, marginBottom: 12 }}
+        />
 
         {/* List */}
         <FlatList keyboardShouldPersistTaps="handled"
@@ -258,15 +161,11 @@ export default function WorkshopList() {
           ListFooterComponent={renderFooter}
           ListEmptyComponent={
             !loading ? (
-              <View className="items-center mt-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="construct" size={40} color={C.ink4} />
-                </View>
-                <Text className="text-ink font-display text-xl text-center uppercase">Zero Signals</Text>
-                <Text className="font-sans text-sm text-ink-3 text-center mt-2">
-                  {searchQuery ? "No skill modules matched your search protocol." : "The global workshop registry is currently clear."}
-                </Text>
-              </View>
+              <Empty
+                icon="construct-outline"
+                title="No workshops found"
+                hint={searchQuery ? 'No workshops match your search.' : 'No open workshops right now.'}
+              />
             ) : null
           }
         />

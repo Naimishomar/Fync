@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, TouchableOpacity, ActivityIndicator, Image, Modal, useWindowDimensions} from 'react-native'
+import {View, Text, ActivityIndicator, Image, Modal, useWindowDimensions} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../../context/auth.context';
 import { Chess } from 'chess.js';
@@ -7,6 +7,7 @@ import Chessboard, { ChessboardRef } from 'react-native-chessboard';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { IconBtn } from '../ui/kit';
 
 interface ChessGameProps {
     socket: any;
@@ -235,18 +236,18 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                  style={{ backgroundColor: C.paper }}>
                     {isInitializing ? (
                         <View className="flex-1 items-center justify-center">
-                            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
+                            <View className="w-20 h-20 bg-paper-2 rounded-full items-center justify-center mb-6">
                                 <ActivityIndicator size="large" color={C.brand[500]} />
                             </View>
-                            <Text className="text-ink text-xl font-display uppercase">Initializing Board</Text>
-                            <Text className="text-ink-3 text-xs font-semibold mt-2 uppercase">{gameMode === 'bot' ? 'Waking up AI...' : 'Connecting to peer...'}</Text>
+                            <Text className="text-ink text-xl font-display">Setting up the board</Text>
+                            <Text className="text-ink-3 text-sm mt-2">{gameMode === 'bot' ? 'Waking up AI...' : 'Connecting to peer...'}</Text>
                         </View>
                     ) : (
                         <>
                             {/* Top Bar / Opponent */}
-                            <View className="flex-row items-center justify-between mb-auto mt-4 bg-card p-4 rounded-card border border-line shadow-hair">
+                            <View className="flex-row items-center justify-between mb-auto mt-4 bg-card p-4 rounded-2xl border border-line">
                                 <View className="flex-row items-center flex-1 mr-3" style={{ minWidth: 0 }}>
-                                    <View className="w-14 h-14 bg-paper-2 rounded-full overflow-hidden border-2 border-brand-500/30 shadow-hair">
+                                    <View className="w-14 h-14 bg-paper-2 rounded-full overflow-hidden">
                                         {matchDetails.opponent?.avatar === 'fync_logo' ? (
                                             <Image source={require('../../assets/Fync.png')} className="w-full h-full" resizeMode="cover" />
                                         ) : matchDetails.opponent?.avatar ? (
@@ -258,27 +259,27 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                         )}
                                     </View>
                                     <View className="ml-4 flex-1" style={{ minWidth: 0 }}>
-                                        <Text className="text-ink text-base font-display uppercase" numberOfLines={1}>{matchDetails.opponent?.name || matchDetails.opponent?.username}</Text>
+                                        <Text className="text-ink text-base font-semibold" numberOfLines={1}>{matchDetails.opponent?.name || matchDetails.opponent?.username}</Text>
                                         <View className="flex-row items-center mt-1">
                                             <View className="w-2 h-2 rounded-full bg-brand-500 mr-2" />
-                                            <Text className="text-ink-3 font-semibold text-label uppercase">Playing {matchDetails.color === 'w' ? 'Black' : 'White'}</Text>
+                                            <Text className="text-ink-3 text-xs">Playing {matchDetails.color === 'w' ? 'black' : 'white'}</Text>
                                         </View>
                                     </View>
                                 </View>
                                 {botThinking && (
-                                    <View className="bg-paper-2 p-3 rounded-card border border-line">
+                                    <View className="bg-paper-2 p-3 rounded-full" accessibilityLabel="Opponent is thinking">
                                         <ActivityIndicator color={C.brand[500]} size="small" />
                                     </View>
                                 )}
                                 {!botThinking && !isMyTurn && gameMode === 'pvp' && (
-                                    <View className="bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
+                                    <View className="bg-paper-2 px-3 py-1.5 rounded-full">
                                         <Text className="font-semibold text-base text-ink">{timeLeft}s</Text>
                                     </View>
                                 )}
                             </View>
 
                             {/* Chess Board */}
-                            <View className="items-center justify-center bg-card p-1 self-center shadow-hair border border-line w-full my-8">
+                            <View className="items-center justify-center bg-card p-1 self-center border border-line rounded-2xl w-full my-8">
                                 <Chessboard 
                                     ref={chessboardRef} 
                                     onMove={handleMove}
@@ -289,9 +290,9 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                             </View>
 
                             {/* Bottom Bar / Me */}
-                            <View className="flex-row items-center justify-between mt-auto mb-8 bg-card p-4 rounded-card border border-line shadow-hair">
+                            <View className="flex-row items-center justify-between mt-auto mb-8 bg-card p-4 rounded-2xl border border-line">
                                 <View className="flex-row items-center">
-                                    <View className={`w-14 h-14 bg-paper-2 rounded-full overflow-hidden border-2 shadow-hair ${isMyTurn ? 'border-success' : 'border-line'}`}>
+                                    <View className={`w-14 h-14 bg-paper-2 rounded-full overflow-hidden border-2 ${isMyTurn ? 'border-success' : 'border-transparent'}`}>
                                         {user?.avatar ? (
                                             <Image source={{ uri: user.avatar }} className="w-full h-full" />
                                         ) : (
@@ -301,28 +302,23 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                         )}
                                     </View>
                                     <View className="ml-4">
-                                        <Text className="text-ink text-base font-display uppercase">You</Text>
+                                        <Text className="text-ink text-base font-semibold">You</Text>
                                         <View className="flex-row items-center mt-1">
                                             <View className={`w-2 h-2 rounded-full mr-2 ${isMyTurn ? 'bg-success' : 'bg-paper-2'}`} />
-                                            <Text className={`font-semibold text-label uppercase ${isMyTurn ? 'text-success' : 'text-ink-3'}`}>
-                                                {isMyTurn ? "Your Turn" : "Waiting..."}
+                                            <Text className={`text-xs ${isMyTurn ? 'font-semibold text-success' : 'text-ink-3'}`}>
+                                                {isMyTurn ? "Your turn" : "Waiting..."}
                                             </Text>
                                         </View>
                                     </View>
                                 </View>
                                 
                                 {isMyTurn && gameMode === 'pvp' && (
-                                    <View className="bg-danger/15 px-4 py-2 rounded-xl border border-danger/25 shadow-hair">
-                                        <Text className={`font-semibold text-lg ${timeLeft <= 10 ? 'text-danger' : 'text-danger'}`}>{timeLeft}s</Text>
+                                    <View className="bg-paper-2 px-4 py-2 rounded-full">
+                                        <Text className={`font-semibold text-lg ${timeLeft <= 10 ? 'text-danger' : 'text-ink'}`}>{timeLeft}s</Text>
                                     </View>
                                 )}
 
-                                <TouchableOpacity 
-                                    onPress={handleResign}
-                                    className="w-12 h-12 bg-danger/10 rounded-card items-center justify-center border border-danger/15 shadow-hair"
-                                >
-                                    <Ionicons name="flag" size={20} color={C.danger} />
-                                </TouchableOpacity>
+                                <IconBtn name="flag-outline" boxed color={C.danger} onPress={handleResign} accessibilityLabel="Resign" />
                             </View>
                         </>
                     )}

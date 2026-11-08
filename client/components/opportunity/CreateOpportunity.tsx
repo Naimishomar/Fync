@@ -1,30 +1,31 @@
 import React, { useState } from 'react';
-import {View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Switch, Image, Platform} from 'react-native'
+import { View, Text, Pressable, ScrollView, KeyboardAvoidingView, Switch, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Button, Card, Chip, FormField, IconTile, Label, SegmentedTabs, TagRow } from '../ui/kit';
+
+const TYPE_LABELS = { internship: 'Internship', job: 'Full-time job' } as const;
+const TYPES = ['internship', 'job'] as const;
 
 const SelectionGroup = ({ label, options, field, formData, setFormData }: { label: string, options: string[], field: string, formData: any, setFormData: (v: any) => void }) => (
-  <View className="mb-5">
-    <Text className="text-ink-3 font-display uppercase text-label mb-3 ml-1">{label}</Text>
-    <View className="flex-row flex-wrap gap-2">
+  <View style={{ gap: 8 }}>
+    <Label>{label}</Label>
+    <TagRow>
       {options.map((opt) => (
-        <TouchableOpacity
-          key={opt}
-          onPress={() => setFormData({ ...formData, [field]: opt })}
-          className={`px-6 py-3 rounded-card border ${formData[field as keyof typeof formData] === opt ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
-        >
-          <Text className={`font-display uppercase text-label ${formData[field as keyof typeof formData] === opt ? 'text-paper' : 'text-ink-3'}`}>{opt}</Text>
-        </TouchableOpacity>
+        <Chip key={opt} label={opt} active={formData[field] === opt} onPress={() => setFormData({ ...formData, [field]: opt })} />
       ))}
-    </View>
+    </TagRow>
   </View>
+);
+
+const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: any) => (
+  <FormField label={label} value={value} onChangeText={onChange} placeholder={placeholder} multiline={multiline} />
 );
 
 const CreateOpportunity = () => {
@@ -145,191 +146,149 @@ const CreateOpportunity = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
-      <AppBar title={isEdit ? 'Edit Opportunity' : 'Post Opportunity'} onBack={() => navigation.goBack()} />
+      <AppBar title={isEdit ? 'Edit opportunity' : 'Post opportunity'} onBack={() => navigation.goBack()} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
+        <ScrollView className="flex-1 px-gutter" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <SegmentedTabs
+            items={TYPES}
+            labels={TYPE_LABELS}
+            value={formData.type}
+            onChange={(t) => setFormData({ ...formData, type: t })}
+            style={{ marginTop: 16 }}
+          />
 
-        <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          {/* Type Selector */}
-          <View className="mt-6 flex-row bg-paper-2 p-1.5 rounded-card border border-line">
-            <TouchableOpacity
-              onPress={() => setFormData({ ...formData, type: 'internship' })}
-              className={`flex-1 py-3 rounded-xl items-center ${formData.type === 'internship' ? 'bg-card' : ''}`}
-            >
-              <Text className={`font-display uppercase text-label ${formData.type === 'internship' ? 'text-accent-text' : 'text-ink-3'}`}>Internship</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setFormData({ ...formData, type: 'job' })}
-              className={`flex-1 py-3 rounded-xl items-center ${formData.type === 'job' ? 'bg-card' : ''}`}
-            >
-              <Text className={`font-display uppercase text-label ${formData.type === 'job' ? 'text-accent-text' : 'text-ink-3'}`}>Full Job</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="mt-8 gap-5 pb-10">
-
-            {/* Company Logo Picker */}
-            <View>
-              <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                <Text className="text-ink-3 font-display uppercase text-label">Company Logo *</Text>
-                <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-              </View>
-              <TouchableOpacity
+          <View className="mt-6 pb-10" style={{ gap: 20 }}>
+            <View style={{ gap: 8 }}>
+              <Label>Company logo *</Label>
+              <Pressable
                 onPress={pickLogo}
-                activeOpacity={0.8}
-                className="items-center justify-center bg-paper-2 border-2 border-dashed border-line rounded-card p-6"
+                accessibilityRole="button"
+                accessibilityLabel={logoUri ? 'Change company logo' : 'Upload company logo'}
+                className="items-center justify-center bg-paper-2 border border-dashed border-line rounded-2xl p-6 active:opacity-70"
               >
                 {logoUri ? (
                   <View className="items-center">
-                    <Image source={{ uri: logoUri }} className="w-24 h-24 rounded-card" resizeMode="contain" />
-                    <Text className="text-accent-text font-semibold text-label uppercase mt-3">Tap to change</Text>
+                    <Image source={{ uri: logoUri }} style={{ width: 96, height: 96, borderRadius: 16 }} contentFit="contain" />
+                    <Text className="text-accent-text font-semibold text-sm mt-3">Tap to change</Text>
                   </View>
                 ) : (
                   <View className="items-center">
-                    <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-3">
-                      <Ionicons name="image-outline" size={28} color={C.ink3} />
-                    </View>
-                    <Text className="font-semibold text-base text-ink">Upload Company Logo</Text>
-                    <Text className="text-ink-3 text-label mt-1">PNG, JPG • Square recommended</Text>
+                    <IconTile icon="image-outline" size={56} color={C.ink3} style={{ marginBottom: 12 }} />
+                    <Text className="font-semibold text-base text-ink">Upload company logo</Text>
+                    <Text className="text-ink-3 text-xs mt-1">PNG or JPG · square works best</Text>
                   </View>
                 )}
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
             <InputGroup
-              label="Role Title *"
+              label="Role title *"
               value={formData.title}
               placeholder="e.g. Backend Developer Intern"
               onChange={(v: any) => setFormData({ ...formData, title: v })}
             />
 
             <InputGroup
-              label="Company Name *"
+              label="Company name *"
               value={formData.company}
               placeholder="e.g. Google India"
               onChange={(v: any) => setFormData({ ...formData, company: v })}
             />
 
             <SelectionGroup
-              label="Location Mode *"
+              label="Location *"
               options={["Remote", "Onsite", "Hybrid"]}
               field="location"
-            formData={formData} setFormData={setFormData} />
+              formData={formData} setFormData={setFormData} />
 
             <SelectionGroup
-              label="Work Schedule *"
+              label="Work schedule *"
               options={["Full-Time", "Part-Time"]}
               field="opportunityType"
-            formData={formData} setFormData={setFormData} />
+              formData={formData} setFormData={setFormData} />
 
             <SelectionGroup
-              label="Experience Required *"
+              label="Experience required *"
               options={["Fresher", "Entry Level", "1-2 Years", "3-5 Years", "5+ Years"]}
               field="experience"
-            formData={formData} setFormData={setFormData} />
+              formData={formData} setFormData={setFormData} />
 
-            <View className="flex-row gap-4">
-              <View className="flex-1">
-                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                  <Text className="text-ink-3 font-display uppercase text-label">Payment *</Text>
-                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                </View>
-                <View className="flex-row gap-2">
-                  {["Unpaid", "Paid"].map(opt => (
-                    <TouchableOpacity
-                      key={opt}
-                      onPress={() => setFormData({ ...formData, isPaid: opt === 'Paid' })}
-                      className={`px-6 py-3 rounded-card border ${(formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
-                    >
-                      <Text className={`font-display uppercase text-label ${(formData.isPaid && opt === 'Paid') || (!formData.isPaid && opt === 'Unpaid') ? 'text-paper' : 'text-ink-3'}`}>{opt}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-              {formData.isPaid && (
-                <View className="flex-[1.5]">
-                  <InputGroup
-                    label={formData.type === 'internship' ? "Stipend Amount *" : "Package / Salary *"}
-                    value={formData.stipend}
-                    placeholder="e.g. ₹25k / ₹12 LPA"
-                    onChange={(v: any) => setFormData({ ...formData, stipend: v })}
+            <View style={{ gap: 8 }}>
+              <Label>Payment *</Label>
+              <TagRow>
+                {["Unpaid", "Paid"].map(opt => (
+                  <Chip
+                    key={opt}
+                    label={opt}
+                    active={formData.isPaid === (opt === 'Paid')}
+                    onPress={() => setFormData({ ...formData, isPaid: opt === 'Paid' })}
                   />
-                </View>
-              )}
+                ))}
+              </TagRow>
             </View>
+            {formData.isPaid ? (
+              <InputGroup
+                label={formData.type === 'internship' ? "Stipend amount *" : "Package / salary *"}
+                value={formData.stipend}
+                placeholder="e.g. ₹25k / ₹12 LPA"
+                onChange={(v: any) => setFormData({ ...formData, stipend: v })}
+              />
+            ) : null}
 
-            {formData.type === 'internship' && (
+            {formData.type === 'internship' ? (
               <InputGroup
                 label="Duration"
                 value={formData.duration}
-                placeholder="e.g. 6 Months / Performance Based"
+                placeholder="e.g. 6 months / performance based"
                 onChange={(v: any) => setFormData({ ...formData, duration: v })}
               />
-            )}
+            ) : null}
 
             <InputGroup
-              label="Application Link (Optional)"
+              label="Application link (optional)"
               value={formData.applicationLink}
               placeholder="https://company.com/careers/..."
               onChange={(v: any) => setFormData({ ...formData, applicationLink: v })}
             />
 
-            {/* Require Resume Toggle */}
-            <View className="bg-paper-2 p-5 rounded-card flex-row items-center justify-between border border-line">
-              <View className="flex-1 mr-4">
-                <Text className="font-semibold text-base text-ink">Require Resume?</Text>
-                <Text className="text-ink-3 font-semibold text-label uppercase mt-1">Candidates must share their resume to apply</Text>
+            <Card padded style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <View className="flex-1">
+                <Text className="font-semibold text-base text-ink">Require resume</Text>
+                <Text className="text-ink-3 text-sm mt-0.5">Candidates must share their resume to apply</Text>
               </View>
               <Switch
                 value={formData.requireResume}
                 onValueChange={(v) => setFormData({ ...formData, requireResume: v })}
                 trackColor={{ false: C.line, true: C.fam.fun }}
                 thumbColor={formData.requireResume ? C.brand[500] : C.ink3}
+                accessibilityLabel="Require resume"
               />
-            </View>
+            </Card>
 
             <InputGroup
               label="Description *"
               value={formData.description}
-              placeholder="Key responsibilities, skills, and about the role..."
+              placeholder="Key responsibilities, skills and about the role..."
               multiline
               onChange={(v: any) => setFormData({ ...formData, description: v })}
             />
 
-            <TouchableOpacity
+            <Button
+              title={isEdit ? 'Save changes' : 'Post opportunity'}
+              variant="primary"
+              block
+              loading={loading}
               onPress={handlePost}
-              disabled={loading}
-              className="bg-ink h-16 items-center justify-center mt-4 border-2 border-ink rounded-md"
-            >
-              {loading ? (
-                <ActivityIndicator color={C.paper} />
-              ) : (
-                <Text className="text-paper font-display uppercase text-lg">{isEdit ? 'Update Changes' : 'Post Live Opportunity'}</Text>
-              )}
-            </TouchableOpacity>
+              style={{ marginTop: 8 }}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
-
-const InputGroup = ({ label, value, onChange, placeholder, multiline = false }: any) => (
-  <View>
-    <Text className="text-ink-3 font-display uppercase text-label mb-2 ml-1">{label}</Text>
-    <TextInput
-      value={value}
-      onChangeText={onChange}
-      placeholder={placeholder}
-      placeholderTextColor={C.ink4}
-      multiline={multiline}
-      numberOfLines={multiline ? 4 : 1}
-      className={`bg-paper-2 border border-line rounded-card px-5 py-4 text-ink font-semibold ${multiline ? 'h-40 text-top' : ''}`}
-      textAlignVertical={multiline ? 'top' : 'center'}
-    />
-  </View>
-);
 
 export default CreateOpportunity;

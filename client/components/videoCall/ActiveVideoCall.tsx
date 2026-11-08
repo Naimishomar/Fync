@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
+import { View, Text, Pressable, StyleSheet, StatusBar } from 'react-native';
 import Avatar from '../Avatar';
 import type { CallUser } from '../../services/CallSignalingService';
 import { RTCView } from 'react-native-webrtc';
@@ -71,7 +71,6 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
           />
         ) : (
           <View style={styles.remoteFallback}>
-            {/* Same orange wash as every other screen, over the app's dark slate. */}
             <Avatar user={remoteUser as any} size={140} showBadge={false} />
             <Text style={styles.remoteName} numberOfLines={1}>{remoteUser.name}</Text>
             {!!remoteUser.college && (
@@ -102,21 +101,35 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
 
       {/* CONTROLS */}
       <View style={[styles.controls, { paddingBottom: Math.max(40, insets.bottom + 16) }]}>
-        <TouchableOpacity onPress={handleToggleMute} style={[styles.controlBtn, isMuted && styles.controlBtnActive]}>
+        <Pressable
+          onPress={handleToggleMute}
+          className="active:opacity-70"
+          style={[styles.controlBtn, isMuted && styles.controlBtnActive]}
+          accessibilityRole="button"
+          accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
+          accessibilityState={{ selected: isMuted }}
+        >
           {isMuted ? <MicOff size={22} color="#12100E" /> : <Mic size={22} color="#fff" />}
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity onPress={handleToggleVideo} style={[styles.controlBtn, !isVideoOn && styles.controlBtnActive]}>
+        <Pressable
+          onPress={handleToggleVideo}
+          className="active:opacity-70"
+          style={[styles.controlBtn, !isVideoOn && styles.controlBtnActive]}
+          accessibilityRole="button"
+          accessibilityLabel={isVideoOn ? 'Turn camera off' : 'Turn camera on'}
+          accessibilityState={{ selected: !isVideoOn }}
+        >
           {isVideoOn ? <Camera size={22} color="#fff" /> : <CameraOff size={22} color="#12100E" />}
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity onPress={handleSwitchCamera} style={styles.controlBtn}>
+        <Pressable onPress={handleSwitchCamera} className="active:opacity-70" style={styles.controlBtn} accessibilityRole="button" accessibilityLabel="Switch camera">
           <RefreshCw size={22} color="#fff" />
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity onPress={onEndCall} style={styles.endBtn}>
+        <Pressable onPress={onEndCall} className="active:opacity-70" style={styles.endBtn} accessibilityRole="button" accessibilityLabel="End call">
           <PhoneOff size={30} color="#fff" />
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );
@@ -140,40 +153,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#12100E',
   },
-  wash: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 380,
-    opacity: 0.3,
-  },
   remoteName: {
     color: '#fff',
     fontSize: 22,
     fontFamily: 'SpaceGrotesk_700Bold',
     letterSpacing: -0.5,
-    textTransform: 'uppercase',
     marginTop: 28,
     paddingHorizontal: 20,
     textAlign: 'center',
   },
   remoteCollege: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
     marginTop: 4,
     paddingHorizontal: 20,
     textAlign: 'center',
   },
   callingText: {
-    color: '#F97316',
-    fontSize: 11,
-    fontFamily: 'SpaceGrotesk_700Bold',
-    letterSpacing: 3,
-    textTransform: 'uppercase',
+    color: '#FB923C',
+    fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
+    fontVariant: ['tabular-nums'],
     marginTop: 20,
   },
   durationBadge: {
@@ -186,7 +187,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     fontSize: 14,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Inter_600SemiBold',
+    fontVariant: ['tabular-nums'],
     overflow: 'hidden',
   },
   localContainer: {
@@ -197,8 +199,8 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
     backgroundColor: '#12100E',
   },
   localVideo: {
@@ -215,23 +217,18 @@ const styles = StyleSheet.create({
   controlBtn: {
     width: 56,
     height: 56,
-    // Rounded-square, matching the 2xl radius the rest of the app uses for
-    // icon buttons rather than the pill shape this screen had on its own.
-    borderRadius: 18,
+    borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   controlBtnActive: {
     backgroundColor: '#ffffff',
-    borderColor: '#ffffff',
   },
   endBtn: {
     width: 72,
     height: 72,
-    borderRadius: 26,
+    borderRadius: 36,
     backgroundColor: '#DC2626',
     alignItems: 'center',
     justifyContent: 'center',

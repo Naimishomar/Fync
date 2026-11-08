@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import PdfToolShell from './PdfToolShell';
+import PdfToolShell, { OptionCard, Choices } from './PdfToolShell';
 import { loadDoc, writeDoc } from './pdfKit';
 
 const AMOUNTS = [
-  { pt: 18, label: 'Light' },
-  { pt: 36, label: 'Medium' },
-  { pt: 60, label: 'Heavy' },
+  { id: 18, label: 'Light' },
+  { id: 36, label: 'Medium' },
+  { id: 60, label: 'Heavy' },
 ] as const;
 
 export default function CropPdfScreen() {
@@ -16,20 +15,9 @@ export default function CropPdfScreen() {
       title="Crop Margins" icon="crop-outline" runLabel="Crop margins"
       blurb="Trim white margins so more of the text fits on screen when you read on a phone."
       options={() => (
-        <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-5">
-          <Text className="text-ink-3 font-display uppercase text-label mb-3">How much to trim</Text>
-          <View className="flex-row" style={{ gap: 10 }}>
-            {AMOUNTS.map((a) => (
-              <TouchableOpacity
-                key={a.pt} onPress={() => setPt(a.pt)}
-                className={`flex-1 items-center justify-center rounded-md border-2 ${pt === a.pt ? 'bg-brand-500 border-ink' : 'bg-card border-line'}`}
-                style={{ minHeight: 48 }} accessibilityRole="button"
-              >
-                <Text className={`font-display uppercase text-label ${pt === a.pt ? 'text-on-brand' : 'text-ink-2'}`}>{a.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        <OptionCard label="How much to trim">
+          <Choices items={AMOUNTS} value={pt} onChange={setPt} />
+        </OptionCard>
       )}
       run={async (files) => {
         const doc = await loadDoc(files[0].uri);

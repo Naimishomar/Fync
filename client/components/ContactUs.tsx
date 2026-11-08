@@ -1,18 +1,5 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    ActivityIndicator,
-    Image,
-    Pressable,
-    StatusBar,
-    Dimensions,
-} from 'react-native';
+import { View, Text, KeyboardAvoidingView, ScrollView, Image, Pressable, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -22,9 +9,7 @@ import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { C } from '../constants/colors';
-import { AppBar } from './ui/kit';
-
-const { width } = Dimensions.get('window');
+import { AppBar, Button, Card, Display, FormField, H1, IconTile, ListRow, Tag } from './ui/kit';
 
 const ContactUs = () => {
     const navigation = useNavigation<any>();
@@ -132,26 +117,11 @@ const ContactUs = () => {
 
     if (isSubmitted) {
         return (
-            <View className="flex-1 bg-paper items-center justify-center">
+            <View className="flex-1 bg-paper items-center justify-center px-gutter">
                 <StatusBar barStyle={C.barStyle} />
-                <View className="absolute inset-0"  style={{ backgroundColor: C.paper2 }} />
-                
-                <View className="items-center px-gutter">
-                    <View className="w-24 h-24 bg-brand-500 rounded-full items-center justify-center mb-10 shadow-hair">
-                        <Ionicons name="checkmark-done" size={48} color={C.onBrand} />
-                    </View>
-                    
-                    <Text className="text-ink text-4xl font-[900] text-center leading-[45px] mb-8">
-                        Nice to meet you, we will chat soon.
-                    </Text>
-
-                    <TouchableOpacity
-                        className="bg-ink w-full py-6 items-center border-2 border-ink rounded-md"
-                        onPress={() => navigation.navigate('Tabs')}
-                    >
-                        <Text className="text-paper text-base font-semibold">Take me back home</Text>
-                    </TouchableOpacity>
-                </View>
+                <IconTile icon="checkmark-done" size={80} iconSize={36} bg={C.brand[100]} color={C.accentText} style={{ marginBottom: 24 }} />
+                <H1 style={{ textAlign: 'center', marginBottom: 24 }}>Nice to meet you, we will chat soon.</H1>
+                <Button title="Take me back home" variant="primary" block onPress={() => navigation.navigate('Tabs')} />
             </View>
         );
     }
@@ -159,149 +129,98 @@ const ContactUs = () => {
     return (
         <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
             <StatusBar barStyle={C.barStyle} />
-            
-            <AppBar title="Contact Us" onBack={() => navigation.goBack()} />
 
-            <KeyboardAvoidingView
-                behavior="padding"
-                className="flex-1"
-            >
-                <ScrollView keyboardShouldPersistTaps="handled" 
-                    showsVerticalScrollIndicator={false} 
+            <AppBar title="Contact us" onBack={() => navigation.goBack()} />
+
+            <KeyboardAvoidingView behavior="padding" className="flex-1">
+                <ScrollView keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 100 }}
                 >
-                    <View className="px-gutter mt-5">
-                        <View className="mb-10">
-                            <Text className="text-ink text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Support</Text>
-                            <Text className="text-accent-text text-display font-display uppercase" style={{ letterSpacing: -1.2 }}>Team</Text>
-                            <Text className="text-ink-3 text-label font-display uppercase">Feel Free To Contact Us</Text>
+                    <View className="px-gutter mt-2">
+                        <View className="mb-6">
+                            <Display>Support team</Display>
+                            <Text className="text-ink-3 text-sm mt-1">Feel free to contact us</Text>
                         </View>
 
-                        <View
-                            className="bg-card p-card-pad border-2 border-ink flex-row items-center mb-10 rounded-md"
-                            style={{ shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 }}
-                        >
-                            <View className="w-12 h-12 bg-brand-50 rounded-card items-center justify-center">
-                                <Ionicons name="business" size={20} color={C.brand[500]} />
-                            </View>
-                            <View className="ml-4 flex-1">
-                                <Text className="text-ink font-display uppercase text-label">Main HQ</Text>
-                                <Text className="font-sans text-sm text-ink-2 mt-0.5">KIET Deemed University, UP</Text>
-                            </View>
-                            <View className="items-end">
-                                <Text className="font-display text-label text-success uppercase">Active Now</Text>
-                                <View className="w-1.5 h-1.5 bg-success rounded-full mt-1" />
-                            </View>
-                        </View>
+                        <Card style={{ paddingHorizontal: 16, marginBottom: 24 }}>
+                            <ListRow
+                                icon="business-outline"
+                                title="Main HQ"
+                                subtitle="KIET Deemed University, UP"
+                                right={<Tag label="Active now" icon="ellipse" tone={{ fg: C.success }} />}
+                            />
+                        </Card>
 
-                        {/* Form Card */}
-                        <View className="bg-card rounded-sheet p-card-pad shadow-hair border border-line">
-                            <View className="mb-8">
-                                <Text className="text-label font-display text-ink-3 uppercase mb-3 ml-2">Operator Identity</Text>
-                                <TextInput
-                                    className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink rounded-md"
-                                    placeholder="e.g. Naimish Omar"
-                                    placeholderTextColor={C.ink4}
-                                    value={formData.name}
-                                    onChangeText={(text) => setFormData({ ...formData, name: text })}
-                                />
-                            </View>
+                        <Card padded style={{ gap: 16 }}>
+                            <FormField
+                                label="Name"
+                                placeholder="e.g. Naimish Omar"
+                                value={formData.name}
+                                onChangeText={(text) => setFormData({ ...formData, name: text })}
+                            />
+                            <FormField
+                                label="Phone"
+                                placeholder="+91 1234567890"
+                                keyboardType="phone-pad"
+                                value={formData.phone}
+                                onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                            />
+                            <FormField
+                                label="Email"
+                                placeholder="dev.fync@email.com"
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                value={formData.email}
+                                onChangeText={(text) => setFormData({ ...formData, email: text })}
+                            />
+                            <FormField
+                                label="Message"
+                                placeholder="Describe your requirement or issue"
+                                multiline
+                                numberOfLines={4}
+                                value={formData.message}
+                                onChangeText={(text) => setFormData({ ...formData, message: text })}
+                            />
 
-                            <View className="mb-8">
-                                <Text className="text-label font-display text-ink-3 uppercase mb-3 ml-2">Signal Frequency (Phone)</Text>
-                                <TextInput
-                                    className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink rounded-md"
-                                    placeholder="+91 1234567890"
-                                    placeholderTextColor={C.ink4}
-                                    keyboardType="phone-pad"
-                                    value={formData.phone}
-                                    onChangeText={(text) => setFormData({ ...formData, phone: text })}
-                                />
-                            </View>
-
-                            <View className="mb-8">
-                                <Text className="text-label font-display text-ink-3 uppercase mb-3 ml-2">Digital Ledger (Email)</Text>
-                                <TextInput
-                                    className="font-semibold text-base text-ink bg-card p-5 border-[1.5px] border-ink rounded-md"
-                                    placeholder="dev.fync@email.com"
-                                    placeholderTextColor={C.ink4}
-                                    keyboardType="email-address"
-                                    autoCapitalize="none"
-                                    value={formData.email}
-                                    onChangeText={(text) => setFormData({ ...formData, email: text })}
-                                />
-                            </View>
-
-                            <View className="mb-10">
-                                <Text className="text-label font-display text-ink-3 uppercase mb-3 ml-2">Transmission Content</Text>
-                                <TextInput
-                                    className="bg-card p-6 text-xs text-ink-2 font-medium min-h-[160px] border-[1.5px] border-ink rounded-md"
-                                    placeholder='Define the requirements / issues...'
-                                    placeholderTextColor={C.ink4}
-                                    multiline
-                                    numberOfLines={4}
-                                    value={formData.message}
-                                    onChangeText={(text) => setFormData({ ...formData, message: text })}
-                                    textAlignVertical="top"
-                                />
-                            </View>
-
-                            {/* Evidence */}
-                            <View className="mb-12">
-                                <View className="flex-row justify-between items-center mb-4 px-2">
-                                    <Text className="text-label font-display text-ink-3 uppercase">Visual Evidence (Max 3)</Text>
-                                    <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                                        <Text className="text-label text-ink-3 font-display uppercase">{selectedImages.length}/3</Text>
-                                    </View>
+                            {/* Attachments */}
+                            <View>
+                                <View className="flex-row justify-between items-center mb-3">
+                                    <Text className="text-sm font-semibold text-ink-2">Screenshots (up to 3)</Text>
+                                    <Text className="text-label text-ink-3">{selectedImages.length}/3</Text>
                                 </View>
-
-                                <View className="flex-row gap-4">
+                                <View className="flex-row" style={{ gap: 12 }}>
                                     {selectedImages.map((uri, index) => (
-                                        <View key={index} className="relative w-20 h-20 rounded-card overflow-hidden bg-paper-2 border border-line">
+                                        <View key={index} className="w-20 h-20 rounded-2xl overflow-hidden bg-paper-2 border border-line">
                                             <Image source={{ uri }} className="w-full h-full" />
-                                            <TouchableOpacity
+                                            <Pressable
                                                 onPress={() => removeImage(index)}
                                                 hitSlop={12}
-                                                className="absolute top-1.5 right-1.5 bg-black/60 rounded-full p-1"
+                                                className="absolute top-1.5 right-1.5 bg-black/60 rounded-full p-1 active:opacity-70"
+                                                accessibilityRole="button"
+                                                accessibilityLabel={`Remove screenshot ${index + 1}`}
                                             >
                                                 <Ionicons name="close" size={12} color="white" />
-                                            </TouchableOpacity>
+                                            </Pressable>
                                         </View>
                                     ))}
-
                                     {selectedImages.length < 3 && (
-                                        <TouchableOpacity
+                                        <Pressable
                                             onPress={pickImages}
-                                            className="w-20 h-20 rounded-card border border-dashed border-line justify-center items-center bg-card"
+                                            className="w-20 h-20 rounded-2xl border border-dashed border-line justify-center items-center bg-paper-2 active:opacity-70"
+                                            accessibilityRole="button"
+                                            accessibilityLabel="Attach screenshot"
                                         >
-                                            <MaterialCommunityIcons name="camera-plus-outline" size={24} color={C.ink4} />
-                                            <Text className="text-label font-display text-ink-4 mt-1 uppercase">Attach</Text>
-                                        </TouchableOpacity>
+                                            <MaterialCommunityIcons name="camera-plus-outline" size={24} color={C.ink3} />
+                                            <Text className="text-label font-semibold text-ink-3 mt-1">Attach</Text>
+                                        </Pressable>
                                     )}
                                 </View>
                             </View>
 
-                            <TouchableOpacity
-                                activeOpacity={0.9}
-                                className={`bg-ink py-6 items-center rounded-sheet shadow-hair ${isLoading ? 'opacity-70' : ''}`}
-                                onPress={handleSubmit}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <ActivityIndicator color={C.paper} />
-                                ) : (
-                                    <Text className="font-display text-paper uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Deploy Transmission</Text>
-                                )}
-                            </TouchableOpacity>
-
-                            <Pressable
-                                onPress={() => navigation.navigate('MeetOurTeam')}
-                                className="mt-8 items-center"
-                            >
-                                <Text className="text-ink-3 text-label font-display uppercase">Meet <Text className="text-accent-text">Team HQ</Text></Text>
-                                <View className="w-12 h-0.5 bg-brand-500/20 mt-1 rounded-full" />
-                            </Pressable>
-                        </View>
+                            <Button title="Send message" variant="primary" block loading={isLoading} onPress={handleSubmit} style={{ marginTop: 8 }} />
+                            <Button title="Meet the team" variant="tertiary" block onPress={() => navigation.navigate('MeetOurTeam')} />
+                        </Card>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>

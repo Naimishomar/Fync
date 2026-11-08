@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, ScrollView, ActivityIndicator, Modal, Image, StatusBar, TouchableOpacity} from 'react-native'
+import { View, Text, ScrollView, ActivityIndicator, Modal, StatusBar } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from "react-native-webview";
 import axios from '../../context/axiosConfig';
@@ -10,7 +9,7 @@ import { useAuth } from '../../context/auth.context';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 
-import { AppBar, StampCard } from '../ui/kit';
+import { AppBar, Button, Card, IconTile, ListRow, SectionHeader } from '../ui/kit';
 import { C } from '../../constants/colors';
 const SubscriptionScreen = ({ onSuccess }: any) => {
     const { user, logout } = useAuth();
@@ -159,107 +158,64 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
 
             <View className="flex-1">
                 <AppBar title="Fync Pro" onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
-                <View className="px-5 pt-2">
-                    <Text className="font-display text-ink-3 uppercase mb-5" style={{ fontSize: 11, letterSpacing: 1.4 }}>
+                <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+                    <Text className="font-sans text-sm text-ink-3 mb-4">
                         {user?.is_subscribed ? "Active — extend any time" : "Everything, unlocked"}
                     </Text>
-                </View>
 
-                <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-                    <StampCard radius={20} style={{ width: '100%' }}>
-                    <View className="w-full bg-ink p-5 overflow-hidden rounded-card">
-                        <View className="flex-row justify-between items-start mb-6">
+                    {/* Intentionally dark: the pass is the one premium surface. */}
+                    <View className="w-full bg-ink p-5 overflow-hidden rounded-2xl">
+                        <View className="flex-row justify-between items-start mb-4">
                             <View className="flex-1 pr-3">
-                                {/* This heading was text-ink on bg-ink — a contrast ratio of
-                                    1.00, meaning the same colour as its own background. It
-                                    was not faint, it was invisible. */}
-                                <Text className="text-paper font-display uppercase" style={{ fontSize: 15 }}>Full Access Pass</Text>
-                                <Text className="text-brand-400 font-display uppercase mt-1" style={{ fontSize: 10, letterSpacing: 1.2 }}>
-                                    Limited time offer
-                                </Text>
+                                <Text className="text-paper font-semibold text-base">Full access pass</Text>
+                                <Text className="text-brand-400 font-semibold text-xs mt-1">Limited time offer</Text>
                             </View>
                             <View className="items-end">
-                                <Text className="text-paper font-display" style={{ fontSize: 30 }}>₹{subscriptionAmount}</Text>
-                                <Text className="text-night-3 font-display uppercase" style={{ fontSize: 10 }}>/ month</Text>
+                                <Text className="text-paper font-display" style={{ fontSize: 30, lineHeight: 34 }}>₹{subscriptionAmount}</Text>
+                                <Text className="text-night-3 font-sans text-xs">/ month</Text>
                             </View>
                         </View>
 
-                        <View className="h-[2px] bg-paper/15 mb-5" />
+                        <View className="h-px bg-paper/15 mb-4" />
 
-                        <View className="mb-6">
+                        <View className="mb-4">
                             {PERKS.map((item, index) => (
                                 <View key={index} className="flex-row items-center mb-3">
-                                    {/* One accent, not four. The old list used cyan, green
-                                        and pink alongside brand — none of them from the
-                                        palette, and none carrying any meaning. */}
-                                    <View className="w-8 h-8 rounded-xl items-center justify-center mr-3 border-2 border-brand-500">
-                                        <Ionicons name={item.icon as any} size={15} color={C.brand[500]} />
+                                    <View className="w-8 h-8 rounded-full items-center justify-center mr-3 bg-paper/10">
+                                        <Ionicons name={item.icon as any} size={16} color={C.brand[500]} />
                                     </View>
-                                    <Text className="text-paper font-sans flex-1" style={{ fontSize: 13 }}>{item.text}</Text>
+                                    <Text className="text-paper font-sans text-sm flex-1">{item.text}</Text>
                                 </View>
                             ))}
                         </View>
 
-                        <TouchableOpacity
+                        <Button
+                            title={user?.is_subscribed ? "Extend subscription" : "Unlock premium"}
+                            icon="chevron-forward"
+                            variant="primary"
+                            block
+                            loading={loading}
                             onPress={handleSubscribe}
-                            disabled={loading}
-                            activeOpacity={0.85}
-                            className="bg-brand-500 py-4 rounded-xl items-center border-2 border-brand-500"
-                            style={{ minHeight: 52, justifyContent: 'center' }}
-                            accessibilityRole="button"
-                            accessibilityLabel={user?.is_subscribed ? "Extend subscription" : "Unlock premium"}
-                        >
-                            {loading ? (
-                                <ActivityIndicator size="small" color={C.onBrand} />
-                            ) : (
-                                <View className="flex-row items-center">
-                                    {/* Ink on brand-500 measures 6.77:1; white on it is 2.80
-                                        and would fail, which is why this is not white. */}
-                                    <Text className="text-on-brand font-display uppercase mr-2" style={{ fontSize: 13 }}>
-                                        {user?.is_subscribed ? "Extend subscription" : "Unlock premium"}
-                                    </Text>
-                                    <Ionicons name="chevron-forward" size={15} color={C.onBrand} />
-                                </View>
-                            )}
-                        </TouchableOpacity>
+                        />
                     </View>
-                    </StampCard>
 
-                    <View className="mt-6 flex-row items-center justify-center">
-                        <Ionicons name="shield-checkmark" size={15} color={C.ink3} />
-                        <Text className="font-sans text-ink-2 ml-2 text-center" style={{ fontSize: 12 }}>
-                            Secure payment via Razorpay
-                        </Text>
+                    <View className="mt-4 flex-row items-center justify-center">
+                        <Ionicons name="shield-checkmark-outline" size={16} color={C.ink3} />
+                        <Text className="font-sans text-xs text-ink-2 ml-2 text-center">Secure payment via Razorpay</Text>
                     </View>
 
                     {/* Account actions, kept well clear of the pay button so a
                         mis-tap cannot log someone out mid-purchase. */}
-                    <View className="mt-12">
-                        <Text className="font-display text-ink uppercase mb-1" style={{ fontSize: 12 }}>Account</Text>
-                        <View className="h-[2px] bg-ink mb-3" style={{ width: 36 }} />
-
-                        <TouchableOpacity
+                    <SectionHeader title="Account" style={{ marginTop: 40, marginBottom: 12 }} />
+                    <Card style={{ paddingHorizontal: 16 }}>
+                        <ListRow
                             onPress={confirmLogout}
-                            className="flex-row items-center bg-card border-2 border-ink rounded-card px-4 py-3"
-                            style={{ minHeight: 56 }}
-                            accessibilityRole="button"
+                            leading={<IconTile icon="log-out-outline" color={C.danger} />}
+                            title="Log out"
+                            subtitle={user?.email ?? "Sign out of this account"}
                             accessibilityLabel="Log out"
-                        >
-                            <View
-                                className="items-center justify-center rounded-xl border-2 border-ink"
-                                style={{ width: 40, height: 40, backgroundColor: C.danger + '1A' }}
-                            >
-                                <Ionicons name="log-out-outline" size={20} color={C.danger} />
-                            </View>
-                            <View className="ml-3 flex-1">
-                                <Text className="font-display text-danger" style={{ fontSize: 15 }}>Log out</Text>
-                                <Text className="font-sans text-ink-2 mt-[2px]" style={{ fontSize: 11 }}>
-                                    {user?.email ?? "Sign out of this account"}
-                                </Text>
-                            </View>
-                            <Ionicons name="chevron-forward" size={18} color={C.ink3} />
-                        </TouchableOpacity>
-                    </View>
+                        />
+                    </Card>
                 </ScrollView>
             </View>
 

@@ -66,9 +66,9 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/70 justify-center items-center">
+      <View className="flex-1 bg-black/70 justify-center items-center" accessibilityLiveRegion="polite" accessibilityLabel={`${streakCount} day streak. Daily goal achieved.`}>
         <Animated.View 
-          className="w-[80%] rounded-sheet overflow-hidden border border-brand-500/30"
+          className="w-[80%] rounded-3xl overflow-hidden border border-brand-500/30"
           style={{ 
             transform: [{ scale: scaleAnim }],
             opacity: opacityAnim
@@ -99,13 +99,13 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
               >
                 {streakCount}
               </Text>
-              <Text className="text-2xl font-display text-white -mt-1 uppercase">
-                Day Streak!
+              <Text className="text-2xl font-display text-white -mt-1">
+                day streak
               </Text>
               
               <View className="mt-6 items-center">
                 <Text className="text-warning text-base font-semibold">
-                  Daily Goal Achieved
+                  Daily goal achieved
                 </Text>
                 <View className="h-[1px] w-10 bg-card/20 my-2" />
                 <Text className="text-white/60 text-xs font-medium">

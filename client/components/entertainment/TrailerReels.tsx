@@ -4,7 +4,7 @@ import {
   Text,
   Dimensions,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   ScrollView,
   ViewToken,
@@ -191,91 +191,90 @@ const ReelItem = React.memo(function ReelItem({
 
       {/* Content Container */}
       {/* Vertical scroll inside the vertical pager: Android needs nestedScrollEnabled to scroll it at all. */}
-      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" className="flex-1 px-6 pt-8">
-        <View className="flex-row justify-between items-start mb-6">
+      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" className="flex-1" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24 }}>
+        <View className="flex-row justify-between items-start mb-4">
           <View className="flex-1 mr-4">
-            <Text className="text-white text-3xl font-display uppercase mb-2">
+            <Text className="text-white text-2xl font-display mb-2" accessibilityRole="header">
               {movie.title}
             </Text>
             <View className="flex-row items-center gap-3">
-               <View className="bg-danger/20 border border-danger/30 px-2.5 py-1 rounded-full">
-                  <Text className="text-danger text-label font-display uppercase">TRAILER</Text>
+               <View className="bg-danger/20 px-2.5 py-0.5 rounded-full">
+                  <Text className="text-red-300 text-xs font-semibold">Trailer</Text>
                </View>
                <View className="flex-row items-center">
                   <Ionicons name="star" size={14} color={C.warning} />
                   <Text className="text-white text-sm ml-1 font-semibold">{Number(movie.vote_average ?? 0).toFixed(1)}</Text>
                </View>
-               <Text className="text-ink-3 text-xs font-semibold uppercase">
+               <Text className="text-white/60 text-sm">
                   {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
                </Text>
             </View>
           </View>
-          
-          <View className="flex-row gap-3">
-            <TouchableOpacity 
+
+          <View className="flex-row gap-2">
+            <Pressable
               onPress={handleShare}
-              className="w-12 h-12 bg-white/5 rounded-card items-center justify-center border border-white/10"
+              className="w-11 h-11 bg-white/10 rounded-full items-center justify-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Share trailer"
             >
               <Ionicons name="share-social-outline" size={20} color="white" />
-            </TouchableOpacity>
+            </Pressable>
 
-            <TouchableOpacity 
+            <Pressable
               onPress={onToggleMute}
-              className="w-12 h-12 bg-white/5 rounded-card items-center justify-center border border-white/10"
+              className="w-11 h-11 bg-white/10 rounded-full items-center justify-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
+              accessibilityState={{ selected: isMuted }}
             >
               <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={22} color="white" />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
 
         {/* Extended Metadata */}
-        <View className="flex-row flex-wrap gap-2 mb-8">
+        <View className="flex-row flex-wrap gap-2 mb-6">
            {['Action', 'Blockbuster', 'Trending', 'Hot'].map((tag) => (
-             <View key={tag} className="bg-night/50 border border-white/5 px-2.5 py-1 rounded-full">
-                <Text className="text-ink-3 text-label font-display uppercase">{tag}</Text>
+             <View key={tag} className="bg-white/10 px-2.5 py-1 rounded-full">
+                <Text className="text-white/70 text-xs font-medium">{tag}</Text>
              </View>
            ))}
         </View>
 
-        <View className="mb-4">
-          <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
-            <Text className="text-danger font-display text-xs uppercase">Synopsis</Text>
-            <View className="flex-1 bg-night" style={{ height: 2, opacity: 0.82 }} />
-          </View>
-          <Text className="text-night-ink/80 text-base leading-7 font-medium">
+        <View className="mb-6">
+          <Text className="text-white font-semibold text-base mb-2" accessibilityRole="header">Synopsis</Text>
+          <Text className="text-white/80 text-base leading-7">
             {movie.overview || "No description available for this cinematic masterpiece."}
           </Text>
         </View>
 
         {/* Production Details Card */}
-        <View className="bg-night/50 p-card-pad rounded-sheet border border-white/5 mb-4">
-            <View className="flex-row items-center mt-6 mb-6" style={{ gap: 12 }}>
-              <Text className="text-white font-display text-sm uppercase">Production Details</Text>
-              <View className="flex-1 bg-night" style={{ height: 2, opacity: 0.82 }} />
+        <View className="bg-white/5 p-4 rounded-2xl border border-white/10 mb-3">
+            <Text className="text-white font-semibold text-base mb-3" accessibilityRole="header">Production details</Text>
+            <View className="flex-row justify-between mb-3">
+               <Text className="text-white/60 text-sm">Original language</Text>
+               <Text className="text-white font-semibold text-sm">{(movie.original_language || 'en').toUpperCase()}</Text>
             </View>
-            <View className="flex-row justify-between mb-4">
-               <Text className="text-ink-3 font-semibold uppercase text-label">Original Language</Text>
-               <Text className="text-white font-display uppercase text-label">{movie.original_language || 'EN'}</Text>
-            </View>
-            <View className="flex-row justify-between mb-4">
-               <Text className="text-ink-3 font-semibold uppercase text-label">Vote Count</Text>
-               <Text className="text-white font-display uppercase text-label">{movie.vote_count || '0'}+</Text>
+            <View className="flex-row justify-between mb-3">
+               <Text className="text-white/60 text-sm">Vote count</Text>
+               <Text className="text-white font-semibold text-sm">{movie.vote_count || '0'}+</Text>
             </View>
             <View className="flex-row justify-between">
-               <Text className="text-ink-3 font-semibold uppercase text-label">Popularity Score</Text>
-               <Text className="text-success font-display uppercase text-label">{Math.round(movie.popularity || 0)}</Text>
+               <Text className="text-white/60 text-sm">Popularity score</Text>
+               <Text className="text-green-400 font-semibold text-sm">{Math.round(movie.popularity || 0)}</Text>
             </View>
         </View>
 
         <View className="mb-20">
-           <View className="bg-danger/10 p-card-pad rounded-sheet border border-danger/20">
-              <View className="flex-row items-center mb-4">
-                 <View className="bg-danger p-2 rounded-xl mr-3">
+           <View className="bg-danger/10 p-4 rounded-2xl border border-danger/20">
+              <View className="flex-row items-center mb-3">
+                 <View className="bg-danger w-9 h-9 rounded-full items-center justify-center mr-3">
                     <Ionicons name="sparkles" size={18} color="white" />
                  </View>
-                 <Text className="text-white font-display uppercase text-xs">Fync Smart Recommendation</Text>
+                 <Text className="text-white font-semibold text-sm">Fync smart recommendation</Text>
               </View>
-              <Text className="text-ink-3 text-sm leading-6 font-medium">
+              <Text className="text-white/70 text-sm leading-6">
                 Our AI suggests this title based on your recent activity in Fync Media. Swipe down to discover more legends.
               </Text>
            </View>
@@ -389,15 +388,15 @@ const TrailerReels = () => {
       )}
 
       {/* Close Button */}
-      <TouchableOpacity 
+      <Pressable
         onPress={() => navigation.goBack()}
         style={{ position: 'absolute', top: insets.top + 10, left: 9 }}
-        className="w-11 h-11 items-center justify-center rounded-xl z-[100]"
-      
-            accessibilityRole="button"
-            accessibilityLabel="Go back">
+        className="w-11 h-11 items-center justify-center rounded-full bg-black/40 z-[100] active:opacity-70"
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+      >
         <Ionicons name="close" size={24} color="white" />
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

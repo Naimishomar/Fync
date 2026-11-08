@@ -1,8 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator,
-  RefreshControl, ScrollView, Linking, Modal, Pressable, KeyboardAvoidingView,
-} from 'react-native';
+import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl, Linking, Pressable } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
@@ -11,7 +8,7 @@ import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Button, Card, Chip, ChipRow, Empty, Label, Tag, Sheet, SearchField, FormField } from '../ui/kit';
 
 interface Note {
   _id: string;
@@ -36,7 +33,7 @@ const KINDS = [
 ];
 
 const KIND_LABEL: Record<string, string> = {
-  notes: 'NOTES', pyq: 'PAST PAPER', lab: 'LAB', syllabus: 'SYLLABUS',
+  notes: 'Notes', pyq: 'Past paper', lab: 'Lab', syllabus: 'Syllabus',
 };
 
 export default function NotesExchange() {
@@ -98,116 +95,42 @@ export default function NotesExchange() {
     }
   };
 
-  const renderNote = ({ item }: { item: Note }) => (
-    <View className="bg-card border-2 border-ink rounded-card p-4 mb-3">
-      <View className="flex-row items-center mb-2">
-        <View className="bg-brand-500 px-2 py-1 rounded-sm">
-          <Text className="font-display text-label text-on-brand uppercase" style={{ fontSize: 9 }}>
-            {KIND_LABEL[item.kind] ?? 'NOTES'}
-          </Text>
-        </View>
-        {!!item.semester && (
-          <Text className="font-sans text-ink-3 ml-2" style={{ fontSize: 11 }}>
-            Sem {item.semester}
-          </Text>
-        )}
-        <View className="flex-1" />
-        <Ionicons name="download-outline" size={13} color={C.ink3} />
-        <Text className="font-sans text-ink-3 ml-1" style={{ fontSize: 11 }}>{item.downloads}</Text>
-      </View>
-
-      <Text className="font-display text-base text-ink" numberOfLines={2}>{item.title}</Text>
-      <Text className="font-sans text-ink-3 mt-1" style={{ fontSize: 12 }}>{item.subject}</Text>
-
-      {!!item.description && (
-        <Text className="font-sans text-ink-3 mt-2" style={{ fontSize: 12 }} numberOfLines={2}>
-          {item.description}
-        </Text>
-      )}
-
-      <View className="flex-row items-center mt-3">
-        <Text className="font-sans text-ink-3 flex-1" style={{ fontSize: 11 }} numberOfLines={1}>
-          {item.uploader?.name ?? 'Someone'}
-        </Text>
-
-        <TouchableOpacity
-          onPress={() => unlock(item)}
-          disabled={unlocking === item._id}
-          className="flex-row items-center px-4 py-2 rounded-xl border-2 border-ink bg-brand-500"
-          style={{ minHeight: 44 }}
-          accessibilityRole="button"
-          accessibilityLabel={`Open ${item.title}`}
-        >
-          {unlocking === item._id ? (
-            <ActivityIndicator size="small" color={C.onBrand} />
-          ) : (
-            <>
-              <Ionicons name="document-text-outline" size={15} color={C.onBrand} />
-              <Text className="font-display text-on-brand ml-1" style={{ fontSize: 12 }}>
-                {item.owned ? 'OPEN' : 'DOWNLOAD'}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  const renderNote = useCallback(({ item }: { item: Note }) => (
+    <NoteCard item={item} busy={unlocking === item._id} onOpen={unlock} />
+  ), [unlocking]);
 
   return (
     <View className="flex-1 bg-paper">
       <AppBar title="Notes Exchange" onBack={() => navigation.goBack()} />
-      <View className="px-5">
-        <View className="flex-row items-center mb-4">
-          <Text className="font-display text-ink-3 uppercase" style={{ fontSize: 11, letterSpacing: 1.4 }}>
-            Free for everyone
-          </Text>
+      <View className="px-gutter">
+        <View className="flex-row items-center mb-3">
+          <Label>Free for everyone</Label>
           <View className="flex-1" />
           {/* Coins earned from sharing. Kept visible because uploading still
               pays — but nothing here costs anything to read. */}
-          <View className="flex-row items-center bg-card border-2 border-ink rounded-xl px-3 py-1">
-            <Ionicons name="server-outline" size={14} color={C.brand[600]} />
-            <Text className="font-display text-ink ml-1" style={{ fontSize: 13 }}>{coins}</Text>
-          </View>
+          <Tag icon="server-outline" label={`${coins} coins`} />
         </View>
 
-        <View className="flex-row items-center bg-card border-2 border-ink rounded-xl px-3 mb-3" style={{ height: 48 }}>
-          <Ionicons name="search" size={18} color={C.ink3} />
-          <TextInput
-            className="flex-1 ml-2 text-ink"
-            placeholder="Subject, topic, paper..."
-            placeholderTextColor={C.ink3}
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={() => { setLoading(true); fetchNotes(); }}
-            returnKeyType="search"
-          />
-        </View>
+        <SearchField
+          placeholder="Subject, topic, paper..."
+          value={query}
+          onChangeText={setQuery}
+          onSubmitEditing={() => { setLoading(true); fetchNotes(); }}
+          containerStyle={{ marginBottom: 12 }}
+        />
       </View>
 
-      <View>
-        <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
-          {KINDS.map((k) => (
-            <TouchableOpacity
-              key={k.id || 'all'}
-              onPress={() => setKind(k.id)}
-              className={`px-4 py-2 rounded-xl border-2 border-ink mr-2 ${kind === k.id ? 'bg-brand-500' : 'bg-card'}`}
-              style={{ minHeight: 40, justifyContent: 'center' }}
-            >
-              <Text className={`font-display ${kind === k.id ? 'text-on-brand' : 'text-ink'}`} style={{ fontSize: 12 }}>{k.label}</Text>
-            </TouchableOpacity>
-          ))}
-          <TouchableOpacity
-            onPress={() => setSort(sort === 'recent' ? 'popular' : 'recent')}
-            className="px-4 py-2 rounded-xl border-2 border-ink mr-2 bg-card flex-row items-center"
-            style={{ minHeight: 40 }}
-          >
-            <Ionicons name="swap-vertical-outline" size={14} color={C.ink} />
-            <Text className="font-display text-ink ml-1" style={{ fontSize: 12 }}>
-              {sort === 'recent' ? 'Newest' : 'Popular'}
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+      <ChipRow>
+        {KINDS.map((k) => (
+          <Chip key={k.id || 'all'} label={k.label} active={kind === k.id} onPress={() => setKind(k.id)} />
+        ))}
+        <Chip
+          icon="swap-vertical-outline"
+          label={sort === 'recent' ? 'Newest' : 'Popular'}
+          accessibilityLabel={`Sort: ${sort === 'recent' ? 'newest' : 'popular'}`}
+          onPress={() => setSort(sort === 'recent' ? 'popular' : 'recent')}
+        />
+      </ChipRow>
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
@@ -218,32 +141,30 @@ export default function NotesExchange() {
           data={notes}
           renderItem={renderNote}
           keyExtractor={(n) => n._id}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 120 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 }}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchNotes(); }} tintColor={C.brand[500]} />
           }
           ListEmptyComponent={
-            <View className="items-center mt-20 px-8">
-              <Ionicons name="documents-outline" size={56} color={C.ink4} />
-              <Text className="font-display text-base text-ink mt-4 text-center">Nothing here yet</Text>
-              <Text className="font-sans text-ink-3 mt-2 text-center" style={{ fontSize: 13 }}>
-                Be the first to share notes for your college. Free for everyone to read.
-              </Text>
+            <View className="mt-16">
+              <Empty
+                icon="documents-outline"
+                title="Nothing here yet"
+                hint="Be the first to share notes for your college. Free for everyone to read."
+              />
             </View>
           }
         />
       )}
 
-      <TouchableOpacity
-        onPress={() => setUploadOpen(true)}
-        className="absolute right-6 bg-brand-500 border-2 border-ink rounded-full flex-row items-center px-5"
-        style={{ height: 56, bottom: bottomInset + 32 }}
-        accessibilityRole="button"
+      <Button
+        variant="primary"
+        icon="cloud-upload-outline"
+        title="Share"
         accessibilityLabel="Share notes"
-      >
-        <Ionicons name="cloud-upload-outline" size={20} color={C.onBrand} />
-        <Text className="font-display text-on-brand ml-2">SHARE</Text>
-      </TouchableOpacity>
+        onPress={() => setUploadOpen(true)}
+        style={{ position: 'absolute', right: 20, bottom: bottomInset + 32 }}
+      />
 
       <UploadSheet
         visible={uploadOpen}
@@ -259,6 +180,42 @@ export default function NotesExchange() {
   );
 }
 
+const NoteCard = memo(function NoteCard({ item, busy, onOpen }: { item: Note; busy: boolean; onOpen: (n: Note) => void }) {
+  return (
+    <Card padded style={{ marginBottom: 12 }}>
+      <View className="flex-row items-center mb-2" style={{ gap: 8 }}>
+        <Tag label={KIND_LABEL[item.kind] ?? 'Notes'} tone={{ bg: C.brand[50], border: C.brand[100], fg: C.accentText }} />
+        {!!item.semester && <Text className="font-sans text-xs text-ink-3">Sem {item.semester}</Text>}
+        <View className="flex-1" />
+        <Ionicons name="download-outline" size={13} color={C.ink3} />
+        <Text className="font-sans text-xs text-ink-3" accessibilityLabel={`${item.downloads} downloads`}>{item.downloads}</Text>
+      </View>
+
+      <Text className="font-semibold text-base text-ink" numberOfLines={2}>{item.title}</Text>
+      <Text className="font-sans text-xs text-ink-3 mt-1">{item.subject}</Text>
+
+      {!!item.description && (
+        <Text className="font-sans text-xs text-ink-2 mt-2" numberOfLines={2}>{item.description}</Text>
+      )}
+
+      <View className="flex-row items-center mt-3" style={{ gap: 12 }}>
+        <Text className="font-sans text-xs text-ink-3 flex-1" numberOfLines={1}>
+          {item.uploader?.name ?? 'Someone'}
+        </Text>
+        <Button
+          small
+          variant="primary"
+          icon="document-text-outline"
+          title={item.owned ? 'Open' : 'Download'}
+          loading={busy}
+          accessibilityLabel={`Open ${item.title}`}
+          onPress={() => onOpen(item)}
+        />
+      </View>
+    </Card>
+  );
+});
+
 /** Upload lives in a sheet rather than its own screen: it is four fields and a
  *  file, and pushing a route for that loses the list underneath. */
 function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: () => void; onDone: (earned: number) => void }) {
@@ -268,7 +225,6 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
   const [semester, setSemester] = useState('');
   const [kind, setKind] = useState<'notes' | 'pyq' | 'lab' | 'syllabus'>('notes');
   const [busy, setBusy] = useState(false);
-  const bottomInset = useBottomInset();
 
   const pick = async () => {
     const res = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
@@ -318,79 +274,49 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
-      {/* The fields sit at the bottom of the screen, right where the keyboard opens. */}
-      <KeyboardAvoidingView behavior="padding" className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
-        <Pressable className="flex-1" onPress={onClose} />
-        <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: bottomInset + 16 }}>
-          <View className="items-center mb-4">
-            <View className="h-1 w-10 bg-ink-3 rounded-full" />
-          </View>
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title="Share notes"
+      footer={<Button variant="primary" block title="Share and earn" loading={busy} onPress={submit} />}
+    >
+      <Pressable
+        onPress={pick}
+        className="bg-paper-2 border border-line rounded-2xl px-4 flex-row items-center mb-3 active:opacity-70"
+        style={{ minHeight: 56 }}
+        accessibilityRole="button"
+        accessibilityLabel={file ? `Selected ${file.name}. Choose another PDF` : 'Choose a PDF'}
+      >
+        <Ionicons name={file ? 'document-text' : 'add-circle-outline'} size={22} color={C.accentText} />
+        <Text className="font-sans text-ink ml-3 flex-1" numberOfLines={1}>
+          {file ? file.name : 'Choose a PDF'}
+        </Text>
+      </Pressable>
 
-          <Text className="font-display text-xl text-ink mb-4">Share notes</Text>
+      <FormField
+        label="Title"
+        placeholder="e.g. Unit 3 - Trees"
+        value={title}
+        onChangeText={setTitle}
+        containerStyle={{ marginBottom: 12 }}
+      />
+      <View className="flex-row mb-3" style={{ gap: 8 }}>
+        <FormField label="Subject" value={subject} onChangeText={setSubject} containerStyle={{ flex: 1 }} />
+        <FormField
+          label="Sem"
+          keyboardType="number-pad"
+          value={semester}
+          onChangeText={setSemester}
+          containerStyle={{ width: 96 }}
+        />
+      </View>
 
-          <TouchableOpacity
-            onPress={pick}
-            className="bg-card border-2 border-ink rounded-card px-4 flex-row items-center mb-3"
-            style={{ height: 56 }}
-          >
-            <Ionicons name={file ? 'document-text' : 'add-circle-outline'} size={22} color={C.brand[600]} />
-            <Text className="font-sans text-ink ml-3 flex-1" numberOfLines={1}>
-              {file ? file.name : 'Choose a PDF'}
-            </Text>
-          </TouchableOpacity>
-
-          <TextInput
-            className="bg-card border-2 border-ink rounded-xl px-4 text-ink mb-3"
-            style={{ height: 50 }}
-            placeholder="Title, e.g. Unit 3 - Trees"
-            placeholderTextColor={C.ink3}
-            value={title}
-            onChangeText={setTitle}
-          />
-          <View className="flex-row mb-3">
-            <TextInput
-              className="bg-card border-2 border-ink rounded-xl px-4 text-ink flex-1 mr-2"
-              style={{ height: 50 }}
-              placeholder="Subject"
-              placeholderTextColor={C.ink3}
-              value={subject}
-              onChangeText={setSubject}
-            />
-            <TextInput
-              className="bg-card border-2 border-ink rounded-xl px-4 text-ink"
-              style={{ height: 50, width: 96 }}
-              placeholder="Sem"
-              placeholderTextColor={C.ink3}
-              keyboardType="number-pad"
-              value={semester}
-              onChangeText={setSemester}
-            />
-          </View>
-
-          <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mb-4">
-            {(['notes', 'pyq', 'lab', 'syllabus'] as const).map((k) => (
-              <TouchableOpacity
-                key={k}
-                onPress={() => setKind(k)}
-                className={`px-4 py-2 rounded-xl border-2 border-ink mr-2 ${kind === k ? 'bg-brand-500' : 'bg-card'}`}
-                style={{ minHeight: 40, justifyContent: 'center' }}
-              >
-                <Text className={`font-display ${kind === k ? 'text-on-brand' : 'text-ink'}`} style={{ fontSize: 12 }}>{KIND_LABEL[k]}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <TouchableOpacity
-            onPress={submit}
-            disabled={busy}
-            className="bg-brand-500 border-2 border-ink rounded-xl items-center justify-center"
-            style={{ height: 54, opacity: busy ? 0.6 : 1 }}
-          >
-            {busy ? <ActivityIndicator color={C.onBrand} /> : <Text className="font-display text-on-brand">SHARE AND EARN</Text>}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      <Label style={{ marginBottom: 8 }}>Type</Label>
+      <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+        {(['notes', 'pyq', 'lab', 'syllabus'] as const).map((k) => (
+          <Chip key={k} label={KIND_LABEL[k]} active={kind === k} onPress={() => setKind(k)} />
+        ))}
+      </View>
+    </Sheet>
   );
 }

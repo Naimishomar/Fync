@@ -133,7 +133,7 @@ module.exports = {
         md: '12px',
         lg: '18px',
         xl: '18px',
-        '2xl': '20px',
+        '2xl': '16px',
         '3xl': '26px',
         card: '20px',
         sheet: '26px',

@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BOLLYWOOD_MOVIES, INDIAN_PERSONALITIES } from './charadesData';
 import { C } from '../../constants/colors';
+import { Button, SegmentedTabs } from '../ui/kit';
+
+const CAT_KEYS = ['BOLLYWOOD', 'PERSONALITIES'] as const;
+const CAT_LABELS = { BOLLYWOOD: 'Bollywood', PERSONALITIES: 'Personalities' };
 
 
 const CATEGORIES = {
@@ -39,50 +43,44 @@ const DesiCharades = () => {
   const toggleTimer = () => setIsTimerRunning(!isTimerRunning);
 
   return (
-    <View className="p-6 bg-card rounded-sheet border border-line shadow-hair items-center" style={{ alignSelf: 'stretch' }}>
+    <View className="p-5 bg-card rounded-2xl border border-line items-center" style={{ alignSelf: 'stretch' }}>
       <View className="items-center mb-6">
-        <Text className="text-2xl font-display text-ink uppercase">DESI <Text className="text-fam-fun">CHARADES</Text></Text>
-        <Text className="text-label text-ink-3 font-display uppercase mt-1">Cultural Expression Engine v2.0</Text>
+        <Text className="text-2xl font-display text-ink" accessibilityRole="header">Desi charades</Text>
+        <Text className="text-sm text-ink-3 mt-1">Act it out, no talking</Text>
       </View>
 
       {/* Category Picker */}
-      <View className="flex-row mb-6 w-full justify-center">
-        {Object.keys(CATEGORIES).map((cat) => (
-          <TouchableOpacity 
-            key={cat}
-            onPress={() => {
-                setActiveCategory(cat as any);
-                setCurrentPrompt(null);
-                setTimer(null);
-                setIsTimerRunning(false);
-            }}
-            className={`px-6 py-2 rounded-full mx-1 border ${activeCategory === cat ? 'bg-ink border-ink' : 'bg-card border-paper-2'}`}
-          >
-            <Text className={`text-label font-display uppercase ${activeCategory === cat ? 'text-paper' : 'text-ink-3'}`}>
-              {cat}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <SegmentedTabs
+        items={CAT_KEYS}
+        labels={CAT_LABELS}
+        value={activeCategory}
+        onChange={(cat) => {
+          setActiveCategory(cat);
+          setCurrentPrompt(null);
+          setTimer(null);
+          setIsTimerRunning(false);
+        }}
+        style={{ alignSelf: 'stretch', marginBottom: 24 }}
+      />
 
       {/* Card Display */}
       <View className="w-full h-[180px] mb-8">
         <View
-            className="flex-1 rounded-sheet border border-fam-fun/10 items-center justify-center p-6"
+            className="flex-1 rounded-2xl items-center justify-center p-6"
          style={{ backgroundColor: C.paper2 }}>
             {currentPrompt ? (
                 <>
-                    <Text className="text-label font-display text-fam-fun uppercase mb-2">{activeCategory}</Text>
+                    <Text className="text-sm font-semibold text-ink-3 mb-2">{CAT_LABELS[activeCategory]}</Text>
                     <Text className="text-2xl font-display text-ink text-center" numberOfLines={3}>
                         {currentPrompt}
                     </Text>
-                    <Text className="text-label font-semibold text-ink-3 mt-2 uppercase">Items in collection: {CATEGORIES[activeCategory].length}</Text>
+                    <Text className="text-xs text-ink-3 mt-2">{CATEGORIES[activeCategory].length} in this deck</Text>
                 </>
             ) : (
                 <View className="items-center">
                     <Ionicons name="sparkles" size={32} color={C.ink3} />
                     <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
-                        {activeCategory === 'BOLLYWOOD' ? '1000+ MOVIES LOADED' : '200+ PERSONALITIES LOADED'}
+                        {activeCategory === 'BOLLYWOOD' ? '1000+ movies ready' : '200+ personalities ready'}
                     </Text>
                 </View>
             )}
@@ -91,25 +89,19 @@ const DesiCharades = () => {
 
       {/* Timer Display */}
       {timer !== null && (
-          <View className="flex-row items-center mb-8 bg-paper px-6 py-3 rounded-card border border-line">
+          <View className="flex-row items-center mb-8 bg-paper-2 px-5 py-2 rounded-full">
               <Ionicons name="timer-outline" size={20} color={timer < 10 ? C.fam.fun : C.ink3} />
               <Text className={`text-xl font-display ml-2 ${timer < 10 ? 'text-fam-fun' : 'text-ink'}`}>
                 00:{timer < 10 ? `0${timer}` : timer}
               </Text>
-              <TouchableOpacity onPress={toggleTimer} className="ml-4">
+              <Pressable onPress={toggleTimer} className="ml-3 w-11 h-11 items-center justify-center active:opacity-70"
+                accessibilityRole="button" accessibilityLabel={isTimerRunning ? 'Pause timer' : 'Resume timer'}>
                   <Ionicons name={isTimerRunning ? "pause-circle" : "play-circle"} size={28} color={C.ink} />
-              </TouchableOpacity>
+              </Pressable>
           </View>
       )}
 
-      <TouchableOpacity 
-        onPress={generatePrompt}
-        className="w-full h-[60px] rounded-card overflow-hidden shadow-hair"
-      >
-        <View className="flex-1 justify-center items-center" style={{ backgroundColor: '#db2777' }}>
-            <Text className="text-white text-xs font-display uppercase">GENERATE PROMPT</Text>
-        </View>
-      </TouchableOpacity>
+      <Button variant="primary" block icon="shuffle" title={currentPrompt ? 'Next prompt' : 'Get a prompt'} onPress={generatePrompt} />
     </View>
   );
 };

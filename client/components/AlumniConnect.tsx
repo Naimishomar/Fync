@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Linking, TouchableOpacity, Dimensions, Modal, ScrollView} from 'react-native'
+import { View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Linking } from 'react-native'
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -12,9 +12,20 @@ import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
 import { Alert } from './ui/AlertModal';
 
-import { RoleSticker, AppBar, IconBtn, Meta } from './ui/kit';
+import { AppBar, IconBtn, Meta, Sheet, SearchField, ListRow, Empty } from './ui/kit';
 import { C } from '../constants/colors';
-const { width, height } = Dimensions.get("window");
+
+const MemberRow = React.memo(function MemberRow({ item, onOpen }: { item: any; onOpen: (u: any) => void }) {
+    const work = item.company ? `${item.role ? `${item.role} at ` : ''}${item.company}` : '';
+    return (
+        <ListRow
+            leading={<Avatar user={item} size={48} />}
+            title={item.name}
+            subtitle={work ? `@${item.username} · ${work}` : `@${item.username}`}
+            onPress={() => onOpen(item)}
+        />
+    );
+});
 
 const AlumniConnect = ({ navigation }: any) => {
     const { user } = useAuth();
@@ -315,25 +326,26 @@ const AlumniConnect = ({ navigation }: any) => {
                 )}
                 <View className={`ml-2 ${isMe ? "items-end" : "items-start"}`}>
                     {!isMe && (
-                        <Text className="text-label text-ink-3 mb-1 ml-1">
+                        <Text className="text-xs font-semibold text-ink-3 mb-1 ml-1">
                             {sender?.name} {sender?.company ? `• ${sender.company}` : ""}
                         </Text>
                     )}
                     <Pressable
                         onLongPress={() => isMe && !item.pending && handleDeleteMessage(item._id)}
                         delayLongPress={500}
-                        className={`max-w-[280px] p-3 rounded-card ${isMe ? "bg-brand-600 rounded-br-none" : "bg-card rounded-bl-none"} border border-line`}
+                        accessibilityHint={isMe ? "Long press to delete" : undefined}
+                        className={`max-w-[280px] px-4 py-3 rounded-2xl ${isMe ? "bg-brand-500 rounded-br-md" : "bg-card rounded-bl-md border border-line"}`}
                     >
                         {item.messageType === 'text' && (
                             <Text className={`${isMe ? "text-on-brand" : "text-ink"} text-sm`}>{item.message}</Text>
                         )}
                         {item.messageType === 'image' && (
-                            <Pressable onPress={() => { }}>
-                                <Image source={{ uri: item.fileUrl }} style={{ width: 192, height: 192, borderRadius: 8, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
-                            </Pressable>
+                            <Image source={{ uri: item.fileUrl }} style={{ width: 192, height: 192, borderRadius: 12, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
                         )}
                         {item.messageType === 'file' && (
-                            <TouchableOpacity
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={`Open ${item.fileName || "document"}`}
                                 onPress={async () => {
                                     if (item.fileUrl) {
                                         try {
@@ -348,23 +360,29 @@ const AlumniConnect = ({ navigation }: any) => {
                                         }
                                     }
                                 }}
-                                className={`flex-row items-center ${isMe ? "bg-on-brand/10" : "bg-ink/10"} p-2 rounded-lg`}
+                                className="flex-row items-center bg-paper-2 p-2 rounded-xl active:opacity-70"
                             >
-                                <Ionicons name="document-text" size={24} color={C.alumniLit} />
+                                <Ionicons name="document-text" size={24} color={C.alumni} />
                                 <View className="ml-2">
-                                    <Text className={`${isMe ? "text-on-brand" : "text-ink"} text-xs font-semibold`} numberOfLines={1}>{item.fileName || "Document"}</Text>
-                                    <Text className={`${isMe ? "text-on-brand/70" : "text-ink-3"} text-label`}>Tap to view (Limit 5MB)</Text>
+                                    <Text className="text-ink text-xs font-semibold" numberOfLines={1}>{item.fileName || "Document"}</Text>
+                                    <Text className="text-ink-3 text-xs">Tap to view</Text>
                                 </View>
-                            </TouchableOpacity>
+                            </Pressable>
                         )}
                     </Pressable>
-                    <Text className="text-label text-ink-2 mt-1">
+                    <Text className="text-xs text-ink-3 mt-1">
                         {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                 </View>
             </View>
         );
     }, [user?._id, user?.id, handleDeleteMessage]);
+
+    const openMember = useCallback((item: any) => {
+        setShowMembers(false);
+        navigation.navigate("PublicProfile", { user: item });
+    }, [navigation]);
+    const renderMember = useCallback(({ item }: { item: any }) => <MemberRow item={item} onOpen={openMember} />, [openMember]);
 
     if (!isAlumni) return null;
 
@@ -376,10 +394,10 @@ const AlumniConnect = ({ navigation }: any) => {
                 <AppBar
                     title="Alumni"
                     onBack={() => navigation.goBack()}
-                    right={<IconBtn name="people" color={C.alumniLit} size={20} onPress={() => setShowMembers(true)} />}
+                    right={<IconBtn name="people-outline" boxed onPress={() => setShowMembers(true)} accessibilityLabel="Batch members" />}
                 />
                 {!!(user?.college || user?.graduationYear) && (
-                    <Meta numberOfLines={1} className="px-5 pb-2 border-b border-line">
+                    <Meta numberOfLines={1} className="px-gutter pb-2 border-b border-line">
                         {[user?.college, user?.graduationYear ? `Class of ${user.graduationYear}` : null].filter(Boolean).join(' · ')}
                     </Meta>
                 )}
@@ -388,7 +406,7 @@ const AlumniConnect = ({ navigation }: any) => {
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
                     {loading ? (
                         <View className="flex-1 justify-center items-center">
-                            <ActivityIndicator size="large" color={C.alumniLit} />
+                            <ActivityIndicator size="large" color={C.brand[500]} />
                         </View>
                     ) : (
                         <FlatList
@@ -408,35 +426,38 @@ const AlumniConnect = ({ navigation }: any) => {
                     )}
 
                     {typingUsers.length > 0 && (
-                        <View className="px-5 py-1">
-                            <Text className="text-ink-3 text-label">
+                        <View className="px-gutter py-1">
+                            <Text className="text-ink-3 text-xs">
                                 {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
                             </Text>
                         </View>
                     )}
 
                     {/* Input Bar */}
-                    <View className="p-3 bg-paper border-t border-line">
-                        <View className="flex-row items-center bg-card rounded-card px-3 py-1 border border-line">
-                            <Pressable onPress={handlePickMedia} className="p-2">
-                                <Ionicons name="image" size={22} color={C.ink3} />
-                            </Pressable>
-                            <Pressable onPress={handlePickDocument} className="p-2">
-                                <Ionicons name="attach" size={24} color={C.ink3} />
-                            </Pressable>
+                    <View className="px-gutter py-3 bg-card border-t border-line">
+                        <View className="flex-row items-center bg-paper-2 rounded-3xl px-1 border border-line" style={{ minHeight: 48 }}>
+                            <IconBtn name="image-outline" color={C.ink3} onPress={handlePickMedia} accessibilityLabel="Send a photo" />
+                            <IconBtn name="attach-outline" color={C.ink3} onPress={handlePickDocument} accessibilityLabel="Send a PDF" />
 
                             <TextInput
                                 value={text}
                                 onChangeText={handleTyping}
-                                placeholder="Message your batch..."
+                                placeholder="Message your batch"
                                 placeholderTextColor={C.ink3}
-                                className="flex-1 text-ink py-3 px-2 text-sm"
+                                accessibilityLabel="Message"
+                                className="flex-1 text-ink py-3 px-1 text-sm"
                                 multiline
                             />
 
                             {text.trim().length > 0 && (
-                                <Pressable onPress={handleSendText} className="bg-brand-600 p-2 rounded-full ml-2">
-                                    <Ionicons name="send" size={18} color="white" />
+                                <Pressable
+                                    onPress={handleSendText}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Send"
+                                    hitSlop={4}
+                                    className="bg-brand-500 w-10 h-10 rounded-full items-center justify-center m-1 active:opacity-70"
+                                >
+                                    <Ionicons name="send" size={16} color={C.onBrand} />
                                 </Pressable>
                             )}
                         </View>
@@ -444,74 +465,32 @@ const AlumniConnect = ({ navigation }: any) => {
                 </KeyboardAvoidingView>
             </SafeAreaView>
 
-            {/* Members Modal */}
-            <Modal
+            <Sheet
                 visible={showMembers}
-                animationType="slide"
-                transparent={true}
-                statusBarTranslucent
-                onRequestClose={() => setShowMembers(false)}
+                onClose={() => setShowMembers(false)}
+                title="Batch members"
+                scroll={false}
+                height="85%"
             >
-                <View className="flex-1 bg-paper">
-                    <SafeAreaView className="flex-1" edges={['bottom']}>
-                        <AppBar
-                            title="Batch Members"
-                            right={<IconBtn name="close" size={28} color={C.ink} onPress={() => setShowMembers(false)} />}
-                        />
-
-                        {/* Search Bar */}
-                        <View className="px-5 py-4">
-                            <View className="flex-row items-center bg-card px-4 py-2 border-2 border-ink rounded-md">
-                                <Ionicons name="search" size={18} color={C.ink3} />
-                                <TextInput
-                                    placeholder="Search by name or company..."
-                                    placeholderTextColor={C.ink3}
-                                    className="flex-1 text-ink ml-2 h-10"
-                                    value={searchQuery}
-                                    onChangeText={handleSearch}
-                                />
-                            </View>
-                        </View>
-
-                        <FlatList keyboardShouldPersistTaps="handled"
-                            data={searchQuery.length > 0 ? searchResults : members}
-                            keyExtractor={(item) => item._id}
-                            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
-                            renderItem={({ item }) => (
-                                <Pressable
-                                    onPress={() => {
-                                        setShowMembers(false);
-                                        navigation.navigate("PublicProfile", { user: item });
-                                    }}
-                                    className="flex-row items-center mb-6"
-                                >
-                                    <Avatar user={item} size={50} />
-                                    <View className="ml-4 flex-1" style={{ minWidth: 0 }}>
-                                        <Text className="text-ink font-semibold text-base" numberOfLines={1}>{item.name}</Text>
-                                        <Text className="text-ink-3 text-xs" numberOfLines={1}>@{item.username}</Text>
-                                        {!!item.company && (
-                                            <View className="flex-row items-center mt-1">
-                                                <Ionicons name="briefcase" size={10} color={C.alumniLit} />
-                                                <Text className="text-accent-text text-label font-semibold ml-1 flex-1" numberOfLines={1}>{item.role ? `${item.role} at ` : ''}{item.company}</Text>
-                                            </View>
-                                        )}
-                                    </View>
-                                    <Ionicons name="chevron-forward" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
-                                </Pressable>
-                            )}
-                            ListEmptyComponent={
-                                <View className="flex-1 items-center justify-center mt-20">
-                                    {isSearching ? (
-                                        <ActivityIndicator size="small" color={C.alumniLit} />
-                                    ) : (
-                                        <Text className="text-ink-3 mt-4">No classmates found</Text>
-                                    )}
-                                </View>
-                            }
-                        />
-                    </SafeAreaView>
+                <View className="px-gutter pt-2 pb-3">
+                    <SearchField
+                        placeholder="Search by name or company"
+                        value={searchQuery}
+                        onChangeText={handleSearch}
+                    />
                 </View>
-            </Modal>
+                <FlatList keyboardShouldPersistTaps="handled"
+                    data={searchQuery.length > 0 ? searchResults : members}
+                    keyExtractor={(item) => item._id}
+                    contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+                    renderItem={renderMember}
+                    ListEmptyComponent={
+                        isSearching
+                            ? <ActivityIndicator size="small" color={C.brand[500]} style={{ marginTop: 40 }} />
+                            : <Empty icon="people-outline" title="No classmates found" />
+                    }
+                />
+            </Sheet>
         </View>
     );
 };

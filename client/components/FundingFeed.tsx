@@ -24,7 +24,7 @@ import { ProjectSkeleton } from "./Skeleton";
 import Avatar from "./Avatar";
 import { Alert } from './ui/AlertModal';
 
-import { RoleSticker, AppBar } from './ui/kit';
+import { AppBar, Button, Empty, IconBtn } from './ui/kit';
 import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 import { C } from '../constants/colors';
 // Threads come back nested already; only the reply field is spelled differently.
@@ -218,13 +218,13 @@ const YouTubeVideoPlayer = ({
           )}
           {playbackRate > 1 && (
             <View className="absolute top-10 self-center bg-black/40 px-3 py-1 rounded-full border border-white/20">
-              <Text className="text-white font-display text-xs">2x Speed</Text>
+              <Text className="text-white font-semibold text-xs">2x speed</Text>
             </View>
           )}
           {seekFeedback && (
             <View className={`absolute top-1/2 -translate-y-12 ${seekFeedback === 'forward' ? 'right-12' : 'left-12'} bg-black/60 w-20 h-20 rounded-full items-center justify-center border border-white/20`}>
               <Ionicons name={seekFeedback === 'forward' ? "play-forward" : "play-back"} size={32} color="white" />
-              <Text className="text-white font-display text-label mt-1 uppercase">10s</Text>
+              <Text className="text-white font-semibold text-xs mt-1">10s</Text>
             </View>
           )}
         </Animated.View>
@@ -233,13 +233,13 @@ const YouTubeVideoPlayer = ({
       {showControls && (
         <View pointerEvents="box-none" className="absolute inset-0 bg-black/40 items-center justify-center">
           <View className="flex-row items-center gap-10">
-            <TouchableOpacity onPress={skipBackward} className="p-3 rounded-full bg-black/20">
+            <TouchableOpacity onPress={skipBackward} className="p-3 rounded-full bg-black/20" accessibilityRole="button" accessibilityLabel="Back 10 seconds">
               <Ionicons name="play-back" size={24} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={togglePlay} className="w-16 h-16 rounded-full bg-black/20 items-center justify-center">
+            <TouchableOpacity onPress={togglePlay} className="w-16 h-16 rounded-full bg-black/20 items-center justify-center" accessibilityRole="button" accessibilityLabel={status?.isPlaying ? "Pause" : "Play"}>
               <Ionicons name={status?.isPlaying ? "pause" : "play"} size={36} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={skipForward} className="p-3 rounded-full bg-black/20">
+            <TouchableOpacity onPress={skipForward} className="p-3 rounded-full bg-black/20" accessibilityRole="button" accessibilityLabel="Forward 10 seconds">
               <Ionicons name="play-forward" size={24} color="white" />
             </TouchableOpacity>
           </View>
@@ -273,7 +273,6 @@ const ProjectCard = memo(({
   openEditModal,
   handleDeleteProject,
   navigation,
-  stamped,
 }: {
   item: Project;
   userId: string | undefined;
@@ -282,8 +281,6 @@ const ProjectCard = memo(({
   openEditModal: (p: Project) => void;
   handleDeleteProject: (id: string) => void;
   navigation: any;
-  /** The lead pitch carries the screen's one stamp. */
-  stamped?: boolean;
 }) => {
   // A deleted author comes back as null; the card must still render.
   const author: User = item.user ?? ({} as User);
@@ -319,33 +316,29 @@ const ProjectCard = memo(({
 
   return (
     <View
-      className={`mx-gutter mb-10 rounded-card bg-card overflow-hidden ${stamped ? 'border-2 border-ink' : 'border border-line'}`}
-      style={stamped ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
+      className="mx-gutter mb-3 rounded-2xl bg-card overflow-hidden border border-line"
     >
       {/* User Info Header */}
-      <View className="flex-row items-center justify-between px-6 py-5">
+      <View className="flex-row items-center justify-between px-4 py-3">
         <TouchableOpacity
           onPress={() => author._id && navigation.navigate("PublicProfile", { user: author })}
           className="flex-row items-center flex-1 mr-3"
           style={{ minWidth: 0 }}
+          accessibilityRole="button"
         >
-          <View className="mr-2">
+          <View className="mr-3">
             <Avatar user={author} size={40} showBadge={false} />
           </View>
           <View className="flex-1">
-            <Text className="font-display text-ink text-sm uppercase" numberOfLines={1}>{author.username || author.name}</Text>
-            <Text className="text-label text-ink-3 font-display uppercase" numberOfLines={1}>{author.college || "PROJECT LEAD"}</Text>
+            <Text className="font-semibold text-ink text-sm" numberOfLines={1}>{author.username || author.name}</Text>
+            <Text className="text-xs text-ink-3" numberOfLines={1}>{author.college || "Project lead"}</Text>
           </View>
         </TouchableOpacity>
 
         {isOwner && (
-          <View className="flex-row gap-3">
-            <TouchableOpacity onPress={() => openEditModal(item)} className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line">
-              <Ionicons name="pencil" size={16} color={C.ink} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeleteProject(item._id)} className="w-10 h-10 bg-danger/10 rounded-card items-center justify-center border border-danger/15">
-              <Ionicons name="trash" size={16} color={C.danger} />
-            </TouchableOpacity>
+          <View className="flex-row gap-2" style={{ marginRight: -4 }}>
+            <IconBtn boxed size={18} name="pencil-outline" onPress={() => openEditModal(item)} accessibilityLabel="Edit project" />
+            <IconBtn boxed size={18} name="trash-outline" color={C.danger} onPress={() => handleDeleteProject(item._id)} accessibilityLabel="Delete project" />
           </View>
         )}
       </View>
@@ -385,8 +378,8 @@ const ProjectCard = memo(({
             }}
           />
           {mediaData.length > 1 && (
-            <View pointerEvents="none" className="absolute top-6 right-6 bg-card/90 px-3 py-1.5 rounded-card border border-line shadow-hair z-10">
-              <Text className="text-ink text-label font-display uppercase">
+            <View pointerEvents="none" className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-full z-10">
+              <Text className="text-white text-xs font-semibold">
                 {currentImageIndex + 1} / {mediaData.length}
               </Text>
             </View>
@@ -395,56 +388,45 @@ const ProjectCard = memo(({
       ) : null}
 
       {/* Project Details */}
-      <View className="px-6 py-6">
-        <Text className="font-display text-ink text-2xl uppercase mb-3 leading-tight">{item.title}</Text>
+      <View className="p-4">
+        <Text className="font-display text-ink text-xl mb-2 leading-tight">{item.title}</Text>
 
-        <Text className="text-ink-2 text-sm leading-6 mb-6 font-medium">
+        <Text className="text-ink-2 text-sm leading-5 mb-4">
           {displayDescription}
           {isLong && (
-            <Text onPress={() => setIsExpanded(!isExpanded)} className="text-accent-text font-display uppercase text-label">
-              {isExpanded ? "  Show Less" : "  Read More"}
+            <Text onPress={() => setIsExpanded(!isExpanded)} className="text-ink font-semibold text-sm" accessibilityRole="button">
+              {isExpanded ? "  Show less" : "  Read more"}
             </Text>
           )}
         </Text>
 
         <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-6">
-            <Pressable onPress={() => toggleLike(item)} className="flex-row items-center">
-              <Ionicons name={isLiked ? "heart" : "heart-outline"} size={30} color={isLiked ? C.brand[500] : C.ink} />
-              <Text className="ml-2 text-ink font-display text-sm uppercase">{item.likes}</Text>
+          <View className="flex-row items-center gap-2" style={{ marginLeft: -8 }}>
+            <Pressable onPress={() => toggleLike(item)} className="flex-row items-center px-2 active:opacity-70" style={{ minHeight: 44 }} accessibilityRole="button" accessibilityState={{ selected: isLiked }} accessibilityLabel={isLiked ? "Unlike project" : "Like project"}>
+              <Ionicons name={isLiked ? "heart" : "heart-outline"} size={24} color={isLiked ? C.brand[500] : C.ink} />
+              <Text className={`ml-1.5 font-semibold text-sm ${isLiked ? 'text-accent-text' : 'text-ink'}`}>{item.likes}</Text>
             </Pressable>
 
-            <Pressable onPress={() => openComments(item._id)} className="flex-row items-center">
-              <Ionicons name="chatbubble-outline" size={26} color={C.ink} />
+            <Pressable onPress={() => openComments(item._id)} className="flex-row items-center px-2 active:opacity-70" style={{ minHeight: 44 }} accessibilityRole="button" accessibilityLabel="Comments">
+              <Ionicons name="chatbubble-outline" size={22} color={C.ink} />
             </Pressable>
 
             {!isOwner && (
-              <TouchableOpacity
+              <Button
+                small
+                icon="chatbubbles-outline"
+                title="Connect"
                 onPress={() => author._id && navigation.navigate("PublicProfile", { user: author })}
-                className="flex-row items-center bg-ink px-5 py-3 rounded-card shadow-hair"
-              >
-                <Ionicons name="chatbubbles-outline" size={16} color={C.paper} />
-                <Text className="text-paper text-label font-display uppercase ml-2">Connect</Text>
-              </TouchableOpacity>
+              />
             )}
           </View>
 
-          <View className="flex-row gap-3">
+          <View className="flex-row gap-2">
             {item.github_url && (
-              <TouchableOpacity
-                onPress={() => Linking.openURL(item.github_url as string).catch(() => Alert.alert("Error", "Could not open link"))}
-                className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line"
-              >
-                <Ionicons name="logo-github" size={20} color={C.ink} />
-              </TouchableOpacity>
+              <IconBtn boxed size={20} name="logo-github" accessibilityLabel="Open GitHub" onPress={() => Linking.openURL(item.github_url as string).catch(() => Alert.alert("Error", "Could not open link"))} />
             )}
             {item.deployed_url && (
-              <TouchableOpacity
-                onPress={() => Linking.openURL(item.deployed_url as string).catch(() => Alert.alert("Error", "Could not open link"))}
-                className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line"
-              >
-                <Ionicons name="globe-outline" size={20} color={C.brand[500]} />
-              </TouchableOpacity>
+              <IconBtn boxed size={20} name="globe-outline" accessibilityLabel="Open live site" onPress={() => Linking.openURL(item.deployed_url as string).catch(() => Alert.alert("Error", "Could not open link"))} />
             )}
           </View>
         </View>
@@ -571,6 +553,18 @@ export default function FundingFeed() {
 
   const openComments = useCallback((id: string) => setActiveProjectId(id), []);
 
+  const renderProject = useCallback(({ item }: { item: Project }) => (
+    <ProjectCard
+      item={item}
+      userId={userId}
+      toggleLike={toggleLike}
+      openComments={openComments}
+      openEditModal={openEditModal}
+      handleDeleteProject={handleDeleteProject}
+      navigation={navigation}
+    />
+  ), [userId, toggleLike, openComments, openEditModal, handleDeleteProject, navigation]);
+
   return (
     <GestureHandlerRootView className="flex-1">
       <View className="flex-1 bg-paper">
@@ -579,7 +573,7 @@ export default function FundingFeed() {
         {/* Background Protocol Gradient */}
 
         <View className="flex-1">
-          <AppBar title="Funding Feed" onBack={() => navigation.goBack()} />
+          <AppBar title="Funding feed" onBack={() => navigation.goBack()} />
 
           {loading ? (
             <View className="mt-4">
@@ -588,38 +582,23 @@ export default function FundingFeed() {
           ) : (
             <FlatList keyboardShouldPersistTaps="handled"
               data={projects}
-              renderItem={({ item, index }) => (
-                <ProjectCard
-                  item={item}
-                  stamped={index === 0}
-                  userId={userId}
-                  toggleLike={toggleLike}
-                  openComments={openComments}
-                  openEditModal={openEditModal}
-                  handleDeleteProject={handleDeleteProject}
-                  navigation={navigation}
-                />
-              )}
+              renderItem={renderProject}
               keyExtractor={(item) => item._id}
               showsVerticalScrollIndicator={false}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
-              ListFooterComponent={() => (
+              ListFooterComponent={
                 loadingMore ? (
                   <View className="py-10 items-center">
                     <ActivityIndicator size="small" color={C.brand[500]} />
                   </View>
                 ) : <View className="h-40" />
-              )}
-              contentContainerStyle={{ paddingTop: 20 }}
+              }
+              contentContainerStyle={{ paddingTop: 8 }}
               ListEmptyComponent={
-                <View className="items-center mt-20 px-gutter">
-                  <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                    <Ionicons name="rocket-outline" size={48} color={C.ink4} />
-                  </View>
-                  <Text className="font-semibold text-base text-ink text-center">Archive Empty</Text>
-                  <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Deploy your innovation to the innovation registry and establish your presence.</Text>
+                <View className="mt-16">
+                  <Empty icon="rocket-outline" title="No projects yet" hint="Share what you're building to find backers and teammates." />
                 </View>
               }
             />

@@ -1,12 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, Pressable, Linking, ActivityIndicator, Dimensions, Animated, Easing } from 'react-native';
+import { View, Text, Pressable, Linking, ActivityIndicator, Animated, Easing } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { C } from '../../constants/colors';
+import { Card, Button, IconBtn, IconTile, Num, H2 } from '../ui/kit';
 
-const { width } = Dimensions.get('window');
 // The stat cards are transparent SVGs: their text must follow the theme or it
 // vanishes on the dark card.
 const hx = (c: string) => c.replace('#', '');
@@ -30,12 +28,32 @@ interface Props {
 }
 
 const StatItem = ({ label, value, icon, color }: any) => (
-  <View className="flex-1 bg-paper p-4 border border-line items-center rounded-md">
-    <View className="bg-card p-2 rounded-xl mb-2 shadow-hair">
-      <Ionicons name={icon} size={16} color={color} />
+  <View className="flex-1 bg-paper-2 p-3 items-center rounded-2xl">
+    <Ionicons name={icon} size={18} color={color} />
+    <Num style={{ fontSize: 17, lineHeight: 22, marginTop: 4 }}>{String(value)}</Num>
+    <Text className="text-ink-3 text-xs font-sans mt-0.5">{label}</Text>
+  </View>
+);
+
+/** Titled panel holding one remote stats image with a spinner until it loads. */
+const Widget = ({ title, uri, height, loading, onLoading, transition, flex }: {
+  title: string; uri: string; height: number; loading: boolean; onLoading: (v: boolean) => void; transition: number; flex?: boolean;
+}) => (
+  <View className="rounded-2xl border border-line overflow-hidden" style={flex ? { flex: 1 } : undefined}>
+    <Text className="text-ink-2 text-sm font-semibold px-4 py-3 border-b border-line">{title}</Text>
+    <View className="p-3 bg-paper-2 justify-center items-center" style={{ minHeight: height }}>
+      {loading ? <View className="absolute z-10"><ActivityIndicator color={C.brand[500]} /></View> : null}
+      <ExpoImage
+        source={{ uri }}
+        style={{ width: '100%', height }}
+        contentFit="contain"
+        transition={transition}
+        onLoadStart={() => onLoading(true)}
+        onLoad={() => onLoading(false)}
+        onError={() => onLoading(false)}
+        accessibilityLabel={`${title} chart`}
+      />
     </View>
-    <Text className="text-ink font-display text-lg">{value}</Text>
-    <Text className="text-ink-3 text-label font-display uppercase mt-0.5">{label}</Text>
   </View>
 );
 
@@ -92,182 +110,106 @@ export default function GitHubStatsCard({
 
   if (!username) {
     return (
-      <View className="mx-4 mb-6 bg-card rounded-sheet p-card-pad items-center shadow-hair border border-line">
-        <View
-          className="w-20 h-20 rounded-card items-center justify-center mb-6 shadow-hair"
-         style={{ backgroundColor: C.ink }}>
-          <Ionicons name="logo-github" size={40} color={C.brand[500]} />
-        </View>
-        <Text className="text-ink font-display text-xl text-center">Open Source Identity</Text>
-        <Text className="font-sans text-sm text-ink-3 text-center mt-3 px-6">
+      <Card style={{ marginHorizontal: 16, marginBottom: 12, padding: 20, alignItems: 'center' }}>
+        <IconTile icon="logo-github" size={64} iconSize={32} />
+        <H2 style={{ textAlign: 'center', marginTop: 12 }}>Connect GitHub</H2>
+        <Text className="font-sans text-sm text-ink-3 text-center mt-2 px-4">
           Connect your GitHub to showcase your contributions, streaks, and top languages to recruiters.
         </Text>
-        <Pressable
-          onPress={onConnect}
-          className="mt-8 bg-ink w-full py-4 flex-row items-center justify-center gap-3 border-2 border-ink rounded-md"
-        >
-          <Ionicons name="logo-github" size={18} color={C.paper} />
-          <Text className="text-paper font-display uppercase text-label">Connect GitHub</Text>
-        </Pressable>
-      </View>
+        <Button variant="solid" block icon="logo-github" title="Connect GitHub" onPress={onConnect} style={{ marginTop: 20 }} />
+      </Card>
     );
   }
 
+  const u = encodeURIComponent(username || '');
 
   return (
-    <View className="mx-4 mb-6 bg-card rounded-sheet overflow-hidden shadow-hair border border-line">
-      {/* Header Profile Section */}
-      <View className="p-6 pb-0">
-        <View className="flex-row items-center justify-between mb-6">
-          <View className="flex-row items-center gap-4" style={{ flex: 1, minWidth: 0 }}>
-            <View className="relative">
-              <ExpoImage 
-                source={{ uri: stats?.avatarUrl || `https://github.com/${username}.png` }}
-                style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: C.paper2, borderWidth: 2, borderColor: C.paper }}
-              />
-              <View className="absolute -bottom-1 -right-1 bg-ink p-1 rounded-lg border-2 border-card">
-                <Ionicons name="logo-github" size={10} color={C.paper} />
-              </View>
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text className="text-ink font-display text-lg" numberOfLines={1}>@{username}</Text>
-              <Text className="text-ink-3 font-semibold text-label uppercase">GitHub Analytics</Text>
-            </View>
-          </View>
-          {isOwner && (
-            <View className="flex-row gap-2">
-              <Pressable onPress={handleSync} disabled={isSyncing} className="w-10 h-10 bg-paper-2 items-center justify-center rounded-xl border border-line" hitSlop={2}>
-                <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                  <Ionicons name="refresh" size={18} color={C.ink} />
-                </Animated.View>
-              </Pressable>
-              <Pressable onPress={onDisconnect} className="w-10 h-10 bg-danger/10 items-center justify-center rounded-xl border border-danger/15" hitSlop={2}>
-                <Ionicons name="trash-outline" size={18} color={C.danger} />
-              </Pressable>
-            </View>
-          )}
+    <Card style={{ marginHorizontal: 16, marginBottom: 12 }}>
+      <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
+        <ExpoImage
+          source={{ uri: stats?.avatarUrl || `https://github.com/${username}.png` }}
+          style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: C.paper2 }}
+          cachePolicy="memory-disk"
+        />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text className="text-ink font-semibold text-base" numberOfLines={1}>@{username}</Text>
+          <Text className="text-ink-3 font-sans text-sm">GitHub</Text>
         </View>
-
-        {/* Dynamic Stats Row */}
-        <View className="flex-row gap-3 mb-4">
-          <StatItem label="Commits" value={stats?.totalCommits || 0} icon="git-commit" color={C.brand[500]} />
-          <StatItem label="Stars" value={stats?.totalStars || 0} icon="star" color={C.warning} />
-          <StatItem label="Streak" value={`${stats?.contributionStreak || 0}d`} icon="flame" color={C.danger} />
-        </View>
-
-        {/* Bio if exists */}
-        {!!stats?.bio && (
-          <View className="bg-paper-2 p-4 rounded-card mb-4 border border-line">
-            <Text className="text-ink-3 text-label leading-4 font-medium italic">"{stats.bio}"</Text>
+        {isOwner ? (
+          <View className="flex-row">
+            <Pressable
+              onPress={handleSync}
+              disabled={isSyncing}
+              accessibilityRole="button"
+              accessibilityLabel="Sync GitHub stats"
+              accessibilityState={{ busy: isSyncing }}
+              className="w-11 h-11 items-center justify-center rounded-full active:opacity-70"
+            >
+              <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                <Ionicons name="refresh" size={20} color={C.ink2} />
+              </Animated.View>
+            </Pressable>
+            <IconBtn name="trash-outline" size={18} color={C.danger} onPress={onDisconnect} accessibilityLabel="Disconnect GitHub" />
           </View>
-        )}
+        ) : null}
+      </View>
 
-        {/* Visual Analytics Section */}
-        <View className="mt-6 px-2">
-          <View className="flex-row items-center justify-between mb-5">
-            <View className="flex-row items-center gap-2">
-              <View className="w-1.5 h-5 bg-brand-500 rounded-full" />
-              <Text className="text-ink font-display uppercase text-label">Dev Analytics</Text>
-            </View>
-            <View className="bg-paper-2 px-2.5 py-1 rounded-full">
-              <Text className="text-ink-3 font-display text-label uppercase">Real-time Data</Text>
-            </View>
-          </View>
-          
-          <View className="gap-5">
-            {/* Hero Card: General Performance */}
-            <View className="bg-card rounded-sheet border border-line shadow-hair overflow-hidden">
-              <View className="flex-row items-center gap-2 px-5 py-4 border-b border-line bg-paper-2/30">
-                <Ionicons name="bar-chart" size={14} color={C.ink} />
-                <Text className="text-ink font-display uppercase text-label">General Performance</Text>
-              </View>
-              <View className="p-4 bg-paper-2/50 justify-center items-center relative" style={{ minHeight: 180 }}>
-                {loadingStates.general && (
-                  <View className="absolute z-10">
-                    <ActivityIndicator color={C.brand[500]} />
-                  </View>
-                )}
-                <ExpoImage 
-                  source={{ uri: `https://github-readme-stats-sigma-five.vercel.app/api?username=${encodeURIComponent(username || '')}&show_icons=true&theme=transparent&hide_border=true&title_color=${hx(C.ink)}&text_color=${hx(C.ink3)}&icon_color=f97316&cache_seconds=1800&t=${bust}` }}
-                  style={{ width: '100%', height: 180 }}
-                  contentFit="contain"
-                  transition={500}
-                  onLoadStart={() => updateLoading('general', true)}
-                  onLoad={() => updateLoading('general', false)}
-                  onError={() => updateLoading('general', false)}
-                />
-              </View>
-            </View>
+      <View className="flex-row mb-4" style={{ gap: 8 }}>
+        <StatItem label="Commits" value={stats?.totalCommits || 0} icon="git-commit-outline" color={C.ink2} />
+        <StatItem label="Stars" value={stats?.totalStars || 0} icon="star-outline" color={C.warning} />
+        <StatItem label="Streak" value={`${stats?.contributionStreak || 0}d`} icon="flame-outline" color={C.danger} />
+      </View>
 
-            {/* Sub-widgets Grid */}
-            <View className="flex-row gap-4">
-              {/* Language Distribution */}
-              <View className="flex-1 bg-paper rounded-sheet border border-line shadow-hair overflow-hidden">
-                <View className="px-4 py-3 border-b border-line bg-paper-2/30 items-center">
-                  <Text className="text-ink font-display uppercase text-label">Languages</Text>
-                </View>
-                <View className="p-3 bg-paper-2/50 justify-center items-center relative" style={{ minHeight: 150 }}>
-                  {loadingStates.langs && (
-                    <View className="absolute z-10">
-                      <ActivityIndicator color={C.brand[500]} />
-                    </View>
-                  )}
-                  <ExpoImage 
-                    source={{ uri: `https://github-readme-stats-sigma-five.vercel.app/api/top-langs/?username=${encodeURIComponent(username || '')}&layout=compact&theme=transparent&hide_border=true&title_color=${hx(C.ink)}&text_color=${hx(C.ink3)}&cache_seconds=1800&t=${bust}` }}
-                    style={{ width: '100%', height: 150 }}
-                    contentFit="contain"
-                    transition={600}
-                    onLoadStart={() => updateLoading('langs', true)}
-                    onLoad={() => updateLoading('langs', false)}
-                  onError={() => updateLoading('langs', false)}
-                  />
-                </View>
-              </View>
+      {!!stats?.bio && (
+        <Text className="text-ink-2 text-sm leading-5 font-sans italic bg-paper-2 p-3 rounded-2xl mb-4">"{stats.bio}"</Text>
+      )}
 
-              {/* Momentum / Streak */}
-              <View className="flex-1 bg-paper rounded-sheet border border-line shadow-hair overflow-hidden">
-                <View className="px-4 py-3 border-b border-line bg-paper-2/30 items-center">
-                  <Text className="text-ink font-display uppercase text-label">Momentum</Text>
-                </View>
-                <View className="p-3 bg-paper-2/50 justify-center items-center relative" style={{ minHeight: 150 }}>
-                  {loadingStates.streak && (
-                    <View className="absolute z-10">
-                      <ActivityIndicator color={C.brand[500]} />
-                    </View>
-                  )}
-                  <ExpoImage 
-                    source={{ uri: `https://streak-stats.demolab.com/?user=${encodeURIComponent(username || '')}&theme=transparent&hide_border=true&stroke=00000000&background=00000000&ring=f97316&fire=f97316&currStreakLabel=f97316&currStreakNum=${hx(C.ink)}&sideNums=${hx(C.ink3)}&sideLabels=${hx(C.ink3)}&dates=${hx(C.ink3)}&t=${bust}` }}
-                    style={{ width: '100%', height: 150 }}
-                    contentFit="contain"
-                    transition={700}
-                    onLoadStart={() => updateLoading('streak', true)}
-                    onLoad={() => updateLoading('streak', false)}
-                  onError={() => updateLoading('streak', false)}
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Footer info */}
-        <View className="mt-6 flex-row items-center justify-between pb-6">
-          <View className="flex-row items-center gap-2">
-            <View className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            <Text className="text-label text-ink-3 font-display uppercase">
-              Updated {stats?.lastFetched ? new Date(stats.lastFetched).toLocaleDateString() : 'Just now'}
-            </Text>
-          </View>
-          <Pressable
-            onPress={() => Linking.openURL(`https://github.com/${username}`).catch(() => {})}
-            hitSlop={12}
-            className="flex-row items-center gap-1.5"
-          >
-            <Text className="text-ink font-display uppercase text-label">View Profile</Text>
-            <Ionicons name="arrow-forward" size={12} color={C.ink} />
-          </Pressable>
+      <View style={{ gap: 12 }}>
+        <Widget
+          title="Overview"
+          height={180}
+          transition={500}
+          loading={loadingStates.general}
+          onLoading={(v) => updateLoading('general', v)}
+          uri={`https://github-readme-stats-sigma-five.vercel.app/api?username=${u}&show_icons=true&theme=transparent&hide_border=true&title_color=${hx(C.ink)}&text_color=${hx(C.ink3)}&icon_color=f97316&cache_seconds=1800&t=${bust}`}
+        />
+        <View className="flex-row" style={{ gap: 12 }}>
+          <Widget
+            flex
+            title="Languages"
+            height={150}
+            transition={600}
+            loading={loadingStates.langs}
+            onLoading={(v) => updateLoading('langs', v)}
+            uri={`https://github-readme-stats-sigma-five.vercel.app/api/top-langs/?username=${u}&layout=compact&theme=transparent&hide_border=true&title_color=${hx(C.ink)}&text_color=${hx(C.ink3)}&cache_seconds=1800&t=${bust}`}
+          />
+          <Widget
+            flex
+            title="Streak"
+            height={150}
+            transition={700}
+            loading={loadingStates.streak}
+            onLoading={(v) => updateLoading('streak', v)}
+            uri={`https://streak-stats.demolab.com/?user=${u}&theme=transparent&hide_border=true&stroke=00000000&background=00000000&ring=f97316&fire=f97316&currStreakLabel=f97316&currStreakNum=${hx(C.ink)}&sideNums=${hx(C.ink3)}&sideLabels=${hx(C.ink3)}&dates=${hx(C.ink3)}&t=${bust}`}
+          />
         </View>
       </View>
-    </View>
+
+      <View className="mt-4 flex-row items-center justify-between">
+        <Text className="text-xs text-ink-3 font-sans">
+          Updated {stats?.lastFetched ? new Date(stats.lastFetched).toLocaleDateString() : 'just now'}
+        </Text>
+        <Pressable
+          onPress={() => Linking.openURL(`https://github.com/${username}`).catch(() => {})}
+          hitSlop={12}
+          accessibilityRole="link"
+          className="flex-row items-center active:opacity-70"
+          style={{ gap: 4 }}
+        >
+          <Text className="text-accent-text font-semibold text-sm">View profile</Text>
+          <Ionicons name="arrow-forward" size={14} color={C.accentText} />
+        </Pressable>
+      </View>
+    </Card>
   );
 }

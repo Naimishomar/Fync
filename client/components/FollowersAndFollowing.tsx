@@ -14,7 +14,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { C } from '../constants/colors';
-import { AppBar } from './ui/kit';
+import { AppBar, Button, Empty, ListRow } from './ui/kit';
 import Avatar from './Avatar';
 import { tapHaptic } from '../utils/haptics';
 
@@ -27,13 +27,13 @@ type User = {
 };
 
 const ItemSkeleton = () => (
-  <View className="mx-gutter mb-6 bg-card rounded-sheet overflow-hidden border border-line shadow-hair p-6 flex-row items-center">
-      <View className="w-16 h-16 bg-paper-2 rounded-card mr-5" />
+  <View className="mx-gutter flex-row items-center" style={{ minHeight: 64 }}>
+      <View className="w-11 h-11 bg-paper-2 rounded-full mr-3" />
       <View className="flex-1 justify-center">
-          <View className="h-4 bg-paper-2 rounded w-3/4 mb-3" />
-          <View className="h-3 bg-paper-2 rounded w-1/2 mb-2" />
+          <View className="h-3.5 bg-paper-2 rounded-full w-1/2 mb-2" />
+          <View className="h-3 bg-paper-2 rounded-full w-1/3" />
       </View>
-      <View className="w-20 h-10 bg-paper-2 rounded-lg ml-2" />
+      <View className="w-20 h-9 bg-paper-2 rounded-full ml-2" />
   </View>
 );
 
@@ -109,32 +109,23 @@ const FollowersAndFollowing = () => {
     const isFollowing = (item.followers || []).includes(myId);
 
     return (
-      <View className="mx-gutter mb-1 bg-card rounded-card overflow-hidden border border-line shadow-hair p-3 flex-row items-center">
-        <Pressable
-          onPress={() => navigation.push("PublicProfile", { user: item })}
-          className="flex-row items-center flex-1"
-        >
-          <View className="mr-2">
-            <Avatar user={item} size={40} showBadge={false} />
-          </View>
-
-          <View className="flex-1 justify-center">
-            <Text className="text-ink font-display text-sm" numberOfLines={1}>{item.username}</Text>
-            <Text className="text-ink-3 text-label font-semibold" numberOfLines={1}>{item.name}</Text>
-          </View>
-        </Pressable>
-
-        {!isMe && (
-          <TouchableOpacity
+      <ListRow
+        style={{ paddingHorizontal: 20 }}
+        onPress={() => navigation.push("PublicProfile", { user: item })}
+        leading={<Avatar user={item} size={44} showBadge={false} />}
+        title={item.username}
+        subtitle={item.name}
+        right={!isMe ? (
+          <Button
+            small
+            variant={isFollowing ? 'secondary' : 'primary'}
+            title={isFollowing ? "Following" : "Follow"}
+            accessibilityLabel={isFollowing ? `Unfollow ${item.username}` : `Follow ${item.username}`}
             onPress={() => toggleFollow(item._id, isFollowing)}
-            className={`px-4 py-2 rounded-md shadow-hair ml-2 ${ isFollowing ? "bg-paper-2 border border-line" : "bg-brand-500 " }`}
-          >
-            <Text className={`font-display text-label uppercase ${isFollowing ? "text-ink-3" : "text-on-brand"}`}>
-              {isFollowing ? "Following" : "Follow"}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+          />
+        ) : undefined}
+        chevron={false}
+      />
     );
   };
 
@@ -160,12 +151,12 @@ const FollowersAndFollowing = () => {
                 refreshing={refreshing}
                 onRefresh={() => { setRefreshing(true); fetchList(); }}
                 ListEmptyComponent={
-                <View className="items-center justify-center mt-20 px-gutter">
-                    <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                        <Ionicons name="people" size={40} color={C.ink4} />
-                    </View>
-                    <Text className="font-semibold text-base text-ink text-center">{failed ? "Couldn't load this list" : type === "following" ? "Not following anyone yet" : "No followers yet"}</Text>
-                    <Text className="font-sans text-sm text-ink-3 mt-2 text-center">{failed ? "Pull down to try again." : "There are no users in this list yet."}</Text>
+                <View className="mt-16">
+                    <Empty
+                        icon={failed ? "cloud-offline-outline" : "people-outline"}
+                        title={failed ? "Couldn't load this list" : type === "following" ? "Not following anyone yet" : "No followers yet"}
+                        hint={failed ? "Pull down to try again." : "There are no users in this list yet."}
+                    />
                 </View>
                 }
             />

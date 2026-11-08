@@ -3,8 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
-  Dimensions,
   StatusBar,
   BackHandler
 } from 'react-native';
@@ -23,12 +21,47 @@ import ReactionMaster from './ReactionMaster';
 import TrendClash from './TrendClash';
 import { C } from '../../constants/colors';
 import { isFeatureOn } from '../../constants/features';
-import { AppBar } from '../ui/kit';
+import { AppBar, ListRow } from '../ui/kit';
 import { useBottomInset } from '../../constants/layout';
+
+type ActiveGame = 'none' | 'bottle' | 'coin' | 'reaction' | 'charades' | 'chess' | 'trivia' | 'trend';
+type Game = {
+  key: string; title: string; hint: string; flag?: string; route?: string;
+  // A function so the colour is read at render time and follows the theme.
+  glyph: () => React.ReactNode;
+};
+
+const GAMES: Game[] = [
+  { key: 'trivia', title: 'Trivia Survival', hint: 'Health drains quickly. Answer right to survive.', glyph: () => <Ionicons name="skull-outline" size={24} color={C.danger} /> },
+  { key: 'bottle', title: 'Bottle Spin', hint: "Who's next? Truth or dare for groups up to 20.", glyph: () => <MaterialCommunityIcons name="bottle-wine-outline" size={24} color={C.brand[500]} /> },
+  { key: 'chess', title: 'Fync Chess', hint: 'Challenge your friends or the AI to a rapid match.', glyph: () => <FontAwesome5 name="chess-knight" size={22} color={C.ink} /> },
+  { key: 'charades', title: 'Antakshari', hint: 'Sing your way through Bollywood hits with 1000+ modern prompts.', glyph: () => <MaterialCommunityIcons name="microphone-outline" size={24} color={C.fam.fun} /> },
+  { key: 'coin', flag: 'coinToss', title: 'Coin Toss', hint: 'Settle quick decisions with a fair flip.', glyph: () => <MaterialCommunityIcons name="circle-multiple-outline" size={24} color={C.ink2} /> },
+  { key: 'reaction', title: 'Reaction Master', hint: 'Test your reflexes! Loser pays for the next coffee.', glyph: () => <Ionicons name="flash-outline" size={24} color={C.fam.fun} /> },
+  { key: 'trend', title: 'Trend Clash', hint: 'Guess which one the internet liked more.', glyph: () => <Ionicons name="trending-up" size={24} color={C.brand[500]} /> },
+  { key: 'flappy', flag: 'flappyBird', route: 'FlappyBird', title: 'Flappy Bird', hint: 'Navigate the bird through obstacles to achieve high scores.', glyph: () => <Ionicons name="logo-twitter" size={24} color={C.success} /> },
+  { key: 'draw', flag: 'drawGuess', route: 'DrawAndGuess', title: 'Draw & Guess', hint: 'Multiplayer Pictionary. Draw the word or guess the drawing.', glyph: () => <Ionicons name="color-palette-outline" size={24} color={C.info} /> },
+];
+
+const ROW = { paddingHorizontal: 16, paddingVertical: 12 };
+const GameCard = React.memo(function GameCard({ game, onOpen }: { game: Game; onOpen: (g: Game) => void }) {
+  return (
+    <View className="bg-card border border-line rounded-2xl mb-3 overflow-hidden">
+      <ListRow
+        leading={<View className="w-14 h-14 rounded-full bg-paper-2 items-center justify-center">{game.glyph()}</View>}
+        title={game.title}
+        subtitle={game.hint}
+        subtitleLines={2}
+        onPress={() => onOpen(game)}
+        style={ROW}
+      />
+    </View>
+  );
+});
 
 const PartyPoolHub = () => {
   const navigation = useNavigation<any>();
-  const [activeGame, setActiveGame] = useState<'none' | 'bottle' | 'coin' | 'reaction' | 'charades' | 'chess' | 'trivia' | 'trend'>('none');
+  const [activeGame, setActiveGame] = useState<ActiveGame>('none');
   const bottomInset = useBottomInset(24);
 
   // Android back inside a game returns to the hub instead of leaving Party Pool.
@@ -40,6 +73,11 @@ const PartyPoolHub = () => {
     });
     return () => sub.remove();
   }, [activeGame]);
+
+  const open = React.useCallback((g: Game) => {
+    if (g.route) navigation.navigate(g.route);
+    else setActiveGame(g.key as ActiveGame);
+  }, [navigation]);
 
   const renderGame = () => {
     switch (activeGame) {
@@ -58,10 +96,6 @@ const PartyPoolHub = () => {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle={C.barStyle} />
       
-      {/* Background Gradient */}
-      <View className="absolute top-0 w-full h-[300px] opacity-[0.15]">
-      </View>
-
       <View className="flex-1">
         <AppBar
           title="Party Pool"
@@ -91,214 +125,13 @@ const PartyPoolHub = () => {
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomInset + 24 }}
           showsVerticalScrollIndicator={false}
         >
-          <>
-            <View className="gap-y-4">
-              <TouchableOpacity 
-                onPress={() => setActiveGame('trivia')} 
-                className="h-[120px] rounded-card overflow-hidden border-2 border-ink"
-                style={{ shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 }}
-                activeOpacity={0.9}
-              >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
-                    <View className="w-[60px] h-[60px] rounded-card bg-danger/10 justify-center items-center mr-4">
-                        <Ionicons name="skull" size={28} color={C.danger} />
-                    </View>
-                    <View className="flex-1">
-                        <Text className="font-semibold text-base text-ink mb-1">Trivia Survival</Text>
-                        <Text className="text-label text-ink-3 leading-[14px] font-medium" numberOfLines={2}>Health drains quickly. Answer right to survive.</Text>
-                    </View>
-                    <View className="w-8 h-8 rounded-xl bg-danger/10 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color={C.danger} />
-                    </View>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                onPress={() => setActiveGame('bottle')} 
-                className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
-                activeOpacity={0.9}
-              >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
-                    <View className="w-[60px] h-[60px] rounded-card bg-brand-100 justify-center items-center mr-4">
-                        <MaterialCommunityIcons name="bottle-wine" size={28} color={C.brand[500]} />
-                    </View>
-                    <View className="flex-1">
-                        <View className="flex-row items-center mb-1" style={{ gap: 12 }}>
-                          <Text className="text-sm font-display text-ink uppercase">BOTTLE SPIN</Text>
-                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                        </View>
-                        <Text className="text-label text-ink-3 leading-[14px] font-medium" numberOfLines={2}>Who's next? Truth or Dare protocol for groups up to 20.</Text>
-                    </View>
-                    <View className="w-8 h-8 rounded-xl bg-brand-100 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color={C.brand[500]} />
-                    </View>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                onPress={() => setActiveGame('chess')} 
-                className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
-                activeOpacity={0.9}
-              >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper }}>
-                    <View className="w-[60px] h-[60px] rounded-card bg-ink justify-center items-center mr-4">
-                        <FontAwesome5 name="chess-knight" size={28} color={C.paper} />
-                    </View>
-                    <View className="flex-1">
-                        <View className="flex-row items-center mb-1" style={{ gap: 12 }}>
-                          <Text className="text-sm font-display text-ink uppercase">FYNC CHESS</Text>
-                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                        </View>
-                        <Text className="text-label text-ink-3 leading-[14px] font-medium" numberOfLines={2}>Challenge your friends or the AI to a rapid match.</Text>
-                    </View>
-                    <View className="w-8 h-8 rounded-xl bg-paper-2 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color={C.ink} />
-                    </View>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                onPress={() => setActiveGame('charades')} 
-                className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
-                activeOpacity={0.9}
-              >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
-                    <View className="w-[60px] h-[60px] rounded-card bg-fam-fun/10 justify-center items-center mr-4">
-                        <MaterialCommunityIcons name="microphone" size={28} color={C.fam.fun} />
-                    </View>
-                    <View className="flex-1">
-                        <View className="flex-row items-center mb-1" style={{ gap: 12 }}>
-                          <Text className="text-sm font-display text-ink uppercase">ANTAKSHARI</Text>
-                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                        </View>
-                        <Text className="text-label text-ink-3 leading-[14px] font-medium" numberOfLines={2}>Sing your way through Bollywood hits with 1000+ modern prompts.</Text>
-                    </View>
-                    <View className="w-8 h-8 rounded-xl bg-fam-fun/10 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color={C.fam.fun} />
-                    </View>
-                </View>
-              </TouchableOpacity>
-
-              {isFeatureOn('coinToss') && (
-                  <TouchableOpacity 
-                    onPress={() => setActiveGame('coin')} 
-                    className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
-                    activeOpacity={0.9}
-                  >
-                    <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper }}>
-                        <View className="w-[60px] h-[60px] rounded-card bg-paper-2 justify-center items-center mr-4">
-                            <MaterialCommunityIcons name="currency-usd" size={28} color={C.ink2} />
-                        </View>
-                        <View className="flex-1">
-                            <View className="flex-row items-center mb-1" style={{ gap: 12 }}>
-                              <Text className="text-sm font-display text-ink uppercase">COIN TOSS</Text>
-                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                            </View>
-                            <Text className="text-label text-ink-3 leading-[14px] font-medium" numberOfLines={2}>Execute quick decisions with our probability engine.</Text>
-                        </View>
-                        <View className="w-8 h-8 rounded-xl bg-paper-2 justify-center items-center ml-2">
-                            <Ionicons name="arrow-forward" size={16} color={C.ink2} />
-                        </View>
-                    </View>
-                  </TouchableOpacity>
-              )}
-
-              <TouchableOpacity 
-                onPress={() => setActiveGame('reaction')} 
-                className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
-                activeOpacity={0.9}
-              >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
-                    <View className="w-[60px] h-[60px] rounded-card bg-fam-fun/10 justify-center items-center mr-4">
-                        <Ionicons name="flash" size={28} color={C.fam.fun} />
-                    </View>
-                    <View className="flex-1">
-                        <View className="flex-row items-center mb-1" style={{ gap: 12 }}>
-                          <Text className="text-sm font-display text-ink uppercase">REACTION MASTER</Text>
-                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                        </View>
-                        <Text className="text-label text-ink-3 leading-[14px] font-medium" numberOfLines={2}>Test your reflexes! Looser will pay the next coffee.</Text>
-                    </View>
-                    <View className="w-8 h-8 rounded-xl bg-fam-fun/10 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color={C.fam.fun} />
-                    </View>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setActiveGame('trend')}
-                className="h-[120px] rounded-card overflow-hidden border-2 border-ink"
-                activeOpacity={0.9}
-              >
-                <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
-                    <View className="w-[60px] h-[60px] rounded-card bg-brand-100 justify-center items-center mr-4">
-                        <Ionicons name="trending-up" size={28} color={C.brand[500]} />
-                    </View>
-                    <View className="flex-1">
-                        <Text className="font-semibold text-base text-ink mb-1">Trend Clash</Text>
-                        <Text className="text-label text-ink-3 leading-[14px] font-medium" numberOfLines={2}>Guess which one the internet liked more.</Text>
-                    </View>
-                    <View className="w-8 h-8 rounded-xl bg-brand-100 justify-center items-center ml-2">
-                        <Ionicons name="arrow-forward" size={16} color={C.brand[600]} />
-                    </View>
-                </View>
-              </TouchableOpacity>
-
-              {isFeatureOn('flappyBird') && (
-                  <TouchableOpacity 
-                    onPress={() => navigation.navigate('FlappyBird')} 
-                    className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
-                    activeOpacity={0.9}
-                  >
-                    <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
-                        <View className="w-[60px] h-[60px] rounded-card bg-success/10 justify-center items-center mr-4">
-                            <Ionicons name="logo-twitter" size={28} color={C.success} />
-                        </View>
-                        <View className="flex-1">
-                            <View className="flex-row items-center mb-1" style={{ gap: 12 }}>
-                              <Text className="text-sm font-display text-ink uppercase">FLAPPY BIRD</Text>
-                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                            </View>
-                            <Text className="text-label text-ink-3 leading-[14px] font-medium" numberOfLines={2}>Navigate the bird through obstacles to achieve high scores.</Text>
-                        </View>
-                        <View className="w-8 h-8 rounded-xl bg-success/10 justify-center items-center ml-2">
-                            <Ionicons name="arrow-forward" size={16} color={C.success} />
-                        </View>
-                    </View>
-                  </TouchableOpacity>
-              )}
-
-              {isFeatureOn('drawGuess') && (
-                  <TouchableOpacity 
-                    onPress={() => navigation.navigate('DrawAndGuess')} 
-                    className="h-[120px] rounded-sheet overflow-hidden border border-paper-2 shadow-hair"
-                    activeOpacity={0.9}
-                  >
-                    <View className="flex-1 flex-row items-center px-5" style={{ backgroundColor: C.paper2 }}>
-                        <View className="w-[60px] h-[60px] rounded-card bg-fam-career/10 justify-center items-center mr-4">
-                            <Ionicons name="color-palette" size={28} color={C.info} />
-                        </View>
-                        <View className="flex-1">
-                            <View className="flex-row items-center mb-1" style={{ gap: 12 }}>
-                              <Text className="text-sm font-display text-ink uppercase">DRAW & GUESS</Text>
-                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                            </View>
-                            <Text className="text-label text-ink-3 leading-[14px] font-medium" numberOfLines={2}>Multiplayer Pictionary. Draw the word or guess the drawing.</Text>
-                        </View>
-                        <View className="w-8 h-8 rounded-xl bg-fam-career/10 justify-center items-center ml-2">
-                            <Ionicons name="arrow-forward" size={16} color={C.info} />
-                        </View>
-                    </View>
-                  </TouchableOpacity>
-              )}
-
-              {/* Tip Box */}
-              <View className="flex-row items-center justify-center mt-6 bg-card p-3 rounded-card border border-line">
-                <Ionicons name="bulb-outline" size={16} color={C.ink3} />
-                <Text className="flex-1 text-label text-ink-3 font-display ml-2 uppercase">PRO TIP: Best played in your college common room or canteen!</Text>
-              </View>
-            </View>
-          </>
+          {GAMES.filter((g) => !g.flag || isFeatureOn(g.flag)).map((g) => (
+            <GameCard key={g.key} game={g} onOpen={open} />
+          ))}
+          <View className="flex-row items-center mt-3 bg-paper-2 p-4 rounded-2xl" style={{ gap: 8 }}>
+            <Ionicons name="bulb-outline" size={16} color={C.ink3} />
+            <Text className="flex-1 text-sm text-ink-2">Pro tip: best played in your college common room or canteen!</Text>
+          </View>
         </ScrollView>
         )}
       </View>

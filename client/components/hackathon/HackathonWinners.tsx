@@ -3,13 +3,11 @@ import {
   View,
   Text,
   ScrollView,
-  TextInput,
-  TouchableOpacity,
+  Pressable,
   Image,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Modal,
   FlatList,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -22,7 +20,7 @@ import Toast from 'react-native-toast-message';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
-import { AppBar, Meta } from '../ui/kit';
+import { AppBar, Avatar, Button, Card, Chip, FormField, IconBtn, Label, ListRow, Meta, SearchField, Sheet, TagRow } from '../ui/kit';
 
 /**
  * Announcing winners.
@@ -65,30 +63,7 @@ const emptyRow = (rank: number): WinnerRow => ({
   note: '',
 });
 
-const Field = ({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  multiline,
-  keyboardType,
-  autoCapitalize,
-}: any) => (
-  <View className="mb-3">
-    <Text className="text-ink-3 text-label font-semibold mb-1.5">{label}</Text>
-    <TextInput
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor={C.ink3}
-      multiline={multiline}
-      keyboardType={keyboardType}
-      autoCapitalize={autoCapitalize}
-      className="bg-paper-2 border border-line rounded-card px-4 py-3 text-ink text-sm"
-      style={multiline ? { minHeight: 72, textAlignVertical: 'top' } : undefined}
-    />
-  </View>
-);
+const Field = (p: React.ComponentProps<typeof FormField>) => <FormField containerStyle={{ marginBottom: 12 }} {...p} />;
 
 // ─── Student picker ──────────────────────────────────────────────────────────
 const StudentPicker = ({
@@ -143,92 +118,54 @@ const StudentPicker = ({
   }, [visible]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
-      <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-paper rounded-t-sheet border-t-2 border-ink" style={{ height: '72%' }}>
-          <View className="flex-row items-center justify-between px-gutter pt-4 pb-3 border-b border-line">
-            <Text className="text-ink text-base font-display">Tag a student</Text>
-            <TouchableOpacity onPress={onClose} className="w-11 h-11 items-center justify-center" accessibilityRole="button" accessibilityLabel="Close">
-              <Ionicons name="close" size={22} color={C.ink} />
-            </TouchableOpacity>
-          </View>
-
-          <View className="px-gutter pt-3">
-            <View className="flex-row items-center bg-card border-2 border-ink rounded-md px-3" style={{ height: 46 }}>
-              <Feather name="search" size={16} color={C.ink3} />
-              <TextInput
-                value={query}
-                onChangeText={setQuery}
-                placeholder="Search by name or username"
-                placeholderTextColor={C.ink3}
-                autoFocus
-                autoCorrect={false}
-                autoCapitalize="none"
-                className="flex-1 ml-2 text-ink text-sm"
-                style={{ paddingVertical: 0 }}
-              />
-              {searching ? <ActivityIndicator size="small" color={C.brand[500]} /> : null}
-            </View>
-          </View>
-
-          <FlatList
-            data={results}
-            keyExtractor={(u) => u._id}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 + bottomInset }}
-            renderItem={({ item }) => {
-              const taken = alreadyTagged.includes(item._id);
-              return (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (taken) return;
-                    onPick(item);
-                    onClose();
-                  }}
-                  disabled={taken}
-                  className={`flex-row items-center border rounded-card p-3 mb-2 ${taken ? 'bg-paper-2 border-line' : 'bg-card border-line'}`}
-                  activeOpacity={0.85}
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: taken }}
-                >
-                  {item.avatar ? (
-                    <Image source={{ uri: item.avatar }} className="w-10 h-10 rounded-full mr-3" />
-                  ) : (
-                    <View className="w-10 h-10 rounded-full bg-paper-2 border border-line items-center justify-center mr-3">
-                      <Text className="text-ink-3 font-semibold">{item.name?.[0]?.toUpperCase()}</Text>
-                    </View>
-                  )}
-                  <View className="flex-1">
-                    <Text className="text-ink text-sm font-semibold">{item.name}</Text>
-                    <Text className="text-ink-3 text-label font-semibold" numberOfLines={1}>
-                      {item.username ? `@${item.username}` : ''}
-                      {item.username && item.college ? ' · ' : ''}
-                      {item.college ?? ''}
-                    </Text>
-                  </View>
-                  {taken ? (
-                    <Text className="text-ink-3 text-label font-semibold">Added</Text>
-                  ) : (
-                    <Ionicons name="add-circle-outline" size={20} color={C.brand[700]} />
-                  )}
-                </TouchableOpacity>
-              );
-            }}
-            ListEmptyComponent={
-              <View className="items-center pt-16 px-6">
-                <Feather name="users" size={26} color={C.ink4} />
-                <Text className="text-ink-2 text-label font-semibold mt-3 text-center">
-                  {query.trim().length < 2 ? 'Type at least two characters' : searching ? 'Searching…' : 'No students matched'}
-                </Text>
-                <Text className="text-ink-3 text-label text-center mt-1 leading-4">
-                  Winners who aren&apos;t on Fync can still be credited with the team name.
-                </Text>
-              </View>
-            }
-          />
-        </View>
+    <Sheet visible={visible} onClose={onClose} title="Tag a student" scroll={false} height="72%">
+      <View className="flex-row items-center px-gutter pt-3" style={{ gap: 8 }}>
+        <SearchField
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search by name or username"
+          autoFocus
+          containerStyle={{ flex: 1 }}
+        />
+        {searching ? <ActivityIndicator size="small" color={C.brand[500]} /> : null}
       </View>
-    </Modal>
+
+      <FlatList
+        data={results}
+        keyExtractor={(u) => u._id}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 24 + bottomInset }}
+        renderItem={({ item }) => {
+          const taken = alreadyTagged.includes(item._id);
+          const sub = [item.username ? `@${item.username}` : '', item.college ?? ''].filter(Boolean).join(' · ');
+          return (
+            <ListRow
+              leading={<Avatar uri={item.avatar} initials={item.name?.[0]} size={40} />}
+              title={item.name}
+              subtitle={sub || undefined}
+              disabled={taken}
+              onPress={() => {
+                if (taken) return;
+                onPick(item);
+                onClose();
+              }}
+              right={taken ? <Text className="text-ink-3 text-xs font-semibold">Added</Text> : <Ionicons name="add-circle-outline" size={22} color={C.accentText} />}
+            />
+          );
+        }}
+        ListEmptyComponent={
+          <View className="items-center pt-16 px-6">
+            <Feather name="users" size={26} color={C.ink3} />
+            <Text className="text-ink-2 text-sm font-semibold mt-3 text-center">
+              {query.trim().length < 2 ? 'Type at least two characters' : searching ? 'Searching…' : 'No students matched'}
+            </Text>
+            <Text className="text-ink-3 text-xs text-center mt-1 leading-4">
+              Winners who aren&apos;t on Fync can still be credited with the team name.
+            </Text>
+          </View>
+        }
+      />
+    </Sheet>
   );
 };
 
@@ -353,7 +290,7 @@ const HackathonWinners = () => {
       <StatusBar style={C.scheme === 'dark' ? 'light' : 'dark'} />
       <View className="flex-1">
         {/* Header */}
-        <AppBar title="Announce Winners" onBack={confirmLeave} />
+        <AppBar title="Announce winners" onBack={confirmLeave} />
 
         <KeyboardAvoidingView
           behavior="padding"
@@ -367,16 +304,16 @@ const HackathonWinners = () => {
             showsVerticalScrollIndicator={false}
           >
             {hackathonTitle ? <Meta numberOfLines={1} style={{ marginBottom: 12 }}>{hackathonTitle}</Meta> : null}
-            <View className="flex-row items-start bg-card border border-line rounded-card p-3.5 mb-4">
+            <View className="flex-row items-start bg-card border border-line rounded-2xl p-4 mb-4">
               <Feather name="info" size={13} color={C.ink3} style={{ marginTop: 1 }} />
-              <Text className="text-ink-2 text-label leading-4 ml-2 flex-1">
+              <Text className="text-ink-2 text-xs leading-4 ml-2 flex-1">
                 Tagged students get a notification and the win appears on their profile. Teammates
                 without a Fync account are still credited through the team name.
               </Text>
             </View>
 
             {rows.map((row, i) => (
-              <View key={i} className="bg-card border-2 border-ink rounded-card p-4 mb-3">
+              <Card key={i} padded style={{ marginBottom: 12 }}>
                 <View className="flex-row items-center justify-between mb-3">
                   <View className="flex-row items-center">
                     <MaterialCommunityIcons
@@ -384,39 +321,20 @@ const HackathonWinners = () => {
                       size={16}
                       color={row.rank === 1 ? '#D97706' : row.rank === 2 ? '#78716C' : C.warning}
                     />
-                    <Text className="text-ink text-sm font-display ml-2">{rankLabel(row.rank)}</Text>
+                    <Text className="text-ink text-sm font-semibold ml-2">{rankLabel(row.rank)}</Text>
                   </View>
                   {rows.length > 1 ? (
-                    <TouchableOpacity
-                      onPress={() => removeRow(i)}
-                      className="w-9 h-9 items-center justify-center"
-                      accessibilityRole="button"
-                      accessibilityLabel={`Remove ${rankLabel(row.rank)}`}
-                    >
-                      <Feather name="trash-2" size={15} color={C.danger} />
-                    </TouchableOpacity>
+                    <IconBtn name="trash-outline" color={C.danger} size={18} onPress={() => removeRow(i)} accessibilityLabel={`Remove ${rankLabel(row.rank)}`} />
                   ) : null}
                 </View>
 
                 {/* Rank picker */}
-                <Text className="text-ink-3 text-label font-semibold mb-1.5">Rank</Text>
-                <View className="flex-row flex-wrap mb-3" style={{ gap: 6 }}>
-                  {[1, 2, 3, 4, 5].map((r) => {
-                    const on = row.rank === r;
-                    return (
-                      <TouchableOpacity
-                        key={r}
-                        onPress={() => update(i, { rank: r })}
-                        className={`px-3.5 py-2 rounded-md border ${on ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
-                        activeOpacity={0.85}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected: on }}
-                      >
-                        <Text className={`text-label font-semibold ${on ? 'text-paper' : 'text-ink-2'}`}>{r}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                <Label style={{ marginBottom: 6 }}>Rank</Label>
+                <TagRow style={{ marginBottom: 12 }}>
+                  {[1, 2, 3, 4, 5].map((r) => (
+                    <Chip key={r} label={String(r)} active={row.rank === r} onPress={() => update(i, { rank: r })} accessibilityLabel={`Rank ${r}`} />
+                  ))}
+                </TagRow>
 
                 <Field
                   label="Team name"
@@ -426,7 +344,7 @@ const HackathonWinners = () => {
                 />
 
                 {/* Tagged students */}
-                <Text className="text-ink-3 text-label font-semibold mb-1.5">Students on Fync</Text>
+                <Label style={{ marginBottom: 6 }}>Students on Fync</Label>
                 <View className="flex-row flex-wrap mb-2" style={{ gap: 6 }}>
                   {row.users.map((u) => (
                     <View key={u._id} className="flex-row items-center bg-paper-2 border border-line rounded-full pl-1 pr-1 py-1">
@@ -434,31 +352,23 @@ const HackathonWinners = () => {
                         <Image source={{ uri: u.avatar }} className="w-6 h-6 rounded-full mr-1.5" />
                       ) : (
                         <View className="w-6 h-6 rounded-full bg-card items-center justify-center mr-1.5">
-                          <Text className="text-ink-3 text-label font-semibold">{u.name?.[0]?.toUpperCase()}</Text>
+                          <Text className="text-ink-3 text-xs font-semibold">{u.name?.[0]?.toUpperCase()}</Text>
                         </View>
                       )}
-                      <Text className="text-ink text-label font-semibold mr-1">{u.name}</Text>
-                      <TouchableOpacity
+                      <Text className="text-ink text-xs font-semibold mr-1">{u.name}</Text>
+                      <Pressable
                         onPress={() => untagUser(i, u._id)}
-                        hitSlop={8}
-                        className="w-6 h-6 items-center justify-center"
+                        hitSlop={10}
+                        className="w-6 h-6 items-center justify-center active:opacity-60"
                         accessibilityRole="button"
                         accessibilityLabel={`Remove ${u.name}`}
                       >
                         <Ionicons name="close-circle" size={16} color={C.ink3} />
-                      </TouchableOpacity>
+                      </Pressable>
                     </View>
                   ))}
                 </View>
-                <TouchableOpacity
-                  onPress={() => setPickerFor(i)}
-                  className="flex-row items-center justify-center border-2 border-dashed border-line rounded-card py-3 mb-3"
-                  activeOpacity={0.8}
-                  accessibilityRole="button"
-                >
-                  <Ionicons name="person-add-outline" size={15} color={C.brand[700]} />
-                  <Text className="text-brand-700 text-label font-semibold ml-2">Tag a student</Text>
-                </TouchableOpacity>
+                <Button small variant="tertiary" icon="person-add-outline" title="Tag a student" onPress={() => setPickerFor(i)} style={{ alignSelf: 'flex-start', marginBottom: 12 }} />
 
                 <Field
                   label="Prize title"
@@ -486,18 +396,10 @@ const HackathonWinners = () => {
                   placeholder="One line on why they won"
                   multiline
                 />
-              </View>
+              </Card>
             ))}
 
-            <TouchableOpacity
-              onPress={addRow}
-              className="flex-row items-center justify-center border-2 border-dashed border-line rounded-card py-4"
-              activeOpacity={0.8}
-              accessibilityRole="button"
-            >
-              <Ionicons name="add" size={17} color={C.ink} />
-              <Text className="text-ink text-label font-semibold ml-1.5">Add another position</Text>
-            </TouchableOpacity>
+            <Button block icon="add" title="Add another position" onPress={addRow} />
           </ScrollView>
         </KeyboardAvoidingView>
 
@@ -506,24 +408,7 @@ const HackathonWinners = () => {
           className="absolute left-0 right-0 bottom-0 bg-paper border-t border-line px-gutter pt-3"
           style={{ paddingBottom: 12 + bottomInset }}
         >
-          <TouchableOpacity
-            onPress={save}
-            disabled={saving}
-            className={`flex-row items-center justify-center border-2 border-ink rounded-card ${saving ? 'bg-paper-2' : 'bg-brand-500'}`}
-            style={{ minHeight: 52 }}
-            activeOpacity={0.9}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: saving }}
-          >
-            {saving ? (
-              <ActivityIndicator size="small" color={C.ink} />
-            ) : (
-              <>
-                <MaterialCommunityIcons name="trophy" size={17} color={C.onBrand} />
-                <Text className="text-on-brand text-base font-display ml-2">Publish winners</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <Button variant="primary" block icon="trophy-outline" title="Publish winners" onPress={save} loading={saving} />
         </View>
       </View>
 

@@ -2,8 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
-  ScrollView,
-  TouchableOpacity,
+  Pressable,
   Image,
   ActivityIndicator,
   Animated,
@@ -24,7 +23,7 @@ import Toast from 'react-native-toast-message';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, Button, Card, Divider, FilterChips, IconBtn, Label, ListRow, Tag, TagRow } from '../ui/kit';
 
 /**
  * A hackathon listing.
@@ -88,14 +87,14 @@ const hostOf = (url?: string) => {
 
 // ─── Small pieces ────────────────────────────────────────────────────────────
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <Text className="text-ink text-base font-display mb-3">{children}</Text>
+  <Text className="text-ink text-base font-semibold mb-3" accessibilityRole="header">{children}</Text>
 );
 
 const InfoCell = ({ icon, label, value }: { icon: any; label: string; value: string }) => (
-  <View className="flex-1 bg-card border border-line rounded-card p-3.5">
+  <View className="flex-1 bg-card border border-line rounded-2xl p-4">
     <View className="flex-row items-center mb-1.5">
       <Feather name={icon} size={12} color={C.ink3} />
-      <Text className="text-ink-3 text-label font-semibold ml-1.5">{label}</Text>
+      <Text className="text-ink-3 text-xs font-semibold ml-1.5">{label}</Text>
     </View>
     <Text className="text-ink text-sm font-semibold" numberOfLines={2}>
       {value}
@@ -106,10 +105,9 @@ const InfoCell = ({ icon, label, value }: { icon: any; label: string; value: str
 const FAQItem = ({ faq }: { faq: { question: string; answer: string } }) => {
   const [expanded, setExpanded] = useState(false);
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => setExpanded((e) => !e)}
-      activeOpacity={0.85}
-      className="bg-card border border-line rounded-card p-4 mb-2.5"
+      className="bg-card border border-line rounded-2xl p-4 mb-3 active:opacity-70"
       accessibilityRole="button"
       accessibilityState={{ expanded }}
     >
@@ -120,18 +118,18 @@ const FAQItem = ({ faq }: { faq: { question: string; answer: string } }) => {
       {expanded ? (
         <Text className="text-ink-2 text-sm leading-5 mt-2.5">{faq.answer}</Text>
       ) : null}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
 const WinnerCard = ({ winner, onOpenProfile }: { winner: Winner; onOpenProfile: (id: string) => void }) => {
   const meta = RANK_META()[winner.rank] ?? { label: `#${winner.rank}`, medal: C.ink3, tint: 'bg-paper-2 border-line' };
   return (
-    <View className={`border rounded-card p-4 mb-2.5 ${meta.tint}`}>
+    <View className={`border rounded-2xl p-4 mb-3 ${meta.tint}`}>
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center">
           <MaterialCommunityIcons name="trophy-variant" size={16} color={meta.medal} />
-          <Text className="text-ink text-sm font-display ml-2">
+          <Text className="text-ink text-sm font-semibold ml-2">
             {meta.label}
             {winner.title ? ` · ${winner.title}` : ''}
           </Text>
@@ -148,11 +146,10 @@ const WinnerCard = ({ winner, onOpenProfile }: { winner: Winner; onOpenProfile: 
       {winner.users?.length ? (
         <View className="flex-row flex-wrap" style={{ gap: 6 }}>
           {winner.users.map((u) => (
-            <TouchableOpacity
+            <Pressable
               key={u._id}
               onPress={() => onOpenProfile(u._id)}
-              activeOpacity={0.8}
-              className="flex-row items-center bg-card border border-line rounded-full pl-1 pr-2.5 py-1"
+              className="flex-row items-center bg-card border border-line rounded-full pl-1 pr-3 py-1 active:opacity-70"
               accessibilityRole="button"
               accessibilityLabel={`Open ${u.name}'s profile`}
             >
@@ -160,26 +157,27 @@ const WinnerCard = ({ winner, onOpenProfile }: { winner: Winner; onOpenProfile: 
                 <Image source={{ uri: u.avatar }} className="w-6 h-6 rounded-full mr-1.5" />
               ) : (
                 <View className="w-6 h-6 rounded-full bg-paper-2 items-center justify-center mr-1.5">
-                  <Text className="text-ink-3 text-label font-semibold">{u.name?.[0]?.toUpperCase()}</Text>
+                  <Text className="text-ink-3 text-xs font-semibold">{u.name?.[0]?.toUpperCase()}</Text>
                 </View>
               )}
-              <Text className="text-ink text-label font-semibold">{u.name}</Text>
-            </TouchableOpacity>
+              <Text className="text-ink text-xs font-semibold">{u.name}</Text>
+            </Pressable>
           ))}
         </View>
       ) : null}
 
-      {winner.note ? <Text className="text-ink-3 text-label mt-2 leading-4">{winner.note}</Text> : null}
+      {winner.note ? <Text className="text-ink-3 text-xs mt-2 leading-4">{winner.note}</Text> : null}
 
       {winner.projectLink ? (
-        <TouchableOpacity
+        <Pressable
           onPress={() => Linking.openURL(winner.projectLink!).catch(() => {})}
-          className="flex-row items-center mt-2.5"
+          className="flex-row items-center mt-3 active:opacity-70"
+          hitSlop={12}
           accessibilityRole="link"
         >
           <Feather name="external-link" size={12} color={C.brand[700]} />
-          <Text className="text-brand-700 text-label font-semibold ml-1.5">View the project</Text>
-        </TouchableOpacity>
+          <Text className="text-brand-700 text-xs font-semibold ml-1.5">View the project</Text>
+        </Pressable>
       ) : null}
     </View>
   );
@@ -335,9 +333,7 @@ const HackathonDetail = () => {
       <SafeAreaView className="flex-1 bg-paper items-center justify-center px-gutter">
         <MaterialCommunityIcons name="rocket-launch-outline" size={40} color={C.ink4} />
         <Text className="text-ink text-base font-semibold mt-4">Hackathon not found</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} className="mt-5 bg-ink px-4 py-3 rounded-md border-2 border-ink">
-          <Text className="text-paper text-label font-semibold">Go back</Text>
-        </TouchableOpacity>
+        <Button title="Go back" onPress={() => navigation.goBack()} style={{ marginTop: 20 }} />
       </SafeAreaView>
     );
   }
@@ -368,7 +364,7 @@ const HackathonDetail = () => {
       >
         <View style={{ paddingTop: insets.top }}>
           <View className="h-14 justify-center px-14">
-            <Text className="text-ink text-sm font-display text-center" numberOfLines={1}>
+            <Text className="text-ink text-sm font-semibold text-center" numberOfLines={1}>
               {hackathon.title}
             </Text>
           </View>
@@ -411,9 +407,9 @@ const HackathonDetail = () => {
 
         <View className="px-gutter" style={{ marginTop: -34 }}>
           {/* Identity card */}
-          <View className="bg-card border-2 border-ink rounded-card p-4" style={{ shadowColor: '#12100E', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 }}>
+          <View className="bg-card border border-line rounded-2xl p-4">
             <View className="flex-row items-start">
-              <View className="w-12 h-12 rounded-card bg-paper-2 border border-line items-center justify-center overflow-hidden mr-3">
+              <View className="w-12 h-12 rounded-2xl bg-paper-2 border border-line items-center justify-center overflow-hidden mr-3">
                 {hackathon.logo ? (
                   <Image source={{ uri: hackathon.logo }} className="w-full h-full" resizeMode="contain" />
                 ) : (
@@ -421,12 +417,12 @@ const HackathonDetail = () => {
                 )}
               </View>
               <View className="flex-1">
-                <View className={`self-start flex-row items-center border px-2 py-1 rounded-md mb-1.5 ${statusMeta.chip}`}>
+                <View className={`self-start flex-row items-center border px-2 py-1 rounded-full mb-1.5 ${statusMeta.chip}`}>
                   <View className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: statusMeta.dot }} />
-                  <Text className={`text-label font-semibold ${statusMeta.text}`}>{statusMeta.label}</Text>
+                  <Text className={`text-xs font-semibold ${statusMeta.text}`}>{statusMeta.label}</Text>
                 </View>
                 <Text className="text-ink text-xl font-display leading-6">{hackathon.title}</Text>
-                <Text className="text-ink-3 text-label font-semibold mt-1">
+                <Text className="text-ink-3 text-xs font-semibold mt-1">
                   Hosted by {hackathon.organiser?.name || 'an organiser'}
                 </Text>
               </View>
@@ -434,9 +430,9 @@ const HackathonDetail = () => {
 
             {/* Fync lists, the organiser runs it. Saying so up front stops
                 students waiting for a Fync-side registration that never comes. */}
-            <View className="flex-row items-start bg-paper-2 border border-line rounded-card p-3 mt-3.5">
+            <View className="flex-row items-start bg-paper-2 border border-line rounded-2xl p-3 mt-3.5">
               <Feather name="info" size={13} color={C.ink3} style={{ marginTop: 1 }} />
-              <Text className="text-ink-2 text-label leading-4 ml-2 flex-1">
+              <Text className="text-ink-2 text-xs leading-4 ml-2 flex-1">
                 Registration, teams and judging are handled by the organiser
                 {hackathon.applyLink ? ` on ${hostOf(hackathon.applyLink)}` : ''}. Fync just lists it.
               </Text>
@@ -454,9 +450,9 @@ const HackathonDetail = () => {
           </View>
 
           {hackathon.registrationends ? (
-            <View className="flex-row items-center bg-card border border-line rounded-card p-3.5 mt-2.5">
+            <View className="flex-row items-center bg-card border border-line rounded-2xl p-4 mt-2.5">
               <Feather name={regClosed ? 'lock' : 'clock'} size={13} color={regClosed ? C.ink3 : C.brand[700]} />
-              <Text className="text-ink-2 text-label font-semibold ml-2">
+              <Text className="text-ink-2 text-xs font-semibold ml-2">
                 {regClosed
                   ? `Registration closed ${fmtDate(hackathon.registrationends)}`
                   : `Register by ${fmtDate(hackathon.registrationends)}`}
@@ -469,7 +465,7 @@ const HackathonDetail = () => {
             <View className="mt-6">
               <View className="flex-row items-center mb-3">
                 <MaterialCommunityIcons name="trophy" size={17} color="#D97706" />
-                <Text className="text-ink text-base font-display ml-2">Winners</Text>
+                <Text className="text-ink text-base font-semibold ml-2">Winners</Text>
               </View>
               {[...winners]
                 .sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99))
@@ -482,12 +478,12 @@ const HackathonDetail = () => {
                 ))}
             </View>
           ) : hasEnded ? (
-            <View className="items-center bg-card border border-line rounded-card p-5 mt-6">
+            <View className="items-center bg-card border border-line rounded-2xl p-5 mt-6">
               <MaterialCommunityIcons name="trophy-outline" size={24} color={C.ink4} />
-              <Text className="text-ink-2 text-label font-semibold mt-2 text-center">
+              <Text className="text-ink-2 text-xs font-semibold mt-2 text-center">
                 Results not announced yet
               </Text>
-              <Text className="text-ink-3 text-label text-center mt-1 leading-4">
+              <Text className="text-ink-3 text-xs text-center mt-1 leading-4">
                 The organiser will tag the winners here once they are out.
               </Text>
             </View>
@@ -495,23 +491,12 @@ const HackathonDetail = () => {
 
           {/* Tabs */}
           <View className="mt-6">
-            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 14 }}>
-              {TABS.map((tab, i) => {
-                const on = activeTab === i;
-                return (
-                  <TouchableOpacity
-                    key={tab}
-                    onPress={() => setActiveTab(i)}
-                    className={`px-3.5 py-2 rounded-lg border ${on ? 'bg-ink border-ink' : 'bg-card border-line'}`}
-                    activeOpacity={0.85}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: on }}
-                  >
-                    <Text className={`text-label font-semibold ${on ? 'text-paper' : 'text-ink-2'}`}>{tab}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+            <FilterChips
+              items={TABS}
+              value={TABS[activeTab]}
+              onChange={(t) => setActiveTab(TABS.indexOf(t))}
+              style={{ marginHorizontal: -20, marginBottom: 12 }}
+            />
 
             {/* Overview */}
             {activeTab === 0 ? (
@@ -524,20 +509,16 @@ const HackathonDetail = () => {
                 ) : null}
 
                 {hackathon.tags?.length ? (
-                  <View className="flex-row flex-wrap mb-5" style={{ gap: 6 }}>
-                    {hackathon.tags.map((t: string, i: number) => (
-                      <View key={`${t}-${i}`} className="bg-paper-2 border border-line px-2.5 py-1 rounded-md">
-                        <Text className="text-ink-2 text-label font-semibold">{t}</Text>
-                      </View>
-                    ))}
-                  </View>
+                  <TagRow style={{ marginBottom: 20 }}>
+                    {hackathon.tags.map((t: string, i: number) => <Tag key={`${t}-${i}`} label={t} />)}
+                  </TagRow>
                 ) : null}
 
                 {/* Always shown. An empty list means "open to all", and a
                     missing section reads as the host forgetting rather than
                     the hackathon being open. */}
                 <SectionTitle>Who can apply</SectionTitle>
-                <View className="bg-card border border-line rounded-card p-4 mb-5">
+                <View className="bg-card border border-line rounded-2xl p-4 mb-5">
                   {[
                     ['Colleges', hackathon.eligibility?.colleges, 'All colleges'],
                     ['Batches', hackathon.eligibility?.Year, 'All batches'],
@@ -546,20 +527,16 @@ const HackathonDetail = () => {
                     const open = !vals?.length;
                     return (
                       <View key={label} className={`flex-row ${i < 2 ? 'mb-3' : ''}`}>
-                        <Text className="text-ink-3 text-label font-semibold w-20">{label}</Text>
+                        <Text className="text-ink-3 text-xs font-semibold w-20">{label}</Text>
                         {open ? (
                           <View className="flex-row items-center flex-1">
                             <Feather name="check" size={12} color={C.success} />
-                            <Text className="text-success text-label font-semibold ml-1.5">{allLabel}</Text>
+                            <Text className="text-success text-xs font-semibold ml-1.5">{allLabel}</Text>
                           </View>
                         ) : (
-                          <View className="flex-row flex-wrap flex-1" style={{ gap: 6 }}>
-                            {vals.map((v: string) => (
-                              <View key={v} className="bg-paper-2 border border-line px-2 py-1 rounded-md">
-                                <Text className="text-ink-2 text-label font-semibold">{v}</Text>
-                              </View>
-                            ))}
-                          </View>
+                          <TagRow style={{ flex: 1 }}>
+                            {vals.map((v: string) => <Tag key={v} label={v} />)}
+                          </TagRow>
                         )}
                       </View>
                     );
@@ -573,7 +550,7 @@ const HackathonDetail = () => {
                       {hackathon.rules.map((r: string, i: number) =>
                         r ? (
                           <View key={i} className="flex-row mb-2">
-                            <Text className="text-brand-700 text-label font-semibold mr-2">{i + 1}.</Text>
+                            <Text className="text-brand-700 text-xs font-semibold mr-2">{i + 1}.</Text>
                             <Text className="text-ink-2 text-sm leading-5 flex-1">{r}</Text>
                           </View>
                         ) : null
@@ -587,9 +564,9 @@ const HackathonDetail = () => {
                     <SectionTitle>Sponsors</SectionTitle>
                     <View className="flex-row flex-wrap mb-5" style={{ gap: 8 }}>
                       {hackathon.sponsors.map((s: any, i: number) => (
-                        <View key={i} className="flex-row items-center bg-card border border-line rounded-card px-3 py-2">
+                        <View key={i} className="flex-row items-center bg-card border border-line rounded-2xl px-3 py-2">
                           {s.logo ? <Image source={{ uri: s.logo }} className="w-6 h-6 rounded mr-2" resizeMode="contain" /> : null}
-                          <Text className="text-ink-2 text-label font-semibold">{s.name}</Text>
+                          <Text className="text-ink-2 text-xs font-semibold">{s.name}</Text>
                         </View>
                       ))}
                     </View>
@@ -607,15 +584,14 @@ const HackathonDetail = () => {
                         ['mail', 'Contact', hackathon.contactEmail],
                       ].map(([icon, label, val]: any) =>
                         val ? (
-                          <TouchableOpacity
+                          <Pressable
                             key={label}
                             onPress={() =>
                               Linking.openURL(label === 'Contact' ? `mailto:${val}` : val).catch(() =>
                                 Toast.show({ type: 'error', text1: 'Could not open that link' })
                               )
                             }
-                            className="flex-row items-center bg-card border border-line rounded-card p-3.5 mb-2"
-                            activeOpacity={0.85}
+                            className="flex-row items-center bg-card border border-line rounded-2xl p-4 mb-2 active:opacity-70"
                             accessibilityRole="link"
                           >
                             <Feather name={icon} size={14} color={C.ink3} />
@@ -623,7 +599,7 @@ const HackathonDetail = () => {
                               {val}
                             </Text>
                             <Feather name="external-link" size={13} color={C.ink4} />
-                          </TouchableOpacity>
+                          </Pressable>
                         ) : null
                       )}
                     </View>
@@ -639,19 +615,19 @@ const HackathonDetail = () => {
                   {hackathon.timeline.map((t: any, i: number) => (
                     <View key={i} className="flex-row mb-1">
                       <View className="items-center mr-3" style={{ width: 18 }}>
-                        <View className="w-2.5 h-2.5 rounded-full bg-brand-500 border-2 border-ink" style={{ marginTop: 5 }} />
+                        <View className="w-2.5 h-2.5 rounded-full bg-brand-500" style={{ marginTop: 5 }} />
                         {i < hackathon.timeline.length - 1 ? <View className="flex-1 w-0.5 bg-line" /> : null}
                       </View>
                       <View className="flex-1 pb-5">
                         <Text className="text-ink text-sm font-semibold">{t.label}</Text>
-                        <Text className="text-brand-700 text-label font-semibold mt-0.5">{fmtDate(t.date)}</Text>
+                        <Text className="text-brand-700 text-xs font-semibold mt-0.5">{fmtDate(t.date)}</Text>
                         {t.description ? <Text className="text-ink-2 text-sm leading-5 mt-1">{t.description}</Text> : null}
                       </View>
                     </View>
                   ))}
                 </View>
               ) : (
-                <Text className="text-ink-3 text-label font-semibold">The organiser has not posted a schedule.</Text>
+                <Text className="text-ink-3 text-xs font-semibold">The organiser has not posted a schedule.</Text>
               )
             ) : null}
 
@@ -660,15 +636,15 @@ const HackathonDetail = () => {
               hackathon.tracks?.length ? (
                 <View>
                   {hackathon.tracks.map((t: any, i: number) => (
-                    <View key={i} className="bg-card border border-line rounded-card p-4 mb-2.5">
+                    <View key={i} className="bg-card border border-line rounded-2xl p-4 mb-3">
                       <Text className="text-ink text-sm font-semibold mb-1">{t.title}</Text>
                       {t.description ? <Text className="text-ink-2 text-sm leading-5">{t.description}</Text> : null}
-                      {t.prizes ? <Text className="text-success text-label font-semibold mt-2">{t.prizes}</Text> : null}
+                      {t.prizes ? <Text className="text-success text-xs font-semibold mt-2">{t.prizes}</Text> : null}
                     </View>
                   ))}
                 </View>
               ) : (
-                <Text className="text-ink-3 text-label font-semibold">No separate tracks for this one.</Text>
+                <Text className="text-ink-3 text-xs font-semibold">No separate tracks for this one.</Text>
               )
             ) : null}
 
@@ -679,7 +655,7 @@ const HackathonDetail = () => {
                   {hackathon.prizes.map((p: any, i: number) => {
                     const meta = RANK_META()[p.rank] ?? { label: `#${p.rank}`, medal: C.ink3, tint: 'bg-card border-line' };
                     return (
-                      <View key={i} className={`flex-row items-center justify-between border rounded-card p-4 mb-2.5 ${meta.tint}`}>
+                      <View key={i} className={`flex-row items-center justify-between border rounded-2xl p-4 mb-3 ${meta.tint}`}>
                         <View className="flex-row items-center flex-1 mr-3">
                           <MaterialCommunityIcons name="trophy-variant-outline" size={16} color={meta.medal} />
                           <Text className="text-ink text-sm font-semibold ml-2.5" numberOfLines={1}>
@@ -692,7 +668,7 @@ const HackathonDetail = () => {
                   })}
                 </View>
               ) : (
-                <Text className="text-ink-3 text-label font-semibold">Prize breakdown not published.</Text>
+                <Text className="text-ink-3 text-xs font-semibold">Prize breakdown not published.</Text>
               )
             ) : null}
 
@@ -703,7 +679,7 @@ const HackathonDetail = () => {
                   {hackathon.faqs.map((f: any, i: number) => (f.question ? <FAQItem key={i} faq={f} /> : null))}
                 </View>
               ) : (
-                <Text className="text-ink-3 text-label font-semibold">No FAQs yet.</Text>
+                <Text className="text-ink-3 text-xs font-semibold">No FAQs yet.</Text>
               )
             ) : null}
           </View>
@@ -711,66 +687,29 @@ const HackathonDetail = () => {
           {/* Organiser controls */}
           {isOrganiser ? (
             <View className="mt-7 border-t border-line pt-5">
-              <Text className="text-ink-3 text-label font-semibold mb-3">ORGANISER</Text>
+              <Label style={{ marginBottom: 12 }}>Organiser</Label>
 
-              <TouchableOpacity
-                onPress={() => navigation.navigate('HackathonWinners', { hackathonId, hackathonTitle: hackathon.title })}
-                className="flex-row items-center bg-ink border-2 border-ink rounded-card p-4 mb-2.5"
-                activeOpacity={0.9}
-                accessibilityRole="button"
-              >
-                <MaterialCommunityIcons name="trophy" size={17} color={C.brand[500]} />
-                <View className="flex-1 ml-3">
-                  <Text className="text-paper text-sm font-semibold">
-                    {winners.length ? 'Edit winners' : 'Announce winners'}
-                  </Text>
-                  <Text className="text-paper/60 text-label mt-0.5">
-                    Tag the students who won — it lands on their profile
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={C.paper + '80'} />
-              </TouchableOpacity>
+              <Card style={{ paddingHorizontal: 16, marginBottom: 12 }}>
+                <ListRow
+                  icon="trophy-outline"
+                  title={winners.length ? 'Edit winners' : 'Announce winners'}
+                  subtitle="Tag the students who won — it lands on their profile"
+                  subtitleLines={2}
+                  onPress={() => navigation.navigate('HackathonWinners', { hackathonId, hackathonTitle: hackathon.title })}
+                />
+                <Divider />
+                <ListRow icon="create-outline" title="Edit listing" onPress={() => navigation.navigate('HackathonCreate', { hackathonId })} />
+                <Divider />
+                <ListRow
+                  icon={isDraft ? 'eye-outline' : 'eye-off-outline'}
+                  title={isDraft ? 'Publish listing' : 'Hide listing'}
+                  subtitle={isDraft ? 'Not visible in the hub yet' : 'Live / upcoming / ended follow your dates — edit them to change it'}
+                  subtitleLines={2}
+                  onPress={() => setVisibility(isDraft ? 'published' : 'draft')}
+                />
+              </Card>
 
-              <TouchableOpacity
-                onPress={() => navigation.navigate('HackathonCreate', { hackathonId })}
-                className="flex-row items-center bg-card border border-line rounded-card p-4 mb-2.5"
-                activeOpacity={0.85}
-                accessibilityRole="button"
-              >
-                <Feather name="edit-3" size={15} color={C.ink} />
-                <Text className="text-ink text-sm font-semibold ml-3 flex-1">Edit listing</Text>
-                <Ionicons name="chevron-forward" size={16} color={C.ink4} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setVisibility(isDraft ? 'published' : 'draft')}
-                className="flex-row items-center bg-card border border-line rounded-card p-4 mb-2.5"
-                activeOpacity={0.85}
-                accessibilityRole="button"
-              >
-                <Feather name={isDraft ? 'eye' : 'eye-off'} size={15} color={C.ink} />
-                <View className="flex-1 ml-3">
-                  <Text className="text-ink text-sm font-semibold">
-                    {isDraft ? 'Publish listing' : 'Hide listing'}
-                  </Text>
-                  <Text className="text-ink-3 text-label mt-0.5">
-                    {isDraft
-                      ? 'Not visible in the hub yet'
-                      : 'Live / upcoming / ended follow your dates — edit them to change it'}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={C.ink4} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={deleteListing}
-                className="flex-row items-center justify-center border border-danger/30 bg-danger/5 rounded-card p-3.5"
-                activeOpacity={0.85}
-                accessibilityRole="button"
-              >
-                <Feather name="trash-2" size={14} color={C.danger} />
-                <Text className="text-danger text-label font-semibold ml-2">Delete listing</Text>
-              </TouchableOpacity>
+              <Button variant="danger" icon="trash-outline" title="Delete listing" onPress={deleteListing} block />
             </View>
           ) : null}
         </View>
@@ -781,20 +720,15 @@ const HackathonDetail = () => {
         className="absolute left-0 right-0 bottom-0 bg-paper border-t border-line px-gutter pt-3"
         style={{ paddingBottom: 12 + bottomInset }}
       >
-        <TouchableOpacity
+        <Button
+          variant="primary"
+          block
+          icon="open-outline"
+          title={hackathon.applyLabel || 'Register'}
           onPress={openApplyLink}
-          className="flex-row items-center justify-center bg-brand-500 border-2 border-ink rounded-card"
-          style={{ minHeight: 52, shadowColor: '#12100E', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 }}
-          activeOpacity={0.9}
-          accessibilityRole="link"
           accessibilityLabel={`${hackathon.applyLabel || 'Register'} — opens ${hostOf(hackathon.applyLink)}`}
-        >
-          <Text className="text-on-brand text-base font-display">
-            {hackathon.applyLabel || 'Register'}
-          </Text>
-          <Feather name="external-link" size={15} color={C.onBrand} style={{ marginLeft: 8 }} />
-        </TouchableOpacity>
-        <Text className="text-ink-3 text-label font-semibold text-center mt-2" numberOfLines={1}>
+        />
+        <Text className="text-ink-3 text-xs font-semibold text-center mt-2" numberOfLines={1}>
           {hackathon.applyLink ? `Opens ${hostOf(hackathon.applyLink)}` : 'No registration link yet'}
         </Text>
       </View>

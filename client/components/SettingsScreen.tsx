@@ -3,7 +3,7 @@
  * cached content, notification permission, the legal pages, and signing out.
  */
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Linking, StatusBar, Platform } from 'react-native';
+import { View, Text, ScrollView, Pressable, Linking, StatusBar, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,7 +12,7 @@ import { Image as ExpoImage } from 'expo-image';
 import Constants from 'expo-constants';
 import { useAuth } from '../context/auth.context';
 import { Alert } from './ui/AlertModal';
-import { AppBar } from './ui/kit';
+import { AppBar, Button, Card, Divider, ListRow, SectionHeader } from './ui/kit';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 import axios from '../context/axiosConfig';
@@ -187,66 +187,46 @@ export default function SettingsScreen() {
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle={C.barStyle} />
-      <View className="flex-1">
-        <AppBar title="Settings & More" onBack={() => navigation.goBack()} />
-        <View className="px-gutter">
-          <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>
-            Everything about your account
-          </Text>
-        </View>
+      <AppBar title="Settings" onBack={() => navigation.goBack()} />
 
-        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-gutter" showsVerticalScrollIndicator={false}>
-          {sections.map((sec) => (
-            <View key={sec.title}>
-              <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                <Text className="text-ink text-label font-display uppercase">{sec.title}</Text>
-                <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-              </View>
-
-              {sec.rows.map((row) => (
-                <TouchableOpacity
-                  key={row.label}
-                  onPress={row.onPress}
-                  className="flex-row items-center bg-card rounded-card p-4 border border-line mb-2"
-                  accessibilityRole="button"
-                  accessibilityLabel={row.label}
-                >
-                  <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center mr-3">
-                    <Ionicons name={row.icon} size={18} color={C.ink2} />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-ink text-sm">{row.label}</Text>
-                    {!!row.hint && <Text className="text-ink-3 text-label mt-0.5">{row.hint}</Text>}
-                  </View>
-                  {!!row.value && <Text className="text-ink-3 font-mono text-label mr-2">{row.value}</Text>}
-                  <Ionicons name="chevron-forward" size={18} color={C.ink4} />
-                </TouchableOpacity>
+      <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-gutter" showsVerticalScrollIndicator={false}>
+        {sections.map((sec) => (
+          <View key={sec.title}>
+            <SectionHeader title={sec.title} />
+            <Card style={{ paddingHorizontal: 16 }}>
+              {sec.rows.map((row, i) => (
+                <React.Fragment key={row.label}>
+                  {i > 0 && <Divider />}
+                  <ListRow
+                    icon={row.icon}
+                    title={row.label}
+                    subtitle={row.hint}
+                    meta={row.value || undefined}
+                    onPress={row.onPress}
+                    chevron
+                  />
+                </React.Fragment>
               ))}
-            </View>
-          ))}
+            </Card>
+          </View>
+        ))}
 
-          <TouchableOpacity
-            onPress={confirmLogout}
-            className="flex-row items-center justify-center bg-card rounded-card p-4 border-2 border-danger mt-8"
-            accessibilityRole="button" accessibilityLabel="Sign out"
-          >
-            <Ionicons name="log-out-outline" size={18} color={C.danger} style={{ marginRight: 8 }} />
-            <Text className="text-danger font-display uppercase text-label">Sign out</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
+        <View style={{ marginTop: 32, gap: 12 }}>
+          <Button title="Sign out" icon="log-out-outline" variant="secondary" block onPress={confirmLogout} />
+          <Pressable
             onPress={confirmDeleteAccount}
-            className="items-center justify-center p-4 mt-3"
+            className="items-center justify-center active:opacity-70"
+            style={{ minHeight: 44 }}
             accessibilityRole="button" accessibilityLabel="Delete account"
           >
-            <Text className="text-danger text-label">Delete account</Text>
-          </TouchableOpacity>
+            <Text className="text-danger text-sm font-semibold">Delete account</Text>
+          </Pressable>
+        </View>
 
-          <Text className="text-ink-3 text-label text-center mt-6 mb-12">
-            Fync {Constants.expoConfig?.version ?? ''}{Platform.OS === 'ios' ? ' · iOS' : ' · Android'}
-          </Text>
-        </ScrollView>
-      </View>
+        <Text className="text-ink-3 text-label text-center mt-6 mb-12">
+          Fync {Constants.expoConfig?.version ?? ''}{Platform.OS === 'ios' ? ' · iOS' : ' · Android'}
+        </Text>
+      </ScrollView>
     </View>
   );
 }

@@ -1,19 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StatusBar,
-  TextInput,
-} from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image } from 'expo-image';
-import { AppBar } from '../ui/kit';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, FlatList, StatusBar } from 'react-native';
+import { AppBar, ListRow, FilterChips, SearchField, Empty, Meta } from '../ui/kit';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../../constants/colors';
-
-const PDF_IMG = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
 
 const dsaTopics = [
   { id: '1', name: '1. Intro + Recursion', url: 'https://raw.githubusercontent.com/Deeksha2501/Data-Structures-and-Algorithms-Notes/main/1.%20Intro%2BRecursion.pdf', category: 'Fundamentals' },
@@ -34,13 +23,28 @@ const dsaTopics = [
   { id: '16', name: 'Operating System Notes', url: 'https://raw.githubusercontent.com/Deeksha2501/Data-Structures-and-Algorithms-Notes/main/OperatingSystem.pdf', category: 'Fundamentals' }
 ];
 
+type Topic = typeof dsaTopics[number];
+
+const categories = ['all', ...Array.from(new Set(dsaTopics.map(t => t.category.toLowerCase())))];
+const categoryLabels = Object.fromEntries(categories.map(c => [c, c.charAt(0).toUpperCase() + c.slice(1)]));
+
+const TopicRow = React.memo(function TopicRow({ item, onOpen }: { item: Topic; onOpen: (t: Topic) => void }) {
+  return (
+    <ListRow
+      icon="document-text-outline"
+      title={item.name}
+      subtitle={`${item.category} note`}
+      onPress={() => onOpen(item)}
+      style={{ paddingHorizontal: 20 }}
+    />
+  );
+});
+
 const DSAPrep = () => {
   const navigation = useNavigation<any>();
   const [search, setSearch] = useState("");
   const [filteredTopics, setFilteredTopics] = useState(dsaTopics);
   const [activeFilter, setActiveFilter] = useState('all');
-
-  const categories = ['all', ...Array.from(new Set(dsaTopics.map(t => t.category.toLowerCase())))];
 
   useEffect(() => {
     let result = dsaTopics;
@@ -53,104 +57,36 @@ const DSAPrep = () => {
     setFilteredTopics(result);
   }, [search, activeFilter]);
 
-  const handlePress = (topic: any) => {
+  const handlePress = useCallback((topic: Topic) => {
     navigation.navigate('PDFViewerScreen', { url: topic.url, title: topic.name });
-  };
+  }, [navigation]);
+
+  const renderItem = useCallback(({ item }: { item: Topic }) => <TopicRow item={item} onOpen={handlePress} />, [handlePress]);
 
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle={C.barStyle} />
-
-      {/* HEADER DECORATION */}
-
-      <View className="flex-1">
-        <AppBar title="DSA Prep" onBack={() => navigation.goBack()} />
-        <FlatList keyboardShouldPersistTaps="handled"
-          data={filteredTopics}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          ListHeaderComponent={
-            <View className='px-gutter pt-2 bg-transparent'>
-
-              <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink mb-6 rounded-md">
-                <Ionicons name="search" size={20} color={C.ink4} />
-                <TextInput
-                  placeholder="Search DSA topics..."
-                  placeholderTextColor={C.ink4}
-                  value={search}
-                  onChangeText={setSearch}
-                  className="flex-1 text-ink font-display text-sm p-3"
-                />
-              </View>
-
-              {/* CATEGORY FILTERS */}
-              <View className="mb-6">
-                <FlatList keyboardShouldPersistTaps="handled"
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  data={categories}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      onPress={() => setActiveFilter(item)}
-                      className={`mr-3 px-6 py-3 rounded-full border border-line ${activeFilter === item ? 'bg-ink' : 'bg-card'}`}
-                    >
-                      <Text className={`font-display text-label uppercase ${activeFilter === item ? 'text-paper' : 'text-ink-3'}`}>
-                        {item}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                  keyExtractor={item => item}
-                />
-              </View>
-
-              <View className="mb-6 flex-row items-center">
-                <View className="bg-fam-study/10 border border-fam-study/20 mr-2 px-2.5 py-1 rounded-full">
-                  <Text className="text-fam-study font-display text-label uppercase">Resources</Text>
-                </View>
-                <Text className="text-ink-3 text-label font-display uppercase flex-1" numberOfLines={1}>/ Placement Protocol / {activeFilter}</Text>
-              </View>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              activeOpacity={0.7}
-              className="flex-row items-center p-5 mx-gutter mb-4 bg-card rounded-card border border-line"
-              onPress={() => handlePress(item)}
-            >
-              <View className="w-14 h-14 bg-paper-2 rounded-card items-center justify-center p-2.5">
-                <Image
-                  source={{ uri: PDF_IMG }}
-                  style={{ width: '100%', height: '100%' }}
-                  contentFit="contain"
-                  cachePolicy="memory-disk"
-                />
-              </View>
-
-              <View className="ml-4 flex-1">
-                <Text className="text-ink text-sm font-display uppercase" numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <Text className="text-ink-3 text-label font-display uppercase mt-1">
-                  {item.category} Note
-                </Text>
-              </View>
-
-              <View className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
-                <Ionicons name="chevron-forward" size={12} color={C.ink4} />
-              </View>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={
-            <View className="items-center mt-20 px-gutter">
-              <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                <Ionicons name="search-outline" size={32} color={C.ink4} />
-              </View>
-              <Text className="font-semibold text-base text-ink text-center">No topics found</Text>
-            </View>
-          }
-        />
-      </View>
+      <AppBar title="DSA Prep" onBack={() => navigation.goBack()} />
+      <FlatList keyboardShouldPersistTaps="handled"
+        data={filteredTopics}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        ListHeaderComponent={
+          <View className="pt-2 pb-2">
+            <SearchField
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search DSA topics"
+              containerStyle={{ marginHorizontal: 20, marginBottom: 12 }}
+            />
+            <FilterChips items={categories} value={activeFilter} onChange={setActiveFilter} labels={categoryLabels} />
+            <Meta style={{ paddingHorizontal: 20, marginTop: 16 }}>{filteredTopics.length} notes</Meta>
+          </View>
+        }
+        ListEmptyComponent={<Empty icon="search-outline" title="No topics found" hint="Try another name or filter." />}
+      />
     </View>
   );
 };

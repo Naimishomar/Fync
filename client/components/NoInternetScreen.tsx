@@ -15,26 +15,27 @@ const NoInternetScreen = ({ onRetry }: { onRetry: () => void }) => {
 
   return (
     <SafeAreaView className="flex-1 bg-paper justify-center items-center">
-      <View className="w-[85%] items-center p-5">
-        <View className="mb-10 justify-center items-center">
-          <Ionicons name="cloud-offline-outline" size={80} color={C.brand[500]} />
-          <View className="absolute w-[120px] h-[120px] rounded-sheet bg-brand-500/10 -z-10" />
+      <View className="w-full items-center px-gutter" style={{ gap: 12, maxWidth: 400 }}>
+        <View className="w-16 h-16 rounded-full bg-paper-2 items-center justify-center mb-2">
+          <Ionicons name="cloud-offline-outline" size={28} color={C.ink} />
         </View>
-        
-        <Text className="text-2xl font-display text-ink mb-3 text-center">
-          No Connection
+
+        <Text className="font-display text-ink text-center" style={{ fontSize: 24, lineHeight: 29 }} accessibilityRole="header">
+          You’re offline
         </Text>
-        <Text className="text-base text-ink-3 text-center leading-6 mb-10">
-          Your device is currently offline. Please check your internet settings and try again.
+        <Text className="font-sans text-ink-3 text-center mb-4" style={{ fontSize: 15, lineHeight: 22 }}>
+          Check your connection and try again.
         </Text>
 
-        <TouchableOpacity 
-          className="bg-brand-500 flex-row items-center justify-center py-4 px-gutter w-full border-2 border-ink rounded-md"
-          activeOpacity={0.8}
+        <TouchableOpacity
+          className="bg-brand-500 flex-row items-center justify-center w-full rounded-full px-5"
+          style={{ minHeight: 48, gap: 8 }}
+          activeOpacity={0.7}
           onPress={handleRetry}
+          accessibilityRole="button"
         >
-          <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Try Again</Text>
-          <Ionicons name="refresh-outline" size={20} color={C.onBrand} style={{ marginLeft: 8 }} />
+          <Ionicons name="refresh-outline" size={18} color={C.onBrand} />
+          <Text className="font-semibold text-on-brand" style={{ fontSize: 15 }}>Try again</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

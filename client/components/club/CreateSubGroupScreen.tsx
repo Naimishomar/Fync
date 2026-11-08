@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
+import { View, Pressable, Image, ScrollView, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -7,7 +7,7 @@ import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Button, Label, FormField } from '../ui/kit';
 
 const CreateSubGroupScreen = () => {
     const navigation = useNavigation<any>();
@@ -75,67 +75,35 @@ const CreateSubGroupScreen = () => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
-            <View className="flex-1">
-                <AppBar title="Generate Room" onBack={() => navigation.goBack()} />
+            <AppBar title="New room" onBack={() => navigation.goBack()} />
 
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-                    <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                        
-                        {/* Logo Picker */}
-                        <View className="items-center mb-8 mt-4">
-                            <TouchableOpacity onPress={pickLogo} activeOpacity={0.8} className="relative">
-                                {logo ? (
-                                    <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
-                                ) : (
-                                    <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center">
-                                        <Feather name="image" size={24} color={C.ink3} />
-                                        <Text className="text-label font-display uppercase text-ink-3 mt-2">Add Logo</Text>
-                                    </View>
-                                )}
-                                <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-card">
-                                    <Feather name="plus" size={14} color={C.paper} />
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Form Fields */}
-                        <View className="mt-2">
-                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Room Identity</Text>
-                            <TextInput placeholderTextColor={C.ink4} 
-                                placeholder="e.g. Web Development, AI, Sports Talk"
-                                className="bg-card p-5 mb-4 font-semibold border-[1.5px] border-ink text-ink rounded-md"
-                                value={name}
-                                onChangeText={setName}
-                            />
-                            
-                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Scope & Mission</Text>
-                            <TextInput placeholderTextColor={C.ink4} 
-                                placeholder="Briefly describe what happens in this room..."
-                                className="bg-card p-5 mb-10 font-semibold border-[1.5px] border-ink text-ink rounded-md"
-                                multiline
-                                numberOfLines={4}
-                                textAlignVertical="top"
-                                value={description}
-                                onChangeText={setDescription}
-                            />
-                        </View>
-
-                        <TouchableOpacity 
-                            onPress={handleCreate}
-                            disabled={loading}
-                            className="bg-ink py-5 items-center border-2 border-ink rounded-md"
-                        >
-                            {loading ? (
-                                <ActivityIndicator color={C.paper} />
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                <ScrollView className="flex-1" contentContainerStyle={{ padding: 20 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                    <View className="items-center mb-6 mt-4">
+                        <Pressable onPress={pickLogo} accessibilityRole="button" accessibilityLabel={logo ? 'Change logo' : 'Add logo'} className="relative active:opacity-70">
+                            {logo ? (
+                                <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-2xl border border-line bg-paper-2" />
                             ) : (
-                                <Text className="text-paper font-display uppercase">Launch Room</Text>
+                                <View className="w-24 h-24 bg-paper-2 rounded-2xl items-center justify-center">
+                                    <Feather name="image" size={24} color={C.ink3} />
+                                    <Label style={{ marginTop: 4 }}>Add logo</Label>
+                                </View>
                             )}
-                        </TouchableOpacity>
-                        
-                        <View className="h-20" />
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </View>
+                            <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-card">
+                                <Feather name="plus" size={14} color={C.paper} />
+                            </View>
+                        </Pressable>
+                    </View>
+
+                    <View style={{ gap: 16, marginBottom: 24 }}>
+                        <FormField label="Room name" placeholder="e.g. Web Development, AI, Sports Talk" value={name} onChangeText={setName} />
+                        <FormField label="About" placeholder="Briefly describe what happens in this room" multiline value={description} onChangeText={setDescription} />
+                    </View>
+
+                    <Button title="Create room" variant="primary" block loading={loading} onPress={handleCreate} />
+                    <View className="h-20" />
+                </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 };

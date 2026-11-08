@@ -2,14 +2,14 @@ import React from 'react';
 import { View, Text, Pressable, Linking, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Feather from '@expo/vector-icons/Feather';
 import { C } from '../../constants/colors';
+import { Card, IconTile, IconBtn, Tag, TagRow } from '../ui/kit';
+import { OwnerActions } from './ProfileBits';
 
-const STATUS_CONFIG = (): Record<string, { label: string; color: string; bg: string }> => ({
-  completed:    { label: 'Completed',    color: C.ink, bg: C.paper },
-  'in-progress':{ label: 'In Progress',  color: C.brand[500], bg: C.paper2 },
-  archived:     { label: 'Archived',     color: C.ink3, bg: C.paper },
+const STATUS_CONFIG = (): Record<string, { label: string; color: string }> => ({
+  completed:    { label: 'Completed',   color: C.ink2 },
+  'in-progress':{ label: 'In progress', color: C.accentText },
+  archived:     { label: 'Archived',    color: C.ink3 },
 });
 
 interface Project {
@@ -45,122 +45,89 @@ export default function ProjectCard({
   const isLiked = project.likes?.includes(currentUserId || '');
 
   return (
-    <View className="mx-4 mb-6 bg-card rounded-card border border-line overflow-hidden shadow-hair">
-      {/* Images Slider */}
+    <Card style={{ marginHorizontal: 16, marginBottom: 12, padding: 0, overflow: 'hidden' }}>
       {project.images && project.images.length > 0 ? (
-        <ScrollView keyboardShouldPersistTaps="handled" 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
           className="bg-paper-2"
-          contentContainerStyle={{ padding: 12 }}
+          contentContainerStyle={{ padding: 12, gap: 12 }}
         >
-           {project.images.map((img, i) => (
-             <Image
-                key={i}
-                source={{ uri: img }}
-                style={{ width: 288, height: 176, borderRadius: 12, marginRight: 16, borderWidth: 1, borderColor: C.line }}
-                contentFit="cover"
-                cachePolicy="memory-disk"
-             />
-           ))}
+          {project.images.map((img, i) => (
+            <Image
+              key={i}
+              source={{ uri: img }}
+              style={{ width: 288, height: 176, borderRadius: 12 }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+            />
+          ))}
         </ScrollView>
       ) : (
-        <View className="w-full h-32 bg-paper-2 items-center justify-center border-b border-line">
-          <View className="w-12 h-12 bg-card rounded-card items-center justify-center shadow-hair">
-            <Feather name="box" size={24} color={C.brand[500]} />
-          </View>
-          <Text className="text-label text-ink-3 font-display uppercase mt-3">No Screenshots Added</Text>
+        <View className="w-full h-28 bg-paper-2 items-center justify-center">
+          <IconTile icon="cube-outline" size={44} color={C.ink3} bg={C.card} />
+          <Text className="text-xs text-ink-3 font-sans mt-2">No screenshots added</Text>
         </View>
       )}
 
-      <View className="p-6">
-        {/* Title row */}
-        <View className="flex-row items-start justify-between mb-2">
-          <View className="flex-1 mr-4">
-            <View className="flex-row items-center gap-2 mb-1">
-              {project.isFeatured && (
-                <View className="bg-brand-500 w-2 h-2 rounded-full shadow-hair" />
-              )}
-              <Text className="text-ink font-display uppercase text-sm leading-tight" numberOfLines={1}>
-                {project.title}
-              </Text>
+      <View className="p-4">
+        <View className="flex-row items-start" style={{ gap: 12 }}>
+          <View className="flex-1" style={{ minWidth: 0 }}>
+            <View className="flex-row items-center" style={{ gap: 6 }}>
+              {project.isFeatured ? <Ionicons name="star" size={14} color={C.accentText} accessibilityLabel="Featured" /> : null}
+              <Text className="text-ink font-semibold text-base flex-1" numberOfLines={1}>{project.title}</Text>
             </View>
             {!!project.tagline && (
-              <Text className="text-ink-3 font-semibold text-label uppercase" numberOfLines={1}>{project.tagline}</Text>
+              <Text className="text-ink-2 text-sm font-sans mt-0.5" numberOfLines={1}>{project.tagline}</Text>
             )}
           </View>
-          <View className="border border-line px-2.5 py-1 rounded-full" style={{ backgroundColor: status.bg }}>
-            <Text className="text-label font-display uppercase" style={{ color: status.color }}>{status.label}</Text>
-          </View>
+          <Tag label={status.label} tone={{ fg: status.color }} />
         </View>
 
-        {/* Description */}
         {!!project.description && (
-          <Text className="text-ink-2 text-xs leading-[20px] font-medium mb-4" numberOfLines={3}>
-            {project.description}
-          </Text>
+          <Text className="text-ink-2 text-sm leading-5 font-sans mt-2" numberOfLines={3}>{project.description}</Text>
         )}
 
-        {/* Tech Stack */}
-        {project.techStack && project.techStack.length > 0 && (
-          <View className="flex-row flex-wrap gap-2 mb-6">
-            {project.techStack.slice(0, 5).map((tech, i) => (
-              <View key={i} className="bg-ink px-2.5 py-1 rounded-full">
-                <Text className="text-paper text-label font-display uppercase">{tech}</Text>
-              </View>
-            ))}
-            {project.techStack.length > 5 && (
-              <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                <Text className="text-ink-3 text-label font-display">+{project.techStack.length - 5}</Text>
-              </View>
-            )}
-          </View>
-        )}
+        {project.techStack && project.techStack.length > 0 ? (
+          <TagRow style={{ marginTop: 12 }}>
+            {project.techStack.slice(0, 5).map((tech, i) => <Tag key={i} label={tech} />)}
+            {project.techStack.length > 5 ? <Tag label={`+${project.techStack.length - 5}`} /> : null}
+          </TagRow>
+        ) : null}
 
-        {/* Footer row */}
-        <View className="flex-row items-center justify-between border-t border-line pt-5">
-          {/* Links */}
-          <View className="flex-row gap-3">
-            {!!project.githubUrl && (
-              <Pressable onPress={() => Linking.openURL(project.githubUrl!).catch(() => {})}
-                className="w-10 h-10 bg-card items-center justify-center rounded-card border border-line shadow-hair">
-                <Ionicons name="logo-github" size={18} color={C.ink} />
-              </Pressable>
-            )}
-            {!!project.liveUrl && (
-              <Pressable onPress={() => Linking.openURL(project.liveUrl!).catch(() => {})}
-                className="w-10 h-10 bg-card items-center justify-center rounded-card border border-line shadow-hair">
-                <Feather name="external-link" size={16} color={C.brand[500]} />
-              </Pressable>
-            )}
-          </View>
-
-          {/* Actions */}
-          <View className="flex-row items-center gap-4">
-            <Pressable onPress={() => onLike?.(project._id)} className="flex-row items-center gap-1.5 bg-paper-2 px-3 py-2 rounded-xl">
-              <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={14}
-                color={isLiked ? C.danger : C.ink3} />
-              <Text className="text-ink-3 font-display text-label">{project.likes?.length || 0}</Text>
-            </Pressable>
-
-            {/* Owner actions */}
-            {isOwner && (
-              <View className="flex-row items-center gap-2 border-l border-line pl-4">
-                <Pressable onPress={() => onToggleFeatured?.(project._id)} hitSlop={6} className="w-8 h-8 items-center justify-center bg-paper-2 rounded-xl">
-                  <Ionicons name={project.isFeatured ? 'star' : 'star-outline'} size={14}
-                    color={project.isFeatured ? C.brand[500] : C.ink3} />
-                </Pressable>
-                <Pressable onPress={() => onEdit?.(project)} hitSlop={6} className="w-8 h-8 items-center justify-center bg-ink rounded-xl">
-                  <Feather name="edit-3" size={12} color={C.paper} />
-                </Pressable>
-                <Pressable onPress={() => onDelete?.(project._id)} hitSlop={6} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
-                  <Ionicons name="trash-outline" size={14} color={C.danger} />
-                </Pressable>
-              </View>
-            )}
-          </View>
+        <View className="flex-row items-center border-t border-line pt-2 mt-4">
+          {project.githubUrl ? (
+            <IconBtn name="logo-github" size={20} onPress={() => Linking.openURL(project.githubUrl!).catch(() => {})} accessibilityLabel="Open GitHub repository" />
+          ) : null}
+          {project.liveUrl ? (
+            <IconBtn name="open-outline" size={20} color={C.ink2} onPress={() => Linking.openURL(project.liveUrl!).catch(() => {})} accessibilityLabel="Open live link" />
+          ) : null}
+          <View className="flex-1" />
+          <Pressable
+            onPress={() => onLike?.(project._id)}
+            accessibilityRole="button"
+            accessibilityLabel={isLiked ? 'Unlike project' : 'Like project'}
+            accessibilityState={{ selected: !!isLiked }}
+            className="flex-row items-center px-3 rounded-full active:opacity-70"
+            style={{ minHeight: 44, gap: 6 }}
+          >
+            <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={18} color={isLiked ? C.danger : C.ink3} />
+            <Text className="text-ink-2 font-semibold text-sm">{project.likes?.length || 0}</Text>
+          </Pressable>
+          {isOwner ? (
+            <>
+              <IconBtn
+                name={project.isFeatured ? 'star' : 'star-outline'}
+                size={18}
+                color={project.isFeatured ? C.accentText : C.ink3}
+                onPress={() => onToggleFeatured?.(project._id)}
+                accessibilityLabel={project.isFeatured ? 'Unfeature project' : 'Feature project'}
+              />
+              <OwnerActions what="project" onEdit={() => onEdit?.(project)} onDelete={() => onDelete?.(project._id)} />
+            </>
+          ) : null}
         </View>
       </View>
-    </View>
+    </Card>
   );
 }

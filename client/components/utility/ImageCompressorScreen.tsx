@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator} from 'react-native'
-// SafeAreaView from 'react-native' is iOS-only — on Android it renders as a
-// plain View and applies no insets, so content collides with the status bar
-// and the gesture bar. The safe-area-context version works on both.
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { AppBar } from '../ui/kit';
+import { Button, Card, Label, Num } from '../ui/kit';
+import { ToolScreen, PickZone, Thumb, OptionCard, Choices } from './pdf/PdfToolShell';
 import * as ImagePicker from 'expo-image-picker';
 import { Image as ImageCompressor } from 'react-native-compressor';
 import * as Sharing from 'expo-sharing';
@@ -18,7 +14,6 @@ import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 
 export default function ImageCompressorScreen() {
-  const navigation = useNavigation();
   const [originalUri, setOriginalUri] = useState<string | null>(null);
   const [compressedUri, setCompressedUri] = useState<string | null>(null);
   const [originalSize, setOriginalSize] = useState<number>(0);
@@ -105,92 +100,51 @@ export default function ImageCompressorScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: C.paper }}>
-      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-        <AppBar title="Compress Image" onBack={() => navigation.goBack()} />
+    <ToolScreen title="Compress Image" blurb="Shrink a photo to fit upload limits. It never leaves your phone.">
+      {!originalUri ? (
+        <PickZone icon="image-outline" label="Select image" onPress={pickImage} />
+      ) : (
+        <View className="mb-6">
+          <Thumb
+            uri={compressedUri || originalUri} contain style={PREVIEW}
+            onRemove={() => { setOriginalUri(null); setCompressedUri(null); }} removeLabel="Remove image"
+          />
 
-        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
-          {!originalUri ? (
-            <TouchableOpacity
-              onPress={pickImage}
-              className="w-full bg-card border-2 border-dashed border-fam-career/25 rounded-card p-card-pad items-center justify-center mb-6 shadow-hair"
-            >
-              <View className="w-16 h-16 bg-fam-career/10 rounded-full items-center justify-center mb-3">
-                <Ionicons name="image-outline" size={32} color={C.fam.social} />
+          <Card padded style={{ marginBottom: 20 }}>
+            <View className="flex-row items-center justify-between">
+              <View>
+                <Label>Original size</Label>
+                <Num style={{ fontSize: 18, marginTop: 4 }}>{formatSize(originalSize)}</Num>
               </View>
-              <Text className="text-lg font-display text-ink mb-1">Select Image</Text>
-              <Text className="text-xs font-medium text-ink-3 text-center">Tap to choose a large image</Text>
-            </TouchableOpacity>
-          ) : (
-            <View className="mb-6">
-              <View className="w-full aspect-[4/3] bg-paper-2 rounded-card overflow-hidden mb-4 border border-line">
-                <Image source={{ uri: compressedUri || originalUri }} className="w-full h-full" resizeMode="contain" />
-                <TouchableOpacity 
-                  onPress={() => { setOriginalUri(null); setCompressedUri(null); }}
-                  hitSlop={8}
-                  className="absolute top-2 right-2 bg-black/50 w-8 h-8 rounded-full items-center justify-center backdrop-blur-md"
-                >
-                  <Ionicons name="close" size={18} color="white" />
-                </TouchableOpacity>
+              <Ionicons name="arrow-forward" size={20} color={C.ink4} />
+              <View className="items-end">
+                <Label>Compressed size</Label>
+                <Num style={{ fontSize: 18, marginTop: 4, color: compressedUri ? C.accentText : C.ink4 }}>
+                  {compressedUri ? formatSize(compressedSize) : '—'}
+                </Num>
               </View>
-
-              <View className="flex-row items-center justify-between bg-card p-4 rounded-card border border-line shadow-hair mb-6">
-                <View>
-                  <Text className="text-xs text-ink-3 font-semibold mb-1 uppercase">Original Size</Text>
-                  <Text className="text-base font-display text-ink">{formatSize(originalSize)}</Text>
-                </View>
-                <Ionicons name="arrow-forward" size={20} color={C.ink4} />
-                <View className="items-end">
-                  <Text className="text-xs text-fam-career font-semibold mb-1 uppercase">Compressed Size</Text>
-                  <Text className={`text-base font-display ${compressedUri ? 'text-fam-career' : 'text-ink-4'}`}>
-                    {compressedUri ? formatSize(compressedSize) : '---'}
-                  </Text>
-                </View>
-              </View>
-
-              {!compressedUri ? (
-                <View className="bg-card p-5 rounded-card border border-line shadow-hair mb-6">
-                  <Text className="text-sm font-semibold text-ink mb-4">Compression Quality</Text>
-                  <View className="flex-row justify-between mb-6">
-                    {['high', 'medium', 'low'].map((q) => (
-                      <TouchableOpacity
-                        key={q}
-                        onPress={() => setQuality(q as any)}
-                        className={`flex-1 mx-1 py-2 rounded-xl items-center justify-center border ${quality === q ? 'bg-fam-career/10 border-fam-career' : 'bg-card border-line'}`}
-                      >
-                        <Text className={`text-xs font-semibold capitalize ${quality === q ? 'text-fam-career' : 'text-ink-3'}`}>{q}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  
-                  <TouchableOpacity
-                    onPress={compressImage}
-                    disabled={isProcessing}
-                    className={`w-full py-4 rounded-xl items-center justify-center flex-row ${isProcessing ? 'bg-fam-career' : 'bg-fam-career'}`}
-                  >
-                    {isProcessing ? (
-                      <ActivityIndicator color="white" />
-                    ) : (
-                      <>
-                        <Ionicons name="contract" size={20} color="white" className="mr-2" />
-                        <Text className="text-white font-semibold text-base ml-2">Compress Now</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  onPress={shareCompressed}
-                  className="w-full py-4 items-center justify-center flex-row bg-ink border-2 border-ink rounded-md"
-                >
-                  <Ionicons name="share-outline" size={20} color={C.paper} className="mr-2" />
-                  <Text className="text-paper font-semibold text-base ml-2">Save / Share Image</Text>
-                </TouchableOpacity>
-              )}
             </View>
+          </Card>
+
+          {!compressedUri ? (
+            <>
+              <OptionCard label="Compression quality">
+                <Choices items={QUALITIES} value={quality} onChange={setQuality} />
+              </OptionCard>
+              <Button variant="primary" block icon="contract-outline" title="Compress now" onPress={compressImage} loading={isProcessing} />
+            </>
+          ) : (
+            <Button variant="solid" block icon="share-outline" title="Save / share image" onPress={shareCompressed} />
           )}
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+        </View>
+      )}
+    </ToolScreen>
   );
 }
+
+const PREVIEW = { width: '100%', aspectRatio: 4 / 3, marginBottom: 16 } as const;
+const QUALITIES = [
+  { id: 'high', label: 'High' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'low', label: 'Low' },
+] as const;

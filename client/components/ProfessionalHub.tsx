@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Linking, TouchableOpacity, Dimensions, Modal, ScrollView, StatusBar} from 'react-native'
+import { View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar } from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -12,9 +12,21 @@ import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
 import { Alert } from './ui/AlertModal';
 
-import { AppBar, Meta, RoleSticker } from './ui/kit';
+import { AppBar, Meta, RoleSticker, Tag, ListRow, IconBtn } from './ui/kit';
 import { C } from '../constants/colors';
-const { width } = Dimensions.get("window");
+
+const MentionRow = React.memo(function MentionRow({ item, onPick }: { item: any; onPick: (username: string) => void }) {
+    return (
+        <ListRow
+            leading={<Avatar user={item} size={36} />}
+            title={`@${item.username}`}
+            subtitle={item.name}
+            chevron={false}
+            onPress={() => onPick(item.username)}
+            style={{ paddingHorizontal: 20 }}
+        />
+    );
+});
 
 const ProfessionalHub = ({ navigation }: any) => {
     const { user } = useAuth();
@@ -283,26 +295,28 @@ const ProfessionalHub = ({ navigation }: any) => {
                             )}
                         </View>
                     )}
-                    <TouchableOpacity
-                        activeOpacity={0.9}
+                    <Pressable
                         onLongPress={() => isMe ? handleDeleteMessage(item._id) : setReplyingTo(item)}
-                        className={`max-w-[280px] p-3 rounded-card ${isMe ? "bg-ink rounded-br-none" : "bg-card rounded-bl-none"} shadow-hair border ${isMe ? 'border-ink' : 'border-line'}`}>
+                        accessibilityHint={isMe ? "Long press to delete" : "Long press to reply"}
+                        className={`max-w-[280px] px-4 py-3 rounded-2xl active:opacity-90 ${isMe ? "bg-ink rounded-br-md" : "bg-card rounded-bl-md border border-line"}`}>
 
                         {item.replyTo && (
-                            <View className={`mb-2 p-2 rounded-lg border-l-2 border-brand-500 ${isMe ? 'bg-ink' : 'bg-paper-2'}`}>
-                                <Text className="text-accent-text text-label font-semibold">{item.replyTo.sender?.name || "User"}</Text>
-                                <Text className={`${isMe ? 'text-ink-3' : 'text-ink-3'} text-label`} numberOfLines={1}>{item.replyTo.message}</Text>
+                            <View className="mb-2 px-3 py-2 rounded-xl border-l-2 border-brand-500 bg-paper-2">
+                                <Text className="text-accent-text text-xs font-semibold">{item.replyTo.sender?.name || "User"}</Text>
+                                <Text className="text-ink-3 text-xs" numberOfLines={1}>{item.replyTo.message}</Text>
                             </View>
                         )}
 
                         {item.messageType === 'text' && (
-                            <Text className={`${isMe ? 'text-paper' : 'text-ink'} text-sm leading-5 font-medium`}>{item.message}</Text>
+                            <Text className={`${isMe ? 'text-paper' : 'text-ink'} text-sm leading-5 font-sans`}>{item.message}</Text>
                         )}
                         {item.messageType === 'image' && (
                             <Image source={{ uri: item.fileUrl }} style={{ width: 208, height: 208, borderRadius: 8, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
                         )}
                         {item.messageType === 'file' && (
-                            <TouchableOpacity
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel={`Open ${item.fileName || "document"}`}
                                 onPress={async () => {
                                     if (item.fileUrl) {
                                         try {
@@ -312,17 +326,17 @@ const ProfessionalHub = ({ navigation }: any) => {
                                         }
                                     }
                                 }}
-                                className={`flex-row items-center p-2 rounded-lg ${isMe ? 'bg-ink' : 'bg-paper-2'}`}
+                                className="flex-row items-center p-2 rounded-xl bg-paper-2 active:opacity-70"
                             >
                                 <Ionicons name="document-text" size={24} color={C.brand[500]} />
                                 <View className="ml-2">
-                                    <Text className={`${isMe ? 'text-paper' : 'text-ink'} text-xs font-semibold`} numberOfLines={1}>{item.fileName || "Document"}</Text>
-                                    <Text className="text-ink-3 text-label">Mentorship Resource (Limit 5MB)</Text>
+                                    <Text className="text-ink text-xs font-semibold" numberOfLines={1}>{item.fileName || "Document"}</Text>
+                                    <Text className="text-ink-3 text-xs">PDF resource</Text>
                                 </View>
-                            </TouchableOpacity>
+                            </Pressable>
                         )}
-                    </TouchableOpacity>
-                    <Text className="text-label text-ink-3 mt-1 font-semibold">
+                    </Pressable>
+                    <Text className="text-xs text-ink-3 mt-1 font-sans">
                         {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                 </View>
@@ -331,26 +345,13 @@ const ProfessionalHub = ({ navigation }: any) => {
     }, [user?._id, user?.id, navigation]);
 
     return (
-        <View className="flex-1 bg-paper-2">
+        <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar
-                    title="Professional Hub"
+                    title="Professional hub"
                     onBack={() => navigation.goBack()}
-                    right={
-                        <View
-                            className="bg-brand-200 px-2.5 py-1 border-2 border-ink"
-                            style={{
-                                marginRight: 11, borderRadius: 4, transform: [{ rotate: '-1.6deg' }],
-                                shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
-                                shadowOffset: { width: 2, height: 2 }, elevation: 0,
-                            }}
-                        >
-                            <Text className="font-display text-ink uppercase" style={{ fontSize: 10, letterSpacing: 1 }}>
-                                Student-Alumni
-                            </Text>
-                        </View>
-                    }
+                    right={<Tag label="Student-alumni" style={{ marginRight: 11 }} />}
                 />
 
                 {user?.college ? (
@@ -378,70 +379,57 @@ const ProfessionalHub = ({ navigation }: any) => {
                     )}
 
                     {typingUsers.length > 0 && (
-                        <Text className="px-5 py-1 text-ink-3 text-label font-semibold">
+                        <Text className="px-gutter py-1 text-ink-3 text-xs font-sans">
                             {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
                         </Text>
                     )}
 
                     {replyingTo && (
-                        <View className="px-4 py-3 bg-card border-t border-line flex-row items-center justify-between">
+                        <View className="pl-gutter py-2 bg-card border-t border-line flex-row items-center" style={{ gap: 12 }}>
                             <View className="border-l-2 border-brand-500 pl-3" style={{ flex: 1, minWidth: 0 }}>
-                                <Text className="text-accent-text text-label font-display uppercase">REPLYING TO {replyingTo.sender?.name}</Text>
-                                <Text className="text-ink-3 text-xs mt-0.5 font-medium" numberOfLines={1}>{replyingTo.message}</Text>
+                                <Text className="text-accent-text text-xs font-semibold">Replying to {replyingTo.sender?.name}</Text>
+                                <Text className="text-ink-3 text-xs mt-0.5 font-sans" numberOfLines={1}>{replyingTo.message}</Text>
                             </View>
-                            <Pressable onPress={() => setReplyingTo(null)} className="p-1" hitSlop={12}>
-                                <Ionicons name="close-circle" size={20} color={C.ink4} />
-                            </Pressable>
+                            <IconBtn name="close" size={20} color={C.ink3} onPress={() => setReplyingTo(null)} accessibilityLabel="Cancel reply" style={{ marginRight: 9 }} />
                         </View>
                     )}
 
                     {showMentions && mentionResults.length > 0 && (
-                        <View className="max-h-48 bg-card border-t border-line shadow-hair">
+                        <View className="max-h-48 bg-card border-t border-line">
                             <FlatList keyboardShouldPersistTaps="handled"
                                 data={mentionResults}
                                 keyExtractor={(item) => item._id}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity
-                                        onPress={() => applyMention(item.username)}
-                                        className="flex-row items-center px-4 py-3 border-b border-line active:bg-paper-2"
-                                    >
-                                        <Image source={{ uri: item.avatar }} style={{ width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
-                                        <View className="ml-3">
-                                            <Text className="text-ink font-semibold text-sm">@{item.username}</Text>
-                                            <Text className="text-ink-3 text-label font-medium">{item.name}</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                )}
+                                renderItem={({ item }) => <MentionRow item={item} onPick={applyMention} />}
                             />
                         </View>
                     )}
 
-                    <View className="p-4 bg-card border-t border-line shadow-hair">
-                        <View className="flex-row items-center bg-paper-2 rounded-card px-3 py-1 border border-line">
-                            <Pressable onPress={handlePickMedia} className="p-2" hitSlop={4}>
-                                <Ionicons name="image-outline" size={24} color={C.ink3} />
-                            </Pressable>
-                            <Pressable onPress={handlePickDocument} className="p-2" hitSlop={4}>
-                                <Ionicons name="attach-outline" size={26} color={C.ink3} />
-                            </Pressable>
+                    <View className="px-gutter pt-3 pb-3 bg-card border-t border-line">
+                        <View className="flex-row items-center bg-paper-2 rounded-3xl px-1 border border-line" style={{ minHeight: 48 }}>
+                            <IconBtn name="image-outline" color={C.ink3} onPress={handlePickMedia} accessibilityLabel="Send a photo" />
+                            <IconBtn name="attach-outline" color={C.ink3} onPress={handlePickDocument} accessibilityLabel="Send a PDF" />
                             <TextInput
                                 value={text}
                                 onChangeText={handleTyping}
-                                placeholder="Ask alumni anything..."
-                                placeholderTextColor={C.ink4}
-                                className="flex-1 text-ink py-3 px-2 text-sm font-medium"
+                                placeholder="Ask alumni anything"
+                                placeholderTextColor={C.ink3}
+                                accessibilityLabel="Message"
+                                className="flex-1 text-ink py-3 px-1 text-sm font-sans"
                                 multiline
                             />
                             {text.trim().length > 0 && (
-                                <Pressable onPress={handleSendText} hitSlop={6} className="bg-brand-500 p-2.5 rounded-full ml-2 shadow-hair">
+                                <Pressable
+                                    onPress={handleSendText}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Send"
+                                    className="bg-brand-500 w-10 h-10 rounded-full items-center justify-center m-1 active:opacity-70"
+                                    hitSlop={4}
+                                >
                                     <Ionicons name="send" size={16} color={C.onBrand} />
                                 </Pressable>
                             )}
                         </View>
-                        <View className="flex-row items-center justify-center mt-3">
-                            <Ionicons name="at-circle" size={14} color={C.brand[500]} />
-                            <Text className="text-label text-ink-3 ml-1 font-semibold">Type @ followed by username to tag mentors or peers</Text>
-                        </View>
+                        <Text className="text-xs text-ink-3 mt-2 font-sans text-center">Type @ and a username to tag mentors or peers</Text>
                     </View>
                 </KeyboardAvoidingView>
             </SafeAreaView>

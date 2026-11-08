@@ -1,11 +1,11 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, memo } from 'react';
 import { View, Text, FlatList, ActivityIndicator, RefreshControl, Linking, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
-import { AppBar, Screen, Empty, Button } from '../ui/kit';
+import { AppBar, Screen, Empty, Button, Card } from '../ui/kit';
 import { GiftOrder, rupees, STATUS_LABEL, TIMELINE } from './shared';
 
 const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '');
@@ -37,6 +37,41 @@ const Timeline = ({ o }: { o: GiftOrder }) => {
   );
 };
 
+const OrderCard = memo(function OrderCard({ o }: { o: GiftOrder }) {
+  return (
+    <Card padded style={{ marginBottom: 12 }}>
+      <View className="flex-row">
+        <View style={{ width: 56, height: 56, borderRadius: 12, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {o.productSnapshot.image
+            ? <Image source={{ uri: o.productSnapshot.image }} style={{ width: 56, height: 56 }} contentFit="cover" cachePolicy="memory-disk" />
+            : <Ionicons name="gift-outline" size={24} color={C.ink3} />}
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text className="text-ink font-semibold" numberOfLines={1}>{o.productSnapshot.title}</Text>
+          <Text className="text-ink-2 text-sm mt-0.5">{rupees(o.amount)} · ordered {fmt(o.paidAt || o.createdAt)}</Text>
+          {o.shipping && <Text className="text-ink-3 text-xs mt-0.5" numberOfLines={1}>To {o.shipping.name}, {o.shipping.city}{o.shipping.surprise ? ' · surprise 🤫' : ''}</Text>}
+        </View>
+      </View>
+      <Timeline o={o} />
+      {!!o.tracking?.awb && (
+        <Pressable
+          disabled={!o.tracking.url}
+          onPress={() => o.tracking?.url && Linking.openURL(o.tracking.url)}
+          className="mt-3 flex-row items-center active:opacity-70"
+          style={{ minHeight: 44 }}
+          accessibilityRole={o.tracking.url ? 'link' : undefined}
+        >
+          <Ionicons name="navigate-outline" size={14} color={C.ink2} />
+          <Text className="text-ink-2 text-xs ml-1.5">
+            {o.tracking.courier || 'Courier'} · AWB {o.tracking.awb}{o.tracking.url ? '  (track →)' : ''}
+          </Text>
+        </Pressable>
+      )}
+    </Card>
+  );
+});
+const renderOrder = ({ item }: { item: GiftOrder }) => <OrderCard o={item} />;
+
 const MyGifts = () => {
   const navigation = useNavigation<any>();
   const [orders, setOrders] = useState<GiftOrder[]>([]);
@@ -61,7 +96,7 @@ const MyGifts = () => {
 
   return (
     <Screen>
-      <AppBar title="My Gifts" onBack={() => navigation.goBack()} />
+      <AppBar title="My gifts" onBack={() => navigation.goBack()} />
       {loading ? (
         <ActivityIndicator style={{ marginTop: 40 }} color={C.ink3} />
       ) : (
@@ -74,35 +109,7 @@ const MyGifts = () => {
             ? <Empty icon="cloud-offline-outline" title="Couldn't load your gifts" action={<Button title="Retry" onPress={load} />} />
             : <Empty icon="gift-outline" title="No gifts yet" hint="Surprise your person with something made just for them."
                 action={<Button title="Browse gifts" variant="primary" onPress={() => navigation.navigate('GiftShop')} />} />}
-          renderItem={({ item: o }) => (
-            <View className="mb-4 rounded-card border border-line bg-card p-4">
-              <View className="flex-row">
-                <View style={{ width: 56, height: 56, borderRadius: 10, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                  {o.productSnapshot.image
-                    ? <Image source={{ uri: o.productSnapshot.image }} style={{ width: 56, height: 56 }} contentFit="cover" />
-                    : <Ionicons name="gift-outline" size={24} color={C.ink3} />}
-                </View>
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text className="text-ink font-semibold" numberOfLines={1}>{o.productSnapshot.title}</Text>
-                  <Text className="text-ink-2 text-sm mt-0.5">{rupees(o.amount)} · ordered {fmt(o.paidAt || o.createdAt)}</Text>
-                  {o.shipping && <Text className="text-ink-3 text-xs mt-0.5" numberOfLines={1}>To {o.shipping.name}, {o.shipping.city}{o.shipping.surprise ? ' · surprise 🤫' : ''}</Text>}
-                </View>
-              </View>
-              <Timeline o={o} />
-              {!!o.tracking?.awb && (
-                <Pressable
-                  disabled={!o.tracking.url}
-                  onPress={() => o.tracking?.url && Linking.openURL(o.tracking.url)}
-                  className="mt-3 flex-row items-center"
-                >
-                  <Ionicons name="navigate-outline" size={14} color={C.ink2} />
-                  <Text className="text-ink-2 text-xs ml-1.5">
-                    {o.tracking.courier || 'Courier'} · AWB {o.tracking.awb}{o.tracking.url ? '  (track →)' : ''}
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-          )}
+          renderItem={renderOrder}
         />
       )}
     </Screen>

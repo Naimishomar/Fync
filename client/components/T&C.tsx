@@ -1,21 +1,18 @@
 import React from 'react';
 import { View, Text, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../constants/colors';
-import { AppBar } from './ui/kit';
+import { AppBar, Card, IconTile } from './ui/kit';
 
 const TCSection = ({ icon, title, content }: { icon: any; title: string; content: string }) => (
-  <View className="mb-6 bg-card rounded-card p-5 border border-line shadow-hair">
-    <View className="flex-row items-center mb-3">
-      <View className="w-10 h-10 rounded-card bg-recruiter/10 items-center justify-center mr-3">
-        <Ionicons name={icon} size={20} color={C.recruiter} />
-      </View>
-      <Text className="text-ink text-lg font-display uppercase">{title}</Text>
+  <Card style={{ marginBottom: 12 }}>
+    <View className="flex-row items-center mb-3" style={{ gap: 12 }}>
+      <IconTile icon={icon} size={40} iconSize={20} />
+      <Text className="text-ink text-base font-semibold" accessibilityRole="header">{title}</Text>
     </View>
-    <Text className="text-ink-3 text-xs font-semibold leading-5 leading-relaxed">{content}</Text>
-  </View>
+    <Text className="text-ink-2 text-sm leading-5">{content}</Text>
+  </Card>
 );
 
 export default function TermsAndCondition() {
@@ -30,14 +27,11 @@ export default function TermsAndCondition() {
 
         <ScrollView keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 40 }}
         >
           {/* Hero Section */}
-          <View
-            className="rounded-sheet p-card-pad mb-8 overflow-hidden relative"
-           style={{ backgroundColor: '#4F46E5' }}>
-            <Ionicons name="document-text" size={120} color="rgba(255,255,255,0.1)" style={{ position: 'absolute', right: -20, bottom: -20 }} />
-            <Text className="text-white/80 text-xs font-semibold leading-5">
+          <View className="rounded-2xl bg-paper-2 p-4 mb-6 overflow-hidden">
+            <Text className="text-ink-2 text-sm leading-5">
               Please read these terms carefully before joining the exclusive student network.
             </Text>
           </View>
@@ -74,7 +68,7 @@ export default function TermsAndCondition() {
           />
 
           <View className="mt-4 items-center">
-            <Text className="text-ink-4 text-label font-display uppercase">Verified By Fync Legal</Text>
+            <Text className="text-ink-3 text-label font-semibold">Verified by Fync Legal</Text>
           </View>
 
         </ScrollView>

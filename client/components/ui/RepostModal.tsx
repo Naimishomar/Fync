@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Modal, TextInput, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { View, Text, TextInput } from 'react-native';
 import Avatar from '../Avatar';
 import { C } from '../../constants/colors';
-import { useBottomInset } from '../../constants/layout';
+import { Sheet } from './Sheet';
+import { Button } from './kit';
 import { tapHaptic } from '../../utils/haptics';
 
 const MAX_LENGTH = 1000;
@@ -32,7 +32,6 @@ export default function RepostModal({
 }) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
-  const bottomInset = useBottomInset();
 
   const close = () => {
     setText('');
@@ -53,69 +52,53 @@ export default function RepostModal({
   };
 
   return (
-    <Modal visible={visible} transparent statusBarTranslucent animationType="slide" onRequestClose={close}>
-      <Pressable className="flex-1 justify-end" style={{ backgroundColor: C.scrim }} onPress={close}>
-        <KeyboardAvoidingView behavior="padding">
-          {/* Stops a tap inside the sheet from closing it. */}
-          <Pressable onPress={() => {}} className="bg-card rounded-t-sheet p-5" style={{ paddingBottom: bottomInset + 8 }}>
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="font-display text-lg text-ink">Repost</Text>
-              <Pressable onPress={close} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel">
-                <Ionicons name="close" size={22} color={C.ink} />
-              </Pressable>
-            </View>
+    <Sheet
+      visible={visible}
+      onClose={close}
+      title="Repost"
+      closeLabel="Cancel"
+      footer={
+        <View className="flex-row" style={{ gap: 8 }}>
+          <Button title="Cancel" variant="tertiary" onPress={close} style={{ flex: 1 }} />
+          <Button
+            title="Repost"
+            icon="repeat"
+            variant="primary"
+            loading={busy}
+            onPress={confirm}
+            accessibilityLabel="Confirm repost"
+            style={{ flex: 1 }}
+          />
+        </View>
+      }
+    >
+      <TextInput
+        value={text}
+        onChangeText={(v) => setText(v.slice(0, MAX_LENGTH))}
+        placeholder="Add your thoughts (optional)"
+        placeholderTextColor={C.ink3}
+        multiline
+        autoFocus
+        className="font-sans text-ink bg-paper-2 rounded-2xl border border-line px-4 py-3"
+        style={{ fontSize: 15, minHeight: 96, maxHeight: 160, textAlignVertical: 'top' }}
+        accessibilityLabel="Add your thoughts"
+      />
 
-            <TextInput
-              value={text}
-              onChangeText={(v) => setText(v.slice(0, MAX_LENGTH))}
-              placeholder="Add your thoughts (optional)"
-              placeholderTextColor={C.ink3}
-              multiline
-              autoFocus
-              className="font-sans text-base text-ink bg-paper-2 rounded-card p-3"
-              style={{ minHeight: 90, maxHeight: 160, textAlignVertical: 'top' }}
-            />
-
-            {!!author && (
-              <View className="flex-row items-center mt-3 p-3 bg-paper-2 rounded-card">
-                <Avatar user={author as any} size={28} />
-                <View className="ml-2 flex-1">
-                  <Text className="font-semibold text-sm text-ink">
-                    {author.name || author.username || 'Unknown'}
-                  </Text>
-                  {!!preview && (
-                    <Text className="text-ink-3 text-xs mt-0.5" numberOfLines={1}>
-                      {preview}
-                    </Text>
-                  )}
-                </View>
-              </View>
+      {!!author && (
+        <View className="flex-row items-center mt-3 p-3 bg-paper-2 rounded-2xl" style={{ gap: 12 }}>
+          <Avatar user={author as any} size={32} />
+          <View className="flex-1 min-w-0">
+            <Text className="font-semibold text-ink" style={{ fontSize: 14 }} numberOfLines={1}>
+              {author.name || author.username || 'Unknown'}
+            </Text>
+            {!!preview && (
+              <Text className="font-sans text-ink-3 mt-0.5" style={{ fontSize: 13 }} numberOfLines={1}>
+                {preview}
+              </Text>
             )}
-
-            <View className="flex-row justify-end items-center gap-3 mt-5">
-              <Pressable onPress={close} className="px-4 py-2.5" accessibilityRole="button">
-                <Text className="font-semibold text-sm text-ink-3">Cancel</Text>
-              </Pressable>
-              <Pressable
-                onPress={confirm}
-                disabled={busy}
-                className="flex-row items-center bg-ink rounded-full px-5 py-2.5"
-                accessibilityRole="button"
-                accessibilityLabel="Confirm repost"
-              >
-                {busy ? (
-                  <ActivityIndicator size="small" color={C.paper} />
-                ) : (
-                  <>
-                    <Ionicons name="repeat" size={16} color={C.paper} />
-                    <Text className="font-semibold text-sm text-paper ml-2">Repost</Text>
-                  </>
-                )}
-              </Pressable>
-            </View>
-          </Pressable>
-        </KeyboardAvoidingView>
-      </Pressable>
-    </Modal>
+          </View>
+        </View>
+      )}
+    </Sheet>
   );
 }

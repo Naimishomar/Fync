@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StatusBar, Dimensions } from 'react-native';
+import { View, Text, StatusBar } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { checkClubStatus, formatCountdown } from '../../utils/nightClub';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
-
-const { width } = Dimensions.get('window');
+import { AppBar, Button } from '../ui/kit';
 
 export default function TwelveAMLockScreen() {
   const navigation = useNavigation<any>();
@@ -23,7 +21,7 @@ export default function TwelveAMLockScreen() {
       // phone's hour here made the button lie on any non-IST device.
       const { isOpen: open, secondsUntilOpen, secondsUntilClose } = checkClubStatus();
       setIsOpen(open);
-      setStatusText(open ? "CLUB IS LIVE" : "OPENS IN");
+      setStatusText(open ? "Club is live" : "Opens in");
       setTimerString(formatCountdown(open ? secondsUntilClose : secondsUntilOpen));
     };
 
@@ -45,8 +43,9 @@ export default function TwelveAMLockScreen() {
       {/* 1. Background Image (Full Screen) */}
       <Image 
         source={{ uri: "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop" }} 
-        className="absolute w-full h-full opacity-80"
-        resizeMode="cover"
+        style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0.8 }}
+        contentFit="cover"
+        cachePolicy="memory-disk"
       />
 
       {/* 2. Gradient Overlay (Added Pink on Top) */}
@@ -65,10 +64,10 @@ export default function TwelveAMLockScreen() {
             title="12 AM Club"
             onBack={() => navigation.goBack()}
             right={
-              <View className={`px-4 py-2 rounded-full border flex-row items-center ${ isOpen ? 'bg-success/20 border-success' : 'bg-white/10 border-white/10' }`} style={{ marginRight: 11 }}>
+              <View className={`px-3 py-1 rounded-full border flex-row items-center ${ isOpen ? 'bg-success/20 border-success' : 'bg-white/10 border-white/10' }`} style={{ marginRight: 11 }}>
                 <View key={isOpen ? "live" : "offline"} className={`w-2 h-2 rounded-full mr-2 ${isOpen ? 'bg-success animate-pulse' : 'bg-ink-4'}`} />
                 <Text className={`text-xs font-semibold ${isOpen ? 'text-violet' : 'text-night-3'}`}>
-                    {isOpen ? 'LIVE' : 'OFFLINE'}
+                    {isOpen ? 'Live' : 'Offline'}
                 </Text>
               </View>
             }
@@ -79,12 +78,12 @@ export default function TwelveAMLockScreen() {
         {/* --- CENTER CONTENT (Timer) --- */}
         <View className="items-center">
             {/* Logo/Icon */}
-            <View className={`mb-6 p-6 rounded-full border shadow-hair ${ isOpen ? 'bg-brand-500/20 border-brand-500/30 ' : 'bg-white/10 border-white/10' }`}>
+            <View className={`mb-6 p-6 rounded-full border ${ isOpen ? 'bg-brand-500/20 border-brand-500/30 ' : 'bg-white/10 border-white/10' }`}>
                 <MaterialCommunityIcons name="moon-waning-crescent" size={64} color={isOpen ? "#DB2777" : "#8B857E"} />
             </View>
 
-            <Text className="text-white font-display text-5xl text-center leading-tight shadow-hair">
-                {isOpen ? "NO RULES.\nNO HISTORY." : "SLEEP TIGHT.\nSEE YOU SOON."}
+            <Text className="text-white font-display text-5xl text-center">
+                {isOpen ? "No rules.\nNo history." : "Sleep tight.\nSee you soon."}
             </Text>
 
             {/* THE BIG CLOCK */}
@@ -107,19 +106,14 @@ export default function TwelveAMLockScreen() {
                 }
             </Text>
 
-            <TouchableOpacity disabled={!isOpen} onPress={handleEnter} activeOpacity={0.8}>
-                {isOpen ? (
-                    <View className="flex-row items-center justify-center rounded-full bg-brand-500 py-3">
-                        <Text className="text-night font-display text-lg mr-2">ENTER CLUB</Text>
-                        <Ionicons name="arrow-forward" size={20} color={C.night} />
-                    </View>
-                ) : (
-                    <View className="flex-row items-center justify-center bg-brand-500/20 py-3 rounded-full">
-                        <Ionicons name="lock-closed" size={20} color={C.night3} style={{ marginRight: 8 }} />
-                        <Text className="text-night-3 font-display text-lg">LOCKED</Text>
-                    </View>
-                )}
-            </TouchableOpacity>
+            <Button
+                title={isOpen ? 'Enter club' : 'Locked'}
+                icon={isOpen ? 'arrow-forward' : 'lock-closed'}
+                variant="primary"
+                block
+                disabled={!isOpen}
+                onPress={handleEnter}
+            />
         </View>
 
       </SafeAreaView>

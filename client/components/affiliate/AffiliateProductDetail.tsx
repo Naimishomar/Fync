@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    View, 
-    Text, 
-    ScrollView, 
-    TouchableOpacity, 
-    ActivityIndicator,
-    Dimensions,
-    Share,
-} from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Share, StyleSheet } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -16,9 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { useBottomInset } from '../../constants/layout';
 import { C, themed } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
-
-const { width } = Dimensions.get('window');
+import { AppBar, IconBtn, Button, Empty } from '../ui/kit';
 
 const AffiliateProductDetail = () => {
     const route = useRoute<any>();
@@ -103,10 +93,7 @@ const AffiliateProductDetail = () => {
     if (!product) {
         return (
             <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>Product not found</Text>
-                <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" hitSlop={12}>
-                    <Text style={styles.goBackText}>Go Back</Text>
-                </TouchableOpacity>
+                <Empty icon="pricetag-outline" title="Product not found" action={<Button title="Go back" onPress={() => navigation.goBack()} />} />
             </View>
         );
     }
@@ -161,7 +148,7 @@ const AffiliateProductDetail = () => {
                     <View style={styles.divider} />
 
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Product Description</Text>
+                        <Text style={styles.sectionTitle} accessibilityRole="header">Product description</Text>
                         <Text style={styles.descriptionText}>{product.description}</Text>
                     </View>
 
@@ -181,19 +168,16 @@ const AffiliateProductDetail = () => {
                 <AppBar
                     overlay
                     onBack={() => navigation.goBack()}
-                    right={<IconBtn overlay name="share-outline" onPress={handleShare} />}
+                    right={<IconBtn overlay name="share-outline" onPress={handleShare} accessibilityLabel="Share product" />}
                 />
             </LinearGradient>
 
             <View style={[styles.bottomBar, { paddingBottom: bottomInset + 10 }]}>
                 <View style={styles.bottomPrice}>
-                    <Text style={styles.bottomPriceLabel}>Total Price</Text>
+                    <Text style={styles.bottomPriceLabel}>Total price</Text>
                     <Text style={styles.bottomPriceValue}>₹{product.price}</Text>
                 </View>
-                <TouchableOpacity style={[styles.buyButton, opening && { opacity: 0.6 }]} onPress={handleBuyNow} disabled={opening}>
-                    <Text style={styles.buyButtonText}>Buy Now</Text>
-                    <Ionicons name="arrow-forward" size={20} color={C.onBrand} style={{marginLeft: 8}} />
-                </TouchableOpacity>
+                <Button variant="primary" title="Buy now" icon="arrow-forward" onPress={handleBuyNow} disabled={opening} loading={opening} />
             </View>
         </View>
     );
@@ -215,15 +199,6 @@ const styles = themed(() => ({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: C.paper,
-    },
-    errorText: {
-        color: C.ink,
-        fontSize: 18,
-    },
-    goBackText: {
-        color: C.brand[600],
-        fontFamily: 'Inter_700Bold',
-        marginTop: 10,
     },
     imageContainer: {
         width: '100%',
@@ -251,63 +226,59 @@ const styles = themed(() => ({
         marginBottom: 20,
     },
     categoryBadge: {
-        backgroundColor: C.brand[500],
-        color: C.onBrand,
+        backgroundColor: C.paper2,
+        color: C.ink2,
         paddingHorizontal: 12,
-        paddingVertical: 5,
-        borderRadius: 6,
-        borderWidth: 2,
-        borderColor: C.ink,
+        paddingVertical: 4,
+        borderRadius: 999,
         overflow: 'hidden',
-        fontSize: 10,
-        letterSpacing: 0.5,
+        fontSize: 12,
         alignSelf: 'flex-start',
         marginBottom: 12,
-        fontFamily: 'SpaceGrotesk_700Bold',
-        textTransform: 'uppercase',
+        fontFamily: 'Inter_500Medium',
     },
     brandText: {
         color: C.brand[600],
         fontSize: 14,
-        fontFamily: 'Inter_700Bold',
-        marginBottom: 5,
+        fontFamily: 'Inter_600SemiBold',
+        marginBottom: 4,
     },
     productTitle: {
         fontSize: 26,
         fontFamily: 'SpaceGrotesk_700Bold',
         letterSpacing: -0.5,
         color: C.ink,
-        marginBottom: 15,
+        marginBottom: 12,
         lineHeight: 32,
     },
     priceRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 12,
     },
     priceText: {
         fontSize: 28,
         fontFamily: 'SpaceGrotesk_700Bold',
         fontVariant: ['tabular-nums'],
         color: C.ink,
-        marginRight: 15,
+        marginRight: 12,
     },
     originalPriceText: {
         fontSize: 18,
         color: C.ink3,
         textDecorationLine: 'line-through',
-        marginRight: 15,
+        marginRight: 12,
     },
     discountContainer: {
         backgroundColor: C.danger,
         paddingHorizontal: 10,
         paddingVertical: 4,
-        borderRadius: 8,
+        borderRadius: 999,
     },
     discountText: {
-        color: C.ink,
-        fontFamily: 'Inter_700Bold',
-        fontSize: 14,
+        color: '#FFFFFF',
+        fontFamily: 'Inter_600SemiBold',
+        fontSize: 13,
     },
     ratingSection: {
         flexDirection: 'row',
@@ -331,18 +302,14 @@ const styles = themed(() => ({
         marginVertical: 20,
     },
     section: {
-        marginBottom: 30,
+        marginBottom: 24,
     },
     sectionTitle: {
-        fontSize: 12,
-        fontFamily: 'SpaceGrotesk_700Bold',
-        textTransform: 'uppercase',
-        letterSpacing: 1,
+        fontSize: 16,
+        lineHeight: 22,
+        fontFamily: 'Inter_600SemiBold',
         color: C.ink,
-        paddingBottom: 8,
-        marginBottom: 14,
-        borderBottomWidth: 2,
-        borderBottomColor: C.ink,
+        marginBottom: 8,
     },
     descriptionText: {
         fontSize: 15,
@@ -352,36 +319,16 @@ const styles = themed(() => ({
     disclosure: {
         flexDirection: 'row',
         alignItems: 'flex-start',
-        gap: 10,
+        gap: 12,
         backgroundColor: C.paper2,
-        borderRadius: 14,
-        padding: 14,
+        borderRadius: 16,
+        padding: 16,
     },
     disclosureText: {
         flex: 1,
         color: C.ink2,
         fontSize: 12,
         lineHeight: 18,
-    },
-    infoCard: {
-        backgroundColor: C.card,
-        padding: 15,
-        borderRadius: 14,
-        alignItems: 'center',
-        width: (width - 60) / 3,
-        borderWidth: 2,
-        borderColor: C.ink,
-    },
-    infoCardTitle: {
-        color: C.ink,
-        fontFamily: 'Inter_700Bold',
-        fontSize: 14,
-        marginTop: 8,
-    },
-    infoCardSub: {
-        color: C.ink3,
-        fontSize: 10,
-        marginTop: 4,
     },
     bottomBar: {
         position: 'absolute',
@@ -390,13 +337,12 @@ const styles = themed(() => ({
         right: 0,
         backgroundColor: C.paper,
         paddingHorizontal: 20,
-        paddingTop: 15,
-        paddingBottom: 35,
+        paddingTop: 12,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        borderTopWidth: 2,
-        borderTopColor: C.ink,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: C.line,
     },
     bottomPrice: {
         flex: 1,
@@ -411,23 +357,6 @@ const styles = themed(() => ({
         fontFamily: 'SpaceGrotesk_700Bold',
         fontVariant: ['tabular-nums'],
     },
-    buyButton: {
-        backgroundColor: C.brand[500],
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: C.ink,
-        minHeight: 48,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    buyButtonText: {
-        color: C.onBrand,
-        fontFamily: 'Inter_700Bold',
-        fontSize: 16,
-    }
 }));
 
 export default AffiliateProductDetail;

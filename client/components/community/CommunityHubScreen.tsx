@@ -1,23 +1,20 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, Dimensions, Modal, TextInput, Linking, Share, StatusBar, Animated, KeyboardAvoidingView, Platform, StyleSheet} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, Pressable, ScrollView, Linking, Share, StatusBar, Animated } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import Feather from '@expo/vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
-import { LinearGradient } from 'expo-linear-gradient';
 import RazorpayCheckout from 'react-native-razorpay';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
-import { WebView } from 'react-native-webview';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Button, Card, Divider, Empty, IconTile, Label, ListRow, SectionHeader, SegmentedTabs, Sheet, FormField } from '../ui/kit';
+import { HubBanner, ImagePick, RoomIcon, PayWebView, PLANS, PLAN_LABELS } from './shared';
 
-const { height: screenHeight } = Dimensions.get('window');
-const KAV_BEHAVIOR = Platform.OS === 'ios' ? 'padding' : 'height';
+type RoomType = 'chat' | 'feed' | 'announcement';
+const ROOM_TYPES = ['chat', 'feed', 'announcement'] as const;
+const ROOM_LABEL: Record<RoomType, string> = { chat: 'Chat', feed: 'Feed', announcement: 'Announcements' };
+const ROOM_ICON: Record<RoomType, any> = { chat: 'chatbubbles-outline', feed: 'trending-up-outline', announcement: 'megaphone-outline' };
 
 // Module scope: defined inside the screen it was a new component type every
 // render, so it remounted (and restarted its pulse) on each state change.
@@ -37,10 +34,10 @@ const CommunityHubSkeleton = () => {
     return (
         <Animated.View style={{ opacity: pulseAnim }} className="flex-1 bg-paper">
             <View className="h-72 bg-paper-2" />
-            <View className="px-gutter pt-10">
-                <View className="flex-row gap-4 mb-8">
-                    <View className="flex-1 h-14 bg-paper-2 rounded-card" />
-                    <View className="w-14 h-14 bg-paper-2 rounded-card" />
+            <View className="px-gutter pt-6">
+                <View className="flex-row gap-3 mb-6">
+                    <View className="flex-1 h-12 bg-paper-2 rounded-full" />
+                    <View className="w-12 h-12 bg-paper-2 rounded-full" />
                 </View>
                 <View className="h-4 bg-paper-2 rounded-full w-24 mb-4" />
                 <View className="h-3 bg-paper-2 rounded-full w-full mb-2" />
@@ -429,7 +426,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
     if (!data) return (
         <View className="flex-1 bg-paper">
             <AppBar title="Community" onBack={() => navigation.goBack()} />
-            <View className="flex-1 items-center justify-center"><Text className="font-semibold text-base text-ink">Hub Not Found</Text></View>
+            <Empty icon="compass-outline" title="Community not found" action={<Button title="Try again" onPress={() => { setLoading(true); fetchDetails(); }} />} />
         </View>
     );
 
@@ -444,496 +441,207 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
     const expiryDate = new Date(community.subscription?.expiryDate || 0);
     const daysLeft = Math.ceil((expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
+    const openSub = (sub: any) => {
+        if (isSuspended) { Alert.alert("Community offline", "The owner needs to renew the plan."); return; }
+        // A 'feed' room is a subreddit, not a chat channel.
+        navigation.navigate(sub.type === 'feed' ? 'CommunityFeed' : 'SubCommunityChat', { subId: sub._id, subName: sub.name, communityId: community._id });
+    };
+    const editSub = (sub: any) => {
+        setTargetSubId(sub._id);
+        setSubName(sub.name);
+        setSubDesc(sub.description || '');
+        setSubLogo(sub.logo);
+        setEditSubModal(true);
+    };
+    const roomSheetOpen = subModalVisible || editSubModal;
+    const closeRoomSheet = () => { setSubModalVisible(false); setEditSubModal(false); };
+    const socialLinks = [
+        socials.youtube && { url: socials.youtube, icon: 'logo-youtube', label: 'YouTube' },
+        socials.github && { url: socials.github, icon: 'logo-github', label: 'GitHub' },
+        socials.website && { url: socials.website, icon: 'globe-outline', label: 'Website' },
+    ].filter(Boolean) as { url: string; icon: any; label: string }[];
+    const cardPad = { paddingHorizontal: 16, paddingVertical: 4 };
+
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                {/* Cinematic Header */}
-                <View className="h-72 w-full relative">
-                    <Image source={{ uri: community.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} className="w-full h-full bg-paper-2" resizeMode="cover" />
-                    <LinearGradient colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
-                    
-                    <View className="absolute top-0 left-0 right-0">
-                        <AppBar
-                            overlay
-                            onBack={() => navigation.goBack()}
-                            right={isCreator ? (
-                                <IconBtn overlay name="settings-outline" size={18} onPress={() => setEditHubModal(true)} />
-                            ) : undefined}
-                        />
-                    </View>
+                <HubBanner
+                    banner={community.banner}
+                    logo={community.logo}
+                    name={community.name}
+                    meta={`${community.members?.length ?? 0} members`}
+                    onBack={() => navigation.goBack()}
+                    right={isCreator ? (
+                        <IconBtn overlay name="settings-outline" size={18} onPress={() => setEditHubModal(true)} accessibilityLabel="Community settings" />
+                    ) : undefined}
+                />
 
-                    <View className="absolute bottom-8 left-8 right-8 flex-row items-end gap-6">
-                        <View className="w-20 h-20 rounded-full border-4 border-white/20 shadow-hair overflow-hidden bg-ink">
-                            <Image source={{ uri: community.logo }} className="w-full h-full" />
-                        </View>
-                        <View className="flex-1 pb-1">
-                            <Text className="text-white text-3xl font-display uppercase leading-tight" numberOfLines={1}>{community.name}</Text>
-                            <View className="flex-row items-center gap-2 mt-1">
-                                <View className="w-2 h-2 rounded-full bg-brand-500 shadow-hair" />
-                                <Text className="text-white/60 text-label font-display uppercase">{community.members?.length ?? 0} Sparks Active</Text>
-                            </View>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Primary Actions */}
-                <View className="px-gutter pt-8">
-                    <View className="flex-row gap-4 mb-10">
-                        {isMember ? (
-                            <TouchableOpacity 
-                                onPress={isCreator ? undefined : handleLeave} 
-                                className={`flex-1 h-14 rounded-card items-center justify-center ${isCreator ? 'bg-card border border-line shadow-hair' : 'bg-danger/10 border border-danger/15'}`}
-                            >
-                                <Text className={`font-display uppercase text-label ${isCreator ? 'text-ink-3' : 'text-danger'}`}>
-                                     {isCreator ? "Guardian Access" : "Leave Sector"}
-                                 </Text>
-                            </TouchableOpacity>
-                        ) : (
-                            <TouchableOpacity onPress={handleJoin} disabled={isJoining} className="flex-1 h-14 bg-brand-500 items-center justify-center border-2 border-ink rounded-md">
-                                {isJoining ? <ActivityIndicator size="small" color={C.onBrand} /> : <Text className="text-on-brand font-display uppercase text-label">Join Frequency</Text>}
-                            </TouchableOpacity>
-                        )}
-                        <TouchableOpacity onPress={handleShare} className="w-14 h-14 bg-card border border-line rounded-card items-center justify-center shadow-hair">
-                            <Ionicons name="share-social-outline" size={20} color={C.ink} />
-                        </TouchableOpacity>
-                    </View>
-
-                    <View className="mb-10">
-                        <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                          <Text className="text-ink-3 font-display uppercase text-label">Hub Directive</Text>
-                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                        </View>
-                        <Text className="text-ink-2 font-medium leading-[22px] text-xs mb-6">
-                            {community.description || "The definitive ecosystem for creator networking and collaborative expansion."}
-                        </Text>
-                        
-                        {isCreator && (
-                            <View className="mb-8">
-                                <TouchableOpacity 
-                                    onPress={() => setIsPaymentExpanded(!isPaymentExpanded)}
-                                    className="flex-row items-center justify-between bg-card p-5 rounded-card border border-line shadow-hair"
-                                >
-                                    <View className="flex-row items-center gap-4">
-                                        <View className={`w-3 h-3 rounded-full ${daysLeft > 7 ? 'bg-success' : 'bg-danger'}`} />
-                                        <View>
-                                            <Text className="text-ink font-display uppercase text-label">{daysLeft > 0 ? `${daysLeft} Activation Days` : 'Spark Exhausted'}</Text>
-                                            <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Stability Protocol</Text>
-                                        </View>
-                                    </View>
-                                    <Feather name={isPaymentExpanded ? "chevron-up" : "chevron-down"} size={18} color={C.ink4} />
-                                </TouchableOpacity>
-
-                                {isPaymentExpanded && (
-                                    <View className="mt-3 bg-card p-6 rounded-sheet border border-line shadow-hair">
-                                        <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                                          <Text className="text-ink-3 font-display uppercase text-label">Maintenance Ignition</Text>
-                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                        </View>
-                                        <View className="flex-row gap-3 mb-6">
-                                            <TouchableOpacity 
-                                                onPress={() => setRenewPlan('monthly')} 
-                                                className={`flex-1 p-4 rounded-card border ${renewPlan === 'monthly' ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
-                                            >
-                                                <Text className={`font-display uppercase text-label text-center ${renewPlan === 'monthly' ? 'text-paper' : 'text-ink-3'}`}>Spark (₹99)</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity 
-                                                onPress={() => setRenewPlan('yearly')} 
-                                                className={`flex-1 p-4 rounded-card border ${renewPlan === 'yearly' ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
-                                            >
-                                                <Text className={`font-display uppercase text-label text-center ${renewPlan === 'yearly' ? 'text-paper' : 'text-ink-3'}`}>Eternal (₹999)</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                        <TouchableOpacity 
-                                            onPress={handleRenew} 
-                                            disabled={renewing} 
-                                            className="bg-brand-500 w-full py-5 items-center border-2 border-ink rounded-md"
-                                        >
-                                            {renewing ? <ActivityIndicator size="small" color={C.onBrand} /> : <Text className="text-on-brand font-display uppercase text-label">Initiate Payment</Text>}
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-                            </View>
-                        )}
-                        
-                        <View className="flex-row gap-3">
-                            {socials.youtube && (
-                                <TouchableOpacity onPress={() => Linking.openURL(socials.youtube)} className="w-11 h-11 bg-card rounded-card items-center justify-center border border-line shadow-hair">
-                                    <Feather name="youtube" size={16} color={C.danger} />
-                                </TouchableOpacity>
-                            )}
-                            {socials.github && (
-                                <TouchableOpacity onPress={() => Linking.openURL(socials.github)} className="w-11 h-11 bg-card rounded-card items-center justify-center border border-line shadow-hair">
-                                    <Feather name="github" size={16} color={C.ink} />
-                                </TouchableOpacity>
-                            )}
-                            {socials.website && (
-                                <TouchableOpacity onPress={() => Linking.openURL(socials.website)} className="w-11 h-11 bg-card rounded-card items-center justify-center border border-line shadow-hair">
-                                    <Feather name="globe" size={16} color={C.brand[500]} />
-                                </TouchableOpacity>
+                <View className="px-gutter pt-5">
+                    <View className="flex-row" style={{ gap: 12 }}>
+                        <View className="flex-1">
+                            {isCreator ? (
+                                <Button block title="You own this community" icon="shield-checkmark-outline" disabled />
+                            ) : isMember ? (
+                                <Button block title="Leave" loading={leaving} onPress={handleLeave} />
+                            ) : (
+                                <Button block variant="primary" title="Join" loading={isJoining} onPress={handleJoin} />
                             )}
                         </View>
+                        <IconBtn name="share-social-outline" boxed onPress={handleShare} accessibilityLabel="Share community" />
                     </View>
 
-                    {/* Channels */}
-                    <View className="mb-12">
-                        <View className="flex-row justify-between items-center mb-6">
-                            <Text className="text-ink text-xl font-display uppercase">Access Points</Text>
-                            {isCreator && (
-                                <TouchableOpacity onPress={() => { setSubModalVisible(true); setTargetSubId(null); }} className="w-10 h-10 bg-ink rounded-xl items-center justify-center shadow-hair">
-                                    <Ionicons name="add" size={24} color={C.paper} />
-                                </TouchableOpacity>
-                            )}
-                        </View>
+                    <Text className="text-ink-2 mt-5" style={{ fontSize: 15, lineHeight: 22 }}>
+                        {community.description || 'No description yet.'}
+                    </Text>
 
-                        {subCommunities.length === 0 ? (
-                            <View className="bg-paper-2 p-card-pad rounded-sheet items-center border border-line border-dashed">
-                                <Feather name="radio" size={32} color={C.ink4} />
-                                <Text className="font-sans text-sm text-ink-3 mt-4 text-center">No Frequencies Established</Text>
-                            </View>
-                        ) : subCommunities.map((sub: any) => (
-                            <TouchableOpacity 
-                                key={sub._id} 
-                                onPress={() => {
-                                    if (isSuspended) { Alert.alert("Sector Offline", "Activation required."); return; }
-                                    // A 'feed' room is a subreddit, not a chat channel.
-                                    if (sub.type === 'feed') {
-                                        navigation.navigate('CommunityFeed', { subId: sub._id, subName: sub.name, communityId: community._id });
-                                    } else {
-                                        navigation.navigate('SubCommunityChat', { subId: sub._id, subName: sub.name, communityId: community._id });
-                                    }
-                                }}
-                                className={`bg-card p-5 rounded-card border border-line flex-row items-center gap-5 mb-3 shadow-hair ${isSuspended ? 'opacity-30' : ''}`}
-                            >
-                                <View className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center overflow-hidden border border-line">
-                                    {sub.logo
-                                        ? <Image source={{ uri: sub.logo }} className="w-full h-full" />
-                                        : <Feather name={sub.type === 'feed' ? 'trending-up' : 'hash'} size={20} color={C.ink4} />}
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="text-ink font-display uppercase text-label" numberOfLines={1}>{sub.name}</Text>
-                                    <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">
-                                        {sub.type === 'feed' ? 'Post Feed' : sub.type === 'announcement' ? 'Announcements' : 'Active Link'}
-                                    </Text>
-                                </View>
-                                {isCreator && (
-                                    <View className="flex-row gap-2">
-                                        <TouchableOpacity 
-                                            onPress={(e: any) => { 
-                                                e.stopPropagation(); 
-                                                setTargetSubId(sub._id); 
-                                                setSubName(sub.name); 
-                                                setSubDesc(sub.description || ''); 
-                                                setSubLogo(sub.logo); 
-                                                setEditSubModal(true); 
-                                            }}
-                                            hitSlop={6}
-                                            className="w-9 h-9 bg-paper-2 rounded-card items-center justify-center border border-line"
-                                        >
-                                            <Feather name="edit-3" size={14} color={C.brand[500]} />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity 
-                                            onPress={(e: any) => { e.stopPropagation(); handleExportHistory(sub._id, sub.name); }}
-                                            hitSlop={6}
-                                            className="w-9 h-9 bg-paper-2 rounded-card items-center justify-center border border-line"
-                                        >
-                                            <Feather name="download" size={14} color={C.success} />
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-                                <Ionicons name="chevron-forward" size={16} color={C.ink4} />
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {/* Other Realms */}
-                    {creatorOtherCommunities.length > 0 && (
-                        <View className="mb-20">
-                            <View className="flex-row items-center mt-6 mb-6" style={{ gap: 12 }}>
-                              <Text className="text-ink-3 font-display uppercase text-label">Linked Sectors</Text>
-                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                            </View>
-                            <View className="flex-row flex-wrap gap-4">
-                                {creatorOtherCommunities.map((c: any) => (
-                                    <TouchableOpacity 
-                                        key={c._id} 
-                                        onPress={() => navigation.push('CommunityHub', { communityId: c._id })}
-                                        className="bg-card p-4 rounded-card border border-line items-center w-[29%] shadow-hair"
-                                    >
-                                        <View className="w-11 h-11 rounded-card overflow-hidden mb-3 border border-line bg-paper-2">
-                                            <Image source={{ uri: c.logo }} className="w-full h-full" />
-                                        </View>
-                                        <Text className="text-ink font-display uppercase text-label text-center" numberOfLines={1}>{c.name}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
+                    {socialLinks.length > 0 && (
+                        <View className="flex-row mt-4" style={{ gap: 8 }}>
+                            {socialLinks.map((l) => (
+                                <IconBtn key={l.label} name={l.icon} boxed size={18} onPress={() => Linking.openURL(l.url)} accessibilityLabel={`Open ${l.label}`} />
+                            ))}
                         </View>
                     )}
+
+                    {isCreator && (
+                        <Card style={[cardPad, { marginTop: 20 }]}>
+                            <ListRow
+                                leading={<View className={`w-2.5 h-2.5 rounded-full ${daysLeft > 7 ? 'bg-success' : 'bg-danger'}`} />}
+                                title={daysLeft > 0 ? `${daysLeft} days left on your plan` : 'Plan expired'}
+                                subtitle="Renew to keep the community online"
+                                onPress={() => setIsPaymentExpanded(!isPaymentExpanded)}
+                                right={<Ionicons name={isPaymentExpanded ? 'chevron-up' : 'chevron-down'} size={18} color={C.ink3} />}
+                                accessibilityLabel={isPaymentExpanded ? 'Hide renewal options' : 'Show renewal options'}
+                            />
+                            {isPaymentExpanded && (
+                                <View style={{ gap: 12, paddingBottom: 12 }}>
+                                    <SegmentedTabs items={PLANS} value={renewPlan} onChange={setRenewPlan} labels={PLAN_LABELS} />
+                                    <Button block variant="primary" title="Renew plan" loading={renewing} onPress={handleRenew} />
+                                </View>
+                            )}
+                        </Card>
+                    )}
+
+                    <SectionHeader
+                        title="Rooms"
+                        right={isCreator ? (
+                            <Button small icon="add" title="New room" onPress={() => { setSubModalVisible(true); setTargetSubId(null); }} />
+                        ) : undefined}
+                    />
+                    {subCommunities.length === 0 ? (
+                        <Card><Empty icon="radio-outline" title="No rooms yet" /></Card>
+                    ) : (
+                        <Card style={[cardPad, isSuspended && { opacity: 0.4 }]}>
+                            {subCommunities.map((sub: any, i: number) => (
+                                <View key={sub._id}>
+                                    {i > 0 ? <Divider /> : null}
+                                    <ListRow
+                                        leading={<RoomIcon uri={sub.logo} icon={ROOM_ICON[sub.type as RoomType] ?? 'chatbubbles-outline'} />}
+                                        title={sub.name}
+                                        subtitle={ROOM_LABEL[sub.type as RoomType] ?? 'Chat'}
+                                        onPress={() => openSub(sub)}
+                                        chevron={!isCreator}
+                                        right={isCreator ? (
+                                            <View className="flex-row" style={{ gap: 4 }}>
+                                                <IconBtn name="create-outline" size={18} onPress={() => editSub(sub)} accessibilityLabel={`Edit ${sub.name}`} />
+                                                <IconBtn name="download-outline" size={18} onPress={() => handleExportHistory(sub._id, sub.name)} accessibilityLabel={`Export ${sub.name} history`} />
+                                            </View>
+                                        ) : undefined}
+                                    />
+                                </View>
+                            ))}
+                        </Card>
+                    )}
+
+                    {creatorOtherCommunities.length > 0 && (
+                        <>
+                            <SectionHeader title="More from this owner" />
+                            <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+                                {creatorOtherCommunities.map((c: any) => (
+                                    <Pressable
+                                        key={c._id}
+                                        onPress={() => navigation.push('CommunityHub', { communityId: c._id })}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={c.name}
+                                        className="bg-card p-3 rounded-2xl border border-line items-center w-[30%] active:opacity-70"
+                                    >
+                                        <RoomIcon uri={c.logo} icon="people-outline" />
+                                        <Text className="text-ink font-semibold text-center mt-2" style={{ fontSize: 12 }} numberOfLines={1}>{c.name}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+                        </>
+                    )}
+                    <View className="h-20" />
                 </View>
             </ScrollView>
 
-            {/* Suspended Guard */}
             {isSuspended && (
-                <View className="absolute inset-0 bg-paper items-center justify-center p-card-pad z-[100]">
-                    <View className="w-24 h-24 bg-danger/10 rounded-sheet items-center justify-center mb-8 border border-danger/15 shadow-hair">
-                        <Feather name="zap-off" size={40} color={C.danger} />
-                    </View>
-                    <Text className="text-ink text-3xl font-display uppercase text-center leading-tight">Spark<Text className="text-danger">{'\n'}</Text>Exhausted</Text>
-                    <Text className="font-sans text-sm text-ink-3 text-center mt-4 mb-12 px-gutter">
-                        Sector frequency is offline. {isCreator ? "Re-ignite the ecosystem spark to restore connectivity." : "Awaiting guardian activation protocol."}
+                <View className="absolute inset-0 bg-paper items-center justify-center px-gutter z-[100]">
+                    <IconTile icon="flash-off-outline" size={72} iconSize={32} color={C.danger} />
+                    <Text className="text-ink font-display text-center mt-6" style={{ fontSize: 26, lineHeight: 32 }}>Community offline</Text>
+                    <Text className="text-ink-3 text-center mt-2 mb-8" style={{ fontSize: 14, lineHeight: 20 }}>
+                        {isCreator ? 'Your plan has run out. Renew it to bring the community back.' : 'The owner needs to renew the plan.'}
                     </Text>
                     {isCreator && (
-                        <View className="w-full">
-                            <View className="flex-row gap-3 mb-4">
-                                <TouchableOpacity onPress={() => setRenewPlan('monthly')} className={`flex-1 p-5 rounded-card border ${renewPlan === 'monthly' ? 'bg-ink border-ink shadow-hair' : 'bg-card border-line shadow-hair'}`}>
-                                    <Text className={`font-display uppercase text-label text-center ${renewPlan === 'monthly' ? 'text-paper' : 'text-ink-3'}`}>Monthly</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => setRenewPlan('yearly')} className={`flex-1 p-5 rounded-card border ${renewPlan === 'yearly' ? 'bg-ink border-ink shadow-hair' : 'bg-card border-line shadow-hair'}`}>
-                                    <Text className={`font-display uppercase text-label text-center ${renewPlan === 'yearly' ? 'text-paper' : 'text-ink-3'}`}>Yearly</Text>
-                                </TouchableOpacity>
-                            </View>
-                            <TouchableOpacity onPress={handleRenew} disabled={renewing} className="bg-brand-500 w-full py-6 items-center border-2 border-ink rounded-md">
-                                {renewing ? <ActivityIndicator size="small" color={C.onBrand} /> : <Text className="text-on-brand font-display uppercase text-label">Restore Hub Signal</Text>}
-                            </TouchableOpacity>
+                        <View className="w-full" style={{ gap: 12 }}>
+                            <SegmentedTabs items={PLANS} value={renewPlan} onChange={setRenewPlan} labels={PLAN_LABELS} />
+                            <Button block variant="primary" title="Renew plan" loading={renewing} onPress={handleRenew} />
                         </View>
                     )}
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="px-4 h-11 items-center justify-center rounded-xl mt-12"
-            accessibilityRole="button"
-            accessibilityLabel="Go back">
-                        <Text className="text-ink-4 font-display uppercase text-label">Back to Directory</Text>
-                    </TouchableOpacity>
+                    <Button variant="tertiary" title="Go back" onPress={() => navigation.goBack()} style={{ marginTop: 16 }} />
                 </View>
             )}
 
-            {/* Sub-Community Creation Modal */}
-            <Modal visible={subModalVisible} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setSubModalVisible(false)}>
-                <View className="flex-1" style={{ backgroundColor: C.scrim }}>
-                    <TouchableOpacity activeOpacity={1} onPress={() => setSubModalVisible(false)} className="flex-1" />
-                    <KeyboardAvoidingView 
-                        behavior={KAV_BEHAVIOR}
-                        className="w-full bg-paper rounded-t-sheet overflow-hidden"
-                        style={{ height: screenHeight * 0.8 }}
-                    >
-                        <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
-                        <View className="p-card-pad pb-12 flex-1">
-                            <View className="flex-row justify-between items-center mb-8">
-                                <Text className="text-ink font-display uppercase text-h1">Expand <Text className="text-accent-text">Realm</Text></Text>
-                                <TouchableOpacity onPress={() => setSubModalVisible(false)} className="w-11 h-11 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                    <Ionicons name="close" size={20} color={C.ink} />
-                                </TouchableOpacity>
-                            </View>
-
-                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                                <TouchableOpacity 
-                                    onPress={() => pickImage(setSubLogo, false)}
-                                    className="w-28 h-28 bg-paper-2 rounded-sheet border border-dashed border-line items-center justify-center overflow-hidden self-center mb-8 shadow-hair"
-                                >
-                                    {subLogo ? <Image source={{ uri: subLogo || undefined }} className="w-full h-full" /> : <Feather name="camera" size={24} color={C.ink4} />}
-                                </TouchableOpacity>
-
-                                <TextInput placeholder="Channel Label (e.g. Protocol)" placeholderTextColor={C.ink4} value={subName} onChangeText={setSubName} className="font-semibold text-base text-ink bg-card p-5 mb-4 border-[1.5px] border-ink rounded-md" />
-                                <TextInput placeholder="Directive parameters..." placeholderTextColor={C.ink4} value={subDesc} onChangeText={setSubDesc} multiline className="bg-card p-5 mb-4 border-[1.5px] border-ink font-medium h-24 text-xs text-ink-2 rounded-md" textAlignVertical="top" />
-
-                                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                                  <Text className="text-ink-3 font-display uppercase text-label">Room Type</Text>
-                                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                </View>
-                                <View className="flex-row gap-2 mb-8">
-                                    {([
-                                        { key: 'chat', label: 'Chat', icon: 'hash' },
-                                        { key: 'feed', label: 'Feed', icon: 'trending-up' },
-                                        { key: 'announcement', label: 'Announce', icon: 'volume-2' },
-                                    ] as const).map((option) => (
-                                        <TouchableOpacity
-                                            key={option.key}
-                                            onPress={() => setSubType(option.key)}
-                                            className={`flex-1 h-14 rounded-card items-center justify-center border ${subType === option.key ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
-                                        >
-                                            <Feather name={option.icon} size={15} color={subType === option.key ? C.paper : C.ink3} />
-                                            <Text className={`font-display uppercase text-label mt-1 ${subType === option.key ? 'text-paper' : 'text-ink-3'}`}>
-                                                {option.label}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-
-                                <TouchableOpacity 
-                                    onPress={handleCreateSubCommunity} 
-                                    disabled={creatingSub}
-                                    className={`p-6 rounded-card items-center mb-20 shadow-hair ${creatingSub ? 'bg-paper-2' : 'bg-ink '}`}
-                                >
-                                    {creatingSub ? (
-                                        <ActivityIndicator size="small" color={C.ink} />
-                                    ) : (
-                                        <Text className="text-paper font-display uppercase text-label">Initiate Room</Text>
-                                    )}
-                                </TouchableOpacity>
-                            </ScrollView>
+            {/* Create / edit a room: one sheet, two modes. */}
+            <Sheet
+                visible={roomSheetOpen}
+                onClose={closeRoomSheet}
+                title={editSubModal ? 'Edit room' : 'New room'}
+                footer={editSubModal ? (
+                    <View style={{ gap: 8 }}>
+                        <Button block variant="primary" title="Save changes" loading={creatingSub} onPress={handleUpdateSubCommunity} />
+                        <Button block variant="danger" title="Delete room" disabled={creatingSub} onPress={handleDeleteSubCommunity} />
+                    </View>
+                ) : (
+                    <Button block variant="primary" title="Create room" loading={creatingSub} onPress={handleCreateSubCommunity} />
+                )}
+            >
+                <View style={{ gap: 16 }}>
+                    <ImagePick uri={subLogo} onPress={() => pickImage(setSubLogo, false)} label="Logo" icon="camera-outline" style={{ width: 96, height: 96, alignSelf: 'center' }} />
+                    <FormField label="Name" placeholder="e.g. General" value={subName} onChangeText={setSubName} />
+                    <FormField label="About" placeholder="What's this room for?" value={subDesc} onChangeText={setSubDesc} multiline />
+                    {!editSubModal && (
+                        <View style={{ gap: 6 }}>
+                            <Label>Room type</Label>
+                            <SegmentedTabs items={ROOM_TYPES} value={subType} onChange={setSubType} labels={ROOM_LABEL} />
                         </View>
-                    </KeyboardAvoidingView>
+                    )}
                 </View>
-            </Modal>
+            </Sheet>
 
-            {/* Sub-Community Update Modal */}
-            <Modal visible={editSubModal} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setEditSubModal(false)}>
-                <View className="flex-1" style={{ backgroundColor: C.scrim }}>
-                    <TouchableOpacity activeOpacity={1} onPress={() => setEditSubModal(false)} className="flex-1" />
-                    <KeyboardAvoidingView 
-                        behavior={KAV_BEHAVIOR}
-                        className="w-full bg-paper rounded-t-sheet overflow-hidden"
-                        style={{ height: screenHeight * 0.8 }}
-                    >
-                        <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
-                        <View className="p-card-pad pb-12 flex-1">
-                            <View className="flex-row justify-between items-center mb-8">
-                                <Text className="text-ink font-display uppercase text-h1">Refine <Text className="text-accent-text">Room</Text></Text>
-                                <TouchableOpacity onPress={() => setEditSubModal(false)} className="w-11 h-11 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                    <Ionicons name="close" size={20} color={C.ink} />
-                                </TouchableOpacity>
-                            </View>
-
-                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                                <TouchableOpacity 
-                                    onPress={() => pickImage(setSubLogo, false)}
-                                    className="w-28 h-28 bg-paper-2 rounded-sheet border border-dashed border-line items-center justify-center overflow-hidden self-center mb-8 shadow-hair"
-                                >
-                                    {subLogo ? <Image source={{ uri: subLogo || undefined }} className="w-full h-full" /> : <Feather name="camera" size={24} color={C.ink4} />}
-                                </TouchableOpacity>
-
-                                <TextInput placeholder="Channel Label" placeholderTextColor={C.ink4} value={subName} onChangeText={setSubName} className="font-semibold text-base text-ink bg-card p-5 mb-4 border-[1.5px] border-ink rounded-md" />
-                                <TextInput placeholder="Directive" placeholderTextColor={C.ink4} value={subDesc} onChangeText={setSubDesc} multiline className="bg-card p-5 mb-8 border-[1.5px] border-ink font-medium h-24 text-xs text-ink-2 rounded-md" textAlignVertical="top" />
-
-                                <TouchableOpacity 
-                                    onPress={handleUpdateSubCommunity} 
-                                    disabled={creatingSub}
-                                    className={`p-6 rounded-card items-center mb-3 shadow-hair ${creatingSub ? 'bg-paper-2' : 'bg-brand-500 '}`}
-                                >
-                                    {creatingSub ? (
-                                        <ActivityIndicator size="small" color={C.ink} />
-                                    ) : (
-                                        <Text className="text-on-brand font-display uppercase text-label">Apply Specs</Text>
-                                    )}
-                                </TouchableOpacity>
-
-                                <TouchableOpacity 
-                                    onPress={handleDeleteSubCommunity}
-                                    className="p-5 rounded-card items-center border border-danger/10 mb-20"
-                                >
-                                    <Text className="text-danger font-display uppercase text-label">Dissolve Room</Text>
-                                </TouchableOpacity>
-                            </ScrollView>
-                        </View>
-                    </KeyboardAvoidingView>
+            <Sheet
+                visible={editHubModal}
+                onClose={() => setEditHubModal(false)}
+                title="Community settings"
+                subtitle={`${daysLeft} days left on your plan`}
+                footer={<Button block variant="primary" title="Save changes" loading={updatingHub} onPress={handleUpdateHub} />}
+            >
+                <View style={{ gap: 16 }}>
+                    <View className="flex-row" style={{ gap: 12 }}>
+                        <ImagePick uri={editBanner} onPress={() => pickImage(setEditBanner, true)} label="Banner" style={{ flex: 2, height: 112 }} />
+                        <ImagePick uri={editLogo} onPress={() => pickImage(setEditLogo, false)} label="Logo" icon="camera-outline" style={{ flex: 1, height: 112 }} />
+                    </View>
+                    <FormField label="Name" placeholder="Community name" value={editName} onChangeText={setEditName} />
+                    <FormField label="About" placeholder="What is this community for?" value={editDesc} onChangeText={setEditDesc} multiline />
+                    <FormField label="YouTube" placeholder="https://youtube.com/…" value={yt} onChangeText={setYt} autoCapitalize="none" keyboardType="url" />
+                    <FormField label="GitHub" placeholder="https://github.com/…" value={gh} onChangeText={setGh} autoCapitalize="none" keyboardType="url" />
+                    <FormField label="Website" placeholder="https://…" value={ws} onChangeText={setWs} autoCapitalize="none" keyboardType="url" />
+                    <Button block variant="danger" icon="trash-outline" title="Delete community" onPress={handleDeleteHub} style={{ marginTop: 8 }} />
                 </View>
-            </Modal>
+            </Sheet>
 
-            {/* Configuration Suite */}
-            <Modal visible={editHubModal} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setEditHubModal(false)}>
-                <View className="flex-1" style={{ backgroundColor: C.scrim }}>
-                    <TouchableOpacity activeOpacity={1} onPress={() => setEditHubModal(false)} className="flex-1" />
-                    <KeyboardAvoidingView 
-                        behavior={KAV_BEHAVIOR}
-                        className="w-full bg-paper rounded-t-sheet overflow-hidden"
-                        style={{ height: screenHeight * 0.8 }}
-                    >
-                        <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
-                        <View className="p-card-pad pb-12 flex-1">
-                            <View className="flex-row justify-between items-center mb-8">
-                                <Text className="text-ink font-display uppercase text-h1">Update <Text className="text-accent-text">Community</Text></Text>
-                                <TouchableOpacity onPress={() => setEditHubModal(false)} className="w-11 h-11 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                    <Ionicons name="close" size={20} color={C.ink} />
-                                </TouchableOpacity>
-                            </View>
-
-                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1">
-                                <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                                  <Text className="text-ink-3 font-display uppercase text-label">Authority Specs</Text>
-                                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                </View>
-                                <View className="bg-paper-2 p-6 rounded-card mb-8 border border-line flex-row justify-between items-center">
-                                    <View>
-                                        <Text className="text-ink font-display uppercase text-label">{daysLeft} Days Remaining</Text>
-                                        <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Active License</Text>
-                                    </View>
-                                    <View className="px-4 py-2 bg-ink rounded-xl">
-                                        <Text className="text-paper font-display uppercase text-label">Guardian</Text>
-                                    </View>
-                                </View>
-
-                                <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                                  <Text className="text-ink-3 font-display uppercase text-label">Atmospheric Assets</Text>
-                                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                </View>
-                                <View className="flex-row gap-4 mb-8">
-                                    <TouchableOpacity 
-                                        onPress={() => pickImage(setEditBanner, true)}
-                                        className="flex-1 h-36 bg-paper-2 rounded-sheet border border-dashed border-line items-center justify-center overflow-hidden"
-                                    >
-                                        {editBanner ? <Image source={{ uri: editBanner || undefined }} className="w-full h-full" /> : <Feather name="image" size={24} color={C.ink4} />}
-                                    </TouchableOpacity>
-                                    <TouchableOpacity 
-                                        onPress={() => pickImage(setEditLogo, false)}
-                                        className="w-36 h-36 bg-paper-2 rounded-sheet border border-dashed border-line items-center justify-center overflow-hidden"
-                                    >
-                                        {editLogo ? <Image source={{ uri: editLogo || undefined }} className="w-full h-full" /> : <Feather name="camera" size={24} color={C.ink4} />}
-                                    </TouchableOpacity>
-                                </View>
-
-                                <TextInput placeholder="Hub Designation" placeholderTextColor={C.ink4} value={editName} onChangeText={setEditName} className="bg-card p-5 mb-4 border-[1.5px] border-ink font-display text-xs text-ink rounded-md" />
-                                <TextInput placeholder="Directive" placeholderTextColor={C.ink4} value={editDesc} onChangeText={setEditDesc} multiline className="bg-card p-5 mb-8 border-[1.5px] border-ink font-medium h-24 text-xs text-ink-2 rounded-md" textAlignVertical="top" />
-
-                                <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                                  <Text className="text-ink-3 font-display uppercase text-label">Social Frequencies</Text>
-                                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                </View>
-                                <View className="bg-paper-2 p-6 rounded-sheet border border-line mb-10">
-                                    <View className="flex-row items-center gap-4 mb-6">
-                                        <FontAwesome5 name="youtube" size={16} color={C.danger} />
-                                        <TextInput placeholder="YouTube" placeholderTextColor={C.ink4} value={yt} onChangeText={setYt} className="flex-1 font-display text-label text-ink" />
-                                    </View>
-                                    <View className="flex-row items-center gap-4 mb-6">
-                                        <FontAwesome5 name="github" size={16} color={C.ink} />
-                                        <TextInput placeholder="GitHub" placeholderTextColor={C.ink4} value={gh} onChangeText={setGh} className="flex-1 font-display text-label text-ink" />
-                                    </View>
-                                    <View className="flex-row items-center gap-4">
-                                        <Feather name="globe" size={16} color={C.brand[500]} />
-                                        <TextInput placeholder="Portal" placeholderTextColor={C.ink4} value={ws} onChangeText={setWs} className="flex-1 font-display text-label text-ink" />
-                                    </View>
-                                </View>
-
-                                <TouchableOpacity 
-                                    onPress={handleUpdateHub} 
-                                    disabled={updatingHub}
-                                    className={`p-6 rounded-card items-center mb-3 shadow-hair ${updatingHub ? 'bg-paper-2' : 'bg-brand-500 '}`}
-                                >
-                                    {updatingHub ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-on-brand font-display uppercase text-label">Update Community</Text>}
-                                </TouchableOpacity>
-
-                                <TouchableOpacity 
-                                    onPress={handleDeleteHub}
-                                    className="p-6 rounded-card bg-danger items-center mb-20"
-                                >
-                                    <Text className="text-white font-display uppercase text-label">Delete Community</Text>
-                                </TouchableOpacity>
-                            </ScrollView>
-                        </View>
-                    </KeyboardAvoidingView>
-                </View>
-            </Modal>
-
-            <Modal visible={showWebView} animationType="slide" statusBarTranslucent onRequestClose={cancelWebPayment}>
-                <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
-                    <AppBar title="Secure Payment" onBack={cancelWebPayment} />
-                    <WebView
-                        source={{ html: webViewHtml }}
-                        onMessage={handleWebMsg}
-                        javaScriptEnabled={true}
-                        domStorageEnabled={true}
-                        originWhitelist={['*']}
-                        style={{ flex: 1 }}
-                    />
-                </SafeAreaView>
-            </Modal>
+            <PayWebView visible={showWebView} html={webViewHtml} onMessage={handleWebMsg} onClose={cancelWebPayment} />
         </View>
     );
 };

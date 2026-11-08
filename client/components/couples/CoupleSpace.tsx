@@ -9,7 +9,7 @@ import Toast from 'react-native-toast-message';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
 import { tapHaptic, selectHaptic } from '../../utils/haptics';
-import { AppBar, Button, IconBtn, Screen, Empty } from '../ui/kit';
+import { AppBar, Button, IconBtn, Screen, Empty, SectionHeader, ListRow, FormField } from '../ui/kit';
 import { Alert } from '../ui/AlertModal';
 import Avatar from '../Avatar';
 
@@ -59,12 +59,6 @@ const ago = (iso: string) => {
   return `${Math.floor(s / 86400)}d`;
 };
 
-const Label = ({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) => (
-  <View className="flex-row items-center justify-between mt-7 mb-2.5">
-    <Text className="font-display text-label text-ink-2 uppercase" style={{ letterSpacing: 1.2 }}>{children}</Text>
-    {right}
-  </View>
-);
 
 const CoupleSpace = () => {
   const navigation = useNavigation<any>();
@@ -112,7 +106,7 @@ const CoupleSpace = () => {
       <AppBar
         title="Couple Space"
         onBack={() => navigation.goBack()}
-        right={data?.linked ? <IconBtn name="ellipsis-horizontal" onPress={unlink} /> : undefined}
+        right={data?.linked ? <IconBtn name="ellipsis-horizontal" onPress={unlink} accessibilityLabel="Unlink partner" /> : undefined}
       />
       {!data && !error ? (
         <View className="flex-1 items-center justify-center"><ActivityIndicator color={ROSE()} /></View>
@@ -201,7 +195,7 @@ const LinkFlow = ({ pending, onLinked }: { pending: Unlinked['pendingCode']; onL
         </Text>
       </View>
 
-      <Label>Invite your partner</Label>
+      <SectionHeader title="Invite your partner" />
       <View className="rounded-2xl border bg-card p-5 items-center" style={{ borderColor: ROSE_LINE() }}>
         {code ? (
           <>
@@ -211,7 +205,7 @@ const LinkFlow = ({ pending, onLinked }: { pending: Unlinked['pendingCode']; onL
               title="Share code"
               icon="share-social-outline"
               variant="primary"
-              style={{ marginTop: 14, backgroundColor: ROSE() }}
+              style={{ marginTop: 16, backgroundColor: ROSE() }}
               onPress={() => Share.share({ message: `Join my Couple Space on Fync 💞 Open Couple Space and enter code ${code}` }).catch(() => {})}
             />
             <View className="flex-row items-center mt-3" style={{ gap: 8 }}>
@@ -229,18 +223,17 @@ const LinkFlow = ({ pending, onLinked }: { pending: Unlinked['pendingCode']; onL
         )}
       </View>
 
-      <Label>Got a code?</Label>
-      <View className="flex-row items-center" style={{ gap: 10 }}>
-        <TextInput
+      <View className="flex-row items-end" style={{ gap: 12, marginTop: 24 }}>
+        <FormField
+          label="Got a code?"
+          containerStyle={{ flex: 1 }}
           value={entry}
           onChangeText={(t) => setEntry(t.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase())}
           placeholder="ABC123"
-          placeholderTextColor={C.ink4}
           autoCapitalize="characters"
           autoCorrect={false}
           onSubmitEditing={join}
-          className="flex-1 rounded-xl border border-line bg-card px-4 font-display text-ink"
-          style={{ height: 48, fontSize: 18, letterSpacing: 4 }}
+          style={{ fontFamily: 'SpaceGrotesk_700Bold', fontSize: 18, letterSpacing: 4 }}
         />
         <Button title={busy === 'join' ? '…' : 'Link'} variant="solid" onPress={join} disabled={entry.length !== 6 || !!busy} />
       </View>
@@ -268,14 +261,14 @@ const BoardCard = ({ s, setS }: { s: Space; setS: (s: Space) => void }) => {
   };
   return (
     <View className="rounded-2xl bg-card border border-line mt-4 overflow-hidden">
-      <Pressable onPress={() => navigation.navigate('CoupleLeaderboard')} accessibilityRole="button" className="flex-row items-center p-4 active:opacity-80">
-        <Text style={{ fontSize: 26 }}>🏆</Text>
-        <View className="flex-1 ml-3">
-          <Text className="font-display text-ink" style={{ fontSize: 15 }}>Top couples</Text>
-          <Text className="font-sans text-ink-3 text-xs mt-0.5">Longest daily-question streaks on Fync</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={C.ink3} />
-      </Pressable>
+      <ListRow
+        style={{ paddingHorizontal: 16 }}
+        leading={<Text style={{ fontSize: 26 }}>🏆</Text>}
+        title="Top couples"
+        subtitle="Longest daily-question streaks on Fync"
+        chevron
+        onPress={() => navigation.navigate('CoupleLeaderboard')}
+      />
       <View className="flex-row items-center px-4 py-3 border-t border-line">
         <View className="flex-1 pr-3">
           <Text className="font-sans text-ink text-sm">Show us on the leaderboard</Text>
@@ -317,10 +310,10 @@ const Dashboard = ({ s, reload, setS }: { s: Space; reload: () => Promise<void>;
         </View>
         <Text className="font-sans mt-3" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>You & {first(partner)}</Text>
         <Text className="font-display" style={{ color: '#fff', fontSize: 64, lineHeight: 70, fontVariant: ['tabular-nums'] }}>{t.days}</Text>
-        <Text className="font-display uppercase" style={{ color: 'rgba(255,255,255,0.9)', letterSpacing: 2, fontSize: 12 }}>
+        <Text className="font-semibold" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13 }}>
           {t.days === 1 ? 'day together' : 'days together'}
         </Text>
-        <Pressable onPress={() => setPickDate(true)} hitSlop={8} className="flex-row items-center mt-3 rounded-full px-3 py-1.5" style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}>
+        <Pressable onPress={() => setPickDate(true)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Together since ${fmtDay(s.couple.since)}. Edit date`} className="flex-row items-center mt-3 rounded-full px-3 py-1.5 active:opacity-70" style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}>
           <Text className="font-sans" style={{ color: '#fff', fontSize: 12 }}>since {fmtDay(s.couple.since)}  </Text>
           <Ionicons name="pencil" size={12} color="#fff" />
         </Pressable>
@@ -340,7 +333,7 @@ const Dashboard = ({ s, reload, setS }: { s: Space; reload: () => Promise<void>;
       ) : null}
 
       {/* Stats */}
-      <View className="flex-row mt-4" style={{ gap: 10 }}>
+      <View className="flex-row mt-4" style={{ gap: 8 }}>
         <Stat big={`🔥 ${s.streak}`} small={s.answeredToday ? 'streak · done today' : s.streak ? 'streak · answer today!' : 'day streak'} />
         <Stat big={`${t.monthiversary.inDays}d`} small={`to ${t.monthiversary.months}-month`} />
         <Stat big={`${t.anniversary.inDays}d`} small={t.anniversary.years === 1 ? 'to 1st anniversary' : `to year ${t.anniversary.years}`} />
@@ -354,7 +347,7 @@ const Dashboard = ({ s, reload, setS }: { s: Space; reload: () => Promise<void>;
         {t.milestones.map((m) => (
           <View key={m.days} className="rounded-full px-3 py-1.5 flex-row items-center" style={{ backgroundColor: ROSE_TINT(), borderWidth: 1, borderColor: ROSE_LINE() }}>
             <Text style={{ fontSize: 12 }}>🏅 </Text>
-            <Text className="font-display" style={{ color: ROSE(), fontSize: 12 }}>{m.label}</Text>
+            <Text className="font-semibold" style={{ color: ROSE(), fontSize: 12 }}>{m.label}</Text>
           </View>
         ))}
         {t.nextMilestone ? (
@@ -364,14 +357,12 @@ const Dashboard = ({ s, reload, setS }: { s: Space; reload: () => Promise<void>;
         ) : null}
       </ScrollView>
 
-      <Label>Today's question</Label>
+      <SectionHeader title="Today's question" />
       <QuestionCard s={s} onAnswered={(patch) => setS({ ...s, ...patch, today: { ...s.today, ...patch.today } })} />
 
       <NudgeCard s={s} />
 
-      <Label right={<Text className="font-sans text-ink-3 text-xs">{s.bucket.filter((b) => b.doneAt).length}/{s.bucket.length} done</Text>}>
-        Bucket list
-      </Label>
+      <SectionHeader title="Bucket list" count={`${s.bucket.filter((b) => b.doneAt).length}/${s.bucket.length} done`} />
       <Bucket items={s.bucket} meId={me._id} partner={partner} onChange={(bucket) => setS({ ...s, bucket })} />
 
       <Notes partner={partner} meId={me._id} unread={s.unreadNotes} onRead={() => s.unreadNotes && setS({ ...s, unreadNotes: 0 })} />
@@ -421,28 +412,27 @@ const QuestionCard = ({ s, onAnswered }: { s: Space; onAnswered: (p: any) => voi
   return (
     <View className="rounded-2xl border p-5" style={{ borderColor: ROSE_LINE(), backgroundColor: ROSE_TINT() }}>
       <Text style={{ fontSize: 22 }}>💌</Text>
-      <Text className="font-display text-ink mt-2" style={{ fontSize: 19, lineHeight: 25 }}>{today.question}</Text>
+      <Text className="font-semibold text-ink mt-2" style={{ fontSize: 18, lineHeight: 24 }}>{today.question}</Text>
 
       {today.mine == null ? (
         <>
-          <TextInput
+          <FormField
             value={text}
             onChangeText={(v) => setText(v.slice(0, 300))}
             placeholder="Your answer…"
-            placeholderTextColor={C.ink4}
+            accessibilityLabel="Your answer"
             multiline
-            className="rounded-xl border border-line bg-card px-4 py-3 mt-4 font-sans text-ink"
-            style={{ minHeight: 80, textAlignVertical: 'top', fontSize: 15 }}
+            containerStyle={{ marginTop: 16 }}
           />
           <View className="flex-row items-center justify-between mt-3">
             <Text className="font-sans text-ink-3 text-xs">
               {today.partnerAnswered ? `${first(partner)} answered. Answer to see it 👀` : `${text.length}/300`}
             </Text>
-            <Button title={busy ? 'Sending…' : 'Answer'} icon="send" small variant="primary" inCard disabled={!text.trim() || busy} onPress={send} style={{ backgroundColor: ROSE() }} />
+            <Button title={busy ? 'Sending…' : 'Answer'} icon="send" small variant="primary" disabled={!text.trim() || busy} onPress={send} style={{ backgroundColor: ROSE() }} />
           </View>
         </>
       ) : (
-        <View className="mt-4" style={{ gap: 10 }}>
+        <View className="mt-4" style={{ gap: 8 }}>
           <Bubble who="You" text={today.mine} />
           {today.partner ? (
             <Bubble who={first(partner)} text={today.partner} theirs />
@@ -460,7 +450,7 @@ const QuestionCard = ({ s, onAnswered }: { s: Space; onAnswered: (p: any) => voi
 
 const Bubble = ({ who, text, theirs }: { who: string; text: string; theirs?: boolean }) => (
   <View className="rounded-xl px-4 py-3 bg-card border" style={{ borderColor: theirs ? ROSE_LINE() : C.line }}>
-    <Text className="font-display text-xs" style={{ color: theirs ? ROSE() : C.ink3 }}>{who}</Text>
+    <Text className="font-semibold text-xs" style={{ color: theirs ? ROSE() : C.ink3 }}>{who}</Text>
     <Text className="font-sans text-ink mt-1" style={{ fontSize: 15, lineHeight: 21 }}>{text}</Text>
   </View>
 );
@@ -501,19 +491,19 @@ const NudgeCard = ({ s }: { s: Space }) => {
       onPress={send}
       accessibilityRole="button"
       accessibilityLabel="Send thinking of you"
-      className="rounded-2xl border border-line bg-card mt-4 p-4 flex-row items-center"
+      className="rounded-2xl border border-line bg-card mt-4 p-4 flex-row items-center active:opacity-70"
       style={{ opacity: wait > 0 ? 0.7 : 1 }}
     >
       <Animated.Text style={{ fontSize: 30, transform: [{ scale: pop }] }}>💭</Animated.Text>
       <View className="flex-1 ml-3">
-        <Text className="font-display text-ink" style={{ fontSize: 16 }}>Thinking of you</Text>
+        <Text className="font-semibold text-ink" style={{ fontSize: 16 }}>Thinking of you</Text>
         <Text className="font-sans text-ink-3 text-xs mt-0.5">
           {wait > 0 ? `Next one in ${Math.floor(wait / 60)}:${String(wait % 60).padStart(2, '0')} · ` : ''}
           You sent {sent} · got {s.nudges.receivedToday} today
         </Text>
       </View>
       <View className="rounded-full px-4 py-2" style={{ backgroundColor: ROSE() }}>
-        <Text className="font-display" style={{ color: '#fff', fontSize: 13 }}>Send</Text>
+        <Text className="font-semibold" style={{ color: '#fff', fontSize: 13 }}>Send</Text>
       </View>
     </Pressable>
   );
@@ -567,20 +557,21 @@ const Bucket = ({ items, meId, partner, onChange }: {
           value={text}
           onChangeText={(v) => setText(v.slice(0, 120))}
           placeholder={items.length >= 100 ? 'List is full' : 'Add something to do together…'}
+          accessibilityLabel="New bucket list item"
           editable={items.length < 100}
-          placeholderTextColor={C.ink4}
+          placeholderTextColor={C.ink3}
           onSubmitEditing={add}
           returnKeyType="done"
           className="flex-1 font-sans text-ink px-1"
           style={{ height: 44, fontSize: 15 }}
         />
-        <IconBtn name="add-circle" color={ROSE()} size={28} onPress={add} />
+        <IconBtn name="add-circle" color={ROSE()} size={28} onPress={add} accessibilityLabel="Add to bucket list" />
       </View>
       {sorted.length === 0 ? (
         <Text className="font-sans text-ink-3 text-center p-5">Sunrise trek? Goa trip? Write your first one ✨</Text>
       ) : sorted.map((it) => (
         <Pressable key={it._id} onPress={() => toggle(it)} onLongPress={() => remove(it)} accessibilityRole="checkbox" accessibilityState={{ checked: !!it.doneAt }}
-          className="flex-row items-center px-4 py-3 border-b border-line">
+          className="flex-row items-center px-4 py-3 border-b border-line active:opacity-70">
           <Ionicons name={it.doneAt ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={it.doneAt ? ROSE() : C.ink4} />
           <View className="flex-1 ml-3">
             <Text className={`font-sans ${it.doneAt ? 'text-ink-3' : 'text-ink'}`} style={{ fontSize: 15, textDecorationLine: it.doneAt ? 'line-through' : 'none' }}>{it.text}</Text>
@@ -636,28 +627,26 @@ const Notes = ({ partner, meId, unread, onRead }: { partner: Person; meId: strin
   const shown = all ? notes ?? [] : (notes ?? []).slice(0, 4);
   return (
     <>
-      <Label right={unread ? (
+      <SectionHeader title="Love notes" right={unread ? (
         <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: ROSE() }}>
-          <Text className="font-display" style={{ color: '#fff', fontSize: 11 }}>{unread} new</Text>
+          <Text className="font-semibold" style={{ color: '#fff', fontSize: 11 }}>{unread} new</Text>
         </View>
-      ) : undefined}>Love notes</Label>
-      <View className="rounded-2xl border border-line bg-card p-3">
-        <TextInput
+      ) : undefined} />
+      <View>
+        <FormField
           value={text}
           onChangeText={(v) => setText(v.slice(0, 280))}
           placeholder={`Write something sweet to ${first(partner)}…`}
-          placeholderTextColor={C.ink4}
+          accessibilityLabel="Love note"
           multiline
-          className="font-sans text-ink px-1"
-          style={{ minHeight: 48, fontSize: 15, textAlignVertical: 'top' }}
         />
-        <View className="flex-row items-center justify-between mt-1">
-          <Text className="font-sans text-ink-4 text-xs">{text.length}/280</Text>
-          <Button title={busy ? '…' : 'Send note'} icon="heart" small variant="primary" inCard disabled={!text.trim() || busy} onPress={send} style={{ backgroundColor: ROSE() }} />
+        <View className="flex-row items-center justify-between mt-2">
+          <Text className="font-sans text-ink-3 text-xs">{text.length}/280</Text>
+          <Button title={busy ? '…' : 'Send note'} icon="heart" small variant="primary" disabled={!text.trim() || busy} onPress={send} style={{ backgroundColor: ROSE() }} />
         </View>
       </View>
       {failed ? (
-        <Pressable onPress={load} className="p-4 items-center"><Text className="font-sans text-ink-3">Couldn't load notes · tap to retry</Text></Pressable>
+        <Pressable onPress={load} className="p-4 items-center active:opacity-70" accessibilityRole="button"><Text className="font-sans text-ink-3">Couldn't load notes · tap to retry</Text></Pressable>
       ) : !notes ? (
         <ActivityIndicator color={ROSE()} style={{ marginTop: 16 }} />
       ) : notes.length === 0 ? (
@@ -706,8 +695,8 @@ const History = () => {
 
   return (
     <>
-      <Pressable onPress={toggle} className="flex-row items-center justify-between mt-7 py-2" accessibilityRole="button">
-        <Text className="font-display text-label text-ink-2 uppercase" style={{ letterSpacing: 1.2 }}>Past questions</Text>
+      <Pressable onPress={toggle} className="flex-row items-center justify-between mt-6 active:opacity-70" style={{ minHeight: 44 }} accessibilityRole="button" accessibilityState={{ expanded: open }}>
+        <Text className="font-semibold text-base text-ink">Past questions</Text>
         <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={C.ink3} />
       </Pressable>
       {!open ? null : failed ? (
@@ -717,9 +706,9 @@ const History = () => {
       ) : days.length === 0 ? (
         <Text className="font-sans text-ink-3 text-center mt-2">Your answers will collect here day by day.</Text>
       ) : days.map((d) => (
-        <View key={d.day} className="rounded-2xl border border-line bg-card p-4 mt-2.5">
+        <View key={d.day} className="rounded-2xl border border-line bg-card p-4 mt-3">
           <Text className="font-sans text-ink-3" style={{ fontSize: 11 }}>{fmtDay(d.day)}</Text>
-          <Text className="font-display text-ink mt-1" style={{ fontSize: 15 }}>{d.question}</Text>
+          <Text className="font-semibold text-ink mt-1" style={{ fontSize: 15 }}>{d.question}</Text>
           <Text className="font-sans text-ink-2 mt-2" style={{ fontSize: 14 }}><Text className="text-ink-3">You: </Text>{d.mine ?? '—'}</Text>
           <Text className="font-sans text-ink-2 mt-1" style={{ fontSize: 14 }}><Text style={{ color: ROSE() }}>Them: </Text>{d.partner === '🔒' ? '🔒 You skipped this one' : d.partner ?? '—'}</Text>
         </View>

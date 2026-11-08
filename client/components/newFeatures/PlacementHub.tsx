@@ -1,18 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {View, Text, ScrollView, TouchableOpacity, TextInput, FlatList, Modal, RefreshControl, KeyboardAvoidingView, Animated, StatusBar, ActivityIndicator} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, ScrollView, Pressable, FlatList, RefreshControl, Animated, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
 import { useBottomInset } from '../../constants/layout';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { formatDistanceToNow } from 'date-fns';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard, AppBar, IconBtn } from '../ui/kit';
+import {
+    AppBar, IconBtn, Button, Card, Empty, FilterChips, FormField, IconTile, Label,
+    SearchField, SectionHeader, Sheet, Tag, TagRow,
+} from '../ui/kit';
 import CommentsSheet, { CommentsApi } from '../ui/CommentsSheet';
 import { C } from '../../constants/colors';
 
@@ -35,7 +36,6 @@ const COMPANIES = () => ([
 ]);
 
 const QUESTION_TYPES = ["DSA", "HR", "System Design", "Aptitude", "Core Subject"];
-const DIFFICULTIES = ["Easy", "Medium", "Hard"];
 
 // Outside the screen so a parent re-render doesn't remount it and restart the pulse.
 const QuestionSkeleton = () => {
@@ -52,7 +52,7 @@ const QuestionSkeleton = () => {
     }, [pulseAnim]);
 
     return (
-        <Animated.View style={{ opacity: pulseAnim }} className="bg-card mx-gutter mb-6 rounded-sheet border border-line p-card-pad shadow-hair">
+        <Animated.View style={{ opacity: pulseAnim }} className="bg-card mx-gutter mb-3 rounded-2xl border border-line p-4">
             <View className="flex-row justify-between mb-6">
                 <View className="h-6 bg-paper-2 rounded-full w-24" />
                 <View className="h-6 bg-paper-2 rounded-full w-20" />
@@ -76,6 +76,77 @@ const QuestionSkeleton = () => {
         </Animated.View>
     );
 };
+
+const DIFF_TONE: Record<string, () => string> = { Hard: () => C.danger, Medium: () => C.warning, Easy: () => C.success };
+const TYPE_FILTERS = ['All', ...QUESTION_TYPES];
+
+const QuestionCard = memo(function QuestionCard({ item, me, onUpvote, onSave, onDiscuss }: {
+    item: any; me?: string; onUpvote: (id: string) => void; onSave: (id: string) => void; onDiscuss: (q: any) => void;
+}) {
+    const isUpvoted = item.upvotes?.includes(me);
+    const isSaved = item.savedBy?.includes(me);
+    const ago = item.createdAt && !isNaN(new Date(item.createdAt).getTime()) ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true }) : '';
+    return (
+        <Card padded style={{ marginHorizontal: 20, marginBottom: 12 }}>
+            <View className="flex-row justify-between items-center mb-3">
+                <Text className="text-ink font-semibold text-base flex-1 mr-3" numberOfLines={1}>{item.company || 'Company'}</Text>
+                {item.difficulty ? (
+                    <Tag label={item.difficulty} tone={{ fg: (DIFF_TONE[item.difficulty] ?? (() => C.ink2))() }} />
+                ) : null}
+            </View>
+
+            <Text className="text-ink text-base font-sans leading-6 mb-3">{item.question}</Text>
+
+            <TagRow style={{ marginBottom: 12 }}>
+                {item.type ? <Tag label={item.type} /> : null}
+                {item.round ? <Tag label={item.round} /> : null}
+            </TagRow>
+
+            <View className="flex-row justify-between items-center pt-2 border-t border-line">
+                <View className="flex-row items-center flex-1" style={{ gap: 8 }}>
+                    <Image
+                        source={{ uri: item.postedBy?.avatar || `https://ui-avatars.com/api/?name=${item.postedBy?.username}` }}
+                        style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: C.paper2 }}
+                        cachePolicy="memory-disk"
+                    />
+                    <View className="flex-1">
+                        <Text className="text-ink-2 text-xs font-semibold" numberOfLines={1}>@{item.postedBy?.username}</Text>
+                        {ago ? <Text className="text-ink-3 text-xs font-sans">{ago}</Text> : null}
+                    </View>
+                </View>
+
+                <View className="flex-row items-center">
+                    <Pressable
+                        onPress={() => onUpvote(item._id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Upvote, ${item.upvotes?.length || 0}`}
+                        accessibilityState={{ selected: !!isUpvoted }}
+                        className="flex-row items-center px-2 h-11 active:opacity-70"
+                    >
+                        <Ionicons name={isUpvoted ? "heart" : "heart-outline"} size={18} color={isUpvoted ? C.accentText : C.ink3} />
+                        <Text className={`ml-1 text-sm font-semibold ${isUpvoted ? 'text-accent-text' : 'text-ink-3'}`}>{item.upvotes?.length || 0}</Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={() => onDiscuss(item)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Discussion, ${item.comments?.length || 0}`}
+                        className="flex-row items-center px-2 h-11 active:opacity-70"
+                    >
+                        <Ionicons name="chatbubble-outline" size={18} color={C.ink3} />
+                        <Text className="ml-1 text-sm font-semibold text-ink-3">{item.comments?.length || 0}</Text>
+                    </Pressable>
+                    <IconBtn
+                        name={isSaved ? "bookmark" : "bookmark-outline"}
+                        size={18}
+                        color={isSaved ? C.accentText : C.ink3}
+                        accessibilityLabel={isSaved ? 'Unsave' : 'Save'}
+                        onPress={() => onSave(item._id)}
+                    />
+                </View>
+            </View>
+        </Card>
+    );
+});
 
 const PlacementHub = () => {
     const { user } = useAuth();
@@ -203,67 +274,11 @@ const PlacementHub = () => {
         finally { setPosting(false); }
     };
 
-    const renderQuestionCard = ({ item }: { item: any }) => {
-        const isUpvoted = item.upvotes?.includes(CURRENT_USER_ID);
-        const isSaved = item.savedBy?.includes(CURRENT_USER_ID);
+    const openDiscussion = useCallback((q: any) => { setSelectedQuestion(q); setDiscussionVisible(true); }, []);
 
-        return (
-            <View className="bg-card mx-gutter mb-6 rounded-sheet border border-line shadow-hair overflow-hidden">
-                <View className="p-6">
-                    <View className="flex-row justify-between items-center mb-4">
-                        <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                            <Text className="text-ink-3 text-label font-display uppercase">{item.company || 'Gen-Z Tech'}</Text>
-                        </View>
-                        <View className={`px-3 py-1.5 rounded-full border ${item.difficulty === 'Hard' ? 'bg-danger/10 border-danger/15' : item.difficulty === 'Medium' ? 'bg-warning/10 border-warning/15' : 'bg-success/10 border-success/15' }`}>
-                            <Text className={`text-label font-display uppercase ${item.difficulty === 'Hard' ? 'text-danger' : item.difficulty === 'Medium' ? 'text-warning' : 'text-success' }`}>{item.difficulty}</Text>
-                        </View>
-                    </View>
-
-                    <Text className="text-ink text-sm font-display uppercase leading-6 mb-6">"{item.question}"</Text>
-
-                    <View className="flex-row flex-wrap gap-2 mb-6">
-                        <View className="bg-ink px-2.5 py-1 rounded-full">
-                            <Text className="text-paper text-label font-display uppercase">{item.type}</Text>
-                        </View>
-                        <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                            <Text className="text-ink-3 text-label font-display uppercase">{item.round}</Text>
-                        </View>
-                    </View>
-
-                    <View className="flex-row justify-between items-center pt-4 border-t border-line">
-                        <View className="flex-row items-center">
-                            <Image
-                                source={{ uri: item.postedBy?.avatar || `https://ui-avatars.com/api/?name=${item.postedBy?.username}` }}
-                                style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2 }}
-                                cachePolicy="memory-disk"
-                            />
-                            <View className="ml-2">
-                                <Text className="text-ink text-label font-display uppercase">@{item.postedBy?.username}</Text>
-                                <Text className="text-ink-3 text-label uppercase font-semibold">{item.createdAt && !isNaN(new Date(item.createdAt).getTime()) ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true }) : ''}</Text>
-                            </View>
-                        </View>
-
-                        <View className="flex-row gap-4">
-                            <TouchableOpacity onPress={() => handleUpvote(item._id)} className="flex-row items-center">
-                                <Ionicons name={isUpvoted ? "heart" : "heart-outline"} size={16} color={isUpvoted ? C.brand[500] : C.ink4} />
-                                <Text className={`ml-1 text-label font-display ${isUpvoted ? 'text-accent-text' : 'text-ink-3'}`}>{item.upvotes?.length}</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={() => { setSelectedQuestion(item); setDiscussionVisible(true); }}
-                                className="flex-row items-center"
-                            >
-                                <Ionicons name="chatbubble-outline" size={14} color={C.ink4} />
-                                <Text className="ml-1 text-label font-display text-ink-3">{item.comments?.length}</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleSave(item._id)}>
-                                <Ionicons name={isSaved ? "bookmark" : "bookmark-outline"} size={14} color={isSaved ? C.info : C.ink4} />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </View>
-        );
-    };
+    const renderQuestionCard = ({ item }: { item: any }) => (
+        <QuestionCard item={item} me={CURRENT_USER_ID} onUpvote={handleUpvote} onSave={handleSave} onDiscuss={openDiscussion} />
+    );
 
     return (
         <View className="flex-1 bg-paper">
@@ -273,20 +288,10 @@ const PlacementHub = () => {
                 <AppBar
                     onBack={() => navigation.goBack()}
                     title="Career Hub"
-                    right={<IconBtn name="add" boxed onPress={() => setPostModalVisible(true)} />}
+                    right={<IconBtn name="add" boxed accessibilityLabel="Share an interview question" onPress={() => setPostModalVisible(true)} />}
                 />
-                <View className="px-gutter">
-
-                    <View className="bg-card flex-row items-center p-4 border-2 border-ink mb-6 shadow-hair overflow-hidden rounded-md">
-                        <Ionicons name="search" size={20} color={C.ink4} />
-                        <TextInput
-                            placeholder="Search Interview Ledgers..."
-                            placeholderTextColor={C.ink4}
-                            value={search}
-                            onChangeText={setSearch}
-                            className="flex-1 ml-3 text-ink font-display uppercase text-label"
-                        />
-                    </View>
+                <View className="px-gutter mb-4">
+                    <SearchField placeholder="Search interview questions" value={search} onChangeText={setSearch} />
                 </View>
 
                 {/* The feed itself is the scroller; it used to be a scrollEnabled={false}
@@ -297,182 +302,101 @@ const PlacementHub = () => {
                     renderItem={renderQuestionCard}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: bottomInset }}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.info} />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                     ListHeaderComponent={<>
-                    {/* Feature Cards */}
-                    <View className="px-gutter mb-8 flex-row gap-4">
-                        <TouchableOpacity
+                    <View className="px-gutter mb-6 flex-row" style={{ gap: 12 }}>
+                        <Pressable
                             onPress={() => navigation.navigate("PlacementPredictor")}
                             accessibilityRole="button"
-                            className="flex-1 bg-card border border-line rounded-card p-card-pad justify-center"
-                            style={{ height: 160 }}
+                            accessibilityLabel="Predictor, AI resume scan"
+                            className="flex-1 bg-card border border-line rounded-2xl p-4 active:opacity-70"
                         >
-                            <Ionicons name="stats-chart" size={26} color={C.recruiter} />
-                            <Text className="font-semibold text-base text-ink mt-4">Predictor</Text>
-                            <Text className="font-sans text-sm text-ink-3 mt-1">AI Resume Scan</Text>
-                        </TouchableOpacity>
-                        {/* The screen's one stamp: Mock Sync is the tool this hub
-                            pushes, and it is the only paid one. */}
-                        <StampCard style={{ flex: 1 }}>
-                            <TouchableOpacity
-                                onPress={() => navigation.navigate("InterviewSetup")}
+                            <IconTile icon="stats-chart-outline" color={C.recruiter} />
+                            <Text className="font-semibold text-base text-ink mt-3">Predictor</Text>
+                            <Text className="font-sans text-sm text-ink-3 mt-0.5">AI resume scan</Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={() => navigation.navigate("InterviewSetup")}
+                            accessibilityRole="button"
+                            accessibilityLabel="Mock interview, real-time simulation"
+                            className="flex-1 bg-card border border-line rounded-2xl p-4 active:opacity-70"
+                        >
+                            <IconTile icon="mic-outline" color={C.accentText} />
+                            <Text className="font-semibold text-base text-ink mt-3">Mock interview</Text>
+                            <Text className="font-sans text-sm text-ink-3 mt-0.5">Real-time simulation</Text>
+                        </Pressable>
+                    </View>
+
+                    <SectionHeader title="Top companies" style={{ marginHorizontal: 20, marginBottom: 12 }} />
+                    <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 16 }} style={{ marginBottom: 24 }}>
+                        {COMPANIES().map((c) => (
+                            <Pressable
+                                key={c.name}
+                                onPress={() => setSearch(c.name)}
                                 accessibilityRole="button"
-                                className="p-card-pad justify-center"
-                                style={{ height: 160 }}
+                                accessibilityLabel={`Search ${c.name}`}
+                                className="items-center active:opacity-70"
                             >
-                                <Ionicons name="mic" size={26} color={C.brand[600]} />
-                                <Text className="font-semibold text-base text-ink mt-4">Mock Sync</Text>
-                                <Text className="font-sans text-sm text-ink-3 mt-1">Real-time Simulation</Text>
-                            </TouchableOpacity>
-                        </StampCard>
-                    </View>
+                                <View className="bg-card w-14 h-14 rounded-full items-center justify-center border border-line">
+                                    <FontAwesome5 name={c.icon} size={22} color={c.color} />
+                                </View>
+                                <Text className="text-ink-2 text-xs mt-2 font-semibold">{c.name}</Text>
+                            </Pressable>
+                        ))}
+                    </ScrollView>
 
-                    {/* Companies */}
-                    <View className="mb-10">
-                        <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                          <Text className="text-ink-3 font-display text-label uppercase">Strategic Targets</Text>
-                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                        </View>
-                        <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
-                            {COMPANIES().map((c, i) => (
-                                <TouchableOpacity key={i} onPress={() => setSearch(c.name)} className="mr-6 items-center">
-                                    <View className="bg-card w-16 h-16 rounded-card items-center justify-center border border-line shadow-hair">
-                                        <FontAwesome5 name={c.icon} size={24} color={c.color} />
-                                    </View>
-                                    <Text className="text-ink-3 text-label mt-3 font-display uppercase">{c.name}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
+                    <FilterChips items={TYPE_FILTERS} value={activeType} onChange={setActiveType} style={{ marginBottom: 24 }} />
 
-                    {/* Filters */}
-                    <View className="px-gutter mb-8">
-                        <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false}>
-                            {['All', ...QUESTION_TYPES].map((type, i) => (
-                                <TouchableOpacity
-                                    key={i}
-                                    onPress={() => setActiveType(type)}
-                                    className={`mr-3 px-6 py-3 rounded-card border ${activeType === type ? 'bg-ink border-ink' : 'bg-card border-line shadow-hair'}`}
-                                >
-                                    <Text className={`text-label font-display uppercase ${activeType === type ? 'text-paper' : 'text-ink-3'}`}>{type}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
-
-                    {/* Trending Header */}
-                    {trending.length > 0 && (
-                        <View className="mb-10">
-                            <Text className="font-display text-label text-ink uppercase ml-gutter mb-4">Trending <Text className="text-fam-career">Signals</Text></Text>
-                            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
+                    {trending.length > 0 ? (
+                        <View className="mb-6">
+                            <SectionHeader title="Trending" style={{ marginHorizontal: 20, marginBottom: 12 }} />
+                            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
                                 {trending.map((item, i) => (
-                                    <TouchableOpacity
-                                        key={i}
-                                        onPress={() => { setSelectedQuestion(item); setDiscussionVisible(true); }}
-                                        className="bg-card mr-4 p-6 rounded-sheet border border-fam-career/15 w-[240px] shadow-hair"
+                                    <Pressable
+                                        key={item._id || i}
+                                        onPress={() => openDiscussion(item)}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`${item.company}, ${item.type}`}
+                                        className="bg-card p-4 rounded-2xl border border-line w-[240px] active:opacity-70"
                                     >
                                         <Text className="font-semibold text-base text-ink" numberOfLines={1}>{item.company}</Text>
-                                        <Text className="text-fam-career text-label font-display uppercase mt-1" numberOfLines={1}>{item.type}</Text>
-                                        <View className="h-[2px] w-8 bg-fam-career my-4 rounded-full" />
-                                        <Text className="text-ink-3 text-label font-medium leading-5" numberOfLines={2}>"{item.question}"</Text>
-                                    </TouchableOpacity>
+                                        <Text className="text-accent-text text-xs font-semibold mt-0.5" numberOfLines={1}>{item.type}</Text>
+                                        <Text className="text-ink-3 text-sm font-sans leading-5 mt-2" numberOfLines={2}>{item.question}</Text>
+                                    </Pressable>
                                 ))}
                             </ScrollView>
                         </View>
-                    )}
+                    ) : null}
 
-                    {/* Main Feed */}
-                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                      <Text className="text-ink-3 font-display text-label uppercase">Global Intel Stream</Text>
-                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                    </View>
+                    <SectionHeader title="Latest questions" style={{ marginHorizontal: 20, marginBottom: 12 }} />
                     {loading && !refreshing ? (
                         <View>{[1, 2, 3].map(i => <QuestionSkeleton key={i} />)}</View>
                     ) : null}
                     </>}
                     ListEmptyComponent={loading && !refreshing ? null : (
-                        <View className="items-center py-20 px-gutter">
-                            <Ionicons name="document-text-outline" size={48} color={C.ink4} />
-                            <Text className="font-semibold text-base text-ink mt-6 text-center">No Intelligence Found</Text>
-                        </View>
+                        <Empty icon="document-text-outline" title="No questions yet" hint="Share one from your last interview." />
                     )}
                 />
 
-                {/* --- POST MODAL --- */}
-                <Modal visible={isPostModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPostModalVisible(false)}>
-                    {/* Android draws this full-screen modal under the status bar. */}
-                    <SafeAreaView className="flex-1 bg-paper" edges={['top', 'bottom']}>
-                        <StatusBar barStyle={C.barStyle} />
-                        <AppBar
-                            inset={false}
-                            title="Share Interview"
-                            right={<IconBtn name="close" onPress={() => setPostModalVisible(false)} />}
-                        />
-
-                        <KeyboardAvoidingView behavior="padding" className="flex-1">
-                            <ScrollView keyboardShouldPersistTaps="handled" className="p-card-pad" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-                                <Text className="text-ink-3 text-label font-display uppercase mb-4">Core Context</Text>
-                                <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mb-8">
-                                    <TextInput
-                                        placeholder="Company Name" placeholderTextColor={C.ink4}
-                                        value={form.company} onChangeText={t => setForm({ ...form, company: t })}
-                                        className="font-semibold text-base text-ink mb-6 border-b border-line pb-4"
-                                    />
-                                    <TextInput
-                                        placeholder="Role Assigned" placeholderTextColor={C.ink4}
-                                        value={form.role} onChangeText={t => setForm({ ...form, role: t })}
-                                        className="font-semibold text-base text-ink mb-6 border-b border-line pb-4"
-                                    />
-                                    <TextInput
-                                        placeholder="Interview Round" placeholderTextColor={C.ink4}
-                                        value={form.round} onChangeText={t => setForm({ ...form, round: t })}
-                                        className="text-ink font-display uppercase text-label"
-                                    />
-                                </View>
-
-                                <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                                  <Text className="text-ink-3 text-label font-display uppercase">Categorization</Text>
-                                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                </View>
-                                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-8">
-                                    {QUESTION_TYPES.map(t => (
-                                        <TouchableOpacity
-                                            key={t} onPress={() => setForm({ ...form, type: t })}
-                                            className={`mr-3 px-6 py-3 rounded-card border ${form.type === t ? 'bg-ink border-ink' : 'bg-card border-line'}`}
-                                        >
-                                            <Text className={`text-label font-display uppercase ${form.type === t ? 'text-paper' : 'text-ink-3'}`}>{t}</Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </ScrollView>
-
-                                <Text className="text-ink-3 text-label font-display uppercase mb-4">Intelligence Details</Text>
-                                <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mb-12">
-                                    <TextInput
-                                        placeholder="Establish the question..." placeholderTextColor={C.ink4}
-                                        multiline value={form.question} onChangeText={t => setForm({ ...form, question: t })}
-                                        className="font-semibold text-base text-ink min-h-[120px] mb-4"
-                                        textAlignVertical="top"
-                                    />
-                                    <View className="h-[1px] bg-paper-2 w-full mb-6" />
-                                    <TextInput
-                                        placeholder="Internal Approach / Hints (Optional)" placeholderTextColor={C.ink4}
-                                        multiline value={form.description} onChangeText={t => setForm({ ...form, description: t })}
-                                        className="text-ink-3 font-medium text-label min-h-[100px]"
-                                        textAlignVertical="top"
-                                    />
-                                </View>
-
-                                <TouchableOpacity
-                                    onPress={handlePost}
-                                    disabled={posting}
-                                    className="bg-fam-career py-6 rounded-card items-center shadow-hair"
-                                >
-                                    {posting ? <ActivityIndicator color="white" /> : <Text className="text-white font-display uppercase text-xs">Deploy Intel to Hub</Text>}
-                                </TouchableOpacity>
-                            </ScrollView>
-                        </KeyboardAvoidingView>
-                    </SafeAreaView>
-                </Modal>
+                <Sheet
+                    visible={isPostModalVisible}
+                    onClose={() => setPostModalVisible(false)}
+                    title="Share interview"
+                    height="92%"
+                    footer={<Button title="Share question" variant="primary" block loading={posting} onPress={handlePost} />}
+                >
+                    <View style={{ gap: 16 }}>
+                        <FormField label="Company" placeholder="e.g. Google" value={form.company} onChangeText={t => setForm({ ...form, company: t })} />
+                        <FormField label="Role" placeholder="e.g. SDE intern" value={form.role} onChangeText={t => setForm({ ...form, role: t })} />
+                        <FormField label="Round" placeholder="e.g. Technical round 1" value={form.round} onChangeText={t => setForm({ ...form, round: t })} />
+                        <View style={{ gap: 8 }}>
+                            <Label>Type</Label>
+                            <FilterChips items={QUESTION_TYPES} value={form.type} onChange={t => setForm({ ...form, type: t })} style={{ marginHorizontal: -20 }} />
+                        </View>
+                        <FormField label="Question" multiline placeholder="What were you asked?" value={form.question} onChangeText={t => setForm({ ...form, question: t })} />
+                        <FormField label="Approach or hints (optional)" multiline placeholder="How you solved it" value={form.description} onChangeText={t => setForm({ ...form, description: t })} />
+                    </View>
+                </Sheet>
 
                 <CommentsSheet
                     visible={isDiscussionVisible}
@@ -486,7 +410,7 @@ const PlacementHub = () => {
                     ))}
                 />
             </View>
-        </View >
+        </View>
     );
 };
 

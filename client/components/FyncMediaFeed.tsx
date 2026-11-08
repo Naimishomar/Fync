@@ -28,7 +28,8 @@ import FyncLogo from "../assets/Fync.png"
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
-import { AppBar, IconBtn, Button, Empty } from './ui/kit';
+import { AppBar, IconBtn, Button, Empty, Tag, TagRow, IconTile, Sheet, FormField } from './ui/kit';
+import Avatar from './Avatar';
 import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 
 // The server returns every comment flat, newest first, each reply pointing at
@@ -352,7 +353,7 @@ const YouTubeVideoPlayer = ({
           )}
           {playbackRate > 1 && (
             <View className="absolute top-20 self-center bg-black/40 px-3 py-1 rounded-full border border-white/20">
-              <Text className="text-white font-display text-xs">2x Speed</Text>
+              <Text className="text-white font-semibold text-xs">2x speed</Text>
             </View>
           )}
 
@@ -360,7 +361,7 @@ const YouTubeVideoPlayer = ({
           {seekFeedback && (
             <View className={`absolute top-1/2 -translate-y-6 ${seekFeedback === 'forward' ? 'right-20' : 'left-20'} bg-black/60 w-24 h-24 rounded-full items-center justify-center border border-white/20`}>
               <Ionicons name={seekFeedback === 'forward' ? "play-forward" : "play-back"} size={40} color="white" />
-              <Text className="text-white font-display text-xs mt-1 uppercase">{seekFeedback === 'forward' ? '+10s' : '-10s'}</Text>
+              <Text className="text-white font-semibold text-xs mt-1">{seekFeedback === 'forward' ? '+10s' : '-10s'}</Text>
             </View>
           )}
         </Animated.View>
@@ -373,15 +374,15 @@ const YouTubeVideoPlayer = ({
           className="absolute inset-0 bg-black/40 items-center justify-center p-4"
         >
           <View className="flex-row items-center gap-12">
-            <TouchableOpacity onPress={skipBackward} className="p-4 rounded-full bg-black/20 backdrop-blur-md">
+            <TouchableOpacity onPress={skipBackward} className="p-4 rounded-full bg-black/20" accessibilityRole="button" accessibilityLabel="Back 10 seconds">
               <Ionicons name="play-back" size={24} color="white" />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={togglePlay} className="w-20 h-20 rounded-full bg-black/20 backdrop-blur-md items-center justify-center">
+            <TouchableOpacity onPress={togglePlay} className="w-20 h-20 rounded-full bg-black/20 items-center justify-center" accessibilityRole="button" accessibilityLabel={status?.isPlaying ? "Pause" : "Play"}>
               <Ionicons name={status?.isPlaying ? "pause" : "play"} size={44} color="white" style={!status?.isPlaying ? { marginLeft: 4 } : {}} />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={skipForward} className="p-4 rounded-full bg-black/20 backdrop-blur-md">
+            <TouchableOpacity onPress={skipForward} className="p-4 rounded-full bg-black/20" accessibilityRole="button" accessibilityLabel="Forward 10 seconds">
               <Ionicons name="play-forward" size={24} color="white" />
             </TouchableOpacity>
           </View>
@@ -394,7 +395,7 @@ const YouTubeVideoPlayer = ({
                 {status ? `${Math.floor(status.positionMillis / 60000)}:${String(Math.floor((status.positionMillis % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
                 <Text className="text-white/60"> / {status ? `${Math.floor((status.durationMillis ?? 0) / 60000)}:${String(Math.floor(((status.durationMillis ?? 0) % 60000) / 1000)).padStart(2, '0')}` : '0:00'}</Text>
               </Text>
-              <TouchableOpacity onPress={toggleFullscreen} hitSlop={12}>
+              <TouchableOpacity onPress={toggleFullscreen} hitSlop={14} accessibilityRole="button" accessibilityLabel={isFullscreen ? "Exit full screen" : "Full screen"}>
                 <Ionicons name={isFullscreen ? "contract-outline" : "expand-outline"} size={18} color="white" />
               </TouchableOpacity>
             </View>
@@ -423,25 +424,22 @@ const YouTubeCard = React.memo(({
   isAdmin,
   onDelete,
   onEdit,
-  stamped,
 }: {
   item: FyncMediaItem;
   onPress: (item: FyncMediaItem) => void;
   isAdmin: boolean;
   onDelete: (id: string) => void;
   onEdit: (item: FyncMediaItem) => void;
-  /** The lead broadcast carries the screen's one stamp. */
-  stamped?: boolean;
 }) => {
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
+    <Pressable
       onPress={() => onPress(item)}
-      className={`bg-card mb-3 w-full rounded-card overflow-hidden ${stamped ? 'border-2 border-ink' : 'border border-line'}`}
-      style={stamped ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
+      className="bg-card mb-3 w-full rounded-2xl overflow-hidden border border-line active:opacity-90"
+      accessibilityRole="button"
+      accessibilityLabel={item.title}
     >
       {/* Thumbnail */}
-      <View className="w-full aspect-video relative bg-paper-2 mx-0">
+      <View className="w-full aspect-video relative bg-paper-2">
         <ExpoImage
           source={{ uri: getFullUrl(item.thumbnail) || '' }}
           style={{ width: '100%', height: '100%' }}
@@ -449,44 +447,45 @@ const YouTubeCard = React.memo(({
           cachePolicy="memory-disk"
           recyclingKey={item._id}
         />
-        <View className="absolute bottom-4 right-4 bg-night/90 px-2 py-1 rounded-lg border border-white/20">
-          <Text className="text-white text-label font-display uppercase">{formatDuration(item.duration)}</Text>
+        <View className="absolute bottom-3 right-3 bg-black/70 px-2 py-0.5 rounded-full">
+          <Text className="text-white text-xs font-semibold">{formatDuration(item.duration)}</Text>
         </View>
 
         {isAdmin && (
-          <View className="absolute top-4 right-4 flex-row gap-2">
-            <TouchableOpacity
+          <View className="absolute top-3 right-3 flex-row gap-2">
+            <Pressable
               onPress={(e) => { e.stopPropagation(); onEdit(item); }}
-              className="w-10 h-10 bg-card/90 rounded-card items-center justify-center backdrop-blur-xl border border-line shadow-hair"
+              className="w-11 h-11 bg-card rounded-full items-center justify-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Edit"
             >
               <Ionicons name="pencil" size={16} color={C.ink} />
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               onPress={(e) => { e.stopPropagation(); onDelete(item._id); }}
-              className="w-10 h-10 bg-danger rounded-card items-center justify-center border border-danger shadow-hair"
+              className="w-11 h-11 bg-danger rounded-full items-center justify-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Delete"
             >
               <Ionicons name="trash" size={16} color="white" />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
       </View>
 
       {/* Info Row */}
-      <View className="flex-row p-5 pt-5 items-center">
-        <Image
-          source={FyncLogo}
-          className="w-11 h-11 rounded-full bg-paper-2 mr-2 border border-line shadow-hair"
-        />
-        <View className="flex-1">
+      <View className="flex-row p-4 items-center gap-3">
+        <ExpoImage source={FyncLogo} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2 }} />
+        <View className="flex-1 min-w-0">
           <Text className="text-ink text-base font-semibold leading-5" numberOfLines={2}>
             {item.title}
           </Text>
-          <Text className="text-ink-3 text-label font-display">
+          <Text className="text-ink-3 text-xs mt-0.5">
             {new Date(item.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 });
 
@@ -567,25 +566,25 @@ const MediaDetailView = React.memo(({
 
         <ScrollView keyboardShouldPersistTaps="handled" className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="p-card-pad">
-            <Text className="text-ink text-2xl font-display uppercase leading-tight mb-6">{item.title}</Text>
+            <Text className="text-ink text-2xl font-display leading-tight mb-4" accessibilityRole="header">{item.title}</Text>
 
             {/* Action Row - Arena Pill Style */}
-            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mb-8">
-              <View className="flex-row items-center gap-4">
-                <View className="flex-row items-center bg-card rounded-card h-12 px-1 border border-line shadow-hair">
-                  <TouchableOpacity onPress={handleLike} className="flex-row items-center gap-2 pl-4 pr-5 border-r border-line">
+            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mb-6">
+              <View className="flex-row items-center gap-2">
+                <View className="flex-row items-center bg-card rounded-full h-12 px-1 border border-line">
+                  <TouchableOpacity onPress={handleLike} className="flex-row items-center gap-2 pl-4 pr-4 h-11 border-r border-line" accessibilityRole="button" accessibilityState={{ selected: !!isLiked }} accessibilityLabel={isLiked ? "Unlike" : "Like"}>
                     <Ionicons name={isLiked ? "heart" : "heart-outline"} size={20} color={isLiked ? C.brand[500] : C.ink3} />
                     <Text className="font-semibold text-base text-ink">{likeCount}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={handleDislike} className="flex-row items-center gap-2 pl-5 pr-4">
+                  <TouchableOpacity onPress={handleDislike} className="flex-row items-center gap-2 pl-4 pr-4 h-11" accessibilityRole="button" accessibilityState={{ selected: !!isDisliked }} accessibilityLabel={isDisliked ? "Remove dislike" : "Dislike"}>
                     <Ionicons name={isDisliked ? "heart-dislike" : "heart-dislike-outline"} size={20} color={isDisliked ? C.ink : C.ink3} />
                     <Text className="font-semibold text-base text-ink">{dislikeCount}</Text>
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity onPress={handleShare} className="bg-card h-12 px-6 rounded-card flex-row items-center gap-2 border border-line shadow-hair">
+                <TouchableOpacity onPress={handleShare} className="bg-card h-12 px-5 rounded-full flex-row items-center gap-2 border border-line">
                   <Ionicons name="share-social-outline" size={18} color={C.ink} />
-                  <Text className="font-semibold text-base text-ink">Broadcast</Text>
+                  <Text className="font-semibold text-base text-ink">Share</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -595,43 +594,41 @@ const MediaDetailView = React.memo(({
             <TouchableOpacity
               onPress={() => setIsExpanded(!isExpanded)}
               activeOpacity={0.8}
-              className="bg-card rounded-card p-6 border border-line shadow-hair mb-8"
+              className="bg-card rounded-2xl p-4 border border-line mb-3"
+              accessibilityRole="button"
+              accessibilityLabel={isExpanded ? "Show less" : "Show more"}
             >
-              <View className="flex-row items-center gap-2 mb-4">
-                <View className="bg-brand-500 w-1 h-3 rounded-full" />
-                <Text className="text-ink text-label font-display uppercase">Protocol Intel</Text>
-                <Text className="text-ink-4 text-label">•</Text>
-                <Text className="text-ink-3 text-label font-semibold uppercase">{new Date(item.date).toLocaleDateString()}</Text>
+              <View className="flex-row items-center gap-2 mb-2">
+                <Text className="text-ink text-sm font-semibold">About</Text>
+                <Text className="text-ink-4 text-xs">•</Text>
+                <Text className="text-ink-3 text-xs">{new Date(item.date).toLocaleDateString()}</Text>
               </View>
 
-              <Text className="text-ink-2 leading-7 text-sm font-medium" numberOfLines={isExpanded ? undefined : 2}>
+              <Text className="text-ink-2 leading-6 text-sm" numberOfLines={isExpanded ? undefined : 2}>
                 {item.description}
               </Text>
 
-              <View className="flex-row items-center gap-2 mt-4 flex-wrap">
-                {item.tags?.map((tag, idx) => (
-                  <View key={idx} className="bg-paper-2 px-2 py-1 rounded-md border border-line">
-                    <Text className="text-accent-text font-display text-label uppercase">#{tag}</Text>
-                  </View>
-                ))}
-              </View>
+              {!!item.tags?.length && (
+                <TagRow style={{ marginTop: 12 }}>
+                  {item.tags.map((tag, idx) => <Tag key={idx} label={`#${tag}`} />)}
+                </TagRow>
+              )}
 
-              <Text className="text-ink-3 font-display uppercase text-label mt-6">{isExpanded ? 'Collapse Intel' : 'Expand Details'}</Text>
+              <Text className="text-ink font-semibold text-sm mt-3">{isExpanded ? 'Show less' : 'Show more'}</Text>
             </TouchableOpacity>
 
             {/* Comment Preview Section */}
-            <View className="bg-card rounded-card border border-line px-6 py-6 mb-20 shadow-hair">
+            <View className="bg-card rounded-2xl border border-line p-4 mb-20">
               <TouchableOpacity
                 onPress={() => onCommentPress(item._id)}
-                className="flex-row justify-between items-center mb-6"
+                className="flex-row justify-between items-center mb-4"
+                accessibilityRole="button"
               >
                 <View className="flex-row items-center gap-3">
-                  <View className="bg-ink w-10 h-10 rounded-xl items-center justify-center">
-                    <Ionicons name="chatbubble" size={18} color={C.paper} />
-                  </View>
+                  <IconTile icon="chatbubble-outline" />
                   <View>
-                    <Text className="font-semibold text-base text-ink">Community Feedback</Text>
-                    <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">{item.comment?.length || 0} Responses</Text>
+                    <Text className="font-semibold text-base text-ink">Comments</Text>
+                    <Text className="text-ink-3 text-xs mt-0.5">{item.comment?.length || 0} {item.comment?.length === 1 ? 'comment' : 'comments'}</Text>
                   </View>
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={C.ink3} />
@@ -639,10 +636,12 @@ const MediaDetailView = React.memo(({
 
               <TouchableOpacity
                 onPress={() => onCommentPress(item._id)}
-                className="flex-row items-center bg-paper-2 rounded-card px-4 py-3 border border-line"
+                className="flex-row items-center bg-paper-2 rounded-full px-3 border border-line"
+                style={{ minHeight: 48 }}
+                accessibilityRole="button"
               >
-                <Image source={{ uri: getFullUrl(user?.avatar) || `https://ui-avatars.com/api/?name=${user?.username || 'U'}` }} className="w-8 h-8 rounded-xl mr-3 bg-paper-2" />
-                <Text className="text-ink-3 text-label font-display uppercase">Contribute to discussion...</Text>
+                <View className="mr-3"><Avatar user={user as any} size={32} showBadge={false} /></View>
+                <Text className="text-ink-3 text-sm">Add a comment…</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -779,7 +778,6 @@ export default function FyncMediaFeed() {
   const renderItem = useCallback(({ item, index }: { item: FyncMediaItem; index: number }) => (
     <YouTubeCard
       item={item}
-      stamped={index === 0}
       onPress={(selected) => setActiveMedia(selected)}
       isAdmin={isAdmin}
       onEdit={handleEditPress}
@@ -946,12 +944,8 @@ export default function FyncMediaFeed() {
                   />
                 </View>
               ) : (
-                <View className="items-center justify-center mt-20 px-gutter">
-                  <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                    <Ionicons name="videocam-outline" size={48} color={C.ink4} />
-                  </View>
-                  <Text className="font-semibold text-base text-ink text-center">Archive Empty</Text>
-                  <Text className="font-sans text-sm text-ink-3 mt-2 text-center">No broadcast records found in the registry.</Text>
+                <View className="mt-16">
+                  <Empty icon="videocam-outline" title="No videos yet" hint="New Fync Media videos will show up here." />
                 </View>
               )}
               ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={C.brand[500]} className="mb-10" /> : <View className="h-10" />}
@@ -978,75 +972,34 @@ export default function FyncMediaFeed() {
         </Modal>
 
         {/* Upload Modal */}
-        <Modal
+        <Sheet
           visible={uploadModalVisible}
-          animationType="slide"
-          transparent={true}
-          statusBarTranslucent
-          onRequestClose={handleCloseModal}
+          onClose={handleCloseModal}
+          dismissable={!uploading}
+          height="80%"
+          title={`${editingItem ? 'Update' : 'Upload'} media`}
+          footer={
+            <Button
+              variant="primary"
+              block
+              icon="cloud-upload"
+              title={editingItem ? 'Save changes' : 'Publish'}
+              loading={uploading}
+              onPress={handleUpload}
+            />
+          }
         >
-          <View className="flex-1 justify-end bg-black/40">
-            <Pressable className="flex-1" onPress={handleCloseModal} />
-            <View className="bg-paper rounded-t-sheet h-[80%] overflow-hidden border-t border-line">
-              {/* Grab Handle */}
-              <View className="items-center pt-3 pb-1">
-                <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
-              </View>
-
-              <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                className="flex-1"
-              >
-                <View className="flex-row items-center justify-between px-6 py-4 border-b border-line">
-                  <Text className="font-display text-ink text-h1">{editingItem ? 'Update' : 'Upload'} Media</Text>
-                  <TouchableOpacity onPress={handleCloseModal} className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center" hitSlop={6}>
-                    <Ionicons name="close" size={20} color={C.ink} />
-                  </TouchableOpacity>
-                </View>
-
-                <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 p-5 space-y-5" contentContainerStyle={{ paddingBottom: 100 }}>
-                  <View>
-                    <Text className="text-xs font-semibold text-ink-3 uppercase mb-2">Title</Text>
-                    <TextInput
-                      value={uploadTitle}
-                      multiline
-                      onChangeText={setUploadTitle}
-                      placeholder="Enter title..."
-                      placeholderTextColor={C.ink4}
-                      className="bg-card px-4 py-2.5 border-[1.5px] border-ink font-medium text-ink rounded-md"
-                    />
+                  <View className="gap-4">
+                    <FormField label="Title" value={uploadTitle} multiline onChangeText={setUploadTitle} placeholder="Enter title…" style={{ minHeight: 0 }} />
+                    <FormField label="Description" value={uploadDescription} onChangeText={setUploadDescription} placeholder="Write a description…" multiline />
+                    <FormField label="Tags" value={uploadTags} onChangeText={setUploadTags} placeholder="tech, events, fync (comma separated)" />
                   </View>
 
-                  <View className="mt-4">
-                    <Text className="text-xs font-semibold text-ink-3 uppercase mb-2">Description</Text>
-                    <TextInput
-                      value={uploadDescription}
-                      onChangeText={setUploadDescription}
-                      placeholder="Write a description..."
-                      placeholderTextColor={C.ink4}
-                      multiline
-                      numberOfLines={3}
-                      className="bg-card px-4 py-2.5 border-[1.5px] border-ink font-medium text-ink h-28 rounded-md"
-                      textAlignVertical="top"
-                    />
-                  </View>
-
-                  <View className="mt-4">
-                    <Text className="text-xs font-semibold text-ink-3 uppercase mb-2">Tags</Text>
-                    <TextInput
-                      value={uploadTags}
-                      onChangeText={setUploadTags}
-                      placeholder="tech, events, fync (comma separated)"
-                      placeholderTextColor={C.ink4}
-                      className="bg-card px-4 py-2.5 border-[1.5px] border-ink font-medium text-ink rounded-md"
-                    />
-                  </View>
-
-                  <View className="flex-row gap-4 mt-6 h-36">
-                    <TouchableOpacity onPress={pickImage} className="flex-1 border-2 border-dashed border-line items-center justify-center bg-paper-2 overflow-hidden relative rounded-md">
+                  <View className="flex-row gap-3 mt-4 h-36">
+                    <TouchableOpacity onPress={pickImage} className="flex-1 border border-dashed border-line items-center justify-center bg-paper-2 overflow-hidden relative rounded-2xl">
                       {uploadThumbnail ? (
                         <>
-                          <Image source={{ uri: uploadThumbnail }} className="w-full h-full absolute" resizeMode="cover" />
+                          <ExpoImage source={{ uri: uploadThumbnail }} style={{ position: 'absolute', width: '100%', height: '100%' }} contentFit="cover" />
                           <View className="absolute inset-0 bg-black/40 items-center justify-center">
                             <Ionicons name="pencil" size={24} color="white" />
                             <Text className="text-white font-semibold text-label mt-1">Change</Text>
@@ -1060,7 +1013,7 @@ export default function FyncMediaFeed() {
                       )}
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={pickVideo} className="flex-1 border-2 border-dashed border-line items-center justify-center bg-paper-2 overflow-hidden relative rounded-md">
+                    <TouchableOpacity onPress={pickVideo} className="flex-1 border border-dashed border-line items-center justify-center bg-paper-2 overflow-hidden relative rounded-2xl">
                       {uploadVideo ? (
                         <>
                           <Video
@@ -1083,28 +1036,7 @@ export default function FyncMediaFeed() {
                       )}
                     </TouchableOpacity>
                   </View>
-                </ScrollView>
-
-                <View className="p-4 border-t border-line bg-card" style={{ paddingBottom: bottomInset }}>
-                  <TouchableOpacity
-                    onPress={handleUpload}
-                    disabled={uploading}
-                    className={`h-14 rounded-card items-center justify-center flex-row shadow-hair ${uploading ? 'bg-brand-200' : 'bg-brand-500 '}`}
-                  >
-                    {uploading ? (
-                      <ActivityIndicator color={C.ink} />
-                    ) : (
-                      <>
-                        <Ionicons name="cloud-upload" size={20} color={C.onBrand} />
-                        <Text className="text-on-brand font-display uppercase text-sm ml-3">{editingItem ? 'Update Archive' : 'Publish Broadcast'}</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </KeyboardAvoidingView>
-            </View>
-          </View>
-        </Modal>
+        </Sheet>
 
         <CommentsSheet
           visible={!!activeCommentMediaId}

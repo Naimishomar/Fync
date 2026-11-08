@@ -3,7 +3,7 @@ import {
   View,
   Text,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Dimensions,
   ScrollView,
@@ -72,7 +72,7 @@ const MovieList = () => {
     <SafeAreaView className="flex-1 bg-night" edges={['bottom']}>
       {/* Header */}
       <AppBar night title={title} onBack={() => navigation.goBack()}
-        right={<IconBtn name="search" size={24} color="white" onPress={() => navigation.navigate('MovieSearch')} />} />
+        right={<IconBtn name="search" size={24} color="white" accessibilityLabel="Search movies" onPress={() => navigation.navigate('MovieSearch')} />} />
 
       {/* Genre Filters — pointless on a list that is already one genre. */}
       {!genre && <View className="mb-4">
@@ -82,15 +82,18 @@ const MovieList = () => {
           contentContainerStyle={{ paddingHorizontal: 20 }}
         >
           {GENRES.map((genre: any) => (
-            <TouchableOpacity
+            <Pressable
               key={genre.id}
               onPress={() => setSelectedGenre(genre.id)}
-              className={`mr-3 px-6 py-2 rounded-full border ${ selectedGenre === genre.id ? 'bg-danger border-danger' : 'bg-night border-night' }`}
+              hitSlop={{ top: 4, bottom: 4 }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: selectedGenre === genre.id }}
+              className={`mr-2 px-4 h-9 justify-center rounded-full border active:opacity-70 ${selectedGenre === genre.id ? 'bg-white border-white' : 'bg-white/10 border-white/15'}`}
             >
-              <Text className={`font-semibold ${ selectedGenre === genre.id ? 'text-white' : 'text-ink-3' }`}>
+              <Text className={`text-sm font-medium ${selectedGenre === genre.id ? 'text-[#12100E]' : 'text-white/80'}`}>
                 {genre.name}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
       </View>}
@@ -119,8 +122,8 @@ const MovieList = () => {
             )}
             ListEmptyComponent={
               <View className="flex-1 items-center mt-20">
-                <Ionicons name="film-outline" size={64} color={C.ink2} />
-                <Text className="text-ink-3 mt-4 text-lg">No movies found in this category</Text>
+                <Ionicons name="film-outline" size={48} color="rgba(255,255,255,0.4)" />
+                <Text className="text-white/70 mt-4 text-base font-semibold">No movies found in this category</Text>
               </View>
             }
           />

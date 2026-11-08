@@ -1,18 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Modal, View, Text, TextInput, Pressable, ScrollView,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Image, Dimensions
-} from 'react-native';
+import { View, Text, Pressable, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
-import { C } from '../../constants/colors';
-import { useBottomInset } from '../../constants/layout';
+import { Sheet, FormField, Button, SegmentedTabs } from '../ui/kit';
+import { FieldLabel, UploadTile } from './ProfileBits';
 
-const { height: screenHeight } = Dimensions.get('window');
 const STATUSES = ['completed', 'in-progress', 'archived'];
+const STATUS_LABELS = { completed: 'Completed', 'in-progress': 'In progress', archived: 'Archived' };
+const FIELDS = [
+  { label: 'Project title *', key: 'title', ph: 'e.g. Fync AI Engine' },
+  { label: 'Tagline', key: 'tagline', ph: 'One line about the project' },
+  { label: 'Description', key: 'description', ph: 'What it does and how it works', multi: true },
+  { label: 'Tech stack', key: 'techStack', ph: 'React, Node.js, etc (comma separated)' },
+  { label: 'GitHub repository', key: 'githubUrl', ph: 'https://github.com/...', url: true },
+  { label: 'Live link', key: 'liveUrl', ph: 'https://...', url: true },
+] as const;
+
+const Thumb = ({ uri, onRemove }: { uri: string; onRemove: () => void }) => (
+  <View className="w-[30%] aspect-square rounded-2xl overflow-hidden border border-line bg-paper-2">
+    <Image source={{ uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+    <Pressable onPress={onRemove} hitSlop={12} accessibilityRole="button" accessibilityLabel="Remove image"
+      className="absolute top-1 right-1 bg-black/60 rounded-full w-7 h-7 items-center justify-center active:opacity-70">
+      <Ionicons name="close" size={14} color="#FFFFFF" />
+    </Pressable>
+  </View>
+);
 
 interface Props {
   visible: boolean;
@@ -22,7 +37,6 @@ interface Props {
 }
 
 export default function AddProjectModal({ visible, initial, onClose, onSuccess }: Props) {
-  const bottomInset = useBottomInset();
   const [form, setForm] = useState({
     title: '', tagline: '', description: '', techStack: '',
     githubUrl: '', liveUrl: '', status: 'completed',
@@ -120,135 +134,48 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
     }
   };
 
+  const count = existingImages.length + images.length;
+
   return (
-    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/60 justify-end">
-        <Pressable className="absolute inset-0" onPress={onClose} />
-        <KeyboardAvoidingView
-          behavior="padding"
-          className="bg-paper rounded-t-sheet overflow-hidden"
-          style={{ height: screenHeight * 0.85 }}
-        >
-          {/* Drag Handle */}
-          <View className="items-center py-4">
-            <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
-          </View>
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title={isEdit ? 'Edit project' : 'Add project'}
+      height="85%"
+      footer={<Button variant="primary" block icon={isEdit ? 'save-outline' : 'add'} title={isEdit ? 'Save changes' : 'Add project'} onPress={save} loading={saving} />}
+    >
+      <FieldLabel>Status</FieldLabel>
+      <SegmentedTabs items={STATUSES} labels={STATUS_LABELS} value={form.status} onChange={st => setForm(p => ({ ...p, status: st }))} style={{ marginBottom: 16 }} />
 
-          {/* Header */}
-          <View className="flex-row items-center justify-between px-gutter pb-3 border-b border-line">
-            <View>
-              <Text className="text-ink font-display uppercase text-h1">
-                {isEdit ? 'Upgrade' : 'Deploy'} <Text className="text-accent-text">Project</Text>
-              </Text>
-              <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Ecosystem Contribution</Text>
-            </View>
-            <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
-              <Ionicons name="close" size={20} color={C.ink} />
-            </Pressable>
-          </View>
+      {FIELDS.map(f => (
+        <FormField
+          key={f.key}
+          label={f.label}
+          placeholder={f.ph}
+          value={form[f.key]}
+          onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
+          multiline={'multi' in f}
+          autoCapitalize={'url' in f ? 'none' : undefined}
+          containerStyle={{ marginBottom: 16 }}
+        />
+      ))}
 
-          <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            {/* Status Selector */}
-            <View className="mb-6">
-              <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="activity" size={12} color={C.ink3} />
-                <Text className="text-ink-3 font-display uppercase text-label">Project Lifecycle</Text>
-              </View>
-              <View className="flex-row gap-2">
-                {STATUSES.map(s => (
-                  <Pressable key={s} onPress={() => setForm(p => ({ ...p, status: s }))}
-                    className={`flex-1 py-3 rounded-xl border items-center shadow-hair ${form.status === s ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
-                    <Text className={`text-label font-display uppercase ${form.status === s ? 'text-paper' : 'text-ink-3'}`}>{s.replace('-', ' ')}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-
-            {[
-              { label: 'Project Title *', key: 'title', ph: 'e.g. Fync AI Engine', icon: 'zap' },
-              { label: 'Tagline', key: 'tagline', ph: 'One-liner about the mission', icon: 'type' },
-              { label: 'Technical Specifications', key: 'description', ph: 'Deep dive into the architecture...', multi: true, icon: 'cpu' },
-              { label: 'Tech Stack', key: 'techStack', ph: 'React, Node.js, etc (comma separated)', icon: 'layers' },
-              { label: 'GitHub Repository', key: 'githubUrl', ph: 'https://github.com/...', icon: 'github' },
-              { label: 'Live Manifest', key: 'liveUrl', ph: 'https://...', icon: 'globe' },
-            ].map(f => (
-              <View key={f.key} className="mb-6">
-                <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color={C.ink3} />
-                  <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
-                </View>
-                <TextInput
-                  className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
-                  style={[{ minHeight: 50 }, f.multi ? { height: 100, textAlignVertical: 'top' } : null]}
-                  placeholder={f.ph} placeholderTextColor={C.ink3}
-                  value={form[f.key as keyof typeof form]}
-                  onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
-                  multiline={!!f.multi}
-                />
-              </View>
-            ))}
-
-            {/* Media Upload */}
-            <View className="mb-12">
-              <View className="flex-row items-center justify-between mb-4">
-                <View className="flex-row items-center gap-2">
-                  <Feather name="image" size={12} color={C.ink3} />
-                  <Text className="text-ink-3 font-display uppercase text-label">Visual Evidence ({existingImages.length + images.length}/5)</Text>
-                </View>
-                {existingImages.length + images.length < 5 && (
-                  <Pressable onPress={pickImages} className="bg-brand-500/10 border border-brand-500/20 px-2.5 py-1 rounded-full">
-                    <Text className="text-accent-text font-display uppercase text-label">Add Media</Text>
-                  </Pressable>
-                )}
-              </View>
-
-              <View className="flex-row flex-wrap gap-3">
-                {existingImages.map((img, i) => (
-                  <View key={`ex-${i}`} className="w-[30%] aspect-square rounded-card overflow-hidden border border-line shadow-hair">
-                    <Image source={{ uri: img }} className="w-full h-full" />
-                    <Pressable onPress={() => removeImage(i, true)} hitSlop={10} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 border border-white/20">
-                      <Ionicons name="close" size={12} color="white" />
-                    </Pressable>
-                  </View>
-                ))}
-                {images.map((img, i) => (
-                  <View key={`new-${i}`} className="w-[30%] aspect-square rounded-card overflow-hidden border border-line shadow-hair">
-                    <Image source={{ uri: img.uri }} className="w-full h-full" />
-                    <Pressable onPress={() => removeImage(i, false)} hitSlop={10} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 border border-white/20">
-                      <Ionicons name="close" size={12} color="white" />
-                    </Pressable>
-                  </View>
-                ))}
-                {existingImages.length + images.length === 0 && (
-                  <Pressable onPress={pickImages} className="w-full h-32 border-2 border-dashed border-line rounded-sheet items-center justify-center bg-paper-2/50">
-                    <View className="w-10 h-10 bg-card rounded-full items-center justify-center shadow-hair mb-2">
-                      <Feather name="upload-cloud" size={18} color={C.brand[500]} />
-                    </View>
-                    <Text className="text-ink-3 text-label font-display uppercase">Initialize Media Manifest</Text>
-                  </Pressable>
-                )}
-              </View>
-            </View>
-            <View className="h-10" />
-          </ScrollView>
-
-          {/* Footer Action */}
-          <View className="p-card-pad border-t border-line bg-paper" style={{ paddingBottom: bottomInset }}>
-            <Pressable onPress={save} disabled={saving}
-              className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
-              {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
-                : (
-                  <>
-                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color={C.paper} className="mr-2" />
-                    <Text className="text-paper font-display uppercase text-xs ml-2">
-                      {isEdit ? 'Update Artifact' : 'Commit Deployment'}
-                    </Text>
-                  </>
-                )}
-            </Pressable>
-          </View>
-        </KeyboardAvoidingView>
+      <View className="flex-row items-center justify-between">
+        <FieldLabel>Images ({count}/5)</FieldLabel>
+        {count > 0 && count < 5 ? (
+          <Pressable onPress={pickImages} hitSlop={12} accessibilityRole="button" className="mb-2 active:opacity-70">
+            <Text className="text-accent-text text-sm font-semibold">Add images</Text>
+          </Pressable>
+        ) : null}
       </View>
-    </Modal>
+      {count === 0 ? (
+        <UploadTile label="Upload images" onPress={pickImages} />
+      ) : (
+        <View className="flex-row flex-wrap gap-3">
+          {existingImages.map((img, i) => <Thumb key={`ex-${i}`} uri={img} onRemove={() => removeImage(i, true)} />)}
+          {images.map((img, i) => <Thumb key={`new-${i}`} uri={img.uri} onRemove={() => removeImage(i, false)} />)}
+        </View>
+      )}
+    </Sheet>
   );
 }

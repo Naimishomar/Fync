@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput } from 'react-native';
-import PdfToolShell from './PdfToolShell';
+import { FormField } from '../../ui/kit';
+import PdfToolShell, { OptionCard } from './PdfToolShell';
 import { loadDoc, writeDoc, rgb, degrees, StandardFonts } from './pdfKit';
-import { C } from '../../../constants/colors';
 
 export default function WatermarkPdfScreen() {
   const [text, setText] = useState('');
@@ -12,15 +11,9 @@ export default function WatermarkPdfScreen() {
       blurb="Stamp text diagonally across every page — DRAFT, your name, a roll number."
       disabledReason={() => (text.trim() ? null : 'Enter watermark text')}
       options={() => (
-        <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-5">
-          <Text className="text-ink-3 font-display uppercase text-label mb-2">Watermark text</Text>
-          <TextInput
-            value={text} onChangeText={setText}
-            placeholder="e.g. DRAFT" placeholderTextColor={C.ink3}
-            className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
-            style={{ minHeight: 50 }}
-          />
-        </View>
+        <OptionCard>
+          <FormField label="Watermark text" value={text} onChangeText={setText} placeholder="e.g. DRAFT" />
+        </OptionCard>
       )}
       run={async (files) => {
         const doc = await loadDoc(files[0].uri);

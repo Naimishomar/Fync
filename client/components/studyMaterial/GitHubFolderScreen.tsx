@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StatusBar,
-  TextInput,
-  ActivityIndicator,
-} from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image } from 'expo-image';
-import { AppBar, Meta } from '../ui/kit';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, StatusBar, ActivityIndicator } from 'react-native';
+import { AppBar, Meta, ListRow, SearchField, Empty, Button } from '../ui/kit';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import { C } from '../../constants/colors';
 
-const FOLDER_IMG = 'https://cdn-icons-png.flaticon.com/512/716/716784.png';
-const NOTE_IMG = 'https://cdn-icons-png.flaticon.com/512/3209/3209265.png';
+const CODE_RE = /\.(cpp|py|java|c|js|ts|tsx|h)$/i;
+
+const RepoRow = React.memo(function RepoRow({ item, onOpen }: { item: any; onOpen: (item: any) => void }) {
+  const isFolder = item.type === 'dir';
+  const name = item.name || '';
+  return (
+    <ListRow
+      icon={isFolder ? 'folder-outline' : CODE_RE.test(name) ? 'code-slash-outline' : 'document-text-outline'}
+      title={name.replace('.md', '')}
+      subtitle={isFolder ? 'Folder' : 'Note file'}
+      onPress={() => onOpen(item)}
+      style={{ paddingHorizontal: 20 }}
+    />
+  );
+});
 
 const GitHubFolderScreen = () => {
   const navigation = useNavigation<any>();
@@ -67,7 +70,7 @@ const GitHubFolderScreen = () => {
     return matchesSearch && hasContent;
   });
 
-  const handlePress = (item: any) => {
+  const handlePress = useCallback((item: any) => {
     const name = item.name || "";
     if (item.type === 'dir') {
       navigation.push('GitHubFolderScreen', { 
@@ -93,98 +96,41 @@ const GitHubFolderScreen = () => {
       // Listed but previously did nothing when tapped.
       navigation.navigate('PDFViewerScreen', { url: item.download_url, title: name });
     }
-  };
+  }, [navigation, owner, repo]);
 
-  const getFileIcon = (name: string = "") => {
-    if (name.endsWith('.md')) return NOTE_IMG;
-    if (name.match(/\.(cpp|py|java|c|js|ts|tsx|h)$/i)) return 'https://cdn-icons-png.flaticon.com/512/2721/2721614.png';
-    return NOTE_IMG;
-  };
+  const renderItem = useCallback(({ item }: { item: any }) => <RepoRow item={item} onOpen={handlePress} />, [handlePress]);
 
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle={C.barStyle} />
 
-      {/* HEADER DECORATION */}
-
-      <View className="flex-1">
-        <AppBar title={title} onBack={() => navigation.goBack()} />
-        <View className='px-gutter bg-transparent'>
-          <Meta style={{ marginBottom: 8 }} numberOfLines={1}>{path || 'root'}</Meta>
-
-          <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink mb-6 rounded-md">
-            <Ionicons name="search" size={20} color={C.ink4} />
-            <TextInput
-              placeholder="Search in this folder..."
-              placeholderTextColor={C.ink4}
-              value={search}
-              onChangeText={setSearch}
-              className="flex-1 text-ink font-display text-sm p-3"
-            />
-          </View>
-        </View>
-
-        {loading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color={C.info} />
-            <Text className="mt-4 text-ink-3 font-display text-label uppercase">Fetching Protocol...</Text>
-          </View>
-        ) : (
-          <FlatList keyboardShouldPersistTaps="handled"
-            data={filteredItems}
-            keyExtractor={(item) => item.path}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }}
-            renderItem={({ item }) => {
-              const isFolder = item.type === 'dir';
-              return (
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  className="flex-row items-center p-5 mx-gutter mb-4 bg-card rounded-card border border-line"
-                  onPress={() => handlePress(item)}
-                >
-                  <View className="w-14 h-14 bg-paper-2 rounded-card items-center justify-center p-2.5">
-                    <Image
-                      source={{ uri: isFolder ? FOLDER_IMG : getFileIcon(item.name) }}
-                      style={{ width: '100%', height: '100%' }}
-                      contentFit="contain"
-                      cachePolicy="memory-disk"
-                    />
-                  </View>
-
-                  <View className="ml-4 flex-1">
-                    <Text className="text-ink text-sm font-display uppercase" numberOfLines={1}>
-                      {(item.name || "").replace('.md', '')}
-                    </Text>
-                    <Text className="text-ink-3 text-label font-display uppercase mt-1">
-                      {isFolder ? 'Category' : 'Note File'}
-                    </Text>
-                  </View>
-
-                  <View className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
-                    <Ionicons name={isFolder ? "chevron-forward" : "eye-outline"} size={12} color={C.ink4} />
-                  </View>
-                </TouchableOpacity>
-              );
-            }}
-            ListEmptyComponent={
-              <View className="items-center mt-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="folder-open-outline" size={32} color={C.ink4} />
-                </View>
-                <Text className="font-semibold text-base text-ink text-center">
-                  {failed ? "Couldn't load this folder" : 'No protocol files found'}
-                </Text>
-                {failed ? (
-                  <TouchableOpacity onPress={fetchRepoContents} className="mt-4 bg-ink px-5 py-3 rounded-md" accessibilityRole="button">
-                    <Text className="text-paper font-display text-label uppercase">Try again</Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            }
-          />
-        )}
+      <AppBar title={title} onBack={() => navigation.goBack()} />
+      <View className="px-gutter pb-2">
+        <Meta style={{ marginBottom: 8 }} numberOfLines={1}>{path || 'root'}</Meta>
+        <SearchField value={search} onChangeText={setSearch} placeholder="Search in this folder" />
       </View>
+
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={C.brand[500]} />
+          <Text className="mt-4 text-ink-3 font-semibold text-sm">Loading files…</Text>
+        </View>
+      ) : (
+        <FlatList keyboardShouldPersistTaps="handled"
+          data={filteredItems}
+          keyExtractor={(item) => item.path}
+          renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          ListEmptyComponent={
+            <Empty
+              icon="folder-open-outline"
+              title={failed ? "Couldn't load this folder" : 'No files here'}
+              action={failed ? <Button title="Try again" onPress={fetchRepoContents} /> : undefined}
+            />
+          }
+        />
+      )}
     </View>
   );
 };

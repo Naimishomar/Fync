@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getFullUrl, getThumbUrl } from '../utils/imageUtils';
@@ -23,12 +23,11 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
   // Keyed by path rather than a boolean so a recycled list cell doesn't inherit it.
   const [failedPath, setFailedPath] = useState<string | undefined>();
   const src = failedPath === user?.avatar ? getFullUrl(user?.avatar) : getThumbUrl(user?.avatar);
-  const avatarUrl = src || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'U')}&background=random&color=fff`;
 
   return (
     <View style={{ width: size, height: size }}>
-      <ExpoImage
-        source={{ uri: avatarUrl }}
+      {src ? <ExpoImage
+        source={{ uri: src }}
         style={[
           { width: size, height: size, borderRadius: size / 2 },
           isAlumni && { borderWidth: 2, borderColor: C.alumniLit },
@@ -37,7 +36,21 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
         className="rounded-full"
         cachePolicy="memory-disk"
         onError={() => { if (user?.avatar && failedPath !== user.avatar) setFailedPath(user.avatar); }}
-      />
+      /> : (
+        // No photo: a calm initial on paper-2 instead of a random-colour web placeholder.
+        <View
+          style={[
+            styles.initialBox,
+            { width: size, height: size, borderRadius: size / 2 },
+            isAlumni && { borderWidth: 2, borderColor: C.alumniLit },
+            isRecruiter && { borderWidth: 2, borderColor: C.recruiter },
+          ]}
+        >
+          <Text style={[styles.initial, { fontSize: size * 0.4 }]} allowFontScaling={false}>
+            {(user?.username || '?').charAt(0).toUpperCase()}
+          </Text>
+        </View>
+      )}
       {isAlumni && showBadge && (
         <View 
           style={[
@@ -52,7 +65,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
             }
           ]}
         >
-          <Ionicons name="school" size={size * 0.25} color="black" />
+          <Ionicons name="school" size={size * 0.25} color={C.onBrand} />
         </View>
       )}
       {isRecruiter && showBadge && (
@@ -77,6 +90,8 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
 };
 
 const styles = themed(() => ({
+  initialBox: { backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' },
+  initial: { fontFamily: 'Inter_600SemiBold', color: C.ink2 },
   badge: {
     position: 'absolute',
     backgroundColor: C.alumniLit,

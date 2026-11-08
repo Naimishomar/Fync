@@ -3,7 +3,7 @@ import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, Ke
 import { FlashList, useRecyclingState } from '@shopify/flash-list';
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppBar, H2, IconBtn, Button } from './ui/kit';
+import { AppBar, H2, IconBtn, Button, Tabs, Empty } from './ui/kit';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/auth.context';
@@ -42,7 +42,7 @@ import CommentsSheet from './ui/CommentsSheet';
 import RepostModal from './ui/RepostModal';
 import { C } from '../constants/colors';
 
-const { width } = Dimensions.get('window');
+const FEED_TABS = ['For you', 'Following'];
 
 // --- TYPES ---
 // --- HELPERS ---
@@ -257,10 +257,10 @@ const MAX_CHAR_LIMIT = 150;
   };
 
   return (
-    <View className="py-3">
+    <View className="py-4">
       {/* Why this post is in the feed at all: someone you follow shared it. */}
       {!!item.repostMeta && (
-        <View className="flex-row items-center mb-2 px-3">
+        <View className="flex-row items-center mb-2 px-gutter">
           <Ionicons name="repeat" size={14} color={C.ink3} />
           <Text className="text-ink-3 text-xs ml-1.5" numberOfLines={1}>
             <Text className="font-semibold">
@@ -272,18 +272,12 @@ const MAX_CHAR_LIMIT = 150;
       )}
 
       {/* Top Header Row (Reddit Style) */}
-      <View className="flex-row items-center justify-between mb-3 px-3">
+      <View className="flex-row items-center justify-between mb-3 px-gutter">
         <View className="flex-row items-center flex-1 min-w-0 mr-2">
-          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })}>
-            {item.user?.avatar ? (
-              <Avatar user={item.user as any} size={28} />
-            ) : (
-              <View className="w-7 h-7 rounded-full bg-recruiter items-center justify-center">
-                <Text className="font-display text-label text-white uppercase">{(item.user?.name || 'U').charAt(0).toUpperCase()}</Text>
-              </View>
-            )}
+          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} hitSlop={6} className="active:opacity-70" accessibilityRole="button" accessibilityLabel={`${item.user?.name || 'Author'} profile`}>
+            <Avatar user={item.user as any} size={32} />
           </Pressable>
-          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-2 flex-row items-center" style={{ flexShrink: 1, minWidth: 0 }}>
+          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-3 flex-row items-center active:opacity-70" style={{ flexShrink: 1, minWidth: 0 }}>
             <View style={{ flexShrink: 1, minWidth: 0 }}>
               {/* Explicit line heights: the default leading on two stacked
                   14px lines opens a gap wide enough to read as two rows. */}
@@ -336,9 +330,8 @@ const MAX_CHAR_LIMIT = 150;
               { text: 'Cancel', style: 'cancel' },
             ]);
           }}
-          className="items-center justify-center rounded-full"
-          style={{ width: 32, height: 32 }}
-          hitSlop={8}
+          className="items-center justify-center rounded-full active:opacity-60"
+          style={{ width: 44, height: 44, marginRight: -12 }}
           accessibilityRole="button"
           accessibilityLabel="Post options"
         >
@@ -347,7 +340,7 @@ const MAX_CHAR_LIMIT = 150;
       </View>
 
       {!!item.repostMeta?.text && (
-        <View className="mb-3 px-3">
+        <View className="mb-3 px-gutter">
           <Text className="font-sans text-base text-ink">{item.repostMeta.text}</Text>
         </View>
       )}
@@ -376,8 +369,8 @@ const MAX_CHAR_LIMIT = 150;
         
         {/* Image Counter (Top Right) */}
         {(item.image?.length || 0) > 1 && (
-          <View className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-lg">
-            <Text className="text-white text-label font-semibold">
+          <View className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-full">
+            <Text className="text-white text-xs font-semibold">
               {activeIndex + 1}/{(item.image?.length || 0)}
             </Text>
           </View>
@@ -395,31 +388,30 @@ const MAX_CHAR_LIMIT = 150;
       {/* Caption sits under the media, Instagram order: photo, then words,
           then the controls. */}
       {!!item.description && (
-        <View className="mb-3 px-3">
-          <Text className="font-sans text-sm text-ink-2">
+        <View className="mb-3 px-gutter">
+          <Text className="font-sans text-sm leading-5 text-ink">
             {isExpanded || (item.description?.length || 0) <= MAX_CHAR_LIMIT
               ? item.description
               : `${item.description?.slice(0, MAX_CHAR_LIMIT)}...`}
           </Text>
           {(item.description?.length || 0) > MAX_CHAR_LIMIT && (
-            <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} className="mt-1">
+            <Pressable onPress={() => setIsExpanded(!isExpanded)} className="mt-1 self-start active:opacity-70" hitSlop={8} accessibilityRole="button">
               <Text className="text-ink font-semibold text-sm">
-                {isExpanded ? 'Show Less' : 'Show More'}
+                {isExpanded ? 'Show less' : 'Show more'}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
       )}
 
       {/* Action Bar. Flat on the page like Instagram's: no chrome, ink icons
           at full strength carry the affordance. */}
-      <View className="flex-row items-center gap-3 px-3">
+      <View className="flex-row items-center gap-2 px-gutter" style={{ marginLeft: -8 }}>
         <Animated.View style={{ transform: [{ scale: springValue }] }}>
           <Pressable
             onPress={handleLike}
-            className="flex-row items-center rounded-full px-1"
-            style={{ minHeight: 30 }}
-            hitSlop={4}
+            className="flex-row items-center rounded-full px-2 active:opacity-70"
+            style={{ minHeight: 44 }}
             accessibilityRole="button"
             accessibilityState={{ selected: liked }}
             accessibilityLabel={liked ? 'Unlike this post' : 'Like this post'}
@@ -431,8 +423,7 @@ const MAX_CHAR_LIMIT = 150;
             />
             {likeCount > 0 && (
               <Text
-                className={`font-display ml-1.5 ${liked ? 'text-accent-text' : 'text-ink'}`}
-                style={{ fontSize: 12 }}
+                className={`font-semibold text-xs ml-1.5 ${liked ? 'text-accent-text' : 'text-ink'}`}
               >
                 {formatCount(likeCount)}
               </Text>
@@ -442,13 +433,13 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={() => openComments(item._id)}
-          className="flex-row items-center rounded-full px-1"
-          style={{ minHeight: 30 }}
+          className="flex-row items-center rounded-full px-2 active:opacity-70"
+          style={{ minHeight: 44 }}
           accessibilityRole="button"
           accessibilityLabel={`${displayCommentCount} comments`}
         >
           <Ionicons name="chatbubble-outline" size={20} color={C.ink} />
-          <Text className="font-display text-ink ml-1.5" style={{ fontSize: 12 }}>
+          <Text className="font-semibold text-xs text-ink ml-1.5">
             {formatCount(displayCommentCount)}
           </Text>
         </Pressable>
@@ -458,15 +449,15 @@ const MAX_CHAR_LIMIT = 150;
         {item.user?._id !== currentUser?._id && (
           <Pressable
             onPress={() => (reposted ? handleRepost() : onRequestRepost(item, handleRepost))}
-            className={`flex-row items-center rounded-full px-1`}
-            style={{ minHeight: 30 }}
+            className="flex-row items-center rounded-full px-2 active:opacity-70"
+            style={{ minHeight: 44 }}
             accessibilityRole="button"
             accessibilityState={{ selected: !!reposted }}
             accessibilityLabel={reposted ? 'Remove your repost' : 'Repost this'}
           >
             <Ionicons name={reposted ? 'repeat' : 'repeat-outline'} size={20} color={reposted ? C.brand[500] : C.ink} />
             {repostCount > 0 && (
-              <Text className={`font-display ml-1.5 ${reposted ? 'text-accent-text' : 'text-ink'}`} style={{ fontSize: 12 }}>
+              <Text className={`font-semibold text-xs ml-1.5 ${reposted ? 'text-accent-text' : 'text-ink'}`}>
                 {formatCount(repostCount)}
               </Text>
             )}
@@ -475,22 +466,20 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={handleShare}
-          className="flex-row items-center rounded-full px-1"
-          style={{ minHeight: 30 }}
+          className="flex-row items-center rounded-full px-2 active:opacity-70"
+          style={{ minHeight: 44 }}
           accessibilityRole="button"
           accessibilityLabel="Share this post"
         >
           <Ionicons name="paper-plane-outline" size={20} color={C.ink} />
         </Pressable>
 
-        <View className="flex-1" />
-
       </View>
 
       {/* Newest comment, LinkedIn style: the conversation is visible from the
           feed, and the whole block opens the sheet. */}
       {!!topComment && (
-        <Pressable onPress={() => openComments(item._id)} className="mt-3 px-3">
+        <Pressable onPress={() => openComments(item._id)} className="mt-2 px-gutter active:opacity-70" accessibilityRole="button" accessibilityLabel="Open comments">
           <View className="flex-row">
             <Avatar user={topComment.commentor as any} size={24} />
             <View className="ml-2 flex-1">
@@ -879,15 +868,18 @@ export default function HomeScreen() {
   const appBarRight = (
     <>
       {/* Streak Display */}
-      <TouchableOpacity
+      <Pressable
         onPress={() => setShowLeaderboard(true)}
-        className="flex-row items-center bg-brand-100 px-2 py-1 rounded-full border border-ink mr-1"
+        hitSlop={8}
+        className="flex-row items-center bg-paper-2 px-2.5 py-1 rounded-full mr-1 active:opacity-70"
+        accessibilityRole="button"
+        accessibilityLabel={`Streak, ${(user as any)?.streakCount || 0} days. Open leaderboard`}
       >
         <MaterialCommunityIcons name="fire" size={16} color={C.brand[500]} />
-        <Text className="font-display text-xs ml-0.5 text-brand-700">
+        <Text className="font-semibold text-xs ml-0.5 text-ink">
           {(user as any)?.streakCount || 0}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
       <IconBtn style={HEADER_ICON} name="search-outline" onPress={() => navigation.navigate('SearchScreen')} />
       <IconBtn style={HEADER_ICON} name="heart-outline" badge={unreadCount} onPress={() => navigation.navigate('Notification')} />
       <IconBtn style={HEADER_ICON} name="chatbubble-ellipses-outline" badge={chatUnreadCount} onPress={() => navigation.navigate('ChatList')} />
@@ -895,24 +887,12 @@ export default function HomeScreen() {
   );
 
   const renderTabBar = () => (
-    <View className="flex-row bg-transparent border-b border-line">
-      {['For You', 'Following'].map((tabTitle) => {
-        const key = tabTitle === 'For You' ? 'forYou' : 'following';
-        const isActive = activeTab === key;
-        return (
-          <Pressable
-            key={key}
-            onPress={() => setActiveTab(key as any)}
-            className="flex-1 items-center pb-2 pt-1"
-          >
-            <Text className={`font-display text-sm ${isActive ? 'text-ink' : 'text-ink-3'}`}>
-              {tabTitle}
-            </Text>
-            {isActive && <View className="absolute bottom-0 h-[3px] bg-brand-500 w-1/2 rounded-full" />}
-          </Pressable>
-        );
-      })}
-    </View>
+    <Tabs
+      fill
+      items={FEED_TABS}
+      value={activeTab === 'forYou' ? 'For you' : 'Following'}
+      onChange={(t) => setActiveTab(t === 'For you' ? 'forYou' : 'following')}
+    />
   );
 
 
@@ -970,9 +950,13 @@ export default function HomeScreen() {
         ListFooterComponent={listFooter}
         ListEmptyComponent={
           !loading && !refreshing ? (feedError ? (
-            <View className="mt-20 flex-1 items-center px-gutter">
-              <Text className="text-ink-2 text-center mb-4">{"Couldn't load your feed."}</Text>
-              <Button title="Try again" onPress={onRefresh} />
+            <View className="mt-16">
+              <Empty
+                icon="cloud-offline-outline"
+                title="Couldn't load your feed"
+                hint="Check your connection and try again."
+                action={<Button title="Try again" onPress={onRefresh} />}
+              />
             </View>
           ) : (
             <View className="mt-20 flex-1 items-center px-4">
@@ -982,7 +966,7 @@ export default function HomeScreen() {
                 style={{ height: 192, width: '80%' }}
                 contentFit="contain"
               />
-              <Text className="font-display text-h1 text-ink mt-4">Welcome to Fync!</Text>
+              <Text className="font-display text-h1 text-ink mt-4" accessibilityRole="header">Welcome to Fync</Text>
               <Text className="text-ink-3 text-center mt-2 px-gutter">
                 Your feed is empty. Start following people or create a post to see updates here.
               </Text>

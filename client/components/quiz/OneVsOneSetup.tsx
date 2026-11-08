@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, ActivityIndicator, TouchableOpacity, ScrollView, StatusBar, Dimensions, Animated, Vibration} from 'react-native'
+import { View, Text, ActivityIndicator, Pressable, ScrollView, StatusBar, Dimensions, Animated, Vibration } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ import axios from '../../context/axiosConfig';
 import Avatar from '../Avatar';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, BottomBar, Button, Card, Divider, H1, Label, ListRow, SectionHeader } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 
@@ -147,30 +147,17 @@ const OneVsOneSetup = () => {
                 <StatusBar barStyle={C.barStyle} />
                 <SafeAreaView className="flex-1 justify-center items-center px-gutter">
                     <Animated.View style={{ transform: [{ scale: pulseAnim }] }} className="mb-10">
-                        <View className="w-48 h-48 rounded-full border-4 border-brand-500/10 items-center justify-center">
-                            <View className="w-40 h-40 rounded-full border-2 border-brand-500/20 items-center justify-center">
-                                <View className="w-32 h-32 rounded-full bg-brand-50 items-center justify-center">
-                                    <ActivityIndicator size="large" color={C.brand[500]} />
-                                </View>
-                            </View>
+                        <View className="w-40 h-40 rounded-full bg-paper-2 items-center justify-center">
+                            <ActivityIndicator size="large" color={C.brand[500]} />
                         </View>
                     </Animated.View>
 
-                    <Text className="text-ink text-3xl font-display text-center uppercase">
-                        Locating <Text className="text-accent-text">Rival</Text>
-                    </Text>
-                    <Text className="font-sans text-sm text-ink-3 mt-4 text-center px-4">
-                        Searching {domain} Arena...
+                    <H1 style={{ textAlign: 'center' }}>Finding a rival</H1>
+                    <Text className="font-sans text-sm text-ink-3 mt-2 text-center px-4">
+                        Searching the {domain} arena…
                     </Text>
 
-                    <View className="mt-20 w-full">
-                        <TouchableOpacity
-                            onPress={() => setSearching(false)}
-                            className="w-full py-5 bg-card rounded-card border border-line shadow-hair"
-                        >
-                            <Text className="font-semibold text-base text-ink text-center">Abort Protocol</Text>
-                        </TouchableOpacity>
-                    </View>
+                    <Button title="Cancel search" block onPress={() => setSearching(false)} style={{ marginTop: 48 }} />
                 </SafeAreaView>
             </View>
         );
@@ -180,84 +167,80 @@ const OneVsOneSetup = () => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
 
-            <SafeAreaView className="flex-1" edges={['bottom']}>
-                <AppBar title="Choose Arena" onBack={() => navigation.goBack()} right={
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate("Profile", { userId: user?._id })}
-                        className="flex-row items-center bg-card pr-4 pl-1 py-1 rounded-full border border-line shadow-hair"
-                        style={{ marginRight: 11 }}
-                    >
-                        <Avatar user={user as any} size={30} />
-                        <View className="ml-2">
-                            <Text className="text-ink text-label font-display uppercase">RANK #{stats.rank}</Text>
-                        </View>
-                    </TouchableOpacity>
-                } />
+            <AppBar title="Choose arena" onBack={() => navigation.goBack()} right={
+                <Pressable
+                    onPress={() => navigation.navigate("Profile", { userId: user?._id })}
+                    className="flex-row items-center bg-paper-2 pr-3 pl-1 py-1 rounded-full active:opacity-70"
+                    style={{ marginRight: 11, minHeight: 44 }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Your rank ${stats.rank}. Open profile`}
+                >
+                    <Avatar user={user as any} size={32} />
+                    <Text className="text-ink text-xs font-semibold ml-2">Rank #{stats.rank}</Text>
+                </Pressable>
+            } />
 
-                <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1 px-gutter">
-                    <View className="mt-2 mb-8">
-                        <Text className="text-ink-3 uppercase text-label font-semibold">Select your combat domain</Text>
-                    </View>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1 px-gutter" contentContainerStyle={{ paddingBottom: 24 }}>
+                <Label style={{ marginTop: 8, marginBottom: 12 }}>Pick a domain</Label>
 
-                    {/* Arena Card System */}
-                    <View className="flex-row flex-wrap justify-between">
-                        {ARENAS.map((arena) => (
-                            <TouchableOpacity
+                <View className="flex-row flex-wrap justify-between">
+                    {ARENAS.map((arena) => {
+                        const on = domain === arena.name;
+                        return (
+                            <Pressable
                                 key={arena.name}
                                 onPress={() => {
                                     setDomain(arena.name);
                                     Vibration.vibrate(10);
                                 }}
-                                style={{ width: (width - 80) / 2 }}
-                                className={`p-6 rounded-sheet mb-4 border transition-all ${domain === arena.name ? 'border-brand-500 bg-card shadow-hair ' : 'border-line bg-card shadow-hair '}`}
+                                style={{ width: (width - 52) / 2 }}
+                                className={`p-4 rounded-2xl mb-3 bg-card active:opacity-70 ${on ? 'border-2 border-brand-500' : 'border border-line'}`}
+                                accessibilityRole="radio"
+                                accessibilityState={{ selected: on }}
+                                accessibilityLabel={`${arena.name}. ${arena.description}`}
                             >
-                                <View className={`w-12 h-12 rounded-card items-center justify-center mb-4 ${domain === arena.name ? 'bg-brand-50' : 'bg-paper-2 border border-line'}`}>
-                                    <MaterialCommunityIcons
-                                        name={arena.icon as any}
-                                        size={24}
-                                        color={domain === arena.name ? C.brand[500] : C.ink3}
-                                    />
+                                <View className="flex-row items-start justify-between mb-3">
+                                    <View className={`w-11 h-11 rounded-full items-center justify-center ${on ? 'bg-brand-50' : 'bg-paper-2'}`}>
+                                        <MaterialCommunityIcons name={arena.icon as any} size={22} color={on ? C.brand[500] : C.ink} />
+                                    </View>
+                                    {on ? <Ionicons name="checkmark-circle" size={20} color={C.brand[500]} /> : null}
                                 </View>
-                                <Text className={`font-display uppercase text-label ${domain === arena.name ? 'text-ink' : 'text-ink-3'}`}>{arena.name}</Text>
-                                <Text className="text-ink-3 text-label mt-1 leading-3 font-semibold uppercase" numberOfLines={2}>{arena.description}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    {/* Leaderboard Summary */}
-                    <View className="mt-10 mb-20">
-                        <View className="flex-row justify-between items-center mb-6">
-                            <Text className="text-ink text-lg font-display uppercase">Global Aces</Text>
-                            <Ionicons name="trophy" size={20} color={C.warning} />
-                        </View>
-
-                        {leaderboard.slice(0, 5).map((player, index) => (
-                            <View key={player._id ?? index} className="bg-card p-4 rounded-card border border-line flex-row items-center mb-2 shadow-hair">
-                                <Text className={`w-8 font-display text-xs ${index === 0 ? 'text-warning' : 'text-ink-3'}`}>#{index + 1}</Text>
-                                <Image source={{ uri: player.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(player.username || '')}` }} style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
-                                <View className="flex-1" style={{ minWidth: 0 }}>
-                                    <Text className="font-semibold text-base text-ink" numberOfLines={1}>{player.name || player.username}</Text>
-                                    <Text className="text-ink-3 text-label font-semibold uppercase" numberOfLines={1}>@{player.username}</Text>
-                                </View>
-                                <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                                    <Text className="text-accent-text font-display text-label uppercase">{player.oneVsOnePoints} PTS</Text>
-                                </View>
-                            </View>
-                        ))}
-                    </View>
-                </ScrollView>
-
-                <View className="px-gutter pb-10 pt-4">
-                    <TouchableOpacity
-                        onPress={findMatch}
-                        activeOpacity={0.8}
-                        className='flex-row items-center justify-center bg-brand-500 border-2 border-ink py-4 rounded-card'
-                    >
-                        <Text className="text-on-brand font-display text-lg uppercase mr-3">Locate Rival</Text>
-                        <Ionicons name="flash" size={22} color={C.onBrand} />
-                    </TouchableOpacity>
+                                <Text className="font-semibold text-sm text-ink">{arena.name}</Text>
+                                <Text className="text-ink-3 text-xs mt-1" numberOfLines={2}>{arena.description}</Text>
+                            </Pressable>
+                        );
+                    })}
                 </View>
-            </SafeAreaView>
+
+                {/* Leaderboard summary */}
+                {leaderboard.length > 0 ? (
+                    <>
+                        <SectionHeader title="Top players" right={<Ionicons name="trophy-outline" size={20} color={C.warning} />} />
+                        <Card style={{ paddingHorizontal: 16 }}>
+                            {leaderboard.slice(0, 5).map((player, index) => (
+                                <React.Fragment key={player._id ?? index}>
+                                    {index > 0 ? <Divider /> : null}
+                                    <ListRow
+                                        leading={
+                                            <View className="flex-row items-center" style={{ gap: 8 }}>
+                                                <Text className={`w-7 font-display text-sm ${index === 0 ? 'text-warning' : 'text-ink-3'}`}>#{index + 1}</Text>
+                                                <Image source={{ uri: player.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(player.username || '')}` }} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
+                                            </View>
+                                        }
+                                        title={player.name || player.username}
+                                        subtitle={`@${player.username}`}
+                                        right={<Text className="text-accent-text font-semibold text-xs">{player.oneVsOnePoints} pts</Text>}
+                                    />
+                                </React.Fragment>
+                            ))}
+                        </Card>
+                    </>
+                ) : null}
+            </ScrollView>
+
+            <BottomBar>
+                <Button title="Find a rival" icon="flash" variant="primary" block onPress={findMatch} />
+            </BottomBar>
         </View>
     );
 };

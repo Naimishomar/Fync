@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Linking, TouchableOpacity, Modal} from 'react-native'
+import { View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Keyboard, Platform, ActivityIndicator, Linking, Modal } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -13,7 +13,7 @@ import socket from "../../utils/socket";
 import { useAuth } from "../../context/auth.context";
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, Meta, Empty, Button } from '../ui/kit';
+import { AppBar, Meta, Empty, Button, IconBtn } from '../ui/kit';
 
 const CollegeChatScreen = ({ navigation }: any) => {
     const { user } = useAuth();
@@ -265,7 +265,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
             <View className={`w-full ${isMe ? "items-end" : "items-start"} mb-2`}>
                 <View className={`flex-row items-end ${isMe ? "flex-row-reverse" : "flex-row"} max-w-[85%]`}>
                     <View className={`${isMe ? "ml-2 mb-5" : "mr-2 mb-5"}`}>
-                        <View className="w-8 h-8 rounded-full border-2 border-card shadow-hair overflow-hidden bg-paper-2">
+                        <View className="w-8 h-8 rounded-full overflow-hidden bg-paper-2">
                             <Image
                                 source={{ uri: item.senderId?.avatar || `https://ui-avatars.com/api/?name=${item.senderId?.username}&background=f97316&color=fff` }}
                                 style={{ width: '100%', height: '100%' }}
@@ -276,20 +276,20 @@ const CollegeChatScreen = ({ navigation }: any) => {
 
                     <View className={`${isMe ? "items-end" : "items-start"} flex-1`}>
                         {!isMe && (
-                            <Text className="text-label text-accent-text font-display mb-1 ml-1 uppercase">
+                            <Text className="text-xs text-accent-text font-semibold mb-1 ml-1">
                                 @{item.senderId?.username}
                             </Text>
                         )}
 
                         {item.replyTo && (
                             <View className={`px-3 py-2 bg-brand-50/50 rounded-t-sheet border-l-2 border-brand-500 mb-[-8px] z-0 opacity-80 ${isMe ? "items-end" : "items-start"}`}>
-                                <Text className="text-label text-accent-text font-display uppercase">REF: @{item.replyTo.senderId?.username || 'user'}</Text>
-                                <Text className="text-label text-ink-3 font-medium" numberOfLines={1}>{item.replyTo.content || '[Media]'}</Text>
+                                <Text className="text-xs text-accent-text font-semibold">Reply to @{item.replyTo.senderId?.username || 'user'}</Text>
+                                <Text className="text-xs text-ink-3 font-medium" numberOfLines={1}>{item.replyTo.content || '[Media]'}</Text>
                             </View>
                         )}
 
-                        <TouchableOpacity
-                            activeOpacity={0.9}
+                        <Pressable
+                            accessibilityHint="Long press for options"
                             onLongPress={() => {
                                 Alert.alert(
                                     "Message Options",
@@ -309,21 +309,21 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                 borderTopRightRadius: isMe ? 6 : 16,
                                 borderBottomRightRadius: isMe ? 6 : 16,
                             }}
-                            className={`px-4 py-2.5 ${isMe ? "bg-ink shadow-hair " : "bg-card border border-line shadow-hair"} ${item.pending ? 'opacity-70' : ''}`}
+                            className={`px-4 py-2.5 active:opacity-90 ${isMe ? "bg-ink" : "bg-card border border-line"} ${item.pending ? 'opacity-70' : ''}`}
                         >
                             {item.messageType === "text" && (
                                 <Text className={`text-sm leading-5 font-semibold ${isMe ? "text-paper" : "text-ink"}`}>{item.content}</Text>
                             )}
                             {item.messageType === "image" && (
-                                <TouchableOpacity onPress={() => setSelectedImage(item.mediaUrl)}>
+                                <Pressable onPress={() => setSelectedImage(item.mediaUrl)} accessibilityRole="imagebutton" accessibilityLabel="View image" className="active:opacity-70">
                                     <Image source={{ uri: item.mediaUrl }} style={{ width: 192, height: 192, borderRadius: 12 }} contentFit="cover" cachePolicy="memory-disk" blurRadius={item.pending ? 10 : 0} />
-                                </TouchableOpacity>
+                                </Pressable>
                             )}
                             {item.messageType === "video" && (
                                 <Pressable 
                                     onPress={(e) => e.stopPropagation()} 
                                     onLongPress={(e) => e.stopPropagation()} 
-                                    className="w-64 h-40 bg-ink rounded-xl overflow-hidden shadow-hair"
+                                    className="w-64 h-40 bg-ink rounded-2xl overflow-hidden"
                                 >
                                     <Video
                                         source={{ uri: item.mediaUrl }}
@@ -359,15 +359,15 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                         <Text className={`text-sm font-semibold ${isMe ? "text-paper" : "text-ink"}`} numberOfLines={1}>
                                             {item.content || 'Shared Document'}
                                         </Text>
-                                        <Text className={`${isMe ? "text-ink-3" : "text-ink-3"} text-label uppercase font-semibold`}>Tap to view file</Text>
+                                        <Text className="text-ink-3 text-xs font-semibold">Tap to view file</Text>
                                     </View>
                                     <Ionicons name="chevron-forward" size={18} color={isMe ? C.paper : C.ink4} />
                                 </Pressable>
                             )}
-                        </TouchableOpacity>
+                        </Pressable>
 
                         <View className={`flex-row items-center mt-1.5 ${isMe ? "justify-end" : "justify-start"}`}>
-                            <Text className="text-label text-ink-3 font-display uppercase">
+                            <Text className="text-xs text-ink-3 font-sans">
                                 {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Text>
                         </View>
@@ -394,7 +394,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
             <View className="flex-row items-center justify-center bg-brand-50 py-2.5" style={{ gap: 8 }}>
                 <Meta numberOfLines={1} style={{ flexShrink: 1 }}>{user?.college || 'Campus'} ·</Meta>
                 <Ionicons name="timer-outline" size={15} color={C.brand[600]} />
-                <Text className="font-display text-label text-brand-700 uppercase">Expires in {timeLeft}</Text>
+                <Text className="font-semibold text-xs text-brand-700">Expires in {timeLeft}</Text>
             </View>
 
             <KeyboardAvoidingView
@@ -408,7 +408,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
 
 
                     {/* MESSAGES */}
-                    <View className="flex-1 bg-paper shadow-hair overflow-hidden border-t border-line">
+                    <View className="flex-1 bg-paper overflow-hidden border-t border-line">
                         {loading ? (
                             <View className="flex-1 justify-center items-center"><ActivityIndicator size="large" color={C.brand[500]} /></View>
                         ) : (
@@ -442,12 +442,12 @@ const CollegeChatScreen = ({ navigation }: any) => {
                     {/* INPUT AREA */}
                     <View className="bg-card">
                         {replyTo && (
-                            <View className="flex-row items-center justify-between bg-brand-50 px-6 py-2 border-l-4 border-brand-500">
+                            <View className="flex-row items-center justify-between bg-brand-50 px-5 py-2">
                                 <View className="flex-1">
-                                    <Text className="text-label text-accent-text font-semibold uppercase">Replying to @{replyTo.senderId?.username}</Text>
+                                    <Text className="text-xs text-accent-text font-semibold">Replying to @{replyTo.senderId?.username}</Text>
                                     <Text className="text-xs text-ink-3" numberOfLines={1}>{replyTo.content || '[Media]'}</Text>
                                 </View>
-                                <TouchableOpacity onPress={() => setReplyTo(null)} hitSlop={12}><Ionicons name="close-circle" size={20} color={C.brand[500]} /></TouchableOpacity>
+                                <IconBtn name="close-circle" size={20} color={C.accentText} accessibilityLabel="Cancel reply" onPress={() => setReplyTo(null)} />
                             </View>
                         )}
                         <View
@@ -456,13 +456,9 @@ const CollegeChatScreen = ({ navigation }: any) => {
                             }}
                             className="px-5 pt-2 flex-row items-center"
                         >
-                            <View className="flex-row items-center bg-paper-2 flex-1 p-1 border border-line rounded-md">
-                                <TouchableOpacity onPress={handlePickImage} className="w-9 h-9 items-center justify-center rounded-full bg-brand-50/50 ml-1" hitSlop={4}>
-                                    <Ionicons name="image" size={18} color={C.brand[500]} />
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={handlePickDocument} className="w-9 h-9 items-center justify-center rounded-full bg-brand-50/50 ml-1" hitSlop={4}>
-                                    <Ionicons name="document-attach" size={18} color={C.brand[500]} />
-                                </TouchableOpacity>
+                            <View className="flex-row items-center bg-paper-2 flex-1 px-1 border border-line rounded-3xl" style={{ minHeight: 48 }}>
+                                <IconBtn name="image-outline" size={20} color={C.ink2} accessibilityLabel="Send a photo" onPress={handlePickImage} />
+                                <IconBtn name="document-attach-outline" size={20} color={C.ink2} accessibilityLabel="Send a file" onPress={handlePickDocument} />
                                 <TextInput
                                     value={text}
                                     onChangeText={setText}
@@ -470,16 +466,17 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                     onBlur={() => setIsKeyboardVisible(false)}
                                     placeholder="Broadcast to campus..."
                                     placeholderTextColor={C.ink3}
-                                    className="flex-1 px-3 text-ink font-semibold text-sm py-2"
+                                    className="flex-1 px-2 text-ink font-sans text-base py-2"
+                                    accessibilityLabel="Message"
                                     multiline
                                 />
                             </View>
                              <View className="ml-2">
-                                {text.trim().length > 0 && (
-                                    <TouchableOpacity onPress={handleSendText} className="w-12 h-12 bg-brand-600 items-center justify-center rounded-full shadow-hair">
+                                {text.trim().length > 0 ? (
+                                    <Pressable onPress={handleSendText} accessibilityRole="button" accessibilityLabel="Send" className="w-12 h-12 bg-brand-500 items-center justify-center rounded-full active:opacity-70">
                                         <Ionicons name="send" size={20} color={C.onBrand} />
-                                    </TouchableOpacity>
-                                )}
+                                    </Pressable>
+                                ) : null}
                             </View>
                         </View>
                     </View>
@@ -488,12 +485,13 @@ const CollegeChatScreen = ({ navigation }: any) => {
             {/* FULL SCREEN IMAGE MODAL */}
             <Modal visible={!!selectedImage} transparent={true} statusBarTranslucent animationType="fade" onRequestClose={() => setSelectedImage(null)}>
                 <View className="flex-1 bg-black/95 justify-center items-center">
-                    <TouchableOpacity
+                    <IconBtn
+                        name="close"
+                        overlay
+                        accessibilityLabel="Close image"
                         onPress={() => setSelectedImage(null)}
-                        className="absolute top-12 right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
-                    >
-                        <Ionicons name="close" size={24} color="white" />
-                    </TouchableOpacity>
+                        style={{ position: 'absolute', top: 48, right: 20, zIndex: 50 }}
+                    />
                     {selectedImage && (
                         <Image
                             source={{ uri: selectedImage }}

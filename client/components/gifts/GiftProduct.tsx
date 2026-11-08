@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, ActivityIndicator, useWindowDimensions, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, useWindowDimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,7 +7,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
-import { AppBar, Screen, Chip, Button, BottomBar, Empty, Label } from '../ui/kit';
+import { AppBar, Screen, Chip, Button, BottomBar, Empty, Label, Num, FormField } from '../ui/kit';
 import { GiftProduct as Product, rupees, optValue, priceWith, deliveryBy, uploadGiftOriginals } from './shared';
 
 /** One gift: gallery, price, delivery estimate and the customization form. */
@@ -81,7 +81,7 @@ const GiftProduct = () => {
             onMomentumScrollEnd={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / width))}>
             {(product.images.length ? product.images : ['']).map((uri, i) => (
               <View key={i} style={{ width, aspectRatio: 1, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' }}>
-                {uri ? <Image source={{ uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : <Ionicons name="gift-outline" size={64} color={C.ink3} />}
+                {uri ? <Image source={{ uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" /> : <Ionicons name="gift-outline" size={64} color={C.ink3} />}
               </View>
             ))}
           </ScrollView>
@@ -93,7 +93,7 @@ const GiftProduct = () => {
 
           <View className="px-gutter mt-4">
             <Text className="text-ink font-display text-h1">{product.title}</Text>
-            <Text className="text-ink font-display mt-2" style={{ fontSize: 24 }}>{rupees(total)}</Text>
+            <Num style={{ fontSize: 24, marginTop: 8 }}>{rupees(total)}</Num>
             <View className="flex-row items-center mt-2">
               <Ionicons name="cube-outline" size={16} color={C.success} />
               <Text className="text-ink-2 text-sm ml-1.5">Delivered by {deliveryBy(product.deliveryDays)}</Text>
@@ -118,8 +118,8 @@ const GiftProduct = () => {
                 <View className="flex-row flex-wrap mt-2" style={{ gap: 8 }}>
                   {photos.map((uri, i) => (
                     <View key={uri + i} style={{ width: 76, height: 76 }}>
-                      <Image source={{ uri }} style={{ width: 76, height: 76, borderRadius: 10 }} contentFit="cover" />
-                      <Pressable onPress={() => setPhotos((p) => p.filter((_, j) => j !== i))} hitSlop={8} accessibilityLabel="Remove photo"
+                      <Image source={{ uri }} style={{ width: 76, height: 76, borderRadius: 12 }} contentFit="cover" />
+                      <Pressable onPress={() => setPhotos((p) => p.filter((_, j) => j !== i))} hitSlop={14} accessibilityRole="button" accessibilityLabel="Remove photo"
                         style={{ position: 'absolute', top: -6, right: -6, backgroundColor: C.ink, borderRadius: 12 }}>
                         <Ionicons name="close" size={16} color={C.paper} />
                       </Pressable>
@@ -127,7 +127,7 @@ const GiftProduct = () => {
                   ))}
                   {photos.length < maxPhotos && (
                     <Pressable onPress={pickPhotos} accessibilityRole="button" accessibilityLabel="Add photos"
-                      className="items-center justify-center rounded-card border-2 border-dashed border-line" style={{ width: 76, height: 76 }}>
+                      className="items-center justify-center rounded-2xl border border-dashed border-line bg-paper-2 active:opacity-70" style={{ width: 76, height: 76 }}>
                       <Ionicons name="add" size={26} color={C.ink3} />
                     </Pressable>
                   )}
@@ -136,20 +136,16 @@ const GiftProduct = () => {
             )}
 
             {cz.text && (
-              <View className="mt-5">
-                <Label>{cz.text.label}{cz.text.required ? ' *' : ''}</Label>
-                <TextInput
-                  value={text}
-                  onChangeText={setText}
-                  maxLength={cz.text.maxLen}
-                  multiline={cz.text.maxLen > 40}
-                  placeholder={cz.text.label}
-                  placeholderTextColor={C.ink3}
-                  className="mt-2 rounded-card border border-line bg-card px-4 py-3 text-ink"
-                  style={{ fontSize: 15, minHeight: 48 }}
-                />
-                <Text className="text-ink-3 text-xs mt-1 text-right">{text.length}/{cz.text.maxLen}</Text>
-              </View>
+              <FormField
+                containerStyle={{ marginTop: 20 }}
+                label={`${cz.text.label}${cz.text.required ? ' (required)' : ''}`}
+                hint={`${text.length}/${cz.text.maxLen}`}
+                value={text}
+                onChangeText={setText}
+                maxLength={cz.text.maxLen}
+                multiline={cz.text.maxLen > 40}
+                placeholder={cz.text.label}
+              />
             )}
           </View>
         </ScrollView>

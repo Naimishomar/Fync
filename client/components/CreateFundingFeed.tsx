@@ -12,7 +12,8 @@ import { useAuth } from '../context/auth.context';
 import { Video, ResizeMode } from "expo-av";
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
-import { AppBar, IconBtn } from './ui/kit';
+import { AppBar, IconBtn, Button, Card, Label, FormField } from './ui/kit';
+import { Image as ExpoImage } from 'expo-image';
 
 export default function CreateFundingFeed() {
   const { user } = useAuth();
@@ -207,63 +208,56 @@ export default function CreateFundingFeed() {
 
   return (
     <SafeAreaView className='flex-1 bg-paper' edges={['bottom']}>
-      <AppBar title={`${isEditing ? 'Edit' : 'Post'} Project`} onBack={() => navigation.goBack()} />
+      <AppBar title={`${isEditing ? 'Edit' : 'Post'} project`} onBack={() => navigation.goBack()} />
 
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView className="flex-1 px-5 mt-2" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView className="flex-1 px-gutter mt-2" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Basic Info */}
-        <View className="bg-card rounded-card p-5 shadow-hair mb-5 relative z-50">
-          <Text className="text-base font-semibold text-ink mb-4">Project Overview</Text>
-          <TextInput
-            placeholder="Project Title"
-            placeholderTextColor={C.ink3}
+        <Label style={{ marginBottom: 8 }}>Project overview</Label>
+        <View className="gap-3 mb-6">
+          <FormField
+            label="Title"
+            placeholder="Project title"
             value={title}
-            multiline
             onChangeText={setTitle}
-            className="text-ink text-base font-semibold pb-4 border-b border-[1.5px] border-ink"
           />
-          <TextInput
-            placeholder="Tell everyone about your project..."
-            placeholderTextColor={C.ink3}
+          <FormField
+            label="Description"
+            placeholder="Tell everyone about your project…"
             value={description}
             onChangeText={setDescription}
             multiline
-            textAlignVertical="top"
-            className="text-ink text-base min-h-[150px]"
+            style={{ minHeight: 150 }}
           />
         </View>
 
-        {/* Links Card */}
-        <View className="bg-card rounded-card p-5 shadow-hair mb-5">
-          <Text className="text-base font-semibold text-ink mb-4">Live Links</Text>
-          <View className="flex-row items-center border-b border-line pb-2 mb-4">
-            <Ionicons name="link-outline" size={20} color={C.brand[500]} />
-            <TextInput
-              placeholder="Deployed URL (Required)"
-              placeholderTextColor={C.ink4}
-              value={deployedUrl}
-              onChangeText={setDeployedUrl}
-              className="text-ink font-semibold flex-1 ml-3"
-              autoCapitalize="none"
-            />
-          </View>
-          <View className="flex-row items-center">
-            <Ionicons name="logo-github" size={20} color={C.ink} />
-            <TextInput
-              placeholder="Github URL (Optional)"
-              placeholderTextColor={C.ink4}
-              value={githubUrl}
-              onChangeText={setGithubUrl}
-              className="text-ink font-semibold flex-1 ml-3"
-              autoCapitalize="none"
-            />
-          </View>
+        {/* Links */}
+        <Label style={{ marginBottom: 8 }}>Links</Label>
+        <View className="gap-3 mb-6">
+          <FormField
+            label="Live URL (required)"
+            placeholder="https://"
+            value={deployedUrl}
+            onChangeText={setDeployedUrl}
+            autoCapitalize="none"
+            keyboardType="url"
+            right={<Ionicons name="link-outline" size={18} color={C.ink3} />}
+          />
+          <FormField
+            label="GitHub URL (optional)"
+            placeholder="https://github.com/…"
+            value={githubUrl}
+            onChangeText={setGithubUrl}
+            autoCapitalize="none"
+            keyboardType="url"
+            right={<Ionicons name="logo-github" size={18} color={C.ink3} />}
+          />
         </View>
 
         {/* Media Card */}
-        <View className="bg-card rounded-card p-5 shadow-hair mb-5">
-          <Text className="text-base font-semibold text-ink mb-1">Showcase Media</Text>
-          <Text className="text-ink-3 text-xs mb-4 font-medium">High quality media helps you stand out!</Text>
+        <Card padded style={{ marginBottom: 20 }}>
+          <Text className="text-base font-semibold text-ink mb-1">Showcase media</Text>
+          <Text className="text-ink-3 text-xs mb-4">Good photos and a short demo help you stand out.</Text>
 
           {(images.length > 0 || video || oldImages.length > 0 || oldVideo) && (
             <View className="mb-4">
@@ -271,11 +265,13 @@ export default function CreateFundingFeed() {
                 <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mb-2 flex-grow-0">
                   {images.map((img, index) => (
                     <View key={index} className="mr-3 relative">
-                      <Image source={{ uri: img.uri }} className="h-20 w-20 rounded-xl bg-paper-2" />
+                      <ExpoImage source={{ uri: img.uri }} style={{ width: 80, height: 80, borderRadius: 12, backgroundColor: C.paper2 }} />
                       <Pressable
                         onPress={() => removeImage(index)}
                         hitSlop={10}
                         className="absolute top-1 right-1 bg-black/70 h-6 w-6 rounded-full items-center justify-center"
+                        accessibilityRole="button"
+                        accessibilityLabel="Remove image"
                       >
                         <Ionicons name="close" size={14} color="white" />
                       </Pressable>
@@ -285,9 +281,9 @@ export default function CreateFundingFeed() {
               )}
 
               {video && (
-                <View className="mb-4 relative w-full h-40 shadow-hair rounded-xl overflow-hidden bg-night border border-ink">
+                <View className="mb-4 relative w-full h-40 rounded-2xl overflow-hidden bg-night">
                   <Video source={{ uri: video.uri }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
-                  <TouchableOpacity onPress={() => setVideo(null)} className="absolute top-2 right-2 bg-black/70 rounded-full h-8 w-8 items-center justify-center z-10">
+                  <TouchableOpacity onPress={() => setVideo(null)} hitSlop={8} className="absolute top-2 right-2 bg-black/70 rounded-full h-8 w-8 items-center justify-center z-10" accessibilityRole="button" accessibilityLabel="Remove video">
                     <Ionicons name="close" size={18} color="white" />
                   </TouchableOpacity>
                 </View>
@@ -295,52 +291,46 @@ export default function CreateFundingFeed() {
 
               {images.length === 0 && oldImages.length > 0 && (
                 <View className="mb-4">
-                  <Text className="text-ink text-label font-semibold mb-2 uppercase">Active Images:</Text>
+                  <Text className="text-ink-2 text-xs font-semibold mb-2">Current images</Text>
                   <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false}>
                     {oldImages.map((uri, idx) => (
-                      <Image key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} className="h-20 w-20 rounded-card bg-paper-2 mr-2 border border-line" />
+                      <ExpoImage key={idx} source={{ uri: uri.replace(/^http:\/\//i, 'https://') }} style={{ width: 80, height: 80, borderRadius: 12, backgroundColor: C.paper2, marginRight: 8 }} cachePolicy="memory-disk" />
                     ))}
                   </ScrollView>
                 </View>
               )}
               {!video && oldVideo && (
-                <View className="mb-4 relative w-full h-40 shadow-hair rounded-xl overflow-hidden bg-night border border-ink">
-                  <Text className="text-white absolute top-2 left-2 z-10 bg-black/50 px-2 py-1 rounded">Active Video</Text>
+                <View className="mb-4 relative w-full h-40 rounded-2xl overflow-hidden bg-night">
+                  <Text className="text-white text-xs font-semibold absolute top-2 left-2 z-10 bg-black/50 px-2 py-1 rounded-full">Current video</Text>
                   <Video source={{ uri: oldVideo.replace(/^http:\/\//i, 'https://') }} style={{ width: '100%', height: '100%' }} resizeMode={ResizeMode.COVER} isMuted />
                 </View>
               )}
             </View>
           )}
 
-          <View className="flex-row items-center justify-start gap-4 mt-2">
-            <Pressable onPress={pickImages} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-line bg-paper-2/50">
-              <Ionicons name="images-outline" size={18} color={C.brand[500]} />
-              <Text className="text-ink-3 text-xs font-semibold">Add Images</Text>
-            </Pressable>
-            <Pressable onPress={pickVideo} className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-line bg-paper-2/50">
-              <Ionicons name="videocam-outline" size={18} color={C.brand[500]} />
-              <Text className="text-ink-3 text-xs font-semibold">Add Video</Text>
-            </Pressable>
+          <View className="flex-row items-center gap-2 mt-2">
+            <Button small icon="images-outline" title="Add images" onPress={pickImages} />
+            <Button small icon="videocam-outline" title="Add video" onPress={pickVideo} />
           </View>
-        </View>
+        </Card>
 
       </ScrollView>
 
-      <View className="px-5 py-4 bg-paper-2">
-        <TouchableOpacity
+      <View className="px-gutter py-3 bg-paper border-t border-line">
+        <Button
+          variant="primary"
+          block
+          title={isEditing ? "Update project" : "Post project • ₹249"}
+          loading={submitting}
           onPress={handleInitiateProjectPost}
-          disabled={submitting}
-          className={`py-4 rounded-full items-center shadow-hair ${submitting ? 'bg-ink' : 'bg-ink/90'}`}
-        >
-          {submitting ? <ActivityIndicator color={C.paper} /> : <Text className="text-paper font-display text-lg uppercase">{isEditing ? "Update Project" : "Post Project • ₹249"}</Text>}
-        </TouchableOpacity>
+        />
       </View>
       </KeyboardAvoidingView>
 
       {/* PAYMENT MODAL */}
       <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} statusBarTranslucent onRequestClose={() => setShowPaymentParams(null)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: C.paper }} edges={['bottom']}>
-          <AppBar title="Secure Gateway" right={<IconBtn name="close" size={24} onPress={() => setShowPaymentParams(null)} />} />
+          <AppBar title="Secure payment" right={<IconBtn name="close" size={24} accessibilityLabel="Cancel payment" onPress={() => setShowPaymentParams(null)} />} />
           <WebView
             source={showPaymentParams}
             onMessage={handleWebViewMessage}

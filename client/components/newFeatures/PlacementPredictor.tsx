@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, StatusBar} from 'react-native'
+import { View, Text, Pressable, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from '../../context/axiosConfig';
 import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 
-import { AppBar, StampCard } from '../ui/kit';
+import { AppBar, BottomBar, Button, Card, FormField, IconTile, Label, Num, SectionHeader, Tag, TagRow } from '../ui/kit';
 import { C } from '../../constants/colors';
 const PlacementPredictor = () => {
     const navigation = useNavigation<any>();
@@ -69,100 +68,68 @@ const PlacementPredictor = () => {
             <View className="flex-1 bg-paper">
                 <StatusBar barStyle={C.barStyle} />
                 <SafeAreaView className="flex-1" edges={['bottom']}>
-                    <AppBar title="Analysis Report" onBack={() => setResult(null)} />
+                    <AppBar title="Analysis report" onBack={() => setResult(null)} />
 
-                    <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 mt-6 pb-20" showsVerticalScrollIndicator={false}>
-                        {/* Probability & ATS Score */}
-                        <View className="flex-row items-center justify-between gap-4 mb-8">
-                            <StampCard style={{ flex: 1 }}>
-                                <View className="items-center p-card-pad" style={{ paddingVertical: 24 }}>
-                                    <Text className="font-display text-ink" style={{ fontSize: 34, lineHeight: 36, letterSpacing: -1.2 }}>
-                                        {result.placement_probability}%
-                                    </Text>
-                                    <Text className="font-display text-label uppercase text-ink-3 mt-1">Placement Probability</Text>
-                                </View>
-                            </StampCard>
-                            <View className="flex-1 items-center bg-paper-2 p-6 rounded-sheet border border-line">
-                                <Text className="text-4xl font-display text-recruiter">{result.ats_score}%</Text>
-                                <Text className="text-label font-display uppercase text-ink-3 mt-1">ATS Friendliness</Text>
-                            </View>
+                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
+                        <View className="flex-row mb-4" style={{ gap: 12 }}>
+                            <Card padded style={{ flex: 1, alignItems: 'center', paddingVertical: 24 }}>
+                                <Num style={{ fontSize: 34, lineHeight: 38 }}>{result.placement_probability}%</Num>
+                                <Label style={{ marginTop: 4, textAlign: 'center' }}>Placement probability</Label>
+                            </Card>
+                            <Card padded style={{ flex: 1, alignItems: 'center', paddingVertical: 24 }}>
+                                <Num style={{ fontSize: 34, lineHeight: 38, color: C.recruiter }}>{result.ats_score}%</Num>
+                                <Label style={{ marginTop: 4, textAlign: 'center' }}>ATS friendliness</Label>
+                            </Card>
                         </View>
 
-                        {/* Jake's Format Badge */}
-                        {result.is_jakes_format ? (
-                            <View className="bg-success/10 p-4 rounded-card border border-success/15 flex-row items-center gap-3 mb-6">
-                                <Ionicons name="checkmark-circle" size={24} color={C.success} />
-                                <View>
-                                    <Text className="text-success font-display text-label uppercase">Jake's Resume Standard</Text>
-                                    <Text className="text-success/70 text-label font-semibold">Your format is recruiter-optimized & ATS friendly.</Text>
-                                </View>
+                        <Card padded style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                            <Ionicons name={result.is_jakes_format ? 'checkmark-circle' : 'warning'} size={24} color={result.is_jakes_format ? C.success : C.warning} />
+                            <View className="flex-1">
+                                <Text className="text-ink font-semibold text-sm">{result.is_jakes_format ? "Jake's resume format" : 'Formatting tip'}</Text>
+                                <Text className="text-ink-3 text-sm font-sans mt-0.5">
+                                    {result.is_jakes_format ? 'Your format is recruiter-optimised and ATS friendly.' : result.resume_fix_tip}
+                                </Text>
                             </View>
-                        ) : (
-                            <View className="bg-warning/10 p-4 rounded-card border border-warning/15 flex-row items-center gap-3 mb-6">
-                                <Ionicons name="warning" size={24} color={C.warning} />
-                                <View className="flex-1">
-                                    <Text className="text-warning font-display text-label uppercase">Formatting Alert</Text>
-                                    <Text className="text-warning/70 text-label font-semibold">{result.resume_fix_tip}</Text>
-                                </View>
+                        </Card>
+
+                        <Card padded style={{ marginBottom: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <View className="flex-1">
+                                <Label>Estimated salary (INR)</Label>
+                                <Text className="text-ink text-xl font-display mt-1">{result.salary_estimate}</Text>
                             </View>
-                        )}
+                            <IconTile icon="cash-outline" color={C.accentText} />
+                        </Card>
 
-                        {/* Salary Estimate */}
-                        <View
-                            className="p-6 rounded-sheet mb-6 flex-row items-center justify-between"
-                         style={{ backgroundColor: C.ink }}>
-                            <View>
-                                <Text className="text-paper/60 text-label font-semibold uppercase">Est. Market Value (INR)</Text>
-                                <Text className="text-paper text-xl font-display">{result.salary_estimate}</Text>
-                            </View>
-                            <View className="bg-brand-500/20 w-12 h-12 rounded-card items-center justify-center border border-white/10">
-                                <MaterialCommunityIcons name="currency-inr" size={24} color={C.brand[500]} />
-                            </View>
-                        </View>
+                        <SectionHeader title="Suggested roles" style={{ marginBottom: 12 }} />
+                        <TagRow style={{ marginBottom: 24 }}>
+                            {(result.roles || []).map((role: string, i: number) => <Tag key={i} label={role} />)}
+                        </TagRow>
 
-                        {/* Top Roles */}
-                        <Text className="font-semibold text-base text-ink mb-3">Suggested Roles</Text>
-                        <View className="flex-row flex-wrap gap-2 mb-6">
-                            {(result.roles || []).map((role: string, i: number) => (
-                                <View key={i} className="bg-paper-2 px-4 py-2 rounded-xl border border-line">
-                                    <Text className="text-ink-2 font-semibold text-xs">{role}</Text>
-                                </View>
-                            ))}
-                        </View>
+                        <SectionHeader title="Target companies" style={{ marginBottom: 12 }} />
+                        <TagRow style={{ marginBottom: 24 }}>
+                            {(result.target_companies || []).map((company: string, i: number) => <Tag key={i} label={company} />)}
+                        </TagRow>
 
-                        {/* Target Companies */}
-                        <Text className="font-semibold text-base text-ink mb-3">Target Companies</Text>
-                        <View className="flex-row flex-wrap gap-2 mb-6">
-                            {(result.target_companies || []).map((company: string, i: number) => (
-                                <View key={i} className="bg-paper-2 px-4 py-2 rounded-xl border border-line">
-                                    <Text className="text-accent-text font-semibold text-xs">{company}</Text>
-                                </View>
-                            ))}
-                        </View>
-
-                        {/* Strengths */}
-                        <Text className="font-semibold text-base text-ink mb-3">Strengths</Text>
+                        <SectionHeader title="Strengths" style={{ marginBottom: 12 }} />
                         {(result.strengths || []).map((s: string, i: number) => (
-                            <View key={i} className="flex-row items-center gap-2 mb-2">
+                            <View key={i} className="flex-row items-center mb-2" style={{ gap: 8 }}>
                                 <Ionicons name="checkmark-circle" size={18} color={C.success} />
-                                <Text className="text-ink-2 font-medium text-sm flex-1">{s}</Text>
+                                <Text className="text-ink-2 font-sans text-sm flex-1">{s}</Text>
                             </View>
                         ))}
 
-                        {/* Weaknesses */}
-                        <Text className="font-semibold text-base text-ink mt-6 mb-3">Areas to Improve</Text>
+                        <SectionHeader title="Areas to improve" style={{ marginTop: 24, marginBottom: 12 }} />
                         {(result.weaknesses || []).map((w: string, i: number) => (
-                            <View key={i} className="flex-row items-center gap-2 mb-2">
+                            <View key={i} className="flex-row items-center mb-2" style={{ gap: 8 }}>
                                 <Ionicons name="alert-circle" size={18} color={C.warning} />
-                                <Text className="text-ink-2 font-medium text-sm flex-1">{w}</Text>
+                                <Text className="text-ink-2 font-sans text-sm flex-1">{w}</Text>
                             </View>
                         ))}
 
-                        {/* Suggestion Roadmap */}
-                        <Text className="font-semibold text-base text-ink mt-6 mb-3">Roadmap & Next Steps</Text>
-                        <View className="bg-paper-2 p-5 rounded-card border border-line mb-20">
-                            <Text className="text-ink-2 leading-6">{result.suggestion}</Text>
-                        </View>
+                        <SectionHeader title="Next steps" style={{ marginTop: 24, marginBottom: 12 }} />
+                        <Card padded>
+                            <Text className="text-ink-2 font-sans text-base leading-6">{result.suggestion}</Text>
+                        </Card>
                     </ScrollView>
                 </SafeAreaView>
             </View>
@@ -175,66 +142,39 @@ const PlacementPredictor = () => {
             <SafeAreaView className="flex-1" edges={['bottom']}>
                 <AppBar title="Placement Predictor" onBack={() => navigation.goBack()} />
 
-                <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 mt-10">
-                    <Text className="font-semibold text-base text-ink mb-4">Enter Academic Details</Text>
+                <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, gap: 16 }}>
+                    <FormField
+                        label="Current CGPA / GPA"
+                        placeholder="e.g. 8.5"
+                        value={gpa}
+                        onChangeText={setGpa}
+                        keyboardType="numeric"
+                    />
 
-                    {/* GPA Input */}
-                    <View className="bg-paper-2 p-6 rounded-sheet border border-line mb-6">
-                        <Text className="text-ink-3 text-label font-display uppercase mb-2">Current CGPA / GPA</Text>
-                        <TextInput
-                            placeholder="e.g. 8.5"
-                            placeholderTextColor={C.ink4}
-                            value={gpa}
-                            onChangeText={setGpa}
-                            keyboardType="numeric"
-                            className="text-2xl font-display text-ink"
-                        />
-                    </View>
-
-                    {/* Resume Picker */}
-                    <TouchableOpacity
+                    <Pressable
                         onPress={pickDocument}
-                        activeOpacity={0.8}
-                        className={`p-card-pad rounded-sheet border-2 border-dashed items-center justify-center ${resume ? 'bg-brand-50 border-ink' : 'bg-paper-2 border-line'}`}
+                        accessibilityRole="button"
+                        accessibilityLabel={resume ? `Resume ${resume.name}, tap to change` : 'Upload PDF resume'}
+                        className={`p-6 rounded-2xl border border-dashed items-center justify-center active:opacity-70 ${resume ? 'bg-brand-50 border-brand-500' : 'bg-card border-line'}`}
                     >
-                        <View className={`w-16 h-16 rounded-card items-center justify-center mb-4 ${resume ? 'bg-brand-500' : 'bg-paper-2'}`}>
-                            <Ionicons name={resume ? "document-text" : "cloud-upload"} size={32} color={resume ? C.onBrand : C.ink} />
-                        </View>
-                        <Text className={`font-display uppercase text-sm text-center ${resume ? 'text-accent-text' : 'text-ink-3'}`}>
-                            {resume ? resume.name : 'Upload PDF Resume'}
+                        <IconTile icon={resume ? 'document-text-outline' : 'cloud-upload-outline'} size={56} color={resume ? C.accentText : C.ink} style={{ marginBottom: 12 }} />
+                        <Text className="font-semibold text-sm text-center text-ink" numberOfLines={2}>
+                            {resume ? resume.name : 'Upload PDF resume'}
                         </Text>
-                        {resume && <Text className="text-label font-semibold text-accent-text mt-2">Tap to change file</Text>}
-                    </TouchableOpacity>
+                        {resume ? <Text className="text-xs font-semibold text-accent-text mt-1">Tap to change file</Text> : null}
+                    </Pressable>
 
-                    <View className="mt-10 bg-fam-career/10 p-6 rounded-card border border-fam-career/15 flex-row items-center gap-4">
-                        <Ionicons name="information-circle" size={24} color={C.info} />
-                        <Text className="flex-1 text-fam-career text-label font-semibold leading-4">
-                            Our AI will analyze your GPA and resume keywords to match you with top-tier companies and predict your success rate.
+                    <Card padded style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                        <Ionicons name="information-circle-outline" size={22} color={C.ink3} />
+                        <Text className="flex-1 text-ink-3 text-sm font-sans leading-5">
+                            Our AI analyses your GPA and resume keywords to match you with top companies and predict your chances.
                         </Text>
-                    </View>
+                    </Card>
                 </ScrollView>
 
-                <View className="px-gutter py-6">
-                    <TouchableOpacity
-                        onPress={handlePredict}
-                        disabled={loading}
-                        activeOpacity={0.9}
-                        className="w-full rounded-card"
-                    >
-                        <View
-                            className="py-4 rounded-card flex-row justify-center items-center shadow-hair"
-                         style={{ backgroundColor: C.brand[500] }}>
-                            {loading ? (
-                                <ActivityIndicator color={C.onBrand} />
-                            ) : (
-                                <View className='flex-row rounded-card'>
-                                    <Text className="text-on-brand font-display text-lg mr-1 uppercase">Generate Prediction</Text>
-                                    <Ionicons name="flash" size={22} color={C.onBrand} />
-                                </View>
-                            )}
-                        </View>
-                    </TouchableOpacity>
-                </View>
+                <BottomBar>
+                    <Button title="Generate prediction" icon="flash" variant="primary" block loading={loading} onPress={handlePredict} />
+                </BottomBar>
             </SafeAreaView>
         </View>
     );

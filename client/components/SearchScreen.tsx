@@ -1,13 +1,13 @@
-import { View, Text, TextInput, FlatList, Image, ActivityIndicator, TouchableOpacity, StatusBar } from "react-native";
+import { View, FlatList, ActivityIndicator, Pressable, StatusBar } from "react-native";
 import { useTabBarAutoHide, useTabBarClearance } from '../constants/layout';
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Avatar from "./Avatar";
 import { C } from '../constants/colors';
-import { AppBar, Button, Empty } from './ui/kit';
+import { AppBar, Button, Empty, ListRow, SearchField, SectionHeader } from './ui/kit';
 
 interface User {
   _id: string;
@@ -72,18 +72,22 @@ const SearchScreen = () => {
 
   // Navigate first: waiting on storage delayed the tap, and a storage error
   // swallowed it entirely.
-  const handleUserPress = (user: User) => {
-    const updated = [user, ...recentSearches.filter((item) => item._id !== user._id)].slice(0, 10);
-    setRecentSearches(updated);
+  const handleUserPress = useCallback((user: User) => {
     navigation.navigate("PublicProfile", { userId: user._id, user });
-    AsyncStorage.setItem("recentSearches", JSON.stringify(updated)).catch(() => {});
-  };
+    setRecentSearches((prev) => {
+      const updated = [user, ...prev.filter((item) => item._id !== user._id)].slice(0, 10);
+      AsyncStorage.setItem("recentSearches", JSON.stringify(updated)).catch(() => {});
+      return updated;
+    });
+  }, [navigation]);
 
-  const removeItem = (userId: string) => {
-    const updated = recentSearches.filter((i) => i._id !== userId);
-    setRecentSearches(updated);
-    AsyncStorage.setItem("recentSearches", JSON.stringify(updated)).catch(() => {});
-  };
+  const removeItem = useCallback((userId: string) => {
+    setRecentSearches((prev) => {
+      const updated = prev.filter((i) => i._id !== userId);
+      AsyncStorage.setItem("recentSearches", JSON.stringify(updated)).catch(() => {});
+      return updated;
+    });
+  }, []);
 
   const clearAll = () => {
     setRecentSearches([]);
@@ -107,70 +111,25 @@ const SearchScreen = () => {
     }
   };
 
-  const renderUserItem = ({ item, isRecent }: { item: User; isRecent: boolean }) => (
-    <TouchableOpacity
-      onPress={() => handleUserPress(item)}
-      activeOpacity={0.8}
-      className="flex-row items-center justify-between p-3 mb-2 bg-card rounded-xl border border-line shadow-hair"
-    >
-      <View className="flex-row items-center flex-1">
-        <Avatar
-          user={item as any}
-          size={34}
-        />
-
-        <View className="ml-4 flex-1" style={{ minWidth: 0 }}>
-          <Text className="font-semibold text-base text-ink" numberOfLines={1}>
-            {item.username}
-          </Text>
-          <Text className="font-sans text-sm text-ink-3" numberOfLines={1}>
-            {item.name}
-          </Text>
-        </View>
-      </View>
-
-      {isRecent && (
-        <TouchableOpacity
-          onPress={() => removeItem(item._id)}
-          className="bg-paper-2 p-2 rounded-xl border border-line"
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="close" size={14} color={C.ink3} />
-        </TouchableOpacity>
-      )}
-    </TouchableOpacity>
-  );
+  const renderResult = useCallback(({ item }: { item: User }) => (
+    <UserRow item={item} onPress={handleUserPress} />
+  ), [handleUserPress]);
+  const renderRecent = useCallback(({ item }: { item: User }) => (
+    <UserRow item={item} onPress={handleUserPress} onRemove={removeItem} />
+  ), [handleUserPress, removeItem]);
 
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle={C.barStyle} />
 
-      {/* HEADER DECORATION */}
-
       <View className="flex-1">
-
-        <AppBar title="Find Friends" onBack={() => navigation.goBack()} />
-        <View className="px-gutter bg-transparent">
-
-          {/* SEARCH DOCK */}
-          <View className="flex-row items-center bg-card px-5 py-1 border-2 border-ink shadow-hair mb-5 rounded-md">
-            <Ionicons name="search" size={20} color={C.ink3} />
-            <TextInput
-              className="flex-1 text-ink font-semibold text-sm p-3"
-              placeholder="Search contacts..."
-              placeholderTextColor={C.ink4}
-              value={query}
-              onChangeText={setQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            {loading && <ActivityIndicator size="small" color={C.brand[500]} className="mr-2" />}
-            {query.length > 0 && (
-              <TouchableOpacity onPress={() => setQuery("")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Ionicons name="close-circle" size={18} color={C.ink4} />
-              </TouchableOpacity>
-            )}
-          </View>
+        <AppBar title="Find friends" onBack={() => navigation.goBack()} />
+        <View className="px-gutter pb-2">
+          <SearchField
+            placeholder="Search people"
+            value={query}
+            onChangeText={setQuery}
+          />
         </View>
 
         {/* LIST RENDER */}
@@ -180,14 +139,15 @@ const SearchScreen = () => {
             {...autoHideTabBar}
             keyExtractor={(item) => item._id}
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => renderUserItem({ item, isRecent: false })}
+            renderItem={renderResult}
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: tabBarClearance }}
             keyboardShouldPersistTaps="handled"
             ListHeaderComponent={
-              <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                <Text className="text-ink-3 text-label font-display uppercase">Registry results</Text>
-                <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-              </View>
+              <SectionHeader
+                title="Results"
+                right={loading ? <ActivityIndicator size="small" color={C.brand[500]} /> : undefined}
+                style={{ marginTop: 12, marginBottom: 4 }}
+              />
             }
             ListEmptyComponent={
               !loading && searchError ? (
@@ -199,54 +159,63 @@ const SearchScreen = () => {
                   />
                 </View>
               ) : !loading && searchResults.length === 0 ? (
-                <View className="items-center mt-12 px-gutter">
-                  <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
-                    <Ionicons name="search-outline" size={32} color={C.ink4} />
-                  </View>
-                  <Text className="text-center text-ink font-display text-lg">
-                    No users found
-                  </Text>
-                  <Text className="text-center text-ink-3 mt-1">
-                    Try searching for a different name or username
-                  </Text>
+                <View className="mt-10">
+                  <Empty icon="search-outline" title="No users found" hint="Try a different name or username." />
                 </View>
               ) : null
             }
           />
         ) : (
-          <>
-            <View className="flex-row justify-between items-center px-gutter mt-4 mb-4">
-              <Text className="font-display text-label text-ink-3 uppercase">Recent Registry Lookups</Text>
-              {recentSearches.length > 0 && (
-                <TouchableOpacity onPress={clearAll}>
-                  <Text className="text-label font-display text-accent-text uppercase">Wipe Data</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <FlatList
-              data={recentSearches}
-              {...autoHideTabBar}
-              keyExtractor={(item) => item._id}
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => renderUserItem({ item, isRecent: true })}
-              contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: tabBarClearance }}
-              keyboardShouldPersistTaps="handled"
-              ListEmptyComponent={
-                <View className="items-center mt-12 px-gutter">
-                  <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                    <Ionicons name="time-outline" size={32} color={C.ink4} />
-                  </View>
-                  <Text className="font-semibold text-base text-ink text-center">History Empty</Text>
-                  <Text className="font-sans text-sm text-ink-3 mt-2 text-center">No previous registry lookups found.</Text>
-                </View>
-              }
-            />
-          </>
+          <FlatList
+            data={recentSearches}
+            {...autoHideTabBar}
+            keyExtractor={(item) => item._id}
+            showsVerticalScrollIndicator={false}
+            renderItem={renderRecent}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: tabBarClearance }}
+            keyboardShouldPersistTaps="handled"
+            ListHeaderComponent={
+              <SectionHeader
+                title="Recent"
+                action={recentSearches.length > 0 ? 'Clear all' : undefined}
+                onAction={clearAll}
+                style={{ marginTop: 12, marginBottom: 4 }}
+              />
+            }
+            ListEmptyComponent={
+              <View className="mt-10">
+                <Empty icon="time-outline" title="No recent searches" hint="People you look up will show here." />
+              </View>
+            }
+          />
         )}
       </View>
     </View>
   );
 };
+
+const UserRow = memo(function UserRow({ item, onPress, onRemove }: {
+  item: User; onPress: (u: User) => void; onRemove?: (id: string) => void;
+}) {
+  return (
+    <ListRow
+      onPress={() => onPress(item)}
+      leading={<Avatar user={item as any} size={44} />}
+      title={item.username}
+      subtitle={item.name}
+      right={onRemove ? (
+        <Pressable
+          onPress={() => onRemove(item._id)}
+          className="w-8 h-8 rounded-full bg-paper-2 items-center justify-center active:opacity-60"
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`Remove ${item.username} from recent`}
+        >
+          <Ionicons name="close" size={14} color={C.ink3} />
+        </Pressable>
+      ) : undefined}
+    />
+  );
+});
 
 export default SearchScreen;

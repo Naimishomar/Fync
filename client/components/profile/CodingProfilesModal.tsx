@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, TextInput, Pressable, Modal, 
-  ActivityIndicator, ScrollView, Image, KeyboardAvoidingView, Platform, Dimensions
-} from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 import Feather from '@expo/vector-icons/Feather';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { C } from '../../constants/colors';
-import { useBottomInset } from '../../constants/layout';
-
-const { height: screenHeight } = Dimensions.get('window');
+import { Sheet, FormField, Button } from '../ui/kit';
 
 interface CodingProfilesModalProps {
   visible: boolean;
@@ -20,32 +15,25 @@ interface CodingProfilesModalProps {
 }
 
 const ProfileInput = ({ label, value, onChange, icon, logo }: any) => (
-  <View className="mb-6">
-    <View className="flex-row items-center mb-2 ml-1">
-      <View className="w-6 h-6 items-center justify-center mr-2">
-          {logo ? (
-          <Image source={{ uri: logo }} className="w-5 h-5" resizeMode="contain" />
-          ) : (
-          <Feather name={icon} size={14} color={C.brand[500]} />
-          )}
+  <FormField
+    label={label}
+    value={value}
+    onChangeText={onChange}
+    placeholder="Username"
+    autoCapitalize="none"
+    autoCorrect={false}
+    accessibilityLabel={`${label} username`}
+    containerStyle={{ marginBottom: 16 }}
+    right={
+      <View className="w-6 h-6 items-center justify-center">
+        {logo ? <Image source={{ uri: logo }} style={{ width: 20, height: 20 }} contentFit="contain" cachePolicy="memory-disk" />
+          : <Feather name={icon} size={16} color={C.ink3} />}
       </View>
-      <Text className="text-ink-3 font-display uppercase text-label">{label}</Text>
-    </View>
-    <View className="flex-row items-center bg-paper-2 px-5 border-2 border-ink shadow-hair rounded-md">
-      <TextInput
-        value={value}
-        onChangeText={onChange}
-        placeholder={`${label} identifier`}
-        placeholderTextColor={C.ink3}
-        className="flex-1 text-ink py-4 text-sm font-semibold"
-        autoCapitalize="none"
-      />
-    </View>
-  </View>
+    }
+  />
 );
 
 const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: CodingProfilesModalProps) => {
-  const bottomInset = useBottomInset();
   const [loading, setLoading] = useState(false);
   const [leetcode, setLeetcode] = useState(initialData?.leetcode || '');
   const [gfg, setGfg] = useState(initialData?.gfg || '');
@@ -91,33 +79,14 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
 
 
   return (
-    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/60 justify-end">
-        <Pressable className="absolute inset-0" onPress={onClose} />
-        <KeyboardAvoidingView 
-          behavior="padding"
-          className="bg-paper rounded-t-sheet overflow-hidden"
-          style={{ height: screenHeight * 0.80 }}
-        >
-          {/* Handle */}
-          <View className="items-center py-4">
-            <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
-          </View>
-
-          {/* Header */}
-          <View className="flex-row items-center justify-between px-gutter pb-4 border-b border-line">
-            <View>
-              <Text className="text-ink font-display uppercase text-h1">
-                Coding <Text className="text-accent-text">Profiles</Text>
-              </Text>
-              <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Competitive Protocol</Text>
-            </View>
-            <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
-              <Ionicons name="close" size={20} color={C.ink} />
-            </Pressable>
-          </View>
-
-          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1 px-gutter pt-6">
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title="Coding profiles"
+      subtitle="Add your usernames to show stats on your profile"
+      height="80%"
+      footer={<Button variant="primary" block icon="save-outline" title="Save profiles" onPress={handleSave} loading={loading} />}
+    >
             <ProfileInput 
               label="LeetCode" 
               value={leetcode} 
@@ -148,29 +117,7 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
               onChange={setHackerrank} 
               icon="code"
             />
-            <View className="h-10" />
-          </ScrollView>
-
-          {/* Footer Action */}
-          <View className="p-card-pad border-t border-line bg-card shadow-hair" style={{ paddingBottom: bottomInset }}>
-            <Pressable
-              onPress={handleSave}
-              disabled={loading}
-              className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md"
-            >
-              {loading ? (
-                <ActivityIndicator color={C.brand[500]} />
-              ) : (
-                <>
-                  <Feather name="save" size={16} color={C.paper} className="mr-2" />
-                  <Text className="text-paper font-display uppercase text-xs ml-2">Sync Ecosystem</Text>
-                </>
-              )}
-            </Pressable>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
+    </Sheet>
   );
 };
 

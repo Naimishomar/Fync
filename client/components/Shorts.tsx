@@ -212,7 +212,7 @@ const SingleShort = React.memo(({
 
           {/* Truncated Title & Description */}
           <View>
-            <Text className="font-display text-base text-white mb-1">
+            <Text className="font-semibold text-base text-white mb-1">
               {(!showFullText && title.length > 50) 
                 ? title.substring(0, 50) + "..." 
                 : title}
@@ -226,7 +226,7 @@ const SingleShort = React.memo(({
             {(title.length > 50 || description.length > 50) && (
               <Pressable onPress={() => setShowFullText(!showFullText)} className="mt-1">
                 <Text className="font-semibold text-sm text-brand-400">
-                  {showFullText ? "Show Less" : "Show More"}
+                  {showFullText ? "Show less" : "Show more"}
                 </Text>
               </Pressable>
             )}
@@ -247,22 +247,25 @@ const SingleShort = React.memo(({
                   ]
                 );
               }}
-              className="mb-4"
+              className="mb-4 active:opacity-70"
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Delete short"
             >
               <Ionicons name="trash-outline" size={28} color={C.danger} />
             </Pressable>
           )}
 
-          <Pressable onPress={() => onLike(item)}>
+          <Pressable onPress={() => onLike(item)} hitSlop={6} className="active:opacity-70" accessibilityRole="button" accessibilityState={{ selected: !!isLiked }} accessibilityLabel={isLiked ? "Unlike" : "Like"}>
             <Ionicons
               name={isLiked ? "heart" : "heart-outline"}
               size={34}
               color={isLiked ? C.brand[500] : "#FFFFFF"}
             />
           </Pressable>
-          <Text className="font-display text-label text-white mb-4">{item.likes || 0}</Text>
+          <Text className="font-semibold text-xs text-white mb-4">{item.likes || 0}</Text>
 
-          <Pressable onPress={() => onComment(item._id)} className="mb-4">
+          <Pressable onPress={() => onComment(item._id)} hitSlop={8} className="mb-4 active:opacity-70" accessibilityRole="button" accessibilityLabel="Comments">
             <Ionicons name="chatbubble-outline" size={28} color="white" />
           </Pressable>
 
@@ -298,12 +301,14 @@ const SingleShort = React.memo(({
                 );
               }
             }}
-            className="mb-4 items-center"
+            className="mb-4 items-center active:opacity-70"
+            accessibilityRole="button"
+            accessibilityLabel={`Tip ${author.name ?? 'creator'}`}
           >
             <View className="bg-brand-500/20 p-2 rounded-full border border-brand-500/40">
               <Ionicons name="cash-outline" size={26} color={C.brand[500]} />
             </View>
-            <Text className="font-display text-label text-brand-400 mt-1 uppercase">Tip</Text>
+            <Text className="font-semibold text-xs text-brand-400 mt-1">Tip</Text>
           </Pressable>
           )}
 
@@ -321,17 +326,19 @@ const SingleShort = React.memo(({
                 color={item.repostedBy?.some((u: any) => String(u) === String(currentUserId)) ? C.brand[500] : 'white'}
               />
               {!!item.reposts && (
-                <Text className="font-display text-label text-white mt-1">{item.reposts}</Text>
+                <Text className="font-semibold text-xs text-white mt-1">{item.reposts}</Text>
               )}
             </Pressable>
           )}
 
-          <Pressable onPress={handleShare} className="mb-4">
+          <Pressable onPress={handleShare} hitSlop={8} className="mb-4 active:opacity-70" accessibilityRole="button" accessibilityLabel="Share">
             <Ionicons name="paper-plane-outline" size={28} color="white" />
           </Pressable>
 
-          <Ionicons name="eye-outline" size={28} color="white" />
-          <Text className="font-display text-label text-white">{item.views || 0}</Text>
+          <View className="items-center" accessibilityLabel={`${item.views || 0} views`}>
+            <Ionicons name="eye-outline" size={28} color="white" />
+            <Text className="font-semibold text-xs text-white">{item.views || 0}</Text>
+          </View>
         </View>
       </View>
     </View>

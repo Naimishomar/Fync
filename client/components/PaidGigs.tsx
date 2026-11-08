@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, TextInput, ScrollView, KeyboardAvoidingView, Pressable, Animated, StatusBar, Platform} from 'react-native'
+import { View, Text, FlatList, ActivityIndicator, RefreshControl, StatusBar, Animated } from 'react-native'
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../context/axiosConfig';
@@ -8,7 +8,7 @@ import socket from '../utils/socket';
 import { formatDistanceToNow } from 'date-fns';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
-import { AppBar, IconBtn } from './ui/kit';
+import { AppBar, IconBtn, SegmentedTabs, Tag, Button, Empty, Sheet, FormField } from './ui/kit';
 
 // --- TYPES ---
 interface Gig {
@@ -23,10 +23,12 @@ interface Gig {
     postedBy: any;
 }
 
-// =======================================================
-// 1. EXTRACTED & MEMOIZED GIG CARD
-// This prevents Reanimated and FlatList from crashing during tab switches
-// =======================================================
+const TABS = ['college', 'global', 'mine'] as const;
+const TAB_LABELS = { college: 'College', global: 'Global', mine: 'Mine' };
+const VIS = ['College', 'Global'] as const;
+const VIS_LABELS = { College: 'Campus only', Global: 'Everyone' };
+
+// Memoized at module scope so FlatList updates cards instead of remounting them.
 const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, onMessage, connectingId }: any) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const MAX_CHAR = 150;
@@ -38,106 +40,61 @@ const GigCard = React.memo(({ item, currentUser, onEdit, onDelete, onCloseGig, o
     // formatDistanceToNow throws on an Invalid Date, which would take the whole list down.
     const created = new Date(item.createdAt);
     const postedAgo = isNaN(created.getTime()) ? '' : formatDistanceToNow(created, { addSuffix: true });
+    const long = description.length > MAX_CHAR;
 
     return (
-        <View className="bg-card mx-gutter mb-6 rounded-sheet border border-line shadow-hair overflow-hidden">
-            <View className="absolute left-0 top-0 bottom-0 w-[6px] bg-brand-500" />
-
-            <View className="p-6 pl-8">
-                <View className="flex-row justify-between items-start mb-4">
-                    <View className="flex-1 mr-4">
-                        <Text className="text-ink font-display text-lg uppercase leading-tight" numberOfLines={2}>
-                            {item.title}
-                        </Text>
-                        <Text className="text-ink-3 text-label mt-1 uppercase font-display">
-                            {postedAgo}
-                        </Text>
-                    </View>
-                    {isOwner && (
-                        <View className="flex-row gap-2 bg-paper-2 p-1.5 rounded-card border border-line">
-                            <TouchableOpacity onPress={() => onEdit(item)} hitSlop={10} className="p-2 bg-card rounded-xl border border-line">
-                                <Ionicons name="pencil" size={12} color={C.ink} />
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => onDelete(item._id)} hitSlop={10} className="p-2 bg-danger/10 rounded-xl border border-danger/15">
-                                <Ionicons name="trash" size={12} color={C.fam.fun} />
-                            </TouchableOpacity>
-                        </View>
-                    )}
+        <View className="bg-card mx-gutter mb-3 rounded-2xl border border-line p-4">
+            <View className="flex-row items-start" style={{ gap: 8 }}>
+                <View className="flex-1" style={{ minWidth: 0 }}>
+                    <Text className="text-ink font-semibold text-base leading-snug" numberOfLines={2}>{item.title}</Text>
+                    {postedAgo ? <Text className="text-ink-3 text-xs font-sans mt-1">{postedAgo}</Text> : null}
                 </View>
+                {isOwner && (
+                    <View className="flex-row" style={{ marginRight: -11, marginTop: -10 }}>
+                        <IconBtn name="pencil-outline" size={18} onPress={() => onEdit(item)} accessibilityLabel="Edit gig" />
+                        <IconBtn name="trash-outline" size={18} color={C.danger} onPress={() => onDelete(item._id)} accessibilityLabel="Delete gig" />
+                    </View>
+                )}
+            </View>
 
-                <View className="flex-row items-center bg-success/10 self-start px-3 py-1.5 rounded-xl border border-success/15 mb-6">
-                    <Ionicons name="cash-outline" size={14} color={C.success} />
-                    <Text className="text-success text-label font-display ml-1.5 uppercase">
-                        {item.stipend || 'Pay: Open'}
+            <Tag icon="cash-outline" label={item.stipend || 'Pay: open'} tone={{ fg: C.success }} style={{ alignSelf: 'flex-start', marginTop: 12 }} />
+
+            <Text className="text-ink-2 text-sm leading-6 mt-3 font-sans">
+                {long && !isExpanded ? `${description.substring(0, MAX_CHAR)}...` : description}
+                {long && (
+                    <Text onPress={() => setIsExpanded(!isExpanded)} className="text-accent-text font-semibold" accessibilityRole="button">
+                        {isExpanded ? " Show less" : " Read more"}
                     </Text>
+                )}
+            </Text>
+
+            <View className="flex-row items-center mt-4 pt-3 border-t border-line" style={{ gap: 12 }}>
+                <ExpoImage
+                    source={{ uri: avatarUrl }}
+                    style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.paper2 }}
+                    cachePolicy="memory-disk"
+                />
+                <View className="flex-1" style={{ minWidth: 0 }}>
+                    <Text className="font-semibold text-sm text-ink" numberOfLines={1}>{posterName}</Text>
+                    {!isOwner && item.postedUserCollege ? (
+                        <Text className="text-ink-3 text-xs font-sans" numberOfLines={1}>{item.postedUserCollege}</Text>
+                    ) : null}
                 </View>
+            </View>
 
-                <Text className="text-ink-2 text-sm leading-6 mb-6 font-medium">
-                    "{description.length > MAX_CHAR && !isExpanded
-                        ? `${description.substring(0, MAX_CHAR)}...`
-                        : description
-                    }"
-                    {description.length > MAX_CHAR && (
-                        <Text onPress={() => setIsExpanded(!isExpanded)} className="text-accent-text font-display ml-1 uppercase text-label">
-                            {isExpanded ? " Less" : " Read More"}
-                        </Text>
-                    )}
-                </Text>
-
-                <View className="h-[1px] bg-paper-2 w-full mb-6" />
-
-                <View className="flex-row justify-between items-center mb-6">
-                    <View className="flex-row items-center flex-1 mr-3" style={{ minWidth: 0 }}>
-                        <ExpoImage
-                            source={{ uri: avatarUrl }}
-                            style={{ width: 40, height: 40, borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2 }}
-                            cachePolicy="memory-disk"
-                        />
-                        <View className="ml-3 flex-1" style={{ minWidth: 0 }}>
-                            <Text className="text-label text-ink-3 uppercase font-display">Poster</Text>
-                            <Text className="font-semibold text-base text-ink mt-0.5" numberOfLines={1}>
-                                {posterName}
-                            </Text>
-                        </View>
-                    </View>
-
-                    {!isOwner && (
-                        <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full" style={{ maxWidth: '50%' }}>
-                            <Text className="text-ink-3 font-display text-label uppercase" numberOfLines={1}>
-                                {item.postedUserCollege}
-                            </Text>
-                        </View>
-                    )}
-                </View>
-
+            <View className="mt-3">
                 {isOwner ? (
-                    <TouchableOpacity
-                        onPress={() => onCloseGig(item._id, 'Closed')}
-                        className="w-full py-5 bg-danger/10 border border-danger/15 rounded-card items-center justify-center flex-row shadow-hair"
-                    >
-                        <Ionicons name="close-circle" size={18} color={C.fam.fun} />
-                        <Text className="text-danger font-display text-label uppercase ml-2">Terminate Gig</Text>
-                    </TouchableOpacity>
+                    <Button block variant="tertiary" icon="close-circle-outline" title="Close gig" onPress={() => onCloseGig(item._id, 'Closed')} />
                 ) : (
-                    <TouchableOpacity
+                    <Button
+                        block
+                        variant="primary"
+                        icon="chatbubble-ellipses-outline"
+                        title="Message poster"
+                        loading={connectingId === item._id}
+                        disabled={connectingId !== null && connectingId !== item._id}
                         onPress={() => onMessage(item._id, item.postedBy)}
-                        disabled={connectingId !== null}
-                        activeOpacity={0.8}
-                        className="w-full rounded-card overflow-hidden shadow-hair"
-                    >
-                        <View
-                            className="py-5 flex-row items-center justify-center"
-                         style={{ backgroundColor: C.brand[500] }}>
-                            {connectingId === item._id ? (
-                                <ActivityIndicator size="small" color={C.onBrand} />
-                            ) : (
-                                <>
-                                    <Ionicons name="chatbubble-ellipses" size={18} color={C.onBrand} />
-                                    <Text className="text-on-brand font-display text-label uppercase ml-2">Initiate Contact</Text>
-                                </>
-                            )}
-                        </View>
-                    </TouchableOpacity>
+                    />
                 )}
             </View>
         </View>
@@ -162,7 +119,7 @@ const GigSkeleton = () => {
     return (
         <Animated.View
             style={{ opacity: pulseAnim }}
-            className="bg-card mx-gutter mb-6 rounded-sheet border border-line p-card-pad shadow-hair"
+            className="bg-card mx-gutter mb-3 rounded-2xl border border-line p-4"
         >
             <View className="flex-row justify-between items-center mb-6">
                 <View className="h-6 bg-paper-2 rounded w-2/3" />
@@ -417,34 +374,19 @@ export default function PaidGigs({ navigation }: any) {
         setVisibility('Global');
     };
 
+
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
                 <AppBar
-                    title="Paid Gigs"
+                    title="Paid gigs"
                     onBack={() => navigation.goBack()}
-                    right={<IconBtn name="add" onPress={openCreateModal} />}
+                    right={<IconBtn name="add" boxed onPress={openCreateModal} accessibilityLabel="Post a gig" />}
                 />
-                <View className="px-gutter">
-                    <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line">
-                        {[
-                            { key: 'college', label: 'College' },
-                            { key: 'global', label: 'Global' },
-                            { key: 'mine', label: 'Mine' }
-                        ].map((t) => (
-                            <TouchableOpacity
-                                key={t.key}
-                                onPress={() => setActiveTab(t.key as any)}
-                                className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === t.key ? 'bg-ink' : 'bg-transparent'}`}
-                            >
-                                <Text className={`font-display text-label uppercase ${activeTab === t.key ? 'text-paper' : 'text-ink-3'}`}>
-                                    {t.label}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                <View className="px-gutter mb-3">
+                    <SegmentedTabs items={TABS} labels={TAB_LABELS} value={activeTab} onChange={setActiveTab} />
                 </View>
 
                 {loading && !refreshing ? (
@@ -455,7 +397,7 @@ export default function PaidGigs({ navigation }: any) {
                         keyExtractor={(item) => item._id}
                         showsVerticalScrollIndicator={false}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
-                        contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
+                        contentContainerStyle={{ paddingBottom: 120, paddingTop: 8 }}
                         renderItem={renderGig}
                         onEndReached={handleLoadMore}
                         onEndReachedThreshold={0.5}
@@ -467,93 +409,42 @@ export default function PaidGigs({ navigation }: any) {
                             ) : <View className="h-10" />
                         }
                         ListEmptyComponent={
-                            <View className="items-center justify-center mt-20 px-gutter">
-                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Ionicons name="briefcase-outline" size={32} color={C.ink4} />
-                                </View>
-                                <Text className="font-semibold text-base text-ink text-center">No Gigs Active</Text>
-                                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">Transmission silence detected.</Text>
-                            </View>
+                            <Empty icon="briefcase-outline" title="No gigs yet" hint="Tap + to post one." />
                         }
                     />
                 )}
             </View>
 
-            {/* CREATE / EDIT MODAL */}
-            <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeModal}>
-                <View className="flex-1 bg-paper">
-                    <StatusBar barStyle={C.barStyle} />
-                    <AppBar inset={Platform.OS === 'android'} title={editMode ? 'Edit Gig' : 'New Gig'} right={<IconBtn name="close" onPress={closeModal} />} />
-
-                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-                        <ScrollView className="p-card-pad" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-
-                            <Text className="text-ink-3 text-label font-display uppercase mb-4">Subject Matter</Text>
-                            <TextInput
-                                value={title} onChangeText={setTitle}
-                                placeholder="Requirement Heading"
-                                placeholderTextColor={C.ink4}
-                                className="font-semibold text-base text-ink bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair rounded-md"
-                            />
-
-                            <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                              <Text className="text-ink-3 text-label font-display uppercase">Visible Radius</Text>
-                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                            </View>
-                            <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line shadow-hair">
-                                <TouchableOpacity
-                                    onPress={() => setVisibility('College')}
-                                    className={`flex-1 py-3.5 items-center rounded-xl ${visibility === 'College' ? 'bg-ink' : 'bg-transparent'}`}
-                                >
-                                    <Text className={`font-display text-label uppercase ${visibility === 'College' ? 'text-paper' : 'text-ink-3'}`}>
-                                        Campus Only
-                                    </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={() => setVisibility('Global')}
-                                    className={`flex-1 py-3.5 items-center rounded-xl ${visibility === 'Global' ? 'bg-brand-500' : 'bg-transparent'}`}
-                                >
-                                    <Text className={`font-display text-label uppercase ${visibility === 'Global' ? 'text-on-brand' : 'text-ink-3'}`}>
-                                        Global Unit
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            <Text className="text-ink-3 text-label font-display uppercase mb-4">Transmission Intel</Text>
-                            <TextInput
-                                value={description} onChangeText={setDescription}
-                                multiline numberOfLines={5} textAlignVertical="top"
-                                placeholder="Establish the requirements..."
-                                placeholderTextColor={C.ink4}
-                                className="bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair text-ink-2 leading-6 min-h-[150px] font-medium text-xs rounded-md"
-                            />
-
-                            <Text className="text-ink-3 text-label font-display uppercase mb-4">Stipend Allocation</Text>
-                            <TextInput
-                                value={stipend} onChangeText={setStipend}
-                                placeholder="Credit Amount (Optional)"
-                                placeholderTextColor={C.ink4}
-                                className="bg-card p-5 mb-10 border-[1.5px] border-ink shadow-hair text-success font-display uppercase text-xs rounded-md"
-                            />
-
-                            <TouchableOpacity
-                                onPress={handleSubmit} disabled={submitting}
-                                activeOpacity={0.8}
-                                className={`py-5 rounded-card items-center shadow-hair flex-row justify-center ${submitting ? 'bg-paper-2' : 'bg-ink '}`}
-                            >
-                                {submitting ? <ActivityIndicator color={C.brand[500]} /> : (
-                                    <>
-                                        <Text className="text-paper font-display uppercase text-xs mr-3">
-                                            {editMode ? 'Sync Changes' : 'Deploy Gig'}
-                                        </Text>
-                                        <Ionicons name={editMode ? "checkmark-circle" : "paper-plane"} size={16} color={C.paper} />
-                                    </>
-                                )}
-                            </TouchableOpacity>
-                        </ScrollView>
-                    </KeyboardAvoidingView>
+            <Sheet
+                visible={modalVisible}
+                onClose={closeModal}
+                title={editMode ? 'Edit gig' : 'New gig'}
+                footer={
+                    <Button
+                        block
+                        variant="primary"
+                        icon={editMode ? 'checkmark-circle-outline' : 'paper-plane-outline'}
+                        title={editMode ? 'Save changes' : 'Post gig'}
+                        loading={submitting}
+                        onPress={handleSubmit}
+                    />
+                }
+            >
+                <View style={{ gap: 16 }}>
+                    <FormField label="Title" value={title} onChangeText={setTitle} placeholder="What do you need done?" />
+                    <View style={{ gap: 6 }}>
+                        <Text className="font-semibold text-ink-2" style={{ fontSize: 13 }}>Who can see it</Text>
+                        <SegmentedTabs items={VIS} labels={VIS_LABELS} value={visibility} onChange={setVisibility} />
+                    </View>
+                    <FormField
+                        label="Description"
+                        value={description} onChangeText={setDescription}
+                        multiline numberOfLines={5}
+                        placeholder="Describe the work, timeline and skills needed"
+                    />
+                    <FormField label="Stipend" hint="Optional" value={stipend} onChangeText={setStipend} placeholder="e.g. ₹2,000" />
                 </View>
-            </Modal>
+            </Sheet>
         </View>
     );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
+import { View, Pressable, Image, ScrollView, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
@@ -7,7 +7,8 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Button, FormField } from '../ui/kit';
+import { ImagePick } from '../community/shared';
 
 const CreateClubScreen = () => {
     const navigation = useNavigation<any>();
@@ -81,85 +82,35 @@ const CreateClubScreen = () => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
-            <View className="flex-1">
-                <AppBar title="Establish Club" right={<IconBtn name="close" onPress={() => navigation.goBack()} />} />
+            <AppBar title="New club" right={<IconBtn name="close" onPress={() => navigation.goBack()} accessibilityLabel="Close" />} />
 
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-                    <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                        
-                        {/* Banner Upload */}
-                        <TouchableOpacity 
-                            onPress={() => pickImage('banner')}
-                            className="w-full h-40 bg-paper-2 overflow-hidden items-center justify-center border border-dashed border-line rounded-md"
-                        >
-                            {banner ? (
-                                <Image source={{ uri: banner.uri }} className="w-full h-full" />
-                            ) : (
-                                <View className="items-center">
-                                    <Feather name="image" size={32} color={C.ink3} />
-                                    <Text className="text-ink-3 font-semibold text-label uppercase mt-2">Upload Banner (16:9)</Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                <ScrollView className="flex-1" contentContainerStyle={{ padding: 20 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                    <ImagePick uri={banner?.uri} onPress={() => pickImage('banner')} label="Upload banner (16:9)" style={{ width: '100%', height: 160 }} />
 
-                        {/* Logo Upload */}
-                        <TouchableOpacity 
-                            onPress={() => pickImage('logo')}
-                            className="w-24 h-24 rounded-card bg-card border-4 border-card shadow-hair overflow-hidden -mt-12 ml-6 items-center justify-center"
-                        >
-                            {logo ? (
-                                <Image source={{ uri: logo.uri }} className="w-full h-full" />
-                            ) : (
-                                <Feather name="camera" size={24} color={C.ink3} />
-                            )}
-                        </TouchableOpacity>
+                    <Pressable
+                        onPress={() => pickImage('logo')}
+                        accessibilityRole="button"
+                        accessibilityLabel={logo ? 'Change logo' : 'Upload logo'}
+                        className="w-24 h-24 rounded-2xl bg-card border-4 border-card shadow-hair overflow-hidden -mt-12 ml-6 items-center justify-center active:opacity-70"
+                    >
+                        {logo ? (
+                            <Image source={{ uri: logo.uri }} className="w-full h-full" />
+                        ) : (
+                            <Feather name="camera" size={24} color={C.ink3} />
+                        )}
+                    </Pressable>
 
-                        {/* Form Fields */}
-                        <View className="mt-8">
-                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Identity</Text>
-                            <TextInput placeholderTextColor={C.ink4} 
-                                placeholder="Club Name"
-                                className="bg-card p-5 mb-4 font-semibold border-[1.5px] border-ink text-ink rounded-md"
-                                value={name}
-                                onChangeText={setName}
-                            />
-                            
-                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Specialization</Text>
-                            <TextInput placeholderTextColor={C.ink4} 
-                                placeholder="Category (e.g. Technical, Sports)"
-                                className="bg-card p-5 mb-4 font-semibold border-[1.5px] border-ink text-ink rounded-md"
-                                value={category}
-                                onChangeText={setCategory}
-                            />
+                    <View style={{ gap: 16, marginTop: 24, marginBottom: 24 }}>
+                        <FormField label="Club name" placeholder="Club name" value={name} onChangeText={setName} />
+                        <FormField label="Category" placeholder="e.g. Technical, Sports" value={category} onChangeText={setCategory} />
+                        <FormField label="About" placeholder="Describe the club's goal" multiline value={description} onChangeText={setDescription} />
+                    </View>
 
-                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Mission Statement</Text>
-                            <TextInput placeholderTextColor={C.ink4} 
-                                placeholder="Describe the club's goal..."
-                                className="bg-card p-5 mb-6 font-semibold border-[1.5px] border-ink text-ink rounded-md"
-                                multiline
-                                numberOfLines={4}
-                                textAlignVertical="top"
-                                value={description}
-                                onChangeText={setDescription}
-                            />
-                        </View>
-
-                        <TouchableOpacity 
-                            onPress={handleCreate}
-                            disabled={loading}
-                            className="bg-ink py-5 items-center border-2 border-ink rounded-md"
-                        >
-                            {loading ? (
-                                <ActivityIndicator color={C.paper} />
-                            ) : (
-                                <Text className="text-paper font-display uppercase">Establish Community</Text>
-                            )}
-                        </TouchableOpacity>
-                        
-                        <View className="h-20" />
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </View>
+                    <Button title="Create club" variant="primary" block loading={loading} onPress={handleCreate} />
+                    <View className="h-20" />
+                </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 };

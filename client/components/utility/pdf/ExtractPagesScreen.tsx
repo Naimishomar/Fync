@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput } from 'react-native';
-import PdfToolShell from './PdfToolShell';
+import { FormField } from '../../ui/kit';
+import PdfToolShell, { OptionCard } from './PdfToolShell';
 import { PDFDocument, loadDoc, writeDoc, parsePageRanges } from './pdfKit';
-import { C } from '../../../constants/colors';
 
 export default function ExtractPagesScreen() {
   const [spec, setSpec] = useState('');
@@ -12,15 +11,9 @@ export default function ExtractPagesScreen() {
       blurb="Pick out specific pages — a chapter, a question paper section — as a new PDF."
       disabledReason={() => (spec.trim() ? null : 'Enter pages to extract')}
       options={() => (
-        <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-5">
-          <Text className="text-ink-3 font-display uppercase text-label mb-2">Pages to extract</Text>
-          <TextInput
-            value={spec} onChangeText={setSpec}
-            placeholder="e.g. 4, 10-14" placeholderTextColor={C.ink3}
-            className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
-            style={{ minHeight: 50 }} autoCapitalize="none"
-          />
-        </View>
+        <OptionCard>
+          <FormField label="Pages to extract" value={spec} onChangeText={setSpec} placeholder="e.g. 4, 10-14" autoCapitalize="none" />
+        </OptionCard>
       )}
       run={async (files) => {
         const src = await loadDoc(files[0].uri);

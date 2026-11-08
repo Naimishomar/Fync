@@ -1,14 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Linking,
+  View, Text, ScrollView, ActivityIndicator, Linking,
 } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
-import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
-import { AppBar, Empty } from '../ui/kit';
+import { AppBar, BottomBar, Button, Card, Empty, H2, Label, ListRow, Tag } from '../ui/kit';
 
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-zeta.vercel.app';
 
@@ -39,7 +38,6 @@ const verdictFg = (): Record<string, string> => ({
 export default function SolveProblem() {
   const navigation = useNavigation<any>();
   const { problemId } = useRoute<any>().params ?? {};
-  const bottomInset = useBottomInset();
 
   const [problem, setProblem] = useState<any>(null);
   const [attempts, setAttempts] = useState<any[]>([]);
@@ -98,97 +96,83 @@ export default function SolveProblem() {
   return (
     <View className="flex-1 bg-paper">
       <AppBar title="Problem" onBack={() => navigation.goBack()} />
-      <View className="px-5 pb-3 border-b-2 border-ink">
-        <View className="flex-row items-center mt-1 mb-2">
-          <View className="px-2 py-1 rounded-sm" style={{ backgroundColor: level.bg }}>
-            <Text className="font-display uppercase" style={{ fontSize: 9, color: level.fg }}>
-              {problem?.difficulty}
-            </Text>
-          </View>
+      <View className="px-5 pb-3 border-b border-line">
+        <View className="flex-row items-center mt-1 mb-2" style={{ gap: 8 }}>
+          <Tag label={problem?.difficulty ?? 'Easy'} tone={{ bg: level.bg, border: level.bg, fg: level.fg }} />
           {solved && (
-            <View className="flex-row items-center ml-2 px-2 py-1 rounded-sm" style={{ backgroundColor: C.success + '1F' }}>
-              <Ionicons name="checkmark-circle" size={11} color={C.success} />
-              <Text className="font-display uppercase ml-1" style={{ fontSize: 9, color: C.success }}>Solved</Text>
-            </View>
+            <Tag label="Solved" icon="checkmark-circle" tone={{ bg: C.success + '1F', border: C.success + '1F', fg: C.success }} />
           )}
           <View className="flex-1" />
-          <Text className="font-display text-ink-2" style={{ fontSize: 11 }}>{problem?.points ?? 100} pts</Text>
+          <Text className="font-medium text-ink-2 text-xs">{problem?.points ?? 100} pts</Text>
         </View>
 
-        <Text className="font-display text-xl text-ink" numberOfLines={3}>{problem?.title}</Text>
+        <H2 numberOfLines={3}>{problem?.title}</H2>
       </View>
 
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-        <Text className="font-sans text-ink leading-6" style={{ fontSize: 14 }}>
+        <Text className="font-sans text-ink text-sm leading-6">
           {problem?.description}
         </Text>
 
         {!!problem?.constraints?.length && (
           <View className="mt-5">
-            <Text className="font-display text-ink uppercase mb-2" style={{ fontSize: 12 }}>Constraints</Text>
+            <Label style={{ marginBottom: 8 }}>Constraints</Label>
             {problem.constraints.map((c: string, i: number) => (
-              <Text key={i} className="font-sans text-ink-2" style={{ fontSize: 13 }}>· {c}</Text>
+              <Text key={i} className="font-sans text-ink-2 text-sm">· {c}</Text>
             ))}
           </View>
         )}
 
         {!!problem?.testCases?.length && (
           <View className="mt-5">
-            <Text className="font-display text-ink uppercase mb-2" style={{ fontSize: 12 }}>Examples</Text>
+            <Label style={{ marginBottom: 8 }}>Examples</Label>
             {problem.testCases.map((tc: any, i: number) => (
-              <View key={i} className="bg-card border-2 border-ink rounded-card p-3 mb-2">
-                <Text className="font-display text-ink-2 uppercase" style={{ fontSize: 10 }}>Input</Text>
+              <Card key={i} padded style={{ marginBottom: 12 }}>
+                <Label>Input</Label>
                 <Text className="text-ink" style={{ fontFamily: 'monospace', fontSize: 12 }}>{tc.input}</Text>
-                <Text className="font-display text-ink-2 uppercase mt-2" style={{ fontSize: 10 }}>Expected</Text>
+                <Label style={{ marginTop: 8 }}>Expected</Label>
                 <Text className="text-ink" style={{ fontFamily: 'monospace', fontSize: 12 }}>{tc.expectedOutput}</Text>
-              </View>
+              </Card>
             ))}
           </View>
         )}
 
         {attempts.length > 0 && (
           <View className="mt-6">
-            <Text className="font-display text-ink uppercase mb-2" style={{ fontSize: 12 }}>Your attempts</Text>
-            {attempts.map((a) => (
-              <View key={a._id} className="flex-row items-center bg-card border-2 border-ink rounded-card px-4 py-3 mb-2">
-                <Ionicons
-                  name={a.status === 'Accepted' ? 'checkmark-circle' : 'close-circle'}
-                  size={16}
-                  color={verdictFg()[a.status] ?? C.ink3}
+            <Label style={{ marginBottom: 8 }}>Your attempts</Label>
+            <Card style={{ paddingHorizontal: 16 }}>
+              {attempts.map((a) => (
+                <ListRow
+                  key={a._id}
+                  leading={
+                    <Ionicons
+                      name={a.status === 'Accepted' ? 'checkmark-circle' : 'close-circle'}
+                      size={20}
+                      color={verdictFg()[a.status] ?? C.ink3}
+                    />
+                  }
+                  title={a.status}
+                  subtitle={`${a.passedCount}/${a.totalCount} tests · ${a.language ?? 'code'}`}
+                  meta={a.createdAt ? new Date(a.createdAt).toLocaleDateString() : ''}
                 />
-                <View className="ml-2 flex-1">
-                  <Text className="font-display" style={{ fontSize: 13, color: verdictFg()[a.status] ?? C.ink }}>
-                    {a.status}
-                  </Text>
-                  <Text className="font-sans text-ink-2" style={{ fontSize: 11 }}>
-                    {a.passedCount}/{a.totalCount} tests · {a.language ?? 'code'}
-                  </Text>
-                </View>
-                <Text className="font-sans text-ink-2" style={{ fontSize: 11 }}>
-                  {a.createdAt ? new Date(a.createdAt).toLocaleDateString() : ''}
-                </Text>
-              </View>
-            ))}
+              ))}
+            </Card>
           </View>
         )}
       </ScrollView>
 
-      {/* Padded by the device inset, so the button clears a three-button
-          navigation bar as well as a gesture pill. */}
-      <View className="px-5 pt-3 border-t-2 border-ink bg-paper" style={{ paddingBottom: bottomInset }}>
-        <TouchableOpacity
+      {/* BottomBar pads by the device inset, so the button clears a
+          three-button navigation bar as well as a gesture pill. */}
+      <BottomBar>
+        <Button
+          variant="primary"
+          style={{ flex: 1 }}
+          icon="laptop-outline"
+          title={solved ? 'Open in browser' : 'Solve in browser'}
           onPress={solveOnWeb}
-          className="bg-brand-500 border-2 border-ink rounded-card items-center justify-center flex-row gap-2"
-          style={{ height: 54 }}
-          accessibilityRole="button"
           accessibilityLabel="Open this problem in your browser to solve it"
-        >
-          <Ionicons name="laptop-outline" size={18} color={C.onBrand} />
-          <Text className="font-display text-on-brand uppercase">
-            {solved ? 'Open in browser' : 'Solve in browser'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        />
+      </BottomBar>
     </View>
   );
 }

@@ -51,67 +51,52 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <SafeAreaView style={{ flex: 1, backgroundColor: C.paper }}>
           <StatusBar barStyle={C.barStyle} />
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-            <View style={{ 
-              width: 80, 
-              height: 80, 
-              backgroundColor: C.paper2, 
-              borderRadius: 16, 
-              borderWidth: 2,
-              borderColor: C.ink, 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              marginBottom: 24
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
+            <View style={{
+              width: 64, height: 64, borderRadius: 32, backgroundColor: C.paper2,
+              alignItems: 'center', justifyContent: 'center', marginBottom: 8,
             }}>
-              <AlertTriangle size={40} color={C.danger} />
+              <AlertTriangle size={28} color={C.danger} />
             </View>
-            
-            <Text style={{ 
-              color: C.ink, 
-              fontSize: 26, 
-              fontFamily: 'SpaceGrotesk_700Bold', 
-              letterSpacing: -0.6, 
-              textAlign: 'center',
-              marginBottom: 12
+
+            <Text accessibilityRole="header" style={{
+              color: C.ink, fontSize: 24, lineHeight: 29, fontFamily: 'SpaceGrotesk_700Bold',
+              letterSpacing: -0.5, textAlign: 'center',
             }}>
-              Oops! Something went wrong
-            </Text>
-            
-            <Text style={{ 
-              color: C.ink2, 
-              fontSize: 15, 
-              fontFamily: 'Inter_400Regular', 
-              textAlign: 'center',
-              lineHeight: 24,
-              marginBottom: 32
-            }}>
-              Fync encountered an unexpected error. Don't worry, we've logged the issue and are working on it.
+              Something went wrong
             </Text>
 
-            <TouchableOpacity 
+            <Text style={{
+              color: C.ink3, fontSize: 15, lineHeight: 22, fontFamily: 'Inter_400Regular',
+              textAlign: 'center', maxWidth: 320, marginBottom: 16,
+            }}>
+              Fync hit an unexpected error. We’ve logged it. Reloading usually fixes it.
+            </Text>
+
+            <TouchableOpacity
               onPress={this.handleReset}
-              activeOpacity={0.8}
+              activeOpacity={0.7}
+              accessibilityRole="button"
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: C.brand[500],
-                paddingVertical: 14,
-                paddingHorizontal: 28,
-                borderRadius: 12,
-                borderWidth: 2,
-                borderColor: C.ink,
-                minHeight: 48
+                flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+                alignSelf: 'stretch', maxWidth: 320, width: '100%',
+                backgroundColor: C.brand[500], borderRadius: 999, minHeight: 48, paddingHorizontal: 20,
               }}
             >
-              <RefreshCcw size={18} color={C.onBrand} style={{ marginRight: 8 }} />
-              <Text style={{ color: C.onBrand, fontFamily: 'SpaceGrotesk_700Bold', fontSize: 14, letterSpacing: 0.3, textTransform: 'uppercase' }}>Reload App</Text>
+              <RefreshCcw size={18} color={C.onBrand} />
+              <Text style={{ color: C.onBrand, fontFamily: 'Inter_600SemiBold', fontSize: 15 }}>Reload app</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => this.setState({ hasError: false, error: null })}
-              style={{ marginTop: 20 }}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              style={{
+                alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', maxWidth: 320, width: '100%',
+                backgroundColor: C.paper2, borderRadius: 999, minHeight: 48, paddingHorizontal: 20,
+              }}
             >
-              <Text style={{ color: C.ink2, fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>Try to ignore</Text>
+              <Text style={{ color: C.ink, fontSize: 15, fontFamily: 'Inter_600SemiBold' }}>Try to continue</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

@@ -1,22 +1,50 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-    View, 
-    Text, 
-    FlatList, 
-    TouchableOpacity, 
-    TextInput, 
-    ScrollView,
-    ActivityIndicator,
-    RefreshControl
-} from 'react-native';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { View, Text, FlatList, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { C, themed } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, SearchField, FilterChips, Empty } from '../ui/kit';
 import { Image } from 'expo-image';
 
 const CATEGORIES = ['All', 'Education', 'Electronics', 'Fashion', 'Books', 'Lifestyle'];
+
+const ProductCard = memo(function ProductCard({ item, onOpen }: { item: any; onOpen: (id: string) => void }) {
+    const off = item.originalPrice > item.price ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100) : 0;
+    return (
+        <Pressable
+            style={styles.productCard}
+            className="active:opacity-70"
+            onPress={() => onOpen(item._id)}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.name}, ₹${item.price}`}
+        >
+            <View style={styles.imageContainer}>
+                <Image source={{ uri: item.image }} style={styles.productImage} contentFit="cover" cachePolicy="memory-disk" recyclingKey={item._id} />
+                {off > 0 && (
+                    <View style={styles.discountBadge}>
+                        <Text style={styles.discountText}>{off}% off</Text>
+                    </View>
+                )}
+            </View>
+            <View style={styles.productInfo}>
+                {!!item.brand && <Text style={styles.brandText}>{item.brand}</Text>}
+                <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+                <View style={styles.priceRow}>
+                    <Text style={styles.priceText}>₹{item.price}</Text>
+                    {off > 0 && <Text style={styles.originalPriceText}>₹{item.originalPrice}</Text>}
+                </View>
+                {item.rating > 0 && (
+                    <View style={styles.ratingRow}>
+                        <Ionicons name="star" size={12} color={C.alumniLit} />
+                        <Text style={styles.ratingText}>{item.rating}</Text>
+                        {item.reviewsCount > 0 && <Text style={styles.reviewsText}>({item.reviewsCount})</Text>}
+                    </View>
+                )}
+            </View>
+        </Pressable>
+    );
+});
 
 const AffiliateStore = () => {
     const navigation = useNavigation<any>();
@@ -59,84 +87,20 @@ const AffiliateStore = () => {
         fetchProducts();
     };
 
-    const renderProductItem = ({ item }: { item: any }) => (
-        <TouchableOpacity 
-            style={styles.productCard}
-            onPress={() => navigation.navigate('AffiliateProductDetail', { productId: item._id })}
-            activeOpacity={0.9}
-        >
-            <View style={styles.imageContainer}>
-                <Image source={{ uri: item.image }} style={styles.productImage} contentFit="cover" cachePolicy="memory-disk" recyclingKey={item._id} />
-                {item.originalPrice > item.price && (
-                    <View style={styles.discountBadge}>
-                        <Text style={styles.discountText}>
-                            {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
-                        </Text>
-                    </View>
-                )}
-            </View>
-            <View style={styles.productInfo}>
-                {!!item.brand && <Text style={styles.brandText}>{item.brand}</Text>}
-                <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
-                <View style={styles.priceRow}>
-                    <Text style={styles.priceText}>₹{item.price}</Text>
-                    {item.originalPrice > item.price && (
-                        <Text style={styles.originalPriceText}>₹{item.originalPrice}</Text>
-                    )}
-                </View>
-                {item.rating > 0 && (
-                    <View style={styles.ratingRow}>
-                        <Ionicons name="star" size={12} color={C.alumniLit} />
-                        <Text style={styles.ratingText}>{item.rating}</Text>
-                        {item.reviewsCount > 0 && (
-                            <Text style={styles.reviewsText}>({item.reviewsCount})</Text>
-                        )}
-                    </View>
-                )}
-            </View>
-        </TouchableOpacity>
-    );
+    const openProduct = useCallback((id: string) => navigation.navigate('AffiliateProductDetail', { productId: id }), [navigation]);
+    const renderProductItem = useCallback(({ item }: { item: any }) => <ProductCard item={item} onOpen={openProduct} />, [openProduct]);
 
     return (
         <View style={styles.container}>
             <AppBar title="Fync Store" onBack={() => navigation.goBack()} />
-            <View style={styles.header}>
-                <View style={styles.headerBody}>
-                <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color={C.ink3} style={styles.searchIcon} />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Search for laptop, gadgets, books..."
-                        placeholderTextColor={C.ink3}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        onSubmitEditing={fetchProducts}
-                    />
-                </View>
-                </View>
-            </View>
-
-            <View style={styles.categoriesContainer}>
-                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesScroll}>
-                    {CATEGORIES.map((cat) => (
-                        <TouchableOpacity 
-                            key={cat}
-                            style={[
-                                styles.categoryButton,
-                                selectedCategory === cat && styles.categoryButtonActive
-                            ]}
-                            onPress={() => setSelectedCategory(cat)}
-                        >
-                            <Text style={[
-                                styles.categoryText,
-                                selectedCategory === cat && styles.categoryTextActive
-                            ]}>
-                                {cat}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            </View>
+            <SearchField
+                containerStyle={styles.search}
+                placeholder="Search for laptop, gadgets, books..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={fetchProducts}
+            />
+            <FilterChips items={CATEGORIES} value={selectedCategory} onChange={setSelectedCategory} style={styles.categories} />
 
             {loading && !refreshing ? (
                 <View style={styles.loadingContainer}>
@@ -155,8 +119,7 @@ const AffiliateStore = () => {
                     }
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
-                            <Ionicons name="bag-handle-outline" size={64} color={C.ink4} />
-                            <Text style={styles.emptyText}>No products found in this category</Text>
+                            <Empty icon="bag-handle-outline" title="No products found" hint="Try another category or search." />
                         </View>
                     }
                 />
@@ -170,60 +133,12 @@ const styles = themed(() => ({
         flex: 1,
         backgroundColor: C.paper,
     },
-    header: {
-        backgroundColor: C.paper,
+    search: {
+        marginHorizontal: 20,
+        marginTop: 4,
     },
-    headerBody: {
-        paddingHorizontal: 20,
-        paddingTop: 4,
-        paddingBottom: 16,
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: C.card,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: C.ink,
-        paddingHorizontal: 15,
-        height: 50,
-    },
-    searchIcon: {
-        marginRight: 10,
-    },
-    searchInput: {
-        flex: 1,
-        color: C.ink,
-        fontSize: 14,
-    },
-    categoriesContainer: {
-        marginVertical: 15,
-    },
-    categoriesScroll: {
-        paddingHorizontal: 20,
-    },
-    categoryButton: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 20,
-        backgroundColor: C.card,
-        marginRight: 10,
-        minHeight: 44,
-        justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: C.ink,
-    },
-    categoryButtonActive: {
-        backgroundColor: C.brand[500],
-        borderColor: C.ink,
-    },
-    categoryText: {
-        color: C.ink2,
-        fontSize: 14,
-        fontFamily: 'Inter_600SemiBold',
-    },
-    categoryTextActive: {
-        color: C.onBrand,
+    categories: {
+        marginVertical: 12,
     },
     productList: {
         // + productCard margin 5 = 20 gutter
@@ -236,8 +151,8 @@ const styles = themed(() => ({
         borderRadius: 16,
         margin: 5,
         overflow: 'hidden',
-        borderWidth: 2,
-        borderColor: C.ink,
+        borderWidth: 1,
+        borderColor: C.line,
     },
     imageContainer: {
         width: '100%',
@@ -255,32 +170,29 @@ const styles = themed(() => ({
         left: 10,
         backgroundColor: C.danger,
         paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 6,
-        borderWidth: 2,
-        borderColor: C.ink,
+        paddingVertical: 2,
+        borderRadius: 999,
     },
     discountText: {
         color: '#FFFFFF',
-        fontSize: 10,
-        fontFamily: 'Inter_700Bold',
+        fontSize: 11,
+        fontFamily: 'Inter_600SemiBold',
     },
     productInfo: {
         padding: 12,
     },
     brandText: {
-        fontSize: 10,
-        color: C.brand[600],
-        fontFamily: 'Inter_700Bold',
-        textTransform: 'uppercase',
+        fontSize: 12,
+        color: C.accentText,
+        fontFamily: 'Inter_600SemiBold',
         marginBottom: 4,
     },
     productName: {
         fontSize: 14,
-        fontFamily: 'Inter_700Bold',
+        fontFamily: 'Inter_600SemiBold',
         color: C.ink,
         marginBottom: 8,
-        height: 36,
+        minHeight: 36,
     },
     priceRow: {
         flexDirection: 'row',
@@ -289,7 +201,8 @@ const styles = themed(() => ({
     },
     priceText: {
         fontSize: 16,
-        fontFamily: 'Inter_700Bold',
+        fontFamily: 'SpaceGrotesk_700Bold',
+        fontVariant: ['tabular-nums'],
         color: C.ink,
         marginRight: 8,
     },
@@ -327,11 +240,6 @@ const styles = themed(() => ({
         alignItems: 'center',
         marginTop: 100,
     },
-    emptyText: {
-        color: C.ink3,
-        marginTop: 15,
-        fontSize: 16,
-    }
 }));
 
 export default AffiliateStore;

@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
-import { C } from '../../constants/colors';
 import { tapHaptic } from '../../utils/haptics';
+import { Button } from '../ui/kit';
 
 /**
  * Five taps, averaged. The tap zone is one Pressable timed on onPressIn (the
@@ -84,7 +83,7 @@ const ReactionMaster = () => {
   const last = times[times.length - 1];
   const avg = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : null;
   const zone =
-    phase === 'go' ? { bg: '#16a34a', title: 'TAP!', sub: '' } :
+    phase === 'go' ? { bg: '#16a34a', title: 'Tap!', sub: '' } :
     phase === 'waiting' ? { bg: '#dc2626', title: 'Wait for green…', sub: `Tap ${times.length + 1} of ${ROUNDS}` } :
     phase === 'early' ? { bg: '#f59e0b', title: 'Too early!', sub: 'Tap to try this one again' } :
     phase === 'tapped' ? { bg: '#2563eb', title: `${last} ms`, sub: `${rank(last).emoji} ${rank(last).label} · tap for next` } :
@@ -95,17 +94,11 @@ const ReactionMaster = () => {
     <View style={{ flex: 1, paddingTop: 8 }}>
       <View className="flex-row items-center justify-between mb-3">
         <View>
-          <Text className="font-display text-ink text-xl">Reaction Master</Text>
+          <Text className="font-display text-ink text-xl" accessibilityRole="header">Reaction Master</Text>
           <Text className="font-sans text-ink-3 text-xs mt-0.5">Best average: {best != null ? `${best} ms` : '—'}</Text>
         </View>
-        <Pressable
-          onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'Reaction', title: 'Fastest Reflexes' })}
-          className="flex-row items-center rounded-full border border-line px-3 py-2"
-          accessibilityRole="button"
-        >
-          <Ionicons name="trophy-outline" size={16} color={C.ink} />
-          <Text className="font-sans text-ink text-xs ml-1.5">Leaderboard</Text>
-        </Pressable>
+        <Button small icon="trophy-outline" title="Leaderboard"
+          onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'Reaction', title: 'Fastest Reflexes' })} />
       </View>
 
       <Pressable

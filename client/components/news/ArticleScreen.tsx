@@ -5,15 +5,14 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
+  View, Text, ScrollView, ActivityIndicator,
   Linking, StatusBar, useWindowDimensions, Share,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, Button, Divider, Empty, H1, IconBtn, Tag } from '../ui/kit';
 
 type Block =
   | { type: 'paragraph' | 'heading' | 'quote' | 'bullet' | 'code'; text: string }
@@ -83,6 +82,7 @@ export default function ArticleScreen() {
             right={
               <IconBtn
                 name="share-outline"
+                accessibilityLabel="Share article"
                 onPress={() => Share.share({ message: `${article?.title ?? fallbackTitle}\n\n${article?.url ?? url}` })}
               />
             }
@@ -94,37 +94,27 @@ export default function ArticleScreen() {
             <Text className="text-ink-3 text-sm mt-3">Fetching the article…</Text>
           </View>
         ) : error ? (
-          <View className="flex-1 items-center justify-center px-8">
-            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
-              <Ionicons name="document-outline" size={32} color={C.ink2} />
-            </View>
-            <Text className="text-ink font-display uppercase text-h2 text-center">Cannot show this one</Text>
-            <Text className="text-ink-2 text-sm text-center mt-2">{error}</Text>
-            <TouchableOpacity
-              onPress={openOriginal}
-              className="mt-6 px-6 py-4 rounded-md items-center justify-center border-2 border-ink bg-brand-500"
-              accessibilityRole="button"
-            >
-              <Text className="font-display uppercase text-on-brand text-label">Open the original</Text>
-            </TouchableOpacity>
+          <View className="flex-1 justify-center">
+            <Empty
+              icon="document-outline"
+              title="Cannot show this one"
+              hint={error}
+              action={<Button variant="primary" title="Open the original" onPress={openOriginal} />}
+            />
           </View>
         ) : article ? (
           <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-gutter" showsVerticalScrollIndicator={false}>
-            <Text className="font-display text-ink uppercase mt-5" style={{ fontSize: 26, lineHeight: 30, letterSpacing: -0.8 }}>
-              {article.title}
-            </Text>
+            <H1 style={{ marginTop: 20 }}>{article.title}</H1>
 
             <View className="flex-row items-center flex-wrap mt-3 mb-1" style={{ gap: 8 }}>
-              <View className="bg-paper-2 px-2.5 py-1 rounded-full">
-                <Text className="text-ink-2 text-label font-display uppercase">{article.siteName}</Text>
-              </View>
+              <Tag label={article.siteName} />
               {!!article.byline && (
                 <Text className="text-ink-3 text-sm" numberOfLines={1}>{article.byline}</Text>
               )}
               <Text className="text-ink-3 text-sm">{article.readingMinutes} min read</Text>
             </View>
 
-            <View className="bg-ink mt-3" style={{ height: 2, opacity: 0.82 }} />
+            <Divider style={{ marginTop: 12 }} />
 
             {!!article.leadImage && <ArticleImage src={article.leadImage} width={contentWidth} />}
 
@@ -132,7 +122,7 @@ export default function ArticleScreen() {
               if (b.type === 'image') return <ArticleImage key={`i${i}`} src={b.src} width={contentWidth} />;
               if (b.type === 'heading')
                 return (
-                  <Text key={i} className="font-display text-ink uppercase mt-6 mb-1" style={{ fontSize: 17, letterSpacing: -0.3 }}>
+                  <Text key={i} className="font-semibold text-ink text-lg mt-6 mb-1">
                     {b.text}
                   </Text>
                 );
@@ -151,7 +141,7 @@ export default function ArticleScreen() {
                 );
               if (b.type === 'code')
                 return (
-                  <View key={i} className="bg-paper-2 rounded-card p-4 my-3 border border-line">
+                  <View key={i} className="bg-paper-2 rounded-2xl p-4 my-3 border border-line">
                     <Text className="font-mono text-ink-2 text-sm">{b.text}</Text>
                   </View>
                 );
@@ -163,15 +153,14 @@ export default function ArticleScreen() {
             })}
 
             {/* Attribution is not optional: the text belongs to the publisher. */}
-            <TouchableOpacity
+            <Button
+              block
+              icon="open-outline"
+              title={`Read on ${article.siteName}`}
               onPress={openOriginal}
-              className="mt-8 mb-12 py-4 rounded-md items-center justify-center border-2 border-ink bg-card flex-row"
-              accessibilityRole="button"
               accessibilityLabel={`Read the original on ${article.siteName}`}
-            >
-              <Ionicons name="open-outline" size={16} color={C.ink} style={{ marginRight: 8 }} />
-              <Text className="font-display uppercase text-ink text-label">Read on {article.siteName}</Text>
-            </TouchableOpacity>
+              style={{ marginTop: 32, marginBottom: 48 }}
+            />
           </ScrollView>
         ) : null}
       </View>

@@ -44,13 +44,11 @@ export default function ActiveAudioCall({
     <View className="flex-1 bg-night">
       <StatusBar barStyle="light-content" />
 
-      {/* Same orange wash as the rest of the app, inverted for a call screen. */}
-
       <SafeAreaView className="flex-1" edges={['top']}>
         <View className="items-center pt-6">
           <View className="flex-row items-center bg-white/10 px-4 py-1.5 rounded-full border border-white/15">
             <Ionicons name="lock-closed" size={11} color={C.brand[500]} />
-            <Text className="text-white/70 text-label font-display uppercase ml-2">
+            <Text className="text-white/70 text-xs font-semibold ml-2">
               Encrypted
             </Text>
           </View>
@@ -60,7 +58,7 @@ export default function ActiveAudioCall({
           <Avatar user={remoteUser as any} size={140} showBadge={false} />
 
           <Text
-            className="text-white text-2xl font-display uppercase mt-8 text-center"
+            className="text-white text-2xl font-display mt-8 text-center"
             numberOfLines={1}
           >
             {remoteUser.name}
@@ -68,14 +66,14 @@ export default function ActiveAudioCall({
 
           {!!remoteUser.college && (
             <Text
-              className="text-white/50 text-label font-semibold uppercase mt-1 text-center"
+              className="text-white/60 text-sm mt-1 text-center"
               numberOfLines={1}
             >
               {remoteUser.college}
             </Text>
           )}
 
-          <Text className="text-accent-text text-label font-display uppercase mt-6">
+          <Text className="text-brand-400 text-base font-semibold mt-6" style={{ fontVariant: ['tabular-nums'] }} accessibilityLiveRegion="polite">
             {isCallConnected ? formatDuration(duration) : 'Connecting…'}
           </Text>
         </View>
@@ -86,9 +84,10 @@ export default function ActiveAudioCall({
         >
           <Pressable
             onPress={handleToggleMute}
-            className={`w-14 h-14 rounded-card items-center justify-center border active:opacity-70 ${ isMuted ? 'bg-white border-white' : 'bg-white/10 border-white/15' }`}
+            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${isMuted ? 'bg-white' : 'bg-white/10'}`}
             accessibilityRole="button"
             accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
+            accessibilityState={{ selected: isMuted }}
           >
             <Ionicons
               name={isMuted ? 'mic-off' : 'mic'}
@@ -100,13 +99,6 @@ export default function ActiveAudioCall({
           <Pressable
             onPress={onEndCall}
             className="w-20 h-20 rounded-full bg-danger items-center justify-center active:opacity-70"
-            style={{
-              shadowColor: '#DC2626',
-              shadowOpacity: 0.5,
-              shadowRadius: 16,
-              shadowOffset: { width: 0, height: 8 },
-              elevation: 10,
-            }}
             accessibilityRole="button"
             accessibilityLabel="End call"
           >
@@ -115,9 +107,10 @@ export default function ActiveAudioCall({
 
           <Pressable
             onPress={() => setIsSpeaker(webRTCManager.setSpeakerphone(!isSpeaker))}
-            className={`w-14 h-14 rounded-card items-center justify-center border active:opacity-70 ${ isSpeaker ? 'bg-white border-white' : 'bg-white/10 border-white/15' }`}
+            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${isSpeaker ? 'bg-white' : 'bg-white/10'}`}
             accessibilityRole="button"
             accessibilityLabel={isSpeaker ? 'Switch to earpiece' : 'Switch to speaker'}
+            accessibilityState={{ selected: isSpeaker }}
           >
             <Ionicons
               name={isSpeaker ? 'volume-high' : 'volume-low'}

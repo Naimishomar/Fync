@@ -5,18 +5,14 @@
  * sale, and nothing can be paid until an affiliate network confirms one. Showing
  * a rupee figure derived from clicks would be inventing a number.
  */
-import React, { useCallback, useState } from 'react';
-import {
-  View, Text, FlatList, TouchableOpacity, ActivityIndicator,
-  RefreshControl, Share, StatusBar,
-} from 'react-native';
+import React, { useCallback, useState, memo } from 'react';
+import { View, FlatList, ActivityIndicator, RefreshControl, Share, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, ListRow, IconBtn, SectionHeader, Empty, Button } from '../ui/kit';
 
 type ShareRow = {
   _id: string;
@@ -26,6 +22,20 @@ type ShareRow = {
   createdAt: string;
   product?: { _id: string; name: string; image: string; price: number; isAvailable: boolean } | null;
 };
+
+const ShareItem = memo(function ShareItem({ item, onShare }: { item: ShareRow; onShare: (r: ShareRow) => void }) {
+  return (
+    <ListRow
+      style={{ paddingHorizontal: 16, marginBottom: 12, backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.line }}
+      leading={item.product?.image ? (
+        <Image source={{ uri: item.product.image }} style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
+      ) : undefined}
+      title={item.product?.name ?? 'Removed product'}
+      subtitle={`${item.clicks} tap${item.clicks === 1 ? '' : 's'}${item.selfClicks > 0 ? ` · ${item.selfClicks} your own` : ''}`}
+      right={<IconBtn name="share-outline" boxed onPress={() => onShare(item)} accessibilityLabel={`Share ${item.product?.name ?? 'again'}`} />}
+    />
+  );
+});
 
 export default function MySharesScreen() {
   const navigation = useNavigation<any>();
@@ -62,13 +72,9 @@ export default function MySharesScreen() {
     <View className="flex-1 bg-paper">
       <StatusBar barStyle={C.barStyle} />
       <View className="flex-1">
-        <AppBar title="Your Shares" onBack={() => navigation.goBack()} />
+        <AppBar title="Your shares" onBack={() => navigation.goBack()} />
         <View className="px-gutter">
-          <View className="flex-row items-center mt-2 mb-3" style={{ gap: 12 }}>
-            <Text className="text-ink text-label font-display uppercase">Taps</Text>
-            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-            <Text className="text-ink-3 font-mono text-label">{totalClicks}</Text>
-          </View>
+          <SectionHeader title="Taps" count={totalClicks} style={{ marginTop: 8 }} />
         </View>
 
         {loading ? (
@@ -82,43 +88,15 @@ export default function MySharesScreen() {
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.brand[500]} colors={[C.brand[500]]} />
             }
-            renderItem={({ item }) => (
-              <View className="flex-row items-center bg-card rounded-card p-4 border border-line mb-2">
-                {!!item.product?.image && (
-                  <Image source={{ uri: item.product.image }} style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
-                )}
-                <View className="flex-1 mx-3">
-                  <Text className="text-ink text-sm" numberOfLines={1}>{item.product?.name ?? 'Removed product'}</Text>
-                  <Text className="text-ink-3 text-label mt-0.5">
-                    {item.clicks} tap{item.clicks === 1 ? '' : 's'}
-                    {item.selfClicks > 0 ? ` · ${item.selfClicks} your own` : ''}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => reshare(item)}
-                  className="w-11 h-11 items-center justify-center rounded-xl border border-line bg-card"
-                  accessibilityRole="button" accessibilityLabel={`Share ${item.product?.name ?? 'again'}`}
-                >
-                  <Ionicons name="share-outline" size={18} color={C.ink} />
-                </TouchableOpacity>
-              </View>
-            )}
+            renderItem={({ item }) => <ShareItem item={item} onShare={reshare} />}
             ListEmptyComponent={
-              <View className="items-center mt-16 px-8">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
-                  <Ionicons name="link-outline" size={32} color={C.ink2} />
-                </View>
-                <Text className="text-ink font-display uppercase text-h2 text-center">Nothing shared yet</Text>
-                <Text className="text-ink-2 text-sm text-center mt-2">
-                  Share a product from Fync Store and the taps it gets will show up here.
-                </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('AffiliateStore')}
-                  className="mt-6 px-6 py-4 rounded-md items-center justify-center border-2 border-ink bg-brand-500"
-                  accessibilityRole="button"
-                >
-                  <Text className="font-display uppercase text-on-brand text-label">Open Fync Store</Text>
-                </TouchableOpacity>
+              <View className="mt-16">
+                <Empty
+                  icon="link-outline"
+                  title="Nothing shared yet"
+                  hint="Share a product from Fync Store and the taps it gets will show up here."
+                  action={<Button variant="primary" title="Open Fync Store" onPress={() => navigation.navigate('AffiliateStore')} />}
+                />
               </View>
             }
           />

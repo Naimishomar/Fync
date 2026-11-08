@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import Avatar from '../Avatar';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
-import { AppBar, Meta } from '../ui/kit';
+import { AppBar, Meta, Label, Empty, ListRow, Sheet } from '../ui/kit';
 
 /**
  * One lobby for both audio and video calling.
@@ -42,6 +42,37 @@ type Props = {
 };
 
 const RING_TIMEOUT_MS = 30000;
+
+const CallUserRow = memo(function CallUserRow({
+  item, isVideo, onCall,
+}: { item: CallUser; isVideo: boolean; onCall: (u: CallUser) => void }) {
+  const busy = item.status === 'busy';
+  const status = busy ? 'In a call' : 'Available';
+  return (
+    <ListRow
+      title={item.name}
+      subtitle={item.college ? `${status} · ${item.college}` : status}
+      leading={
+        <View>
+          <Avatar user={item as any} size={44} />
+          <View className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-paper ${busy ? 'bg-brand-500' : 'bg-success'}`} />
+        </View>
+      }
+      right={
+        <Pressable
+          onPress={() => onCall(item)}
+          disabled={busy}
+          className={`w-11 h-11 rounded-full items-center justify-center active:opacity-70 ${busy ? 'bg-paper-2' : 'bg-brand-500'}`}
+          accessibilityRole="button"
+          accessibilityLabel={`${busy ? 'Busy' : 'Call'} ${item.name}`}
+          accessibilityState={{ disabled: busy }}
+        >
+          <Ionicons name={isVideo ? 'videocam' : 'call'} size={20} color={busy ? C.ink4 : C.onBrand} />
+        </Pressable>
+      }
+    />
+  );
+});
 
 export default function CallLobby({ mode, navigation, renderActiveCall }: Props) {
   const { user } = useAuth();
@@ -295,52 +326,9 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
     );
   }
 
-  const renderUser = ({ item }: { item: CallUser }) => {
-    const busy = item.status === 'busy';
-    return (
-      <View className="flex-row items-center p-5 mb-4 bg-card rounded-card border border-line shadow-hair">
-        <View className="relative">
-          <Avatar user={item as any} size={44} />
-          <View
-            className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-card ${ busy ? 'bg-brand-500' : 'bg-success' }`}
-          />
-        </View>
-
-        <View className="ml-4 flex-1 pr-3">
-          <Text className="font-semibold text-base text-ink" numberOfLines={1}>
-            {item.name}
-          </Text>
-          {!!item.college && (
-            <Text
-              className="text-ink-3 text-label font-semibold uppercase mt-0.5"
-              numberOfLines={1}
-            >
-              {item.college}
-            </Text>
-          )}
-          <Text
-            className={`text-label font-display uppercase mt-1 ${ busy ? 'text-accent-text' : 'text-success' }`}
-          >
-            {busy ? 'In a call' : 'Available'}
-          </Text>
-        </View>
-
-        <Pressable
-          onPress={() => startCall(item)}
-          disabled={busy}
-          className={`w-12 h-12 rounded-card items-center justify-center ${ busy ? 'bg-paper-2 border border-line' : 'bg-brand-500' } active:opacity-70`}
-          accessibilityRole="button"
-          accessibilityLabel={`${busy ? 'Busy' : 'Call'} ${item.name}`}
-        >
-          <Ionicons
-            name={isVideo ? 'videocam' : 'call'}
-            size={20}
-            color={busy ? C.ink4 : '#FFFFFF'}
-          />
-        </Pressable>
-      </View>
-    );
-  };
+  const renderUser = ({ item }: { item: CallUser }) => (
+    <CallUserRow item={item} isVideo={isVideo} onCall={startCall} />
+  );
 
   const caller = incomingCall?.callerInfo;
 
@@ -350,7 +338,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
 
 
       <View className="flex-1">
-        <AppBar title={`${label} Rooms`} onBack={() => navigation.goBack()} />
+        <AppBar title={`${label} rooms`} onBack={() => navigation.goBack()} />
         <Meta className="px-gutter mb-5">
           {socketReady ? `${onlineUsers.length} people online` : 'Connecting…'}
         </Meta>
@@ -369,26 +357,10 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={() => loadUsers(true)} tintColor={C.brand[500]} />
             }
-            ListHeaderComponent={
-              <Text className="text-ink-3 text-label font-display uppercase mb-4 ml-2">
-                Online now
-              </Text>
-            }
+            ListHeaderComponent={<Label className="mb-2">Online now</Label>}
             ListEmptyComponent={
-              <View className="items-center justify-center mt-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons
-                    name={isVideo ? 'videocam-off-outline' : 'call-outline'}
-                    size={32}
-                    color={C.ink4}
-                  />
-                </View>
-                <Text className="font-semibold text-base text-ink text-center">
-                  Nobody online
-                </Text>
-                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">
-                  Pull down to refresh.
-                </Text>
+              <View className="mt-20">
+                <Empty icon={isVideo ? 'videocam-off-outline' : 'call-outline'} title="Nobody online" hint="Pull down to refresh." />
               </View>
             }
           />
@@ -400,15 +372,15 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
       <Modal visible={isDialling && !!activeCallUser} transparent statusBarTranslucent animationType="fade" onRequestClose={() => endCall(true)}>
         <View className="flex-1 items-center justify-center px-gutter" style={{ backgroundColor: 'rgba(18, 16, 14,0.85)' }}>
           <Avatar user={activeCallUser as any} size={96} />
-          <Text className="text-white text-xl font-display uppercase mt-6" numberOfLines={1}>
+          <Text className="text-white text-xl font-display mt-6" numberOfLines={1}>
             {activeCallUser?.name}
           </Text>
           {!!activeCallUser?.college && (
-            <Text className="text-white/60 text-label font-semibold uppercase mt-1">
+            <Text className="text-white/60 text-sm mt-1">
               {activeCallUser.college}
             </Text>
           )}
-          <Text className="font-display text-label text-brand-400 uppercase mt-4">
+          <Text className="font-semibold text-sm text-brand-400 mt-4" accessibilityLiveRegion="polite">
             Ringing…
           </Text>
           <Pressable
@@ -422,53 +394,45 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
         </View>
       </Modal>
 
-      {/* Incoming call — accept or decline. */}
-      <Modal visible={!!incomingCall} transparent statusBarTranslucent animationType="slide" onRequestClose={rejectCall}>
-        <View className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
-          <View className="bg-paper rounded-t-sheet px-gutter pt-8" style={{ paddingBottom: bottomInset + 24 }}>
-            <View className="items-center">
-              <Avatar user={caller as any} size={88} />
-              <Text className="text-ink font-display uppercase mt-5 text-h1" numberOfLines={1}>
-                {caller?.name || 'Fync user'}
-              </Text>
-              {!!caller?.college && (
-                <Text className="text-ink-3 text-label font-semibold uppercase mt-1" numberOfLines={1}>
-                  {caller.college}
-                </Text>
-              )}
-              <Text className="text-accent-text text-label font-display uppercase mt-3">
-                Incoming {label} Call
-              </Text>
-            </View>
+      {/* Incoming call — accept or decline. Not dismissable: a stray scrim tap must not decline. */}
+      <Sheet visible={!!incomingCall} onClose={rejectCall} dismissable={false} contentStyle={{ paddingTop: 24 }}>
+        <View className="items-center">
+          <Avatar user={caller as any} size={88} />
+          <Text className="text-ink font-display mt-5 text-h1" numberOfLines={1}>
+            {caller?.name || 'Fync user'}
+          </Text>
+          {!!caller?.college && <Meta className="mt-1" numberOfLines={1}>{caller.college}</Meta>}
+          <Text className="text-accent-text text-sm font-semibold mt-3">
+            Incoming {mode} call
+          </Text>
+        </View>
 
-            <View className="flex-row justify-center gap-16 mt-10">
-              <View className="items-center">
-                <Pressable
-                  onPress={rejectCall}
-                  className="w-16 h-16 rounded-full bg-danger items-center justify-center active:opacity-70"
-                  accessibilityRole="button"
-                  accessibilityLabel="Decline call"
-                >
-                  <Ionicons name="call" size={26} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
-                </Pressable>
-                <Text className="text-ink-3 text-label font-display uppercase mt-3">Decline</Text>
-              </View>
+        <View className="flex-row justify-center gap-16 mt-8 mb-2">
+          <View className="items-center">
+            <Pressable
+              onPress={rejectCall}
+              className="w-16 h-16 rounded-full bg-danger items-center justify-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Decline call"
+            >
+              <Ionicons name="call" size={26} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
+            </Pressable>
+            <Label className="mt-3">Decline</Label>
+          </View>
 
-              <View className="items-center">
-                <Pressable
-                  onPress={acceptCall}
-                  className="w-16 h-16 rounded-full bg-success items-center justify-center active:opacity-70"
-                  accessibilityRole="button"
-                  accessibilityLabel="Accept call"
-                >
-                  <Ionicons name={isVideo ? 'videocam' : 'call'} size={26} color="#fff" />
-                </Pressable>
-                <Text className="text-ink-3 text-label font-display uppercase mt-3">Accept</Text>
-              </View>
-            </View>
+          <View className="items-center">
+            <Pressable
+              onPress={acceptCall}
+              className="w-16 h-16 rounded-full bg-success items-center justify-center active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Accept call"
+            >
+              <Ionicons name={isVideo ? 'videocam' : 'call'} size={26} color="#fff" />
+            </Pressable>
+            <Label className="mt-3">Accept</Label>
           </View>
         </View>
-      </Modal>
+      </Sheet>
     </View>
   );
 }

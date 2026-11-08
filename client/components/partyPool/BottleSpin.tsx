@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Animated, TouchableOpacity, TextInput, Image } from 'react-native';
+import { View, Text, Animated, TextInput, Image } from 'react-native';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
-import { C } from '../../constants/colors';
+import { Button } from '../ui/kit';
 
 
 const BottleSpin = () => {
@@ -110,18 +110,18 @@ const BottleSpin = () => {
   const people = Array.from({ length: peopleCount });
 
   return (
-    <View className="p-6 bg-card rounded-sheet border border-line shadow-hair items-center" style={{ alignSelf: 'stretch' }}
+    <View className="p-6 bg-card rounded-2xl border border-line items-center" style={{ alignSelf: 'stretch' }}
       onLayout={(e) => setInnerW(e.nativeEvent.layout.width - 50)}>
       {/* Header UI */}
       <View className="items-center mb-[30px]">
-        <Text className="text-2xl font-display text-ink uppercase">BOTTLE <Text className="text-brand-500">SPIN</Text></Text>
-        <Text className="text-label text-ink-3 font-display uppercase mt-1">Social Interaction Protocol v2.0</Text>
+        <Text className="text-2xl font-display text-ink" accessibilityRole="header">Bottle spin</Text>
+        <Text className="text-sm text-ink-3 mt-1">Truth or dare for up to 20 players</Text>
       </View>
 
       {/* Configuration */}
       <View className="flex-row items-center justify-between w-full mb-10 h-[50px]">
-        <View className="flex-row items-center bg-paper p-[10px] rounded-lg border-2 border-ink">
-          <Text className="text-label font-display text-ink-3 mr-[10px]">PLAYERS (2-20)</Text>
+        <View className="flex-row items-center bg-paper-2 px-4 rounded-full" style={{ minHeight: 48 }}>
+          <Text className="text-sm font-semibold text-ink-3 mr-2">Players (2-20)</Text>
           <TextInput
             style={{ padding: 0 }}
             className="text-base font-semibold text-ink text-center w-[30px]"
@@ -134,21 +134,21 @@ const BottleSpin = () => {
                 else setNumPeople(val);
             }}
             maxLength={2}
+            accessibilityLabel="Number of players"
           />
         </View>
         
         {winner && !isSpinning && (
-          <View className="bg-paper-2 border border-line items-end px-2.5 py-1 rounded-full">
-             <Text className="text-label font-display text-brand-500">POINTS AT:</Text>
-             <Text className="text-xs font-display text-brand-500 uppercase">PLAYER {winner}</Text>
+          <View className="bg-paper-2 items-end px-3 py-1 rounded-2xl" accessibilityLiveRegion="polite">
+             <Text className="text-xs font-semibold text-ink-3">Points at</Text>
+             <Text className="text-sm font-semibold text-accent-text">Player {winner}</Text>
           </View>
         )}
       </View>
 
       <View className="w-[300px] h-[300px] justify-center items-center" style={{ transform: [{ scale: boardScale }], marginVertical: -150 * (1 - boardScale) }}>
         {/* Table Background */}
-        <View className="absolute w-[260px] h-[260px] rounded-sheet overflow-hidden bg-paper-2">
-        </View>
+        <View className="absolute w-[260px] h-[260px] rounded-full bg-paper-2" />
 
         {people.map((_, i) => {
           const angle = (i * 360) / people.length - 90;
@@ -161,7 +161,7 @@ const BottleSpin = () => {
               className="absolute"
               style={{ transform: [{ translateX: x }, { translateY: y }] }}
             >
-              <View className={`w-10 h-10 rounded-full justify-center items-center border border-paper-2 shadow-hair ${winner === i + 1 ? 'bg-brand-500 border-accent-text scale-[1.2]' : 'bg-card'}`}>
+              <View className={`w-10 h-10 rounded-full justify-center items-center border border-line ${winner === i + 1 ? 'bg-brand-500 border-accent-text scale-[1.2]' : 'bg-card'}`}>
                 <Text className={`text-sm font-display ${winner === i + 1 ? 'text-on-brand' : 'text-ink-3'}`}>{i + 1}</Text>
               </View>
             </View>
@@ -177,19 +177,7 @@ const BottleSpin = () => {
         </Animated.View>
       </View>
 
-      <TouchableOpacity 
-        onPress={spinBottle} 
-        disabled={isSpinning}
-        activeOpacity={0.8}
-        className="w-full h-[60px] rounded-card mt-10 overflow-hidden shadow-hair"
-      >
-        <View
-          style={{ backgroundColor: isSpinning ? C.ink3 : C.brand[500] }}
-          className="flex-1 justify-center items-center"
-        >
-          <Text className={`${isSpinning ? 'text-ink' : 'text-on-brand'} text-sm font-display uppercase`}>{isSpinning ? 'SCANNING...' : 'SPIN BOTTLE'}</Text>
-        </View>
-      </TouchableOpacity>
+      <Button variant="primary" block title={isSpinning ? 'Spinning...' : 'Spin bottle'} onPress={spinBottle} disabled={isSpinning} style={{ marginTop: 40 }} />
     </View>
   );
 };

@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Platform,
-  Dimensions
-} from 'react-native';
+import { View, Text, Image, Pressable, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,10 +8,8 @@ import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { StatusBar } from 'expo-status-bar';
-import { AppBar } from './ui/kit';
+import { AppBar, Button, FormField, SectionHeader } from './ui/kit';
 import { C } from '../constants/colors';
-
-const { width } = Dimensions.get('window');
 
 export default function RecruiterEditProfile() {
   const { user, setUser } = useAuth();
@@ -136,137 +124,84 @@ export default function RecruiterEditProfile() {
       <StatusBar style={C.statusStyle} />
 
       <AppBar
-        title="Profile Settings"
+        title="Profile settings"
         onBack={() => navigation.goBack()}
-        right={
-          <TouchableOpacity
-            onPress={handleUpdate}
-            disabled={loading || !hasChanges}
-            className={`bg-recruiter px-5 py-2 rounded-xl shadow-hair mr-[11px] ${(!hasChanges || loading) ? 'opacity-50' : ''}`}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <Text className="text-white font-display uppercase text-label">Save</Text>
-            )}
-          </TouchableOpacity>
-        }
+        right={<Button small variant="primary" title="Save" loading={loading} disabled={!hasChanges} onPress={handleUpdate} />}
       />
 
       <ScrollView keyboardShouldPersistTaps="handled" className="flex-1" showsVerticalScrollIndicator={false}>
 
-        {/* Banner Section */}
-        <TouchableOpacity onPress={() => pickImage('banner')} className="w-full h-40 bg-paper-2 relative">
+        {/* Banner */}
+        <Pressable
+          onPress={() => pickImage('banner')}
+          className="mx-gutter h-40 bg-paper-2 rounded-2xl overflow-hidden border border-line active:opacity-70"
+          accessibilityRole="button"
+          accessibilityLabel="Change banner"
+        >
           {banner ? (
             <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
           ) : (
             <View className="flex-1 items-center justify-center">
               <Ionicons name="image-outline" size={32} color={C.ink3} />
-              <Text className="text-ink-3 text-label font-display uppercase mt-2">Add Banner</Text>
+              <Text className="text-ink-3 text-sm mt-2">Add banner</Text>
             </View>
           )}
-          <View className="absolute right-3 bottom-3 bg-card/90 p-2 rounded-full shadow-hair">
-            <Ionicons name="camera" size={18} color={C.recruiter} />
+          <View className="absolute right-3 bottom-3 bg-card p-2 rounded-full">
+            <Ionicons name="camera-outline" size={18} color={C.ink} />
           </View>
-        </TouchableOpacity>
+        </Pressable>
 
-        {/* Avatar / Logo Section */}
+        {/* Logo */}
         <View className="items-center -mt-12">
-          <TouchableOpacity onPress={() => pickImage('avatar')} className="p-1.5 bg-card rounded-full shadow-hair">
+          <Pressable
+            onPress={() => pickImage('avatar')}
+            className="p-1 bg-paper rounded-full active:opacity-70"
+            accessibilityRole="button"
+            accessibilityLabel="Change company logo"
+          >
             <Image
               source={{ uri: avatar || 'https://ui-avatars.com/api/?name=Company' }}
               className="h-24 w-24 rounded-full bg-paper-2"
             />
-            <View className="absolute right-1 bottom-1 bg-recruiter p-1.5 rounded-full border-2 border-paper">
-              <Ionicons name="pencil" size={14} color="white" />
+            <View className="absolute right-1 bottom-1 bg-brand-500 p-1.5 rounded-full border-2 border-paper">
+              <Ionicons name="pencil" size={14} color={C.onBrand} />
             </View>
-          </TouchableOpacity>
-          <Text className="text-ink-3 text-label font-display uppercase mt-3">Company Logo / Profile</Text>
+          </Pressable>
+          <Text className="text-ink-3 text-sm mt-2">Company logo</Text>
         </View>
 
-        <View className="px-5 mt-8 pb-10 gap-6">
-
-          {/* Section: Company Details */}
-          <View>
-            <SectionHeader title="Corporate Identity" icon="business" color={C.recruiter} />
-            <View className="gap-4">
-              <InputGroup label="Company Name" value={company} onChange={setCompany} placeholder="e.g. Acme Corp" />
-              <InputGroup label="Company Website" value={companyWebsite} onChange={setCompanyWebsite} placeholder="https://acme.org" keyboardType="url" />
-              <InputGroup label="Headquarters Location" value={headquarters} onChange={setHeadquarters} placeholder="e.g. Noida, India (Remote)" />
-              <View className="flex-row gap-4">
-                <View className="flex-1">
-                  <InputGroup label="Industry" value={industry} onChange={setIndustry} placeholder="e.g. FinTech" />
-                </View>
-                <View className="flex-1">
-                  <InputGroup label="Size" value={companySize} onChange={setCompanySize} placeholder="e.g. 100-500" />
-                </View>
-              </View>
+        <View className="px-gutter pb-10">
+          <SectionHeader title="Company" />
+          <View style={{ gap: 16 }}>
+            <FormField label="Company name" value={company} onChangeText={setCompany} placeholder="e.g. Acme Corp" />
+            <FormField label="Company website" value={companyWebsite} onChangeText={setCompanyWebsite} placeholder="https://acme.org" keyboardType="url" autoCapitalize="none" />
+            <FormField label="Headquarters" value={headquarters} onChangeText={setHeadquarters} placeholder="e.g. Noida, India (Remote)" />
+            <View className="flex-row" style={{ gap: 12 }}>
+              <FormField containerStyle={{ flex: 1 }} label="Industry" value={industry} onChangeText={setIndustry} placeholder="e.g. FinTech" />
+              <FormField containerStyle={{ flex: 1 }} label="Size" value={companySize} onChangeText={setCompanySize} placeholder="e.g. 100-500" />
             </View>
           </View>
 
-          {/* Section: Your Professional Role */}
-          <View>
-            <SectionHeader title="Professional Identity" icon="person-circle" color={C.success} />
-            <View className="gap-4">
-              <InputGroup label="Your Name" value={name} onChange={setName} placeholder="Your full name" />
-              <InputGroup label="Role / Designation" value={role} onChange={setRole} placeholder="e.g. Head of Talent" />
-
-              <View>
-                <View className="flex-row items-center mt-6 mb-1.5" style={{ gap: 12 }}>
-                  <Text className="text-ink-3 text-label font-display uppercase">Username (Fixed)</Text>
-                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                </View>
-                <View className="bg-paper-2 p-4 rounded-card border border-line">
-                  <Text className="text-ink-3 font-semibold text-sm">@{user?.username}</Text>
-                </View>
-              </View>
-            </View>
+          <SectionHeader title="You" />
+          <View style={{ gap: 16 }}>
+            <FormField label="Your name" value={name} onChangeText={setName} placeholder="Your full name" />
+            <FormField label="Role or designation" value={role} onChangeText={setRole} placeholder="e.g. Head of Talent" />
+            <FormField label="Username" value={`@${user?.username ?? ''}`} editable={false} hint="Usernames can't be changed." style={{ color: C.ink3 }} />
           </View>
 
-          {/* Section: Professional Links */}
-          <View>
-            <SectionHeader title="Presence" icon="share-social" color={C.danger} />
-            <InputGroup label="LinkedIn Company/Personal URL" value={linkedinId} onChange={setLinkedinId} placeholder="https://linkedin.com/..." />
-          </View>
+          <SectionHeader title="Presence" />
+          <FormField label="LinkedIn URL" value={linkedinId} onChangeText={setLinkedinId} placeholder="https://linkedin.com/..." autoCapitalize="none" keyboardType="url" />
 
-          {/* Section: About Company */}
-          <View>
-            <SectionHeader title="About the Organization" icon="document-text" color={C.warning} />
-            <InputGroup
-              label="Company Overview"
-              value={about}
-              onChange={setAbout}
-              placeholder="Tell potential candidates about your company's mission and culture..."
-              multiline
-            />
-          </View>
-
+          <SectionHeader title="About the organization" />
+          <FormField
+            label="Company overview"
+            value={about}
+            onChangeText={setAbout}
+            placeholder="Tell potential candidates about your company's mission and culture..."
+            multiline
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const SectionHeader = ({ title, icon, color }: any) => (
-  <View className="flex-row items-center gap-2 mb-4">
-    <View className="w-1 h-5 rounded-full" style={{ backgroundColor: color }} />
-    <Ionicons name={icon} size={16} color={color} />
-    <Text className="text-ink font-display uppercase text-label">{title}</Text>
-  </View>
-);
-
-const InputGroup = ({ label, value, onChange, placeholder, multiline = false, keyboardType = 'default' }: any) => (
-  <View>
-    <Text className="text-ink-3 text-label font-display uppercase mb-1.5 ml-1">{label}</Text>
-    <TextInput
-      value={value}
-      onChangeText={onChange}
-      className={`bg-paper-2 text-ink p-4 rounded-card text-sm font-semibold border border-line ${multiline ? 'min-h-[100px]' : ''}`}
-      placeholder={placeholder}
-      placeholderTextColor={C.ink3}
-      multiline={multiline}
-      keyboardType={keyboardType as any}
-      textAlignVertical={multiline ? 'top' : 'center'}
-    />
-  </View>
-);

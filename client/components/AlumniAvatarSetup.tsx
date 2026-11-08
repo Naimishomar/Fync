@@ -5,7 +5,6 @@ import {
   Pressable,
   Image,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +18,7 @@ import * as Device from "expo-device";
 // @ts-ignore
 import loginImage from '../assets/loginImage.png';
 import { C } from '../constants/colors';
+import { Button } from './ui/kit';
 
 export default function AlumniAvatarSetup() {
   const navigation = useNavigation<any>();
@@ -125,49 +125,36 @@ export default function AlumniAvatarSetup() {
         <Image
           source={{ uri: 'https://i.pinimg.com/736x/a2/05/60/a205602210656db27579657ba25f57a4.jpg' }}
           style={{ width: '100%', height: 400 }}
-          className="rounded-card"
+          className="rounded-2xl"
           resizeMode="cover"
         />
 
-        <View className="mt-8 bg-card rounded-sheet px-6 pt-8 pb-10 shadow-hair">
-          <Text className="text-3xl font-display text-ink mb-2">Profile Photo</Text>
-          <Text className="text-ink-3 mb-6">Step 3: Add a face to your professional profile</Text>
+        <View className="mt-6 bg-card border border-line rounded-2xl p-5">
+          <Text className="text-h1 font-display text-ink mb-2" accessibilityRole="header">Profile photo</Text>
+          <Text className="text-sm text-ink-3 mb-6">Step 3: Add a face to your professional profile</Text>
 
           <View className="items-center mb-8">
             <Pressable
               onPress={handleUploadProfilePic}
-              className="h-48 w-48 items-center justify-center overflow-hidden rounded-full bg-paper-2 border-2 border-line"
+              className="h-48 w-48 items-center justify-center overflow-hidden rounded-full bg-paper-2 border border-line active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel={profileImageUri ? 'Change profile photo' : 'Upload profile photo'}
             >
               {profileImageUri ? (
                 <Image source={{ uri: profileImageUri }} className="h-full w-full" resizeMode="cover" />
               ) : (
-                <Ionicons name="camera" size={48} color={C.ink4} />
+                <Ionicons name="camera-outline" size={48} color={C.ink3} />
               )}
             </Pressable>
-            <Text className="mt-4 text-ink-2 font-medium">Capture or Upload</Text>
+            <Text className="mt-4 text-sm text-ink-2 font-medium">Capture or upload</Text>
           </View>
 
-          <Pressable
-            className="bg-brand-500 py-4 items-center mb-4 border-2 border-ink rounded-md"
-            onPress={() => submitRegistration()}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color={C.onBrand} />
-            ) : (
-              <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Finish Setup</Text>
-            )}
-          </Pressable>
+          <View style={{ gap: 12 }}>
+            <Button variant="primary" block title="Finish setup" loading={isLoading} onPress={() => submitRegistration()} />
+            <Button block title="Skip for now" disabled={isLoading} onPress={() => submitRegistration(false)} />
+          </View>
 
-          <Pressable
-            className="rounded-full border border-line py-4 items-center"
-            onPress={() => submitRegistration(false)}
-            disabled={isLoading}
-          >
-            <Text className="text-ink-2 text-lg font-semibold">Skip for now</Text>
-          </Pressable>
-
-          <Text className="mt-5 text-center text-ink-3">Step 3 of 3</Text>
+          <Text className="mt-5 text-center text-sm text-ink-3">Step 3 of 3</Text>
         </View>
       </ScrollView>
     </View>

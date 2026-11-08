@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput } from 'react-native';
-import PdfToolShell from './PdfToolShell';
+import { Chip, FormField } from '../../ui/kit';
+import PdfToolShell, { OptionCard } from './PdfToolShell';
 import { PDFDocument, loadDoc, writeDoc, parsePageRanges } from './pdfKit';
-import { C } from '../../../constants/colors';
 
 export default function OrganizePagesScreen() {
   const [order, setOrder] = useState('');
@@ -13,21 +12,19 @@ export default function OrganizePagesScreen() {
       blurb="Put pages in the order you want. Any page you leave out is dropped."
       disabledReason={() => (order.trim() || reverse ? null : 'Enter an order, or choose reverse')}
       options={() => (
-        <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-5">
-          <Text className="text-ink-3 font-display uppercase text-label mb-2">New page order</Text>
-          <TextInput
-            value={order} onChangeText={(t) => { setOrder(t); if (t) setReverse(false); }}
-            placeholder="e.g. 3, 1, 2, 4-6" placeholderTextColor={C.ink3}
-            className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
-            style={{ minHeight: 50 }} autoCapitalize="none"
+        <OptionCard>
+          <FormField
+            label="New page order" value={order} onChangeText={(t) => { setOrder(t); if (t) setReverse(false); }}
+            placeholder="e.g. 3, 1, 2, 4-6" autoCapitalize="none"
           />
-          <Text
+          <Chip
+            icon={reverse ? 'checkmark' : 'swap-vertical-outline'}
+            label={reverse ? 'Reversing every page' : 'Or reverse every page'}
+            active={reverse}
             onPress={() => { setReverse(!reverse); setOrder(''); }}
-            className={`mt-3 font-display uppercase text-label ${reverse ? 'text-accent-text' : 'text-ink-3'}`}
-          >
-            {reverse ? '✓ Reverse every page' : 'Or reverse every page'}
-          </Text>
-        </View>
+            style={{ alignSelf: 'flex-start' }}
+          />
+        </OptionCard>
       )}
       run={async (files) => {
         const src = await loadDoc(files[0].uri);

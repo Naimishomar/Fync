@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, Share, BackHandler} from 'react-native'
+import {View, StyleSheet, Text, ActivityIndicator, Share, BackHandler} from 'react-native'
 // RN's own SafeAreaView is a no-op on Android, so the header sat under the translucent status bar.
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
 import { C, themed } from '../../constants/colors';
-import { AppBar, IconBtn, Meta } from '../ui/kit';
+import { AppBar, IconBtn, Meta, Button } from '../ui/kit';
 
 const AffiliateWebView = () => {
     const route = useRoute<any>();
@@ -88,7 +87,7 @@ const AffiliateWebView = () => {
             <AppBar
                 title="Checkout"
                 onBack={handleBack}
-                right={<IconBtn name="share-outline" onPress={handleShare} />}
+                right={<IconBtn name="share-outline" onPress={handleShare} accessibilityLabel="Share link" />}
             />
             <Meta numberOfLines={1} style={styles.url}>{url}</Meta>
 
@@ -108,27 +107,19 @@ const AffiliateWebView = () => {
                 {loading && (
                     <View style={styles.loadingOverlay}>
                         <ActivityIndicator size="large" color={C.brand[500]} />
-                        <Text style={styles.loadingText}>Loading Secure Checkout...</Text>
+                        <Text style={styles.loadingText}>Loading secure checkout…</Text>
                     </View>
                 )}
             </View>
 
             <View style={styles.footer}>
                 <View style={styles.navControls}>
-                    <TouchableOpacity onPress={handleBack} disabled={!canGoBack} style={styles.footerIcon}>
-                        <Ionicons name="chevron-back" size={24} color={canGoBack ? C.ink : C.ink4} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleForward} disabled={!canGoForward} style={styles.footerIcon}>
-                        <Ionicons name="chevron-forward" size={24} color={canGoForward ? C.ink : C.ink4} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleReload} style={styles.footerIcon}>
-                        <Ionicons name="refresh" size={24} color={C.ink} />
-                    </TouchableOpacity>
+                    <IconBtn name="chevron-back" onPress={handleBack} disabled={!canGoBack} color={canGoBack ? C.ink : C.ink4} accessibilityLabel="Back" />
+                    <IconBtn name="chevron-forward" onPress={handleForward} disabled={!canGoForward} color={canGoForward ? C.ink : C.ink4} accessibilityLabel="Forward" />
+                    <IconBtn name="refresh" onPress={handleReload} accessibilityLabel="Reload" />
                 </View>
-                
-                <TouchableOpacity style={styles.doneButton} onPress={confirmPurchase}>
-                    <Text style={styles.doneButtonText}>I&apos;ve Purchased</Text>
-                </TouchableOpacity>
+
+                <Button small variant="primary" title="I've purchased" onPress={confirmPurchase} />
             </View>
         </SafeAreaView>
     );
@@ -163,11 +154,12 @@ const styles = themed(() => ({
         fontSize: 14,
     },
     footer: {
-        height: 70,
+        minHeight: 64,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 15,
-        borderTopWidth: 1,
+        paddingHorizontal: 12,
+        gap: 8,
+        borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: C.line,
         backgroundColor: C.card,
     },
@@ -175,23 +167,8 @@ const styles = themed(() => ({
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
+        gap: 4,
     },
-    footerIcon: {
-        paddingHorizontal: 15,
-        minHeight: 44,
-        justifyContent: 'center',
-    },
-    doneButton: {
-        backgroundColor: C.brand[600],
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 10,
-    },
-    doneButtonText: {
-        color: C.onBrand,
-        fontFamily: 'Inter_700Bold',
-        fontSize: 14,
-    }
 }));
 
 export default AffiliateWebView;

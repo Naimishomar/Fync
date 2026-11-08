@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   Image,
   Pressable,
   ScrollView,
-  ActivityIndicator,
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
@@ -20,7 +18,7 @@ import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
-import { AppBar } from './ui/kit';
+import { AppBar, Button, FormField } from './ui/kit';
 import { getFullUrl } from '../utils/imageUtils';
 
 export default function EditProfile() {
@@ -155,22 +153,10 @@ export default function EditProfile() {
     // AppBar owns the top inset, so the SafeAreaView only handles the bottom.
     <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
       <AppBar
-        title="Edit Profile"
+        title="Edit profile"
         onBack={() => navigation.goBack()}
         right={
-          <Pressable
-            onPress={handleUpdate}
-            disabled={loading || !hasChanges}
-            accessibilityRole="button"
-            hitSlop={12}
-            style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center', opacity: (loading || !hasChanges) ? 0.5 : 1 }}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color={C.brand[500]} />
-            ) : (
-              <Text className={`text-lg font-display ${!hasChanges ? 'text-ink-3' : 'text-accent-text'}`}>Save</Text>
-            )}
-          </Pressable>
+          <Button small variant="primary" title="Save" loading={loading} disabled={!hasChanges} onPress={handleUpdate} />
         }
       />
 
@@ -178,8 +164,8 @@ export default function EditProfile() {
       <ScrollView className="px-gutter pt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         {/* --- Banner Image --- */}
-        <Pressable onPress={() => pickImage('banner')} className="mb-6">
-          <View className="h-32 w-full bg-paper-2 overflow-hidden border border-line justify-center items-center rounded-md">
+        <Pressable onPress={() => pickImage('banner')} className="mb-6 active:opacity-70" accessibilityRole="button" accessibilityLabel="Change banner">
+          <View className="h-32 w-full bg-paper-2 overflow-hidden border border-line justify-center items-center rounded-2xl">
             {banner ? (
               <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
             ) : (
@@ -196,44 +182,41 @@ export default function EditProfile() {
 
         {/* --- Avatar Image --- */}
         <View className="items-center -mt-16 mb-1">
-          <Pressable onPress={() => pickImage('avatar')}>
+          <Pressable onPress={() => pickImage('avatar')} className="active:opacity-70" accessibilityRole="button" accessibilityLabel="Change profile photo">
             <Image
               source={{ uri: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}` }}
-              className="h-24 w-24 rounded-full border-4 border-line bg-paper-2"
+              className="h-24 w-24 rounded-full border-4 border-paper bg-paper-2"
             />
             <View className="absolute right-0 bg-brand-500 p-1.5 rounded-full border-2 border-paper" style={{ bottom: 0 }}>
               <Ionicons name="pencil" size={14} color={C.onBrand} />
             </View>
           </Pressable>
-          <Text className="text-accent-text text-sm font-semibold mt-2">Change Profile Photo</Text>
+          <Text className="text-accent-text text-sm font-semibold mt-2">Change profile photo</Text>
         </View>
 
         {/* --- Form Fields --- */}
-        <View className="space-y-5 pb-10 gap-5">
+        <View className="pb-10 mt-4" style={{ gap: 16 }}>
 
-          <InputGroup label="Name" value={name} onChange={setName} placeholder="Your Name" />
-          <InputGroup label="Username" value={username} onChange={setUsername} placeholder="username" autoCapitalize="none" />
-
-
-          <InputGroup label="About" value={about} onChange={setAbout} placeholder="Tell us more about yourself..." multiline />
+          <FormField label="Name" value={name} onChangeText={setName} placeholder="Your name" />
+          <FormField label="Username" value={username} onChangeText={setUsername} placeholder="username" autoCapitalize="none" />
 
 
+          <FormField label="About" value={about} onChangeText={setAbout} placeholder="Tell us more about yourself..." multiline />
 
-          <InputGroup label="Interests" value={interest} onChange={setInterest} placeholder="e.g. AI, Web3, Cycling" />
-          <InputGroup label="Hobbies" value={hobbies} onChange={setHobbies} placeholder="Reading, Gaming..." />
+
+
+          <FormField label="Interests" value={interest} onChangeText={setInterest} placeholder="e.g. AI, Web3, Cycling" />
+          <FormField label="Hobbies" value={hobbies} onChangeText={setHobbies} placeholder="Reading, Gaming..." />
 
           {isFeatureOn('creatorTips') && (
-          <View className="bg-success/10 p-3 rounded-xl border border-success/20 mt-2">
-            <InputGroup
-              label="UPI ID (For receiving tips/payments)"
-              value={upiId}
-              onChange={setUpiId}
-              placeholder="yourname@upi"
-            />
-            <Text className="text-success/60 text-label mt-1 ml-1 font-medium">
-              * Other users will use this ID to pay you for your content.
-            </Text>
-          </View>
+          <FormField
+            label="UPI ID (for receiving tips and payments)"
+            value={upiId}
+            onChangeText={setUpiId}
+            placeholder="yourname@upi"
+            autoCapitalize="none"
+            hint="Other users will use this ID to pay you for your content."
+          />
           )}
 
         </View>
@@ -242,20 +225,3 @@ export default function EditProfile() {
     </SafeAreaView>
   );
 }
-
-// --- Reusable Input Component ---
-const InputGroup = ({ label, value, onChange, placeholder, multiline = false, autoCapitalize }: any) => (
-  <View>
-    <Text className="text-ink-3 text-sm mb-1.5 ml-1">{label}</Text>
-    <TextInput
-      value={value}
-      onChangeText={onChange}
-      className={`bg-paper-2 text-ink p-3.5 rounded-xl text-base border border-line ${multiline ? 'min-h-[80px]' : ''}`}
-      placeholder={placeholder}
-      placeholderTextColor={C.ink4}
-      multiline={multiline}
-      autoCapitalize={autoCapitalize}
-      textAlignVertical={multiline ? 'top' : 'center'}
-    />
-  </View>
-);

@@ -1,14 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity, ScrollView,
-  ActivityIndicator, RefreshControl,
-} from 'react-native';
+import { View, Text, TextInput, ScrollView, RefreshControl } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, Meta } from '../ui/kit';
+import { AppBar, Meta, Button, Card, Divider, ListRow, SectionHeader } from '../ui/kit';
 
 /**
  * Problem bank admin.
@@ -104,23 +101,10 @@ export default function ArenaAdminScreen() {
         refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={C.brand[500]} />}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-row items-center mb-2">
-          <Text className="font-display text-ink uppercase" style={{ fontSize: 13 }}>Paste problems</Text>
-          <View className="flex-1" />
-          <TouchableOpacity
-            onPress={() => setJson(TEMPLATE)}
-            className="px-3 py-2 rounded-xl border-2 border-ink bg-card"
-            style={{ minHeight: 40, justifyContent: 'center' }}
-          >
-            <Text className="font-display text-ink" style={{ fontSize: 11 }}>USE TEMPLATE</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={async () => setJson(await Clipboard.getStringAsync())}
-            className="px-3 py-2 rounded-xl border-2 border-ink bg-card ml-2"
-            style={{ minHeight: 40, justifyContent: 'center' }}
-          >
-            <Text className="font-display text-ink" style={{ fontSize: 11 }}>PASTE</Text>
-          </TouchableOpacity>
+        <View className="flex-row items-center mb-2" style={{ gap: 8 }}>
+          <Text className="font-semibold text-ink flex-1" style={{ fontSize: 16 }} accessibilityRole="header">Paste problems</Text>
+          <Button title="Use template" small onPress={() => setJson(TEMPLATE)} />
+          <Button title="Paste" small icon="clipboard-outline" onPress={async () => setJson(await Clipboard.getStringAsync())} />
         </View>
 
         <TextInput
@@ -131,67 +115,69 @@ export default function ArenaAdminScreen() {
           placeholderTextColor={C.ink3}
           autoCapitalize="none"
           autoCorrect={false}
+          accessibilityLabel="Problems JSON"
           // Monospace so the JSON is legible and a stray bracket is findable.
           style={{ fontFamily: 'monospace', fontSize: 12, minHeight: 260, textAlignVertical: 'top' }}
-          className="bg-card border-2 border-ink rounded-card p-3 text-ink"
+          className="bg-card border border-line rounded-2xl p-3 text-ink"
         />
 
-        <TouchableOpacity
+        <Button
+          title="Import"
+          variant="primary"
+          block
+          loading={busy}
+          disabled={!json.trim()}
           onPress={submit}
-          disabled={busy || !json.trim()}
-          className="bg-brand-500 border-2 border-ink rounded-card mt-4 items-center justify-center"
-          style={{ height: 54, opacity: busy || !json.trim() ? 0.5 : 1 }}
-          accessibilityRole="button"
           accessibilityLabel="Import problems"
-        >
-          {busy ? <ActivityIndicator color={C.onBrand} /> : <Text className="font-display text-on-brand">IMPORT</Text>}
-        </TouchableOpacity>
+          style={{ marginTop: 16 }}
+        />
 
         {!!report && (
           <View className="mt-5">
             {report.created?.length > 0 && (
-              <View className="bg-card border-2 border-ink rounded-card p-4 mb-3">
-                <Text className="font-display text-ink mb-2">Imported {report.created.length}</Text>
+              <Card padded style={{ marginBottom: 12 }}>
+                <Text className="font-semibold text-ink mb-2">Imported {report.created.length}</Text>
                 {report.created.map((c: any) => (
                   <Text key={c.id} className="font-sans text-ink-3" style={{ fontSize: 12 }} numberOfLines={1}>
                     ✓ {c.title} — {c.cases} test cases
                   </Text>
                 ))}
-              </View>
+              </Card>
             )}
 
             {report.errors?.length > 0 && (
-              <View className="bg-card border-2 border-danger rounded-card p-4">
-                <Text className="font-display text-danger mb-2">Rejected {report.errors.length}</Text>
+              <Card padded style={{ borderColor: C.danger }}>
+                <Text className="font-semibold text-danger mb-2">Rejected {report.errors.length}</Text>
                 {report.errors.map((e: any) => (
                   <View key={e.index} className="mb-2">
                     <Text className="font-sans text-ink" style={{ fontSize: 12 }}>
                       #{e.index + 1} {e.title}
                     </Text>
                     {e.problems?.map((p: string, i: number) => (
-                      <Text key={i} className="font-sans text-ink-3 ml-3" style={{ fontSize: 11 }}>· {p}</Text>
+                      <Text key={i} className="font-sans text-ink-3 ml-3" style={{ fontSize: 12 }}>· {p}</Text>
                     ))}
                   </View>
                 ))}
-              </View>
+              </Card>
             )}
           </View>
         )}
 
         {problems.length > 0 && (
-          <View className="mt-6">
-            <Text className="font-display text-ink uppercase mb-2" style={{ fontSize: 13 }}>In the bank</Text>
-            {problems.slice(0, 40).map((p: any) => (
-              <View key={p._id} className="bg-card border-2 border-ink rounded-card px-4 py-3 mb-2 flex-row items-center">
-                <View className="flex-1">
-                  <Text className="font-display text-ink" style={{ fontSize: 14 }} numberOfLines={1}>{p.title}</Text>
-                  <Text className="font-sans text-ink-3" style={{ fontSize: 11 }}>
-                    {p.difficulty} · {p.testCases?.length ?? 0} cases · {p.points ?? 100} pts
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
+          <>
+            <SectionHeader title="In the bank" count={problems.length} />
+            <Card style={{ paddingHorizontal: 16 }}>
+              {problems.slice(0, 40).map((p: any, i: number) => (
+                <React.Fragment key={p._id}>
+                  {i > 0 ? <Divider /> : null}
+                  <ListRow
+                    title={p.title}
+                    subtitle={`${p.difficulty} · ${p.testCases?.length ?? 0} cases · ${p.points ?? 100} pts`}
+                  />
+                </React.Fragment>
+              ))}
+            </Card>
+          </>
         )}
       </ScrollView>
     </View>

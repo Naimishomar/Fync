@@ -24,14 +24,14 @@ const PostOpportunityButton = ({ children, onPress }: any) => {
       <View
         style={{
           shadowColor: C.brand[500], shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.5, shadowRadius: 16, elevation: 10
+          shadowOpacity: 0.25, shadowRadius: 12, elevation: 6
         }}
         className="rounded-full"
       >
         <TouchableOpacity
           onPress={() => navigation.navigate('CreateOpportunity', { type: 'internship' })}
           activeOpacity={0.9}
-          className="w-14 h-14 rounded-full items-center justify-center border-2 border-ink"
+          className="w-14 h-14 rounded-full items-center justify-center"
           style={{ backgroundColor: C.brand[500] }}
           accessibilityRole="button"
           accessibilityLabel="Post opportunity"

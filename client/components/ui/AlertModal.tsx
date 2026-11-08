@@ -72,21 +72,15 @@ export const Alert = {
 // ── Host ────────────────────────────────────────────────────────────────────
 
 const styleFor = (style: AlertButton['style']) => {
-  if (style === 'destructive') {
-    return { bg: 'bg-danger', text: 'text-white', border: 'border-danger' };
-  }
-  if (style === 'cancel') {
-    return { bg: 'bg-paper-2', text: 'text-ink-2', border: 'border-line' };
-  }
-  return { bg: 'bg-brand-500', text: 'text-on-brand', border: 'border-brand-500' };
+  if (style === 'destructive') return { bg: 'bg-danger', text: 'text-white' };
+  if (style === 'cancel') return { bg: 'bg-paper-2', text: 'text-ink' };
+  return { bg: 'bg-brand-500', text: 'text-on-brand' };
 };
 
-const iconFor = (buttons: AlertButton[]) => {
-  if (buttons.some((b) => b.style === 'destructive')) {
-    return { name: 'warning' as const, color: C.danger, bg: 'bg-danger/10', border: 'border-danger/25' };
-  }
-  return { name: 'information-circle' as const, color: C.brand[500], bg: 'bg-paper-2', border: 'border-line' };
-};
+const iconFor = (buttons: AlertButton[]) =>
+  buttons.some((b) => b.style === 'destructive')
+    ? { name: 'warning-outline' as const, color: C.danger }
+    : { name: 'information-circle-outline' as const, color: C.ink };
 
 export const AlertHost = () => {
   const [request, setRequest] = useState<AlertRequest | null>(null);
@@ -96,7 +90,7 @@ export const AlertHost = () => {
   /** Set on the first tap: a fast double tap used to run the button's handler
    *  twice (two deletes, two payments) and skip the next queued alert. */
   const closing = useRef(false);
-  const scale = useRef(new Animated.Value(0.92)).current;
+  const scale = useRef(new Animated.Value(0.96)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   const showNext = useCallback(() => {
@@ -125,14 +119,14 @@ export const AlertHost = () => {
 
   useEffect(() => {
     if (!request) return;
-    scale.setValue(0.92);
+    scale.setValue(0.96);
     opacity.setValue(0);
     Animated.parallel([
       Animated.timing(opacity, { toValue: 1, duration: 140, useNativeDriver: true }),
       Animated.timing(scale, {
         toValue: 1,
         duration: 180,
-        easing: Easing.out(Easing.back(1.4)),
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
     ]).start();
@@ -178,22 +172,21 @@ export const AlertHost = () => {
       <Pressable
         onPress={dismiss}
         className="flex-1 items-center justify-center px-gutter"
-        style={{ backgroundColor: 'rgba(18, 16, 14,0.55)' }}
+        style={{ backgroundColor: C.scrim }}
+        accessibilityLabel="Dismiss"
       >
         <Animated.View
           style={{ opacity, transform: [{ scale }], width: '100%', maxWidth: 400 }}
         >
           {/* Stops a tap inside the card from reaching the dismiss backdrop. */}
-          <Pressable onPress={() => {}} className="bg-card rounded-card overflow-hidden">
-            <View className="items-center pt-7 px-6">
-              <View
-                className={`w-14 h-14 rounded-card items-center justify-center border mb-4 ${icon.bg} ${icon.border}`}
-              >
-                <Ionicons name={icon.name} size={28} color={icon.color} />
+          <Pressable onPress={() => {}} className="bg-card rounded-3xl border border-line overflow-hidden" accessibilityViewIsModal>
+            <View className="items-center pt-6 px-6" style={{ gap: 8 }}>
+              <View className="w-14 h-14 rounded-full bg-paper-2 items-center justify-center mb-2">
+                <Ionicons name={icon.name} size={26} color={icon.color} />
               </View>
 
               {!!request.title && (
-                <Text className="text-ink text-base font-display uppercase text-center">
+                <Text className="text-ink font-semibold text-center" style={{ fontSize: 17, lineHeight: 22 }} accessibilityRole="header">
                   {request.title}
                 </Text>
               )}
@@ -202,26 +195,27 @@ export const AlertHost = () => {
                 <ScrollView keyboardShouldPersistTaps="handled"
                   style={{ maxHeight: 220 }}
                   showsVerticalScrollIndicator={false}
-                  className="mt-2 w-full"
+                  className="w-full"
                 >
-                  <Text className="text-ink-3 text-sm font-semibold leading-5 text-center">
+                  <Text className="text-ink-3 font-sans text-center" style={{ fontSize: 14, lineHeight: 20 }}>
                     {request.message}
                   </Text>
                 </ScrollView>
               )}
             </View>
 
-            <View className={`p-5 pt-6 ${stacked ? '' : 'flex-row'}`} style={{ gap: 10 }}>
+            <View className={`p-5 pt-6 ${stacked ? '' : 'flex-row'}`} style={{ gap: 8 }}>
               {request.buttons.map((button, index) => {
                 const s = styleFor(button.style);
                 return (
                   <Pressable
                     key={`${button.text ?? 'button'}-${index}`}
                     onPress={() => close(button)}
-                    className={`${s.bg} border ${s.border} rounded-card py-3.5 items-center justify-center active:opacity-70 ${stacked ? '' : 'flex-1'}`}
+                    className={`${s.bg} rounded-full items-center justify-center px-4 active:opacity-70 ${stacked ? '' : 'flex-1'}`}
+                    style={{ minHeight: 48 }}
                     accessibilityRole="button"
                   >
-                    <Text className={`${s.text} text-xs font-display uppercase`}>
+                    <Text className={`${s.text} font-semibold`} style={{ fontSize: 15 }} numberOfLines={1}>
                       {button.text ?? 'OK'}
                     </Text>
                   </Pressable>

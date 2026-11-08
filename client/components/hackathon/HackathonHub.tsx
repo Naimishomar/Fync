@@ -4,10 +4,7 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  TouchableOpacity,
-  TextInput,
   StatusBar,
-  ScrollView,
   RefreshControl,
   Pressable,
   useWindowDimensions,
@@ -21,7 +18,7 @@ import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { C } from '../../constants/colors';
 import { Image } from 'expo-image';
-import { AppBar } from '../ui/kit';
+import { AppBar, Button, Empty, FilterChips, SearchField, SegmentedTabs, Tag, TagRow } from '../ui/kit';
 import { ListingSwitcher } from '../opportunity/OpportunityCard';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
@@ -30,7 +27,7 @@ import { ListingSwitcher } from '../opportunity/OpportunityCard';
 // taller than the viewport and you could never see two hackathons at once.
 const GUTTER = 20;
 const BANNER_H = 148;
-const CARD_GAP = 14;
+const CARD_GAP = 12;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Hackathon {
@@ -71,17 +68,11 @@ const STATUS_META = (): Record<string, { label: string; chip: string; text: stri
   draft: { label: 'Draft', chip: 'bg-paper-2 border-line', text: 'text-ink-3', dot: C.ink4 },
 });
 
-const FILTERS = [
-  { label: 'All', value: '' },
-  { label: 'Live', value: 'active' },
-  { label: 'Upcoming', value: 'upcoming' },
-  { label: 'Ended', value: 'completed' },
-];
+const FILTERS = ['', 'active', 'upcoming', 'completed'] as const;
+const FILTER_LABELS = { '': 'All', active: 'Live', upcoming: 'Upcoming', completed: 'Ended' };
 
-const TABS = [
-  { label: 'Discover', value: 'discover', icon: 'compass-outline' },
-  { label: 'My Hackathons', value: 'mine', icon: 'person-outline' },
-];
+const TABS = ['discover', 'mine'] as const;
+const TAB_LABELS = { discover: 'Discover', mine: 'My hackathons' };
 
 // Fync no longer runs registration, so the only roles it can honestly claim
 // are "you host this" and "the host tagged you as a winner".
@@ -143,12 +134,9 @@ const HackathonCard = memo(
     item,
     width,
     onOpen,
-    stamped,
   }: {
     item: Hackathon;
     width: number;
-    /** The one live hackathon carries the screen's stamp. */
-    stamped?: boolean;
     onOpen: (id: string) => void;
   }) => {
     const derived = deriveStatus(item);
@@ -157,25 +145,14 @@ const HackathonCard = memo(
     const remaining = countdown(item, derived);
 
     return (
-      <View
-        className={`bg-card rounded-card overflow-hidden ${stamped ? 'border-2 border-ink' : 'border border-line'}`}
-        style={{
-          width,
-          marginBottom: CARD_GAP,
-          shadowColor: '#12100E',
-          shadowOffset: stamped ? { width: 4, height: 4 } : { width: 0, height: 4 },
-          shadowOpacity: stamped ? 1 : 0.06,
-          shadowRadius: stamped ? 0 : 12,
-          elevation: 2,
-        }}
-      >
+      <View className="bg-card rounded-2xl overflow-hidden border border-line" style={{ width, marginBottom: CARD_GAP }}>
         <Pressable
           onPress={() => onOpen(item._id)}
-          android_ripple={{ color: 'rgba(18, 16, 14,0.06)' }}
+          className="active:opacity-70"
+          accessibilityRole="button"
+          accessibilityLabel={`${item.title}, ${status.label}`}
         >
-          {/* Pressed state in children: NativeWind can drop a style function. */}
-          {({ pressed }) => (
-          <View style={{ opacity: pressed ? 0.9 : 1 }}>
+          <View>
           {/* Banner */}
           <View style={{ height: BANNER_H }} className="bg-night">
             {item.bannerImage ? (
@@ -195,21 +172,21 @@ const HackathonCard = memo(
             />
 
             {/* Status pill */}
-            <View className="absolute top-3 left-3 flex-row items-center bg-card/95 px-2.5 py-1.5 rounded-lg">
+            <View className="absolute top-3 left-3 flex-row items-center bg-card/95 px-2.5 py-1.5 rounded-full">
               <View className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: status.dot }} />
-              <Text className={`text-label font-semibold ${status.text}`}>{status.label}</Text>
+              <Text className={`text-xs font-semibold ${status.text}`}>{status.label}</Text>
               {remaining ? (
                 <>
                   <View className="w-1 h-1 rounded-full bg-line mx-1.5" />
-                  <Text className="text-ink-2 text-label font-semibold">{remaining}</Text>
+                  <Text className="text-ink-2 text-xs font-semibold">{remaining}</Text>
                 </>
               ) : null}
             </View>
 
             {/* My role, when this is one of mine */}
             {item.myRole ? (
-              <View className="absolute top-3 right-3 bg-night/80 px-2.5 py-1.5 rounded-lg">
-                <Text className="text-label font-semibold text-white">{ROLE_LABEL[item.myRole] ?? item.myRole}</Text>
+              <View className="absolute top-3 right-3 bg-night/80 px-2.5 py-1.5 rounded-full">
+                <Text className="text-xs font-semibold text-white">{ROLE_LABEL[item.myRole] ?? item.myRole}</Text>
               </View>
             ) : null}
 
@@ -218,13 +195,13 @@ const HackathonCard = memo(
               <View className="absolute bottom-3 left-3 flex-row items-center">
                 <Ionicons name="trophy" size={13} color={C.brand[500]} />
                 <Text className="text-white text-sm font-semibold ml-1.5">{item.prizepool}</Text>
-                <Text className="text-white/60 text-label font-semibold ml-1.5">prize pool</Text>
+                <Text className="text-white/60 text-xs font-semibold ml-1.5">prize pool</Text>
               </View>
             ) : null}
           </View>
 
           {/* Body */}
-          <View style={{ padding: 14 }}>
+          <View style={{ padding: 16 }}>
             {/* Organiser + dates */}
             <View className="flex-row items-center justify-between mb-2.5">
               <View className="flex-row items-center flex-1 mr-3">
@@ -235,69 +212,60 @@ const HackathonCard = memo(
                     <MaterialCommunityIcons name="domain" size={14} color={C.ink3} />
                   )}
                 </View>
-                <Text className="text-ink-3 text-label font-semibold flex-1" numberOfLines={1}>
+                <Text className="text-ink-3 text-xs font-semibold flex-1" numberOfLines={1}>
                   {item.organiser?.name || 'Fync'}
                 </Text>
               </View>
-              <View className="flex-row items-center bg-paper-2 px-2 py-1 rounded-md">
+              <View className="flex-row items-center bg-paper-2 px-2 py-1 rounded-full">
                 <Feather name="calendar" size={11} color={C.ink3} />
-                <Text className="text-ink-2 text-label font-semibold ml-1">
+                <Text className="text-ink-2 text-xs font-semibold ml-1">
                   {fmtDate(item.hackathonstarts)} – {fmtDate(item.hackathonends)}
                 </Text>
               </View>
             </View>
 
             {/* Title */}
-            <Text className="text-ink text-lg font-display leading-6 mb-2.5" numberOfLines={2}>
+            <Text className="text-ink text-lg font-semibold leading-6 mb-2" numberOfLines={2}>
               {item.title}
             </Text>
 
             {/* Meta — mode, team size, and where the button actually goes */}
             <View className="flex-row items-center flex-wrap mb-3">
               <Feather name="map-pin" size={12} color={C.ink3} />
-              <Text className="text-ink-3 text-label font-semibold ml-1.5">
+              <Text className="text-ink-3 text-xs font-semibold ml-1.5">
                 {item.mode === 'Online' || !item.mode ? 'Online' : item.location || item.mode}
               </Text>
               {item.teamSize ? (
                 <>
                   <View className="w-1 h-1 rounded-full bg-line mx-2" />
-                  <Text className="text-ink-3 text-label font-semibold">Teams of {item.teamSize}</Text>
+                  <Text className="text-ink-3 text-xs font-semibold">Teams of {item.teamSize}</Text>
                 </>
               ) : null}
               {item.applyLink ? (
                 <>
                   <View className="w-1 h-1 rounded-full bg-line mx-2" />
                   <Feather name="external-link" size={11} color={C.ink3} />
-                  <Text className="text-ink-3 text-label font-semibold ml-1">{hostOf(item.applyLink)}</Text>
+                  <Text className="text-ink-3 text-xs font-semibold ml-1">{hostOf(item.applyLink)}</Text>
                 </>
               ) : null}
             </View>
 
             {hasWinners ? (
-              <View className="flex-row items-center bg-warning/10 border border-warning/25 self-start px-2.5 py-1.5 rounded-md mb-3">
+              <View className="flex-row items-center bg-warning/10 border border-warning/25 self-start px-2.5 py-1.5 rounded-full mb-3">
                 <MaterialCommunityIcons name="trophy" size={12} color={C.warning} />
-                <Text className="text-warning text-label font-semibold ml-1.5">Winners announced</Text>
+                <Text className="text-warning text-xs font-semibold ml-1.5">Winners announced</Text>
               </View>
             ) : null}
 
             {/* Tags */}
             {item.tags?.length ? (
-              <View className="flex-row flex-wrap" style={{ gap: 6 }}>
-                {item.tags.slice(0, 3).map((tag, i) => (
-                  <View key={`${tag}-${i}`} className="bg-paper-2 border border-line px-2 py-1 rounded-md">
-                    <Text className="text-label text-ink-3 font-semibold">{tag}</Text>
-                  </View>
-                ))}
-                {item.tags.length > 3 ? (
-                  <View className="px-2 py-1">
-                    <Text className="text-label text-ink-3 font-semibold">+{item.tags.length - 3}</Text>
-                  </View>
-                ) : null}
-              </View>
+              <TagRow>
+                {item.tags.slice(0, 3).map((tag, i) => <Tag key={`${tag}-${i}`} label={tag} />)}
+                {item.tags.length > 3 ? <Tag label={`+${item.tags.length - 3}`} /> : null}
+              </TagRow>
             ) : null}
           </View>
           </View>
-          )}
         </Pressable>
 
       </View>
@@ -329,70 +297,24 @@ const ListHeader = memo(
   }) => (
     <View style={{ paddingTop: 8 }}>
 
-      {/* Search */}
-      <View className="flex-row items-center bg-card border-2 border-ink px-3 mb-3 rounded-md" style={{ height: 44 }}>
-        <Feather name="search" size={16} color={C.ink3} />
-        <TextInput
-          placeholder="Search hackathons or tags"
-          placeholderTextColor={C.ink3}
-          value={search}
-          onChangeText={onSearch}
-          returnKeyType="search"
-          autoCorrect={false}
-          className="flex-1 ml-2 text-ink text-sm"
-          style={{ paddingVertical: 0 }}
-        />
-        {search.length > 0 ? (
-          <TouchableOpacity onPress={() => onSearch('')} hitSlop={8}>
-            <Ionicons name="close-circle" size={17} color={C.ink4} />
-          </TouchableOpacity>
-        ) : null}
-      </View>
+      <SearchField
+        placeholder="Search hackathons or tags"
+        value={search}
+        onChangeText={onSearch}
+        containerStyle={{ marginBottom: 12 }}
+      />
 
-      {/* Discover / Mine */}
-      <View className="flex-row bg-paper-2 rounded-xl p-1 mb-3">
-        {TABS.map((t) => {
-          const on = view === t.value;
-          return (
-            <TouchableOpacity
-              key={t.value}
-              onPress={() => onView(t.value as 'discover' | 'mine')}
-              className={`flex-1 flex-row items-center justify-center py-2.5 rounded-lg ${on ? 'bg-card' : ''}`}
-              activeOpacity={0.8}
-            >
-              <Ionicons name={t.icon as any} size={14} color={on ? C.brand[500] : C.ink3} />
-              <Text className={`ml-1.5 text-label font-semibold ${on ? 'text-ink' : 'text-ink-3'}`}>
-                {t.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      <SegmentedTabs items={TABS} labels={TAB_LABELS} value={view} onChange={onView} style={{ marginBottom: 12 }} />
 
-      {/* Status filters — hidden in "mine", where they did nothing but sat at
-          30% opacity taking up a row of vertical space. */}
+      {/* Status filters — hidden in "mine", where they did nothing. */}
       {view === 'discover' ? (
-        <ScrollView keyboardShouldPersistTaps="handled"
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8, paddingBottom: 12 }}
-        >
-          {FILTERS.map((f) => {
-            const on = activeFilter === f.value;
-            return (
-              <TouchableOpacity
-                key={f.value || 'all'}
-                onPress={() => onFilter(f.value)}
-                className={`px-3.5 py-2 rounded-lg border ${ on ? 'bg-ink border-ink' : 'bg-card border-line' }`}
-                activeOpacity={0.8}
-              >
-                <Text className={`text-label font-semibold ${on ? 'text-paper' : 'text-ink-2'}`}>
-                  {f.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        <FilterChips
+          items={FILTERS}
+          labels={FILTER_LABELS}
+          value={activeFilter as (typeof FILTERS)[number]}
+          onChange={onFilter}
+          style={{ marginHorizontal: -GUTTER, marginBottom: 12 }}
+        />
       ) : (
         <View style={{ height: 4 }} />
       )}
@@ -513,11 +435,10 @@ const HackathonHub = () => {
   );
 
   const renderItem = useCallback(
-    ({ item, index }: { item: Hackathon; index: number }) => (
+    ({ item }: { item: Hackathon }) => (
       <HackathonCard
         item={item}
         width={cardWidth}
-        stamped={index === 0 && deriveStatus(item) === 'active'}
         onOpen={openDetail}
       />
     ),
@@ -532,17 +453,7 @@ const HackathonHub = () => {
           title="Hackathon Hub"
           onBack={() => navigation.goBack()}
           right={
-            <TouchableOpacity
-              onPress={openCreate}
-              className="flex-row items-center bg-ink px-3.5 border-2 border-ink rounded-md"
-              style={{ minHeight: 40, marginRight: 11 }}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel="Host a hackathon"
-            >
-              <MaterialCommunityIcons name="plus" size={15} color={C.brand[500]} />
-              <Text className="text-paper text-label font-semibold ml-1">Host</Text>
-            </TouchableOpacity>
+            <Button small variant="primary" icon="add" title="Host" onPress={openCreate} accessibilityLabel="Host a hackathon" />
           }
         />
         <ListingSwitcher current="hackathons" />
@@ -586,35 +497,18 @@ const HackathonHub = () => {
                 <ActivityIndicator size="large" color={C.brand[500]} />
               </View>
             ) : (
-              <View className="items-center px-gutter" style={{ paddingTop: 56 }}>
-                <View className="w-16 h-16 rounded-card bg-card border border-line items-center justify-center mb-4">
-                  <MaterialCommunityIcons name="rocket-launch-outline" size={28} color={C.ink4} />
-                </View>
-                <Text className="text-ink text-base font-semibold text-center mb-1">
-                  {search
-                    ? 'No matches'
-                    : view === 'mine'
-                    ? 'Nothing here yet'
-                    : 'No hackathons yet'}
-                </Text>
-                <Text className="text-ink-3 text-label font-semibold text-center leading-4">
-                  {search
+              <Empty
+                icon="rocket-outline"
+                title={search ? 'No matches' : view === 'mine' ? 'Nothing here yet' : 'No hackathons yet'}
+                hint={
+                  search
                     ? `Nothing matches “${search}”.`
                     : view === 'mine'
                     ? 'Hackathons you host, join or judge will show up here.'
-                    : 'Check back soon, or host the first one.'}
-                </Text>
-                {!search && view === 'discover' ? (
-                  <TouchableOpacity
-                    onPress={openCreate}
-                    className="flex-row items-center bg-ink px-4 py-3 mt-5 border-2 border-ink rounded-md"
-                    activeOpacity={0.85}
-                  >
-                    <MaterialCommunityIcons name="plus" size={15} color={C.brand[500]} />
-                    <Text className="text-paper text-label font-semibold ml-1.5">Host a hackathon</Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
+                    : 'Check back soon, or host the first one.'
+                }
+                action={!search && view === 'discover' ? <Button variant="primary" icon="add" title="Host a hackathon" onPress={openCreate} /> : undefined}
+              />
             )
           }
         />

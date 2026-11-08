@@ -1,13 +1,25 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Animated, StatusBar, TextInput } from 'react-native';
-import { Image } from 'expo-image';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { View, FlatList, ActivityIndicator, Animated, StatusBar } from 'react-native';
 import { fetchDriveData } from '../../utils/handleDrive';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, ListRow, SearchField, SegmentedTabs, Empty, Meta } from '../ui/kit';
 
-const FOLDER_IMG = 'https://cdn-icons-png.flaticon.com/512/716/716784.png';
-const PDF_IMG = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
+const FOLDER_MIME = 'application/vnd.google-apps.folder';
+const FILTERS = ['all', 'folders', 'files'] as const;
+const FILTER_LABELS = { all: 'All', folders: 'Folders', files: 'PDFs' };
+
+const DriveRow = React.memo(function DriveRow({ item, onOpen }: { item: any; onOpen: (item: any) => void }) {
+    const isFolder = item.mimeType === FOLDER_MIME;
+    return (
+        <ListRow
+            icon={isFolder ? 'folder-outline' : 'document-text-outline'}
+            title={item.name}
+            subtitle={isFolder ? 'Folder' : 'PDF'}
+            onPress={() => onOpen(item)}
+            style={{ paddingHorizontal: 20 }}
+        />
+    );
+});
 
 // Module scope: declared inside the screen it was a new component type on
 // every render, so each render remounted all six and restarted their loops.
@@ -28,9 +40,9 @@ const SkeletonItem = () => {
     return (
         <Animated.View
             style={{ opacity: pulseAnim }}
-            className="flex-row items-center p-5 mx-gutter mb-4 bg-card rounded-card border border-line"
+            className="flex-row items-center px-gutter py-2 mb-2"
         >
-            <View className="w-14 h-14 bg-paper-2 rounded-card" />
+            <View className="w-10 h-10 bg-paper-2 rounded-full" />
             <View className="ml-4 flex-1">
                 <View className="h-4 bg-paper-2 rounded w-3/4 mb-2" />
                 <View className="h-3 bg-paper-2 rounded w-1/2" />
@@ -45,7 +57,7 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
-    const [activeFilter, setActiveFilter] = useState<'all' | 'folders' | 'files'>('all');
+    const [activeFilter, setActiveFilter] = useState<typeof FILTERS[number]>('all');
 
     useEffect(() => {
         navigation.setOptions({ title: title || "Resources" });
@@ -79,13 +91,15 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
         return result;
     }, [search, items, activeFilter]);
 
-    const handlePress = (item: any) => {
-        if (item.mimeType === 'application/vnd.google-apps.folder') {
+    const handlePress = useCallback((item: any) => {
+        if (item.mimeType === FOLDER_MIME) {
             navigation.push('DriveFolderScreen', { folderId: item.id, title: item.name });
         } else {
             navigation.navigate('PDFViewerScreen', { fileId: item.id, title: item.name });
         }
-    };
+    }, [navigation]);
+
+    const renderItem = useCallback(({ item }: { item: any }) => <DriveRow item={item} onOpen={handlePress} />, [handlePress]);
 
 
 
@@ -93,13 +107,11 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
 
-            {/* HEADER DECORATION - MATCHING LEADERBOARD */}
-
             <View className="flex-1">
                 <AppBar title="Fync Drive" onBack={() => navigation.goBack()}
                     right={loading
                         ? <ActivityIndicator size="small" color={C.brand[500]} style={{ marginRight: 11 }} />
-                        : <IconBtn name="refresh" onPress={loadData} />} />
+                        : <IconBtn name="refresh" onPress={loadData} accessibilityLabel="Refresh" />} />
                 {/* Skeleton only on first load; a refresh keeps the list and spins the button. */}
                 {loading && items.length === 0 ? (
                     <View>
@@ -113,87 +125,15 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                         keyExtractor={(item: any) => item.id}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 100 }}
+                        renderItem={renderItem}
                         ListHeaderComponent={
-                            <View className='px-gutter pt-2 bg-transparent'>
-
-                                <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink mb-6 rounded-md">
-                                    <Ionicons name="search" size={20} color={C.ink4} />
-                                    <TextInput
-                                        placeholder="Search resources..."
-                                        placeholderTextColor={C.ink4}
-                                        value={search}
-                                        onChangeText={setSearch}
-                                        className="flex-1 text-ink font-display text-sm p-3"
-                                    />
-                                </View>
-
-                                <View className="flex-row justify-between gap-4 mb-6">
-                                    <View className="flex-1 flex-row bg-card rounded-xl p-1.5 border border-line">
-                                        {[
-                                            { id: 'all', label: 'All' },
-                                            { id: 'folders', label: 'Folders' },
-                                            { id: 'files', label: 'PDFs' }
-                                        ].map(chip => (
-                                            <TouchableOpacity
-                                                key={chip.id}
-                                                onPress={() => setActiveFilter(chip.id as any)}
-                                                className={`flex-1 items-center py-3 rounded-md ${activeFilter === chip.id ? 'bg-ink' : 'bg-transparent'}`}
-                                            >
-                                                <Text className={`font-display text-label uppercase ${activeFilter === chip.id ? 'text-paper' : 'text-ink-3'}`}>{chip.label}</Text>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </View>
-                                </View>
-
-                                <View className="mb-6 flex-row items-center">
-                                    <View className="bg-brand-500/10 border border-brand-500/20 mr-2 px-2.5 py-1 rounded-full">
-                                        <Text className="text-accent-text font-display text-label uppercase">Current Path</Text>
-                                    </View>
-                                    <Text className="text-ink-3 text-label font-display uppercase flex-1" numberOfLines={1}>/ {title || "Root Protocol"}</Text>
-                                </View>
+                            <View className="px-gutter pt-2 pb-2" style={{ gap: 12 }}>
+                                <SearchField value={search} onChangeText={setSearch} placeholder="Search resources" />
+                                <SegmentedTabs items={FILTERS} value={activeFilter} onChange={setActiveFilter} labels={FILTER_LABELS} />
+                                <Meta numberOfLines={1}>{title || 'Root'}</Meta>
                             </View>
                         }
-                        renderItem={({ item }) => {
-                            const isFolder = item.mimeType === 'application/vnd.google-apps.folder';
-
-                            return (
-                                <TouchableOpacity
-                                    activeOpacity={0.7}
-                                    className="flex-row items-center p-5 mx-gutter mb-4 bg-card rounded-card border border-line"
-                                    onPress={() => handlePress(item)}
-                                >
-                                    <View className="w-14 h-14 bg-paper-2 rounded-card items-center justify-center p-2.5">
-                                        <Image
-                                            source={{ uri: isFolder ? FOLDER_IMG : PDF_IMG }}
-                                            style={{ width: '100%', height: '100%' }}
-                                            contentFit="contain"
-                                            cachePolicy="memory-disk"
-                                        />
-                                    </View>
-
-                                    <View className="ml-4 flex-1">
-                                        <Text className="text-ink text-sm font-display uppercase" numberOfLines={1}>
-                                            {item.name}
-                                        </Text>
-                                        <Text className="text-ink-3 text-label font-display uppercase mt-1">
-                                            {isFolder ? 'Folder' : 'PDF Source'}
-                                        </Text>
-                                    </View>
-
-                                    <View className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
-                                        <Ionicons name="chevron-forward" size={12} color={C.ink4} />
-                                    </View>
-                                </TouchableOpacity>
-                            );
-                        }}
-                        ListEmptyComponent={
-                            <View className="items-center mt-20 px-gutter">
-                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Ionicons name="document-text-outline" size={32} color={C.ink4} />
-                                </View>
-                                <Text className="font-semibold text-base text-ink text-center">No resources found</Text>
-                            </View>
-                        }
+                        ListEmptyComponent={<Empty icon="document-text-outline" title="No resources found" />}
                     />
                 )}
             </View>

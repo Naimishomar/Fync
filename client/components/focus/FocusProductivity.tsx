@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Dimensions, Vibration, BackHandler, AppState, AppStateStatus, StatusBar, Animated, FlatList} from 'react-native'
+import {View, Text, Pressable, Dimensions, Vibration, BackHandler, AppState, AppStateStatus, StatusBar, Animated, FlatList} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
@@ -15,7 +15,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, Button, Card, Empty, IconBtn, IconTile, Label, ListRow, Num, SectionHeader, Tag } from '../ui/kit';
 import { useBottomInset } from '../../constants/layout';
 
 const { width, height } = Dimensions.get('window');
@@ -221,55 +221,48 @@ export default function FocusProductivity() {
     const renderSetup = () => (
         <View className="flex-1 px-gutter pt-4">
 
-            <View className="flex-row flex-wrap justify-between gap-4">
+            <View className="flex-row flex-wrap justify-between" style={{ rowGap: 12 }}>
                 {(Object.keys(SESSION_THEMES) as SessionType[]).map((type) => (
-                    <TouchableOpacity
+                    <Pressable
                         key={type}
                         onPress={() => setSessionType(type)}
-                        style={{ width: (width - 80) / 2 }}
-                        className={`p-6 rounded-sheet border ${sessionType === type ? 'border-success bg-card' : 'border-line bg-card'}`}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: sessionType === type }}
+                        style={{ width: (width - 52) / 2 }}
+                        className={`p-4 rounded-2xl border bg-card active:opacity-70 ${sessionType === type ? 'border-success' : 'border-line'}`}
                     >
-                        <View className={`w-12 h-12 rounded-card items-center justify-center mb-4 ${sessionType === type ? 'bg-success' : 'bg-paper-2'}`}>
-                            <Ionicons name={SESSION_THEMES[type].icon as any} size={24} color={sessionType === type ? 'white' : C.ink4} />
+                        <View className="flex-row items-center justify-between mb-4">
+                            <IconTile
+                                icon={SESSION_THEMES[type].icon as any}
+                                size={48}
+                                bg={sessionType === type ? C.success : undefined}
+                                color={sessionType === type ? '#fff' : C.ink3}
+                            />
+                            {sessionType === type && <Ionicons name="checkmark-circle" size={20} color={C.success} />}
                         </View>
-                        <Text className={`font-display text-label uppercasest ${sessionType === type ? 'text-ink' : 'text-ink-3'}`}>{SESSION_THEMES[type].label}</Text>
-                    </TouchableOpacity>
+                        <Text className={`font-semibold text-sm ${sessionType === type ? 'text-ink' : 'text-ink-3'}`}>{SESSION_THEMES[type].label}</Text>
+                    </Pressable>
                 ))}
             </View>
 
             <View className="mt-16 items-center">
                 <View className="flex-row items-center gap-10 mb-8">
-                    <TouchableOpacity onPress={() => setSeconds(Math.max(60, seconds - 300))} className="w-14 h-14 rounded-card border border-line bg-card items-center justify-center">
-                        <Ionicons name="remove" size={24} color={C.ink} />
-                    </TouchableOpacity>
+                    <IconBtn name="remove" boxed size={24} accessibilityLabel="Five minutes less" onPress={() => setSeconds(Math.max(60, seconds - 300))} />
                     <Text className="text-ink text-6xl font-display">{Math.floor(seconds / 60)}</Text>
-                    <TouchableOpacity onPress={() => setSeconds(seconds + 300)} className="w-14 h-14 rounded-card border border-line bg-card items-center justify-center">
-                        <Ionicons name="add" size={24} color={C.ink} />
-                    </TouchableOpacity>
+                    <IconBtn name="add" boxed size={24} accessibilityLabel="Five minutes more" onPress={() => setSeconds(seconds + 300)} />
                 </View>
-                <Text className="text-ink-3 uppercase text-label font-display">Minutes to Focus</Text>
+                <Label>Minutes to focus</Label>
             </View>
 
-            {/* The screen's one stamped element. A primary action outside a card
-                carries the stamp itself; inside a card it drops it, so the
-                device stays unique per screen. Brand fill takes ink text —
-                white on #F97316 is 2.1:1 and fails AA. */}
-            <TouchableOpacity
-                activeOpacity={0.85}
+            {/* Clears a 3-button nav bar / gesture pill, not a fixed 40. */}
+            <Button
+                variant="primary"
+                block
+                icon="leaf"
+                title="Plant a tree"
                 onPress={startSession}
-                accessibilityRole="button"
-                className="mt-auto rounded-card border-2 border-ink bg-brand-500"
-                style={{
-                    // Clears a 3-button nav bar / gesture pill, not a fixed 40.
-                    marginBottom: Math.max(40, bottomInset + 16),
-                    shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
-                    shadowOffset: { width: 4, height: 4 }, elevation: 0,
-                }}
-            >
-                <View className="py-5 items-center justify-center">
-                    <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Plant a Tree</Text>
-                </View>
-            </TouchableOpacity>
+                style={{ marginTop: 'auto', marginBottom: Math.max(40, bottomInset + 16) }}
+            />
         </View>
     );
 
@@ -277,9 +270,7 @@ export default function FocusProductivity() {
         <View className="flex-1 items-center justify-center px-gutter">
             <View className="absolute top-16 items-center">
                 <Text className="font-semibold text-base text-ink mb-2">{SESSION_THEMES[sessionType].label} Session</Text>
-                <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                    <Text className="text-ink-3 text-label font-display uppercase">Lockdown Active</Text>
-                </View>
+                <Tag label="Lockdown active" icon="lock-closed" />
             </View>
 
             <AnimatedCircularProgress
@@ -306,19 +297,9 @@ export default function FocusProductivity() {
 
             <View className="mt-16 w-full items-center">
                 {seconds <= 0 ? (
-                    <TouchableOpacity
-                        onPress={() => { setActiveTab('setup'); setSeconds(25 * 60); }}
-                        className="bg-ink px-gutter py-5 rounded-card"
-                    >
-                        <Text className="text-paper font-display uppercase text-xs">Claim Tree</Text>
-                    </TouchableOpacity>
+                    <Button variant="solid" icon="leaf" title="Claim tree" onPress={() => { setActiveTab('setup'); setSeconds(25 * 60); }} />
                 ) : (
-                    <TouchableOpacity
-                        onPress={giveUp}
-                        className="bg-danger/10 px-gutter py-4 rounded-full border border-danger/15 mt-4"
-                    >
-                        <Text className="text-danger text-label font-display uppercase">Give Up</Text>
-                    </TouchableOpacity>
+                    <Button variant="tertiary" title="Give up" onPress={giveUp} style={{ marginTop: 16 }} />
                 )}
             </View>
         </View>
@@ -331,27 +312,27 @@ export default function FocusProductivity() {
 
         return (
             <View className="flex-1 px-gutter pt-6">
-                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}><Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>My Forest</Text><View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} /></View>
+                <SectionHeader title="My forest" style={{ marginTop: 0 }} />
 
-                <View className="flex-row justify-between mb-8">
-                    <View className="bg-success/10 p-4 rounded-card flex-1 mr-2 items-center border border-success/15">
-                        <Ionicons name="leaf" size={26} color={C.success} style={{ marginBottom: 4 }} />
-                        <Text className="font-display text-h1 text-ink">{successfulTrees}</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase">Trees Grown</Text>
-                    </View>
-                    <View className="bg-paper-2 p-4 flex-1 mx-1 items-center border border-line rounded-md">
-                        <Ionicons name="timer-outline" size={26} color={C.ink2} style={{ marginBottom: 4 }} />
-                        <Text className="font-display text-h1 text-ink">{totalMinutes}</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase">Total Mins</Text>
-                    </View>
-                    <View className="bg-danger/10 p-4 rounded-card flex-1 ml-2 items-center border border-danger/15">
-                        <Ionicons name="leaf-outline" size={26} color={C.danger} style={{ marginBottom: 4 }} />
-                        <Text className="font-display text-h1 text-ink">{witheredTrees}</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase">Withered</Text>
-                    </View>
+                <View className="flex-row mb-4" style={{ gap: 12 }}>
+                    <Card padded style={{ flex: 1, alignItems: 'center' }}>
+                        <Ionicons name="leaf" size={24} color={C.success} style={{ marginBottom: 4 }} />
+                        <Num style={{ fontSize: 24 }}>{successfulTrees}</Num>
+                        <Label>Trees grown</Label>
+                    </Card>
+                    <Card padded style={{ flex: 1, alignItems: 'center' }}>
+                        <Ionicons name="timer-outline" size={24} color={C.ink2} style={{ marginBottom: 4 }} />
+                        <Num style={{ fontSize: 24 }}>{totalMinutes}</Num>
+                        <Label>Total mins</Label>
+                    </Card>
+                    <Card padded style={{ flex: 1, alignItems: 'center' }}>
+                        <Ionicons name="leaf-outline" size={24} color={C.danger} style={{ marginBottom: 4 }} />
+                        <Num style={{ fontSize: 24 }}>{witheredTrees}</Num>
+                        <Label>Withered</Label>
+                    </Card>
                 </View>
 
-                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}><Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>Recent Sessions</Text><View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} /></View>
+                <SectionHeader title="Recent sessions" />
 
                 <FlatList keyboardShouldPersistTaps="handled"
                     data={forestHistory}
@@ -359,31 +340,10 @@ export default function FocusProductivity() {
                     showsVerticalScrollIndicator={false}
                     style={{ flex: 1 }}
                     ListEmptyComponent={
-                        <View className="items-center justify-center py-10 opacity-50">
-                            <Ionicons name="leaf-outline" size={32} color={C.ink4} style={{ marginBottom: 12 }} />
-                            <Text className="font-display text-label text-ink-3 uppercase">Your forest is empty</Text>
-                            <Text className="font-sans text-sm text-ink-3 mt-2">Complete a focus session to plant a tree.</Text>
-                        </View>
+                        <Empty icon="leaf-outline" title="Your forest is empty" hint="Complete a focus session to plant a tree." />
                     }
                     ListFooterComponent={<View style={{ height: 40 + bottomInset }} />}
-                    renderItem={({ item }) => (
-                        <View className="flex-row items-center justify-between bg-card p-4 rounded-card mb-3 border border-line">
-                            <View className="flex-row items-center">
-                                <View className={`w-12 h-12 rounded-xl items-center justify-center mr-4 ${item.status === 'success' ? 'bg-success/10' : 'bg-danger/10'}`}>
-                                    <Ionicons name={item.status === 'success' ? 'leaf' : 'leaf-outline'} size={22} color={item.status === 'success' ? C.success : C.danger} />
-                                </View>
-                                <View>
-                                    <Text className="text-ink font-display text-sm">{SESSION_THEMES[item.type as SessionType].label}</Text>
-                                    <Text className="text-ink-3 text-xs font-medium">{new Date(item.date).toLocaleDateString()} • {Math.floor(item.duration / 60)} mins</Text>
-                                </View>
-                            </View>
-                            <View className={`px-3 py-1 rounded-full ${item.status === 'success' ? 'bg-success/15' : 'bg-danger/15'}`}>
-                                <Text className={`text-label font-display uppercasest ${item.status === 'success' ? 'text-success' : 'text-danger'}`}>
-                                    {item.status}
-                                </Text>
-                            </View>
-                        </View>
-                    )}
+                    renderItem={renderSession}
                 />
             </View>
         );
@@ -402,7 +362,7 @@ export default function FocusProductivity() {
                             else navigation.goBack();
                         }}
                         right={activeTab === 'setup'
-                            ? <IconBtn name="leaf" boxed color={C.success} onPress={() => setActiveTab('forest')} />
+                            ? <IconBtn name="leaf" boxed color={C.success} accessibilityLabel="My forest" onPress={() => setActiveTab('forest')} />
                             : undefined} />
                 )}
 
@@ -425,4 +385,18 @@ export default function FocusProductivity() {
     );
 }
 
-const styles = StyleSheet.create({});
+// Module scope so FlatList rows are not redefined on every timer tick.
+const SessionRow = React.memo(function SessionRow({ item }: { item: any }) {
+    const ok = item.status === 'success';
+    return (
+        <Card style={{ paddingHorizontal: 16, marginBottom: 12 }}>
+            <ListRow
+                leading={<IconTile icon={ok ? 'leaf' : 'leaf-outline'} bg={ok ? C.success + '1A' : C.danger + '1A'} color={ok ? C.success : C.danger} />}
+                title={SESSION_THEMES[item.type as SessionType].label}
+                subtitle={`${new Date(item.date).toLocaleDateString()} • ${Math.floor(item.duration / 60)} mins`}
+                right={<Tag label={ok ? 'Success' : 'Failed'} tone={{ fg: ok ? C.success : C.danger }} />}
+            />
+        </Card>
+    );
+});
+const renderSession = ({ item }: { item: any }) => <SessionRow item={item} />;

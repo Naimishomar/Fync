@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, TextInput, StatusBar, Switch, KeyboardAvoidingView, Platform} from 'react-native'
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
+import { View, Text, ScrollView, ActivityIndicator, StatusBar, Switch, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
@@ -9,8 +7,13 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, Empty, Meta, Button } from '../ui/kit';
-import Avatar from '../Avatar';
+import { AppBar, Empty, Meta, Button, Card, Divider, ListRow, SectionHeader, SearchField, FormField, IconBtn, Tag, Tabs } from '../ui/kit';
+import { MemberRow, DecideButtons, ImagePick, RoomIcon } from '../community/shared';
+
+type TabKey = 'requests' | 'recruit' | 'members' | 'settings';
+const TAB_LABEL: Record<TabKey, string> = { requests: 'Requests', recruit: 'Invite', members: 'Members', settings: 'Settings' };
+const TAB_KEY = Object.fromEntries(Object.entries(TAB_LABEL).map(([k, v]) => [v, k])) as Record<string, TabKey>;
+const TAB_LABELS = Object.values(TAB_LABEL);
 
 const ClubAdminPanel = () => {
     const navigation = useNavigation<any>();
@@ -20,7 +23,7 @@ const ClubAdminPanel = () => {
     
     const [club, setClub] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'requests' | 'recruit' | 'members' | 'settings'>('requests');
+    const [activeTab, setActiveTab] = useState<TabKey>('requests');
     
     // Edit Form State
     const [editName, setEditName] = useState('');
@@ -280,7 +283,7 @@ const ClubAdminPanel = () => {
 
     if (loading) return (
         <View className="flex-1 bg-paper">
-            <AppBar title="Control Panel" onBack={() => navigation.goBack()} />
+            <AppBar title="Manage club" onBack={() => navigation.goBack()} />
             <View className="flex-1 justify-center items-center"><ActivityIndicator color={C.brand[500]} /></View>
         </View>
     );
@@ -288,7 +291,7 @@ const ClubAdminPanel = () => {
     if (!club) {
         return (
             <View className="flex-1 bg-paper">
-                <AppBar title="Control Panel" onBack={() => navigation.goBack()} />
+                <AppBar title="Manage club" onBack={() => navigation.goBack()} />
                 <Empty
                     icon="cloud-offline-outline"
                     title="Could not load club"
@@ -298,291 +301,166 @@ const ClubAdminPanel = () => {
         );
     }
 
+    const isCreator = club.creator?._id === user?._id || club.creator === user?._id;
+    const cardPad = { paddingHorizontal: 16, paddingVertical: 4 };
+    const rows = (list: any[] | undefined, render: (x: any) => React.ReactNode) => (
+        <Card style={cardPad}>
+            {(list ?? []).map((x: any, i: number) => (
+                <View key={x._id}>
+                    {i > 0 ? <Divider /> : null}
+                    {render(x)}
+                </View>
+            ))}
+        </Card>
+    );
+
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
-            <View className="flex-1">
-                <AppBar title="Control Panel" onBack={() => navigation.goBack()} />
-                <Meta style={{ paddingHorizontal: 20, paddingBottom: 8 }} numberOfLines={1}>{club.name}</Meta>
+            <AppBar title="Manage club" onBack={() => navigation.goBack()} />
+            <Meta style={{ paddingHorizontal: 20, paddingBottom: 4 }} numberOfLines={1}>{club.name}</Meta>
+            <Tabs fill items={TAB_LABELS} value={TAB_LABEL[activeTab]} onChange={(l) => setActiveTab(TAB_KEY[l])} />
 
-                {/* Tabs */}
-                <View className="flex-row bg-card border-b border-line">
-                    {['requests', 'recruit', 'members', 'settings'].map((tab: any) => (
-                        <TouchableOpacity 
-                            key={tab}
-                            onPress={() => setActiveTab(tab as any)}
-                            className={`flex-1 py-4 items-center border-b-2 ${activeTab === tab ? 'border-ink' : 'border-transparent'}`}
-                        >
-                            <Text className={`text-label font-display uppercase ${activeTab === tab ? 'text-ink' : 'text-ink-3'}`}>
-                                {tab}
+            <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 20 }} keyboardShouldPersistTaps="handled">
+                {activeTab === 'requests' && (
+                    <View>
+                        <SectionHeader title="Join requests" count={club.joinRequests?.length || 0} />
+                        {club.joinRequests?.length ? rows(club.joinRequests, (req) => (
+                            <MemberRow
+                                person={req}
+                                right={<DecideButtons name={req.name} disabled={!!actingId} onApprove={() => handleRequestAction(req._id, 'approve')} onReject={() => handleRequestAction(req._id, 'reject')} />}
+                            />
+                        )) : (
+                            <Empty icon="mail-open-outline" title="No pending requests" />
+                        )}
+                    </View>
+                )}
+
+                {activeTab === 'recruit' && (
+                    <View>
+                        <SectionHeader title="Invite members" />
+                        <SearchField
+                            placeholder="Search by username"
+                            value={searchQuery}
+                            onChangeText={handleSearch}
+                            onClear={() => handleSearch('')}
+                        />
+                        {searching ? <ActivityIndicator size="small" color={C.ink} style={{ marginTop: 12 }} /> : null}
+
+                        {searchResults.length > 0 && (
+                            <>
+                                <SectionHeader title="Results" />
+                                {rows(searchResults, (u) => (
+                                    <MemberRow
+                                        person={u}
+                                        size={40}
+                                        right={<Button small variant="primary" title="Invite" disabled={!!actingId} onPress={() => handleInvite(u._id)} />}
+                                    />
+                                ))}
+                            </>
+                        )}
+
+                        <SectionHeader title="Pending invites" count={club.invitations?.length || 0} />
+                        {club.invitations?.length ? rows(club.invitations, (inv) => (
+                            <MemberRow person={inv} dim right={<Tag label="Sent" />} />
+                        )) : null}
+                    </View>
+                )}
+
+                {activeTab === 'members' && (
+                    <View>
+                        <SectionHeader title="Members" count={club.members?.length || 0} />
+                        {rows(club.members, (member) => {
+                            const isCurrentAdmin = (club.admins ?? []).some((a: any) => (a._id || a) === member._id);
+                            return (
+                                <MemberRow
+                                    person={member}
+                                    right={
+                                        <View className="flex-row items-center" style={{ gap: 4 }}>
+                                            {isCurrentAdmin ? (
+                                                <>
+                                                    <Tag icon="shield-checkmark-outline" label="Admin" />
+                                                    {/* Only the creator can demote an admin. */}
+                                                    {isCreator && member._id !== user?._id && (
+                                                        <Button small variant="tertiary" title="Revoke" onPress={() => handleToggleAdmin(member._id, true)} />
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Button small title="Promote" onPress={() => handleToggleAdmin(member._id, false)} />
+                                                    <IconBtn name="trash-outline" size={18} color={C.danger} onPress={() => handleRemoveMember(member._id)} accessibilityLabel={`Remove ${member.name}`} />
+                                                </>
+                                            )}
+                                        </View>
+                                    }
+                                />
+                            );
+                        })}
+                    </View>
+                )}
+
+                {activeTab === 'settings' && (
+                    <View>
+                        <SectionHeader title="Join code" />
+                        <Card style={cardPad}>
+                            <ListRow
+                                title={club.joinCode || '000000'}
+                                subtitle="Share this code to let people join"
+                                right={<IconBtn name="copy-outline" boxed onPress={copyJoinCode} accessibilityLabel="Copy join code" />}
+                            />
+                            <Divider />
+                            <ListRow
+                                title="Allow joining by code"
+                                subtitle="Students can find the club with the code"
+                                subtitleLines={2}
+                                right={
+                                    <Switch
+                                        value={isJoinCodeEnabled}
+                                        onValueChange={setIsJoinCodeEnabled}
+                                        trackColor={{ false: C.line, true: C.brand[500] }}
+                                        thumbColor="white"
+                                        accessibilityLabel="Allow joining by code"
+                                    />
+                                }
+                            />
+                        </Card>
+
+                        <SectionHeader title="Club profile" />
+                        <Card padded style={{ gap: 16 }}>
+                            <View className="flex-row" style={{ gap: 12 }}>
+                                <ImagePick uri={newLogo?.uri || club.logo} onPress={() => pickImage('logo')} label="Logo" icon="camera-outline" style={{ width: 72, height: 72 }} />
+                                <ImagePick uri={newBanner?.uri || club.banner} onPress={() => pickImage('banner')} label="Banner" style={{ flex: 1, height: 72 }} />
+                            </View>
+                            <FormField label="Club name" placeholder="Club name" value={editName} onChangeText={setEditName} />
+                            <FormField label="Category" placeholder="Category" value={editCategory} onChangeText={setEditCategory} />
+                            <FormField label="About" placeholder="Describe the club" value={editDesc} onChangeText={setEditDesc} multiline />
+                            <Button title="Save profile" variant="primary" block loading={updating} onPress={handleUpdateClub} />
+                        </Card>
+
+                        <SectionHeader title="Rooms" count={club.subGroups?.length || 0} />
+                        {rows(club.subGroups, (sub) => (
+                            <ListRow
+                                leading={<RoomIcon uri={sub.logo} />}
+                                title={sub.name}
+                                subtitle={`${sub.members?.length || 0} members`}
+                                onPress={() => navigation.navigate('EditSubGroup', { subGroupId: sub._id })}
+                                accessibilityLabel={`Edit ${sub.name}`}
+                            />
+                        ))}
+
+                        <SectionHeader title="Danger zone" />
+                        <Card padded style={{ gap: 12 }}>
+                            <Text className="text-ink-2" style={{ fontSize: 13, lineHeight: 18 }}>
+                                Deleting the club removes all its rooms and messages. This can't be undone.
                             </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-
-                <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                <ScrollView className="flex-1 p-5" keyboardShouldPersistTaps="handled">
-                    {activeTab === 'requests' && (
-                        <View>
-                            <Text className="text-ink-3 font-semibold uppercase text-label mb-4">Incoming Requests ({club.joinRequests?.length || 0})</Text>
-                            {club.joinRequests?.map((req: any) => (
-                                <View key={req._id} className="bg-card p-4 rounded-card border border-line mb-3 flex-row items-center">
-                                    <Avatar user={req} size={48} showBadge={false} />
-                                    <View className="flex-1 ml-4">
-                                        <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{req.name}</Text>
-                                        <Text className="text-ink-3 text-xs" numberOfLines={1}>@{req.username}</Text>
-                                    </View>
-                                    <View className="flex-row gap-2">
-                                        <TouchableOpacity onPress={() => handleRequestAction(req._id, 'approve')} disabled={!!actingId} hitSlop={6} className="w-9 h-9 bg-success rounded-xl items-center justify-center">
-                                            <Feather name="check" size={18} color="white" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => handleRequestAction(req._id, 'reject')} disabled={!!actingId} hitSlop={6} className="w-9 h-9 bg-paper-2 rounded-xl items-center justify-center">
-                                            <Feather name="x" size={18} color={C.ink2} />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            ))}
-                            {club.joinRequests?.length === 0 && (
-                                <View className="items-center mt-20">
-                                    <Feather name="inbox" size={32} color={C.line} />
-                                    <Text className="font-sans text-sm text-center text-ink-4 mt-4">No pending requests</Text>
-                                </View>
-                            )}
-                        </View>
-                    )}
-
-                    {activeTab === 'recruit' && (
-                        <View>
-                            <Text className="text-ink-3 font-semibold uppercase text-label mb-4">Recruit Members</Text>
-                            <View className="bg-card p-4 border-2 border-ink mb-6 flex-row items-center rounded-md">
-                                <Feather name="search" size={18} color={C.ink3} />
-                                <TextInput placeholderTextColor={C.ink4} 
-                                    placeholder="Search by username..."
-                                    className="flex-1 ml-3 font-semibold text-ink"
-                                    value={searchQuery}
-                                    onChangeText={handleSearch}
-                                />
-                                {searching && <ActivityIndicator size="small" color={C.ink} />}
-                            </View>
-
-                            {searchResults.length > 0 && (
-                                <View className="mb-8">
-                                    <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                                      <Text className="text-ink-3 font-semibold uppercase text-label">Search Results</Text>
-                                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                    </View>
-                                    {searchResults.map((u: any) => (
-                                        <View key={u._id} className="bg-card p-4 rounded-card border border-line mb-2 flex-row items-center">
-                                            <Avatar user={u} size={40} showBadge={false} />
-                                            <Text className="flex-1 ml-3 text-ink font-semibold" numberOfLines={1}>{u.username}</Text>
-                                            <TouchableOpacity 
-                                                onPress={() => handleInvite(u._id)}
-                                                disabled={!!actingId}
-                                                hitSlop={10}
-                                                className="bg-ink px-2.5 py-1 rounded-full"
-                                            >
-                                                <Text className="text-paper font-semibold text-label uppercase">Invite</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    ))}
-                                </View>
-                            )}
-
-                            <Text className="text-ink-3 font-semibold uppercase text-label mb-4">Pending Invitations ({club.invitations?.length || 0})</Text>
-                            {club.invitations?.map((inv: any) => (
-                                <View key={inv._id} className="bg-card p-4 rounded-card border border-line mb-3 flex-row items-center opacity-60">
-                                    <Avatar user={inv} size={48} showBadge={false} />
-                                    <View className="flex-1 ml-4">
-                                        <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{inv.name}</Text>
-                                        <Text className="text-ink-3 text-xs" numberOfLines={1}>@{inv.username}</Text>
-                                    </View>
-                                    <View className="bg-paper-2 px-2.5 py-1 rounded-full">
-                                        <Text className="text-ink-3 font-display text-label uppercase">Sent</Text>
-                                    </View>
-                                </View>
-                            ))}
-                        </View>
-                    )}
-
-                    {activeTab === 'members' && (
-                        <View>
-                            <Text className="text-ink-3 font-semibold uppercase text-label mb-4">Active Members ({club.members?.length || 0})</Text>
-                            {club.members?.map((member: any) => {
-                                const isCurrentAdmin = (club.admins ?? []).some((a: any) => (a._id || a) === member._id);
-                                return (
-                                    <View key={member._id} className="bg-card p-4 rounded-card border border-line mb-3 flex-row items-center">
-                                        <Avatar user={member} size={48} showBadge={false} />
-                                        <View className="flex-1 ml-4">
-                                            <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{member.name}</Text>
-                                            <Text className="text-ink-3 text-xs" numberOfLines={1}>@{member.username}</Text>
-                                        </View>
-                                        {isCurrentAdmin ? (
-                                            <View className="flex-row items-center gap-2">
-                                                <View className="bg-paper-2 px-2.5 py-1 rounded-full">
-                                                    <Text className="text-ink-3 font-display text-label uppercase">Admin</Text>
-                                                </View>
-                                                {/* Super Admin (Creator) Demotion Logic */}
-                                                {(club.creator?._id === user?._id || club.creator === user?._id) && member._id !== user?._id && (
-                                                    <TouchableOpacity 
-                                                        onPress={() => handleToggleAdmin(member._id, true)} 
-                                                        className="bg-danger/10 border border-danger/20 px-2.5 py-1 rounded-full"
-                                                    >
-                                                        <Text className="text-danger font-display text-label uppercase">Revoke</Text>
-                                                    </TouchableOpacity>
-                                                )}
-                                            </View>
-                                        ) : (
-                                            <TouchableOpacity onPress={() => handleToggleAdmin(member._id, false)} className="bg-fam-career px-2.5 py-1 rounded-full">
-                                                <Text className="text-white font-display text-label uppercase">Promote</Text>
-                                            </TouchableOpacity>
-                                        )}
-                                        {!isCurrentAdmin && (
-                                            <TouchableOpacity 
-                                                onPress={() => handleRemoveMember(member._id)}
-                                                hitSlop={8}
-                                                className="ml-2 w-8 h-8 bg-danger/10 rounded-lg items-center justify-center border border-danger/15"
-                                            >
-                                                <Ionicons name="trash-outline" size={14} color={C.danger} />
-                                            </TouchableOpacity>
-                                        )}
-                                    </View>
-                                );
-                            })}
-                        </View>
-                    )}
-
-                    {activeTab === 'settings' && (
-                        <View>
-                            <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                              <Text className="text-ink-3 font-semibold uppercase text-label">Lobby & Privacy</Text>
-                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                            </View>
-                            <View className="bg-card p-6 rounded-sheet border border-line mb-6 flex-row items-center justify-between">
-                                <View>
-                                    <Text className="text-ink font-display text-2xl">{club.joinCode || '000000'}</Text>
-                                    <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Unique Lobby Code</Text>
-                                </View>
-                                <View className="flex-row gap-3">
-                                    <TouchableOpacity 
-                                        onPress={copyJoinCode}
-                                        className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line"
-                                     hitSlop={2}>
-                                        <Feather name="copy" size={16} color={C.ink} />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-
-                            <View className="bg-card p-6 rounded-sheet border border-line mb-10 flex-row items-center justify-between">
-                                <View className="flex-1 mr-4">
-                                    <Text className="font-semibold text-base text-ink">Enable Code Entry</Text>
-                                    <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Allow students to discover club via code</Text>
-                                </View>
-                                <Switch 
-                                    value={isJoinCodeEnabled}
-                                    onValueChange={setIsJoinCodeEnabled}
-                                    trackColor={{ false: C.line, true: C.success }}
-                                    thumbColor="white"
-                                />
-                            </View>
-
-                            <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                              <Text className="text-ink-3 font-semibold uppercase text-label">Edit Club Profile</Text>
-                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                            </View>
-                            <View className="bg-card p-6 rounded-sheet border border-line mb-10">
-                                <View className="flex-row mb-8">
-                                    <TouchableOpacity onPress={() => pickImage('logo')} className="relative">
-                                        <Image source={{ uri: newLogo?.uri || club.logo }} className="w-16 h-16 rounded-card bg-paper-2 border border-line" />
-                                        <View className="absolute -bottom-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-card">
-                                            <Feather name="camera" size={10} color={C.paper} />
-                                        </View>
-                                    </TouchableOpacity>
-                                    
-                                    <TouchableOpacity onPress={() => pickImage('banner')} className="flex-1 ml-4 relative">
-                                        <Image source={{ uri: newBanner?.uri || club.banner }} className="w-full h-16 rounded-card bg-paper-2 border border-line" />
-                                        <View className="absolute -bottom-1 -right-1 bg-ink w-6 h-6 rounded-full items-center justify-center border-2 border-card">
-                                            <Feather name="image" size={10} color={C.paper} />
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
-
-                                <TextInput placeholderTextColor={C.ink4} 
-                                    placeholder="Club Name"
-                                    className="bg-card p-4 mb-4 font-semibold text-ink border-[1.5px] border-ink rounded-md"
-                                    value={editName}
-                                    onChangeText={setEditName}
-                                />
-                                <TextInput placeholderTextColor={C.ink4} 
-                                    placeholder="Category"
-                                    className="bg-card p-4 mb-4 font-semibold text-ink border-[1.5px] border-ink rounded-md"
-                                    value={editCategory}
-                                    onChangeText={setEditCategory}
-                                />
-                                <TextInput placeholderTextColor={C.ink4} 
-                                    placeholder="Mission Statement"
-                                    className="bg-card p-4 mb-6 font-semibold text-ink border-[1.5px] border-ink rounded-md"
-                                    value={editDesc}
-                                    onChangeText={setEditDesc}
-                                    multiline
-                                    textAlignVertical="top"
-                                />
-                                <TouchableOpacity 
-                                    onPress={handleUpdateClub}
-                                    disabled={updating}
-                                    className="bg-ink py-4 items-center border-2 border-ink rounded-md"
-                                >
-                                    {updating ? <ActivityIndicator color={C.paper} /> : (
-                                        <Text className="text-paper font-display uppercase text-xs">Synchronize Profile</Text>
-                                    )}
-                                </TouchableOpacity>
-                            </View>
-
-                            <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                              <Text className="text-ink-3 font-semibold uppercase text-label">Room Management</Text>
-                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                            </View>
-                            {club.subGroups?.map((sub: any) => (
-                                <View key={sub._id} className="bg-card p-4 rounded-card border border-line mb-3 flex-row items-center">
-                                    <Image source={{ uri: sub.logo }} className="w-10 h-10 rounded-xl bg-paper-2" />
-                                    <View className="flex-1 ml-4">
-                                        <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{sub.name}</Text>
-                                        <Text className="text-ink-3 text-label font-semibold uppercase">{sub.members?.length || 0} Members</Text>
-                                    </View>
-                                    <TouchableOpacity 
-                                        onPress={() => navigation.navigate('EditSubGroup', { subGroupId: sub._id })}
-                                        hitSlop={8}
-                                        className="w-8 h-8 bg-paper-2 rounded-lg items-center justify-center border border-line"
-                                    >
-                                        <Feather name="edit-3" size={14} color={C.ink2} />
-                                    </TouchableOpacity>
-                                </View>
-                            ))}
-
-                            {/* Danger Zone */}
-                            <View className="mt-12 bg-danger/10 p-6 rounded-sheet border border-danger/15 mb-5">
-                                <View className="flex-row items-center mb-2">
-                                    <Ionicons name="warning-outline" size={16} color={C.danger} />
-                                    <Text className="text-danger font-display text-label uppercase ml-2">Danger Zone</Text>
-                                </View>
-                                <Text className="text-danger text-label font-semibold uppercase mb-5">
-                                    Once you delete a club, there is no going back. Please be certain.
-                                </Text>
-                                <TouchableOpacity 
-                                    onPress={handleDeleteClub}
-                                    disabled={updating}
-                                    className="bg-danger py-4 rounded-card items-center shadow-hair"
-                                >
-                                    {updating ? <ActivityIndicator color="white" /> : (
-                                        <Text className="text-white font-display uppercase text-label">Terminate Club Group</Text>
-                                    )}
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    )}
-                    <View className="h-40" />
-                </ScrollView>
-                </KeyboardAvoidingView>
-            </View>
+                            <Button title="Delete club" variant="danger" icon="trash-outline" block loading={updating} onPress={handleDeleteClub} />
+                        </Card>
+                    </View>
+                )}
+                <View className="h-40" />
+            </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 };

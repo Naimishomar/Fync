@@ -106,25 +106,17 @@ export default function SplashScreen({ navigation }: any) {
         {/* zIndex is explicit: the backdrop is absolutely positioned, and without
             it the centre block's stacking against that layer is left to chance. */}
         <View className="flex-1 justify-center items-center px-gutter" style={{ zIndex: 1 }}>
-          {/* the one stamped card on this screen */}
           <Animated.View
             style={{
               opacity: logo,
               transform: [{ scale: logo.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }],
             }}
           >
-            {/* Explicit size: the stamp is offset by inset, and negative right/
-                bottom insets are only reliable when the parent has a real size. */}
-            <View style={{ position: 'relative', width: 112, height: 112 }}>
-              <View
-                pointerEvents="none"
-                style={{ position: 'absolute', left: 4, top: 4, width: 112, height: 112, backgroundColor: C.ink, borderRadius: 999 }}
-              />
-              <Animated.Image
-                source={require('../assets/Fync.png')}
-                style={{ width: 112, height: 112, borderRadius: 999, borderWidth: 2, borderColor: C.ink, backgroundColor: '#FFFFFF' }}
-              />
-            </View>
+            <Animated.Image
+              source={require('../assets/Fync.png')}
+              style={{ width: 112, height: 112, borderRadius: 999, backgroundColor: '#FFFFFF' }}
+              accessibilityLabel="Fync"
+            />
           </Animated.View>
 
           <Animated.View
@@ -135,18 +127,14 @@ export default function SplashScreen({ navigation }: any) {
             }}
           >
             <Text
-              className="font-display text-ink uppercase"
-              style={{ fontSize: 34, lineHeight: 36, letterSpacing: -1.2, textAlign: 'center', width: '100%' }}
+              className="font-display text-ink"
+              style={{ fontSize: 34, lineHeight: 40, letterSpacing: -1, textAlign: 'center', width: '100%' }}
             >
               Fync
             </Text>
-            <View className="flex-row items-center mt-2" style={{ gap: 10 }}>
-              <View className="bg-ink" style={{ height: 2, width: 20, opacity: 0.82 }} />
-              <Text className="font-display text-ink-3 uppercase text-label" style={{ letterSpacing: 1.4 }}>
-                Simplifying students life
-              </Text>
-              <View className="bg-ink" style={{ height: 2, width: 20, opacity: 0.82 }} />
-            </View>
+            <Text className="font-medium text-sm text-ink-3 mt-2">
+              Simplifying students' life
+            </Text>
           </Animated.View>
         </View>
 
@@ -165,7 +153,7 @@ export default function SplashScreen({ navigation }: any) {
               }}
             />
           </View>
-          <Text className="font-display text-ink-4 uppercase text-label text-center mt-3" style={{ letterSpacing: 1.4 }}>
+          <Text className="font-medium text-sm text-ink-3 text-center mt-3">
             Loading your campus
           </Text>
         </View>

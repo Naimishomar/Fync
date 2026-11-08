@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, ScrollView, TextInput, ActivityIndicator, Animated, Share, Easing } from 'react-native';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Animated, Share, Easing } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -9,7 +9,7 @@ import socket from '../../utils/socket';
 import { C } from '../../constants/colors';
 import { artUrl } from '../../constants/features';
 import { tapHaptic, selectHaptic } from '../../utils/haptics';
-import { AppBar, Button, IconBtn, Screen } from '../ui/kit';
+import { AppBar, Button, Card, FormField, IconBtn, Label, ListRow, Screen } from '../ui/kit';
 import { Alert } from '../ui/AlertModal';
 import Avatar from '../Avatar';
 
@@ -211,7 +211,7 @@ const CouplesCorner = () => {
           { text: 'Stay', style: 'cancel' },
           { text: 'Leave', style: 'destructive', onPress: () => { cancel(); navigation.goBack(); } },
         ]) : navigation.goBack())}
-        right={phase === 'playing' && partner ? <IconBtn name="flag-outline" onPress={safety} /> : undefined}
+        right={phase === 'playing' && partner ? <IconBtn name="flag-outline" onPress={safety} accessibilityLabel="Report or block partner" /> : undefined}
       />
 
       {phase === 'playing' ? (
@@ -234,7 +234,7 @@ const CouplesCorner = () => {
           {phase === 'searching' || phase === 'code' ? (
             <View className="rounded-2xl border border-line bg-card p-6 items-center mb-6">
               <Image source={{ uri: artUrl(g.art) }} style={{ width: 72, height: 72 }} contentFit="contain" />
-              <Text className="font-display text-ink text-lg mt-3 text-center">{g.title}</Text>
+              <Text className="font-semibold text-ink text-lg mt-3 text-center">{g.title}</Text>
               {phase === 'searching' ? (
                 <>
                   <ActivityIndicator color={C.brand[500]} style={{ marginTop: 16 }} />
@@ -243,12 +243,12 @@ const CouplesCorner = () => {
               ) : (
                 <>
                   <Text className="font-sans text-ink-2 mt-3 text-center">Send this code to your partner</Text>
-                  <Text selectable className="font-display text-ink mt-2" style={{ fontSize: 34, letterSpacing: 6 }}>{code}</Text>
+                  <Text selectable className="font-display text-ink mt-2" style={{ fontSize: 34, letterSpacing: 6 }} accessibilityLabel={`Code ${code.split('').join(' ')}`}>{code}</Text>
                   <Button
                     title="Share code"
                     icon="share-social-outline"
                     variant="primary"
-                    style={{ marginTop: 14 }}
+                    style={{ marginTop: 16 }}
                     onPress={() => Share.share({ message: `Play "${g.title}" with me on Fync 💕 Open Couples Corner and enter code ${code}` }).catch(() => {})}
                   />
                   <Text className="font-sans text-ink-3 text-xs mt-3">
@@ -256,7 +256,7 @@ const CouplesCorner = () => {
                   </Text>
                 </>
               )}
-              <Button title="Cancel" variant="ghost" small style={{ marginTop: 10 }} onPress={cancel} />
+              <Button title="Cancel" variant="ghost" small style={{ marginTop: 12 }} onPress={cancel} />
             </View>
           ) : (
             <>
@@ -272,7 +272,7 @@ const CouplesCorner = () => {
                 </View>
               </View>
 
-              <View className="flex-row mb-6" style={{ gap: 10 }}>
+              <View className="flex-row mb-6" style={{ gap: 12 }}>
                 {[
                   { title: 'Couple Space', sub: 'Streak, daily question, notes', art: 'assets/Heart with ribbon/3D/heart_with_ribbon_3d.png', route: 'CoupleSpace' },
                   { title: 'Gift Shop', sub: 'Custom albums, mugs & more', art: 'assets/Wrapped gift/3D/wrapped_gift_3d.png', route: 'GiftShop' },
@@ -281,53 +281,51 @@ const CouplesCorner = () => {
                     key={x.route}
                     onPress={() => navigation.navigate(x.route)}
                     accessibilityRole="button"
-                    className="flex-1 rounded-2xl border border-line bg-card p-4 active:opacity-80"
+                    className="flex-1 rounded-2xl border border-line bg-card p-4 active:opacity-70"
                   >
                     <Image source={{ uri: artUrl(x.art) }} style={{ width: 44, height: 44 }} contentFit="contain" cachePolicy="disk" />
-                    <Text className="font-display text-ink mt-2" style={{ fontSize: 15 }}>{x.title}</Text>
+                    <Text className="font-semibold text-ink mt-2" style={{ fontSize: 15 }}>{x.title}</Text>
                     <Text className="font-sans text-ink-3 text-xs mt-0.5" numberOfLines={2}>{x.sub}</Text>
                   </Pressable>
                 ))}
               </View>
 
-              <Pressable
-                onPress={() => navigation.navigate('CoupleLeaderboard')}
-                accessibilityRole="button"
-                className="flex-row items-center rounded-2xl border border-line bg-card px-4 py-3 mb-6 active:opacity-80"
-              >
-                <Text style={{ fontSize: 22 }}>🏆</Text>
-                <Text className="font-display text-ink flex-1 ml-3">Top couples leaderboard</Text>
-                <Text className="font-sans text-ink-3">›</Text>
-              </Pressable>
+              <Card style={{ paddingHorizontal: 16, marginBottom: 24 }}>
+                <ListRow
+                  leading={<Text style={{ fontSize: 22 }}>🏆</Text>}
+                  title="Top couples leaderboard"
+                  chevron
+                  onPress={() => navigation.navigate('CoupleLeaderboard')}
+                />
+              </Card>
 
-              <Text className="font-display text-label text-ink-2 uppercase mb-2" style={{ letterSpacing: 1.2 }}>Have a code?</Text>
-              <View className="flex-row items-center mb-6" style={{ gap: 10 }}>
-                <TextInput
+              <View className="flex-row items-end mb-6" style={{ gap: 12 }}>
+                <FormField
+                  label="Have a code?"
+                  containerStyle={{ flex: 1 }}
                   value={joinCode}
                   onChangeText={(t) => setJoinCode(t.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase())}
                   placeholder="ABC123"
-                  placeholderTextColor={C.ink4}
                   autoCapitalize="characters"
                   autoCorrect={false}
                   onSubmitEditing={join}
-                  className="flex-1 rounded-xl border border-line bg-card px-4 font-display text-ink"
-                  style={{ height: 48, fontSize: 18, letterSpacing: 4 }}
+                  style={{ fontFamily: 'SpaceGrotesk_700Bold', fontSize: 18, letterSpacing: 4 }}
                 />
                 <Button title="Join" variant="solid" onPress={join} disabled={joinCode.length !== 6} />
               </View>
 
-              <Text className="font-display text-label text-ink-2 uppercase mb-2" style={{ letterSpacing: 1.2 }}>Games</Text>
+              <Label style={{ marginBottom: 8 }}>Games</Label>
               {GAMES.map((x) => (
                 <View key={x.id} className="rounded-2xl border border-line bg-card mb-3 overflow-hidden">
                   <View className="flex-row items-center p-4" style={{ backgroundColor: `${x.tint}${C.scheme === 'dark' ? '26' : '12'}` }}>
                     <Image source={{ uri: artUrl(x.art) }} style={{ width: 52, height: 52 }} contentFit="contain" cachePolicy="disk" />
                     <View className="flex-1 ml-3">
-                      <Text className="font-display text-ink" style={{ fontSize: 16 }}>{x.title}</Text>
+                      <Text className="font-semibold text-ink" style={{ fontSize: 16 }}>{x.title}</Text>
                       <Text className="font-sans text-ink-2 text-sm mt-0.5">{x.hint}</Text>
                     </View>
                   </View>
-                  <View className="flex-row p-3" style={{ gap: 10 }}>
-                    <Button title="Invite partner" icon="heart-outline" small variant="primary" inCard style={{ flex: 1 }} onPress={() => createCode(x.id)} />
+                  <View className="flex-row p-3" style={{ gap: 12 }}>
+                    <Button title="Invite partner" icon="heart-outline" small variant="primary" style={{ flex: 1 }} onPress={() => createCode(x.id)} />
                     <Button title="Random match" icon="shuffle" small style={{ flex: 1 }} onPress={() => findRandom(x.id)} />
                   </View>
                 </View>
@@ -355,7 +353,7 @@ const Playing = ({
     return (
       <View className="flex-1 items-center justify-center p-8">
         <Avatar user={partner} size={72} showBadge={false} />
-        <Text className="font-display text-ink text-lg mt-4">Matched with {nameOf(partner)} 💕</Text>
+        <Text className="font-semibold text-ink text-lg mt-4">Matched with {nameOf(partner)} 💕</Text>
         <Text className="font-sans text-ink-2 mt-1">Get ready…</Text>
       </View>
     );
@@ -377,7 +375,7 @@ const Playing = ({
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center" style={{ gap: 8, flexShrink: 1, marginRight: 8 }}>
           <Avatar user={partner} size={32} showBadge={false} />
-          <Text className="font-display text-ink" style={{ flexShrink: 1 }} numberOfLines={1}>{nameOf(partner)}</Text>
+          <Text className="font-semibold text-ink" style={{ flexShrink: 1 }} numberOfLines={1}>{nameOf(partner)}</Text>
         </View>
         <Text className="font-display text-ink-2">
           {round.round + 1}/{round.total} · ❤️ {reveal?.score ?? '…'}
@@ -403,19 +401,21 @@ const Playing = ({
             disabled={myPick != null || !!reveal}
             accessibilityRole="button"
             accessibilityState={{ selected: mine }}
-            className="rounded-2xl border-2 mb-3 px-5 justify-center"
+            className="rounded-2xl border mb-3 px-5 justify-center active:opacity-70"
             style={{
               minHeight: 92,
               borderColor: mine ? g.tint : C.line,
               backgroundColor: mine ? `${g.tint}${C.scheme === 'dark' ? '33' : '18'}` : C.card,
             }}
           >
-            <Text className="font-display text-ink text-center" style={{ fontSize: 18 }}>{labels[i]}</Text>
+            <Text className="font-semibold text-ink text-center" style={{ fontSize: 18 }}>{labels[i]}</Text>
             {reveal ? (
               <View className="flex-row justify-center mt-2" style={{ gap: 6 }}>
                 {mine ? <Text className="font-sans text-xs text-ink-2">You</Text> : null}
                 {theirs ? <Text className="font-sans text-xs text-ink-2">{nameOf(partner)}</Text> : null}
               </View>
+            ) : mine ? (
+              <Text className="font-sans text-xs text-ink-2 text-center mt-2">Your pick</Text>
             ) : null}
           </Pressable>
         );
@@ -442,7 +442,7 @@ const Over = ({ g, partner, final, onAgain }: {
       <Image source={{ uri: artUrl(g.art) }} style={{ width: 96, height: 96 }} contentFit="contain" />
       <Text className="font-display text-ink mt-4" style={{ fontSize: 44 }}>{pct}%</Text>
       <Text className="font-sans text-ink-2 mt-1">match with {nameOf(partner)} · {final.score}/{final.total}</Text>
-      <Text className="font-display text-ink text-lg mt-4 text-center">{line}</Text>
+      <Text className="font-semibold text-ink text-lg mt-4 text-center">{line}</Text>
       <Button title="Play another game" variant="primary" icon="heart" style={{ marginTop: 24 }} onPress={onAgain} />
     </View>
   );

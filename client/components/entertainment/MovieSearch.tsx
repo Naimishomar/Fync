@@ -2,9 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  TextInput,
   FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
@@ -14,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { searchMovies } from '../../utils/tmdb';
 import MovieCard from './MovieCard';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, SearchField } from '../ui/kit';
 
 const { width } = Dimensions.get('window');
 const numColumns = 3;
@@ -58,24 +56,19 @@ const MovieSearch = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-night" edges={['bottom']}>
-      <AppBar night title="Search Movies" onBack={() => navigation.goBack()} />
-      <View className="px-5 pb-4">
-        <View className="flex-1 bg-night rounded-full flex-row items-center px-4 py-2 border border-night">
-          <Ionicons name="search" size={20} color={C.night3} />
-          <TextInput
-            autoFocus
-            placeholder="Search movies, trailers..."
-            placeholderTextColor={C.ink3}
-            className="flex-1 ml-2 text-white text-base"
-            value={query}
-            onChangeText={setQuery}
-          />
-          {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery('')} hitSlop={12}>
-              <Ionicons name="close-circle" size={20} color={C.night3} />
-            </TouchableOpacity>
-          )}
-        </View>
+      <AppBar night title="Search movies" onBack={() => navigation.goBack()} />
+      <View className="px-gutter pb-4">
+        {/* Cinema is always dark: the field is tinted for night rather than the light card. */}
+        <SearchField
+          autoFocus
+          placeholder="Search movies, trailers..."
+          placeholderTextColor="rgba(255,255,255,0.5)"
+          value={query}
+          onChangeText={setQuery}
+          autoCapitalize="sentences"
+          containerStyle={{ backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.15)' }}
+          style={{ color: '#fff' }}
+        />
       </View>
 
       {loading ? (
@@ -104,13 +97,13 @@ const MovieSearch = () => {
           ListEmptyComponent={
             query.length > 2 ? (
               <View className="flex-1 items-center mt-20">
-                <Ionicons name="film-outline" size={64} color={C.ink2} />
-                <Text className="text-ink-3 mt-4 text-lg">No movies found for "{query}"</Text>
+                <Ionicons name="film-outline" size={48} color="rgba(255,255,255,0.4)" />
+                <Text className="text-white/70 mt-4 text-base font-semibold">No movies found for "{query}"</Text>
               </View>
             ) : (
               <View className="flex-1 items-center mt-20">
-                <Ionicons name="search-outline" size={64} color={C.ink2} />
-                <Text className="text-ink-3 mt-4 text-lg text-center px-gutter">
+                <Ionicons name="search-outline" size={48} color="rgba(255,255,255,0.4)" />
+                <Text className="text-white/70 mt-4 text-base text-center px-gutter">
                   Search for your favorite movies and watch their trailers.
                 </Text>
               </View>

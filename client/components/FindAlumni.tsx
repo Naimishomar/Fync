@@ -1,23 +1,45 @@
-import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import {
-    View, Text, FlatList, Pressable, Image, ActivityIndicator,
-    TextInput, TouchableOpacity, Dimensions, RefreshControl, StatusBar, Modal, ScrollView
-} from "react-native";
-import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import React, { useEffect, useState, useCallback, useMemo, useRef, memo } from "react";
+import { View, Text, FlatList, Pressable, ActivityIndicator, RefreshControl, StatusBar } from "react-native";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
 import { TeammateSkeleton } from "./Skeleton";
 
-import { RoleSticker, AppBar, IconBtn } from './ui/kit';
+import { RoleSticker, AppBar, IconBtn, SearchField, Chip, Sheet, Button, Empty, Tag } from './ui/kit';
 import { C } from '../constants/colors';
-import { useBottomInset } from '../constants/layout';
-const { width } = Dimensions.get("window");
+
+/** One alumnus. Module scope + memo so FlatList rows update instead of remounting. */
+const AlumniRow = memo(function AlumniRow({ item, onOpen, onChat }: { item: any; onOpen: (u: any) => void; onChat: (u: any) => void }) {
+    return (
+        <Pressable
+            onPress={() => onOpen(item)}
+            className="bg-card border border-line rounded-2xl p-4 mb-3 flex-row items-center active:opacity-70"
+            style={{ gap: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.name}, open profile`}
+        >
+            <Avatar user={item} size={56} />
+            <View className="flex-1" style={{ minWidth: 0 }}>
+                <View className="flex-row items-center" style={{ gap: 8 }}>
+                    <Text className="font-semibold text-base text-ink" style={{ flexShrink: 1 }} numberOfLines={1}>{item.name}</Text>
+                    {/* Colour is never the only signal: the ring says alumni, this says it in words. */}
+                    <RoleSticker role={item.user_access ?? 'alumni'} />
+                </View>
+                <Text className="font-sans text-sm text-ink-3" numberOfLines={1}>@{item.username}</Text>
+                {item.company ? (
+                    <Text className="font-sans text-sm text-ink-2 mt-1" numberOfLines={1}>
+                        {item.role} at <Text className="font-semibold text-ink">{item.company}</Text>
+                    </Text>
+                ) : null}
+                {item.graduationYear ? <Tag icon="school-outline" label={`Batch of ${item.graduationYear}`} style={{ alignSelf: 'flex-start', marginTop: 8 }} /> : null}
+            </View>
+            <IconBtn name="chatbubble-outline" boxed onPress={() => onChat(item)} accessibilityLabel={`Message ${item.name}`} />
+        </Pressable>
+    );
+});
 
 const FindAlumni = ({ navigation }: any) => {
     const { user } = useAuth();
-    const bottomInset = useBottomInset();
     const [alumni, setAlumni] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -120,111 +142,51 @@ const FindAlumni = ({ navigation }: any) => {
         }
     };
 
+
     const [isFilterVisible, setIsFilterVisible] = useState(false);
 
-    const renderAlumniItem = ({ item, index }: { item: any; index: number }) => (
-        <View
-            className={`bg-card rounded-card p-card-pad mb-3 flex-row items-center ${index === 0 ? 'border-2 border-ink' : 'border border-line'}`}
-            style={index === 0 ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
-        >
-            <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item })}>
-                <View className="p-0.5 rounded-full">
-                    <Avatar user={item} size={62} />
-                </View>
-            </Pressable>
-
-            <View className="flex-1 ml-5 pr-2">
-                <View className="flex-row items-center" style={{ gap: 8 }}>
-                  <Text className="font-semibold text-lg text-ink" style={{ flexShrink: 1 }} numberOfLines={1}>{item.name}</Text>
-                  {/* Colour is never the only signal: the ring says alumni, this
-                      says it in words. */}
-                  <RoleSticker role={item.user_access ?? 'alumni'} />
-                </View>
-                <Text className="font-sans text-sm text-ink-3" numberOfLines={1}>@{item.username}</Text>
-
-                <View className="flex-row items-center mt-2 bg-paper-2 self-start px-2.5 rounded-full border border-line" style={{ minHeight: 28 }}>
-                    <MaterialCommunityIcons name="school" size={14} color={C.brand[500]} />
-                    <Text className="font-medium text-label text-brand-700 ml-1.5">
-                        Batch of {item.graduationYear}
-                    </Text>
-                </View>
-
-                {item.company && (
-                    <View className="flex-row items-center mt-2">
-                        <Ionicons name="briefcase" size={14} color={C.ink3} />
-                        <Text className="text-ink-3 text-label ml-2 font-semibold uppercase" numberOfLines={1}>
-                            {item.role} at <Text className="text-ink font-display">{item.company}</Text>
-                        </Text>
-                    </View>
-                )}
-            </View>
-
-            <View className="gap-3">
-                <TouchableOpacity
-                    onPress={() => startChat(item)}
-                    className="bg-ink w-12 h-12 rounded-card items-center justify-center shadow-hair"
-                >
-                    <Ionicons name="chatbubble" size={18} color={C.paper} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => navigation.navigate("PublicProfile", { user: item })}
-                    className="bg-paper-2 w-12 h-12 rounded-card items-center justify-center border border-line"
-                >
-                    <Ionicons name="chevron-forward" size={18} color={C.ink3} />
-                </TouchableOpacity>
-            </View>
-        </View>
-    );
+    const openProfile = useCallback((u: any) => navigation.navigate("PublicProfile", { user: u }), [navigation]);
+    const startChatRef = useRef(startChat);
+    startChatRef.current = startChat;
+    const onChat = useCallback((u: any) => startChatRef.current(u), []);
+    const renderAlumniItem = useCallback(({ item }: { item: any }) => (
+        <AlumniRow item={item} onOpen={openProfile} onChat={onChat} />
+    ), [openProfile, onChat]);
 
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
 
-            {/* HEADER DECORATION */}
-
             <View className="flex-1">
                 <AppBar
-                    title="Campus Alumni"
+                    title="Campus alumni"
                     onBack={() => navigation.goBack()}
                     right={
                         <IconBtn
-                            name="options"
+                            name="options-outline"
                             boxed
-                            color={selectedBatch ? "white" : C.ink}
-                            style={selectedBatch ? { backgroundColor: C.brand[500] } : undefined}
+                            badge={selectedBatch ? 1 : undefined}
                             onPress={() => setIsFilterVisible(true)}
+                            accessibilityLabel={selectedBatch ? `Filter by batch, ${selectedBatch} selected` : 'Filter by batch'}
                         />
                     }
                 />
-                {/* 🔍 Arena Search Dock */}
                 <View className="px-gutter mb-2">
-                    <View className="flex-row items-center bg-card px-5 h-14 border-2 border-ink shadow-hair rounded-md">
-                        <Ionicons name="search" size={20} color={C.brand[500]} />
-                        <TextInput
-                            placeholder="Search by name, firm, or role..."
-                            placeholderTextColor={C.ink3}
-                            className="flex-1 ml-3 text-ink text-sm font-display uppercase"
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
-                        {searchQuery.length > 0 && (
-                            <TouchableOpacity onPress={() => setSearchQuery("")} className="bg-paper-2 p-1.5 rounded-xl">
-                                <Ionicons name="close" size={16} color={C.ink3} />
-                            </TouchableOpacity>
-                        )}
-                    </View>
+                    <SearchField
+                        placeholder="Search by name, firm, or role"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
                 </View>
 
-                {/* 📝 Technical Stats Header */}
-                <View className="px-gutter py-4 flex-row items-center justify-between">
-                    <Text className="text-ink-3 text-label font-display uppercase">
-                        Network Signal • {alumni.length} results {selectedBatch && `in ${selectedBatch}`}
+                <View className="px-gutter py-2">
+                    <Text className="font-sans text-sm text-ink-3">
+                        {alumni.length} results{selectedBatch ? ` in batch ${selectedBatch}` : ''}
                     </Text>
-                    <View className="h-[1px] flex-1 bg-paper-2 ml-4 opacity-30" />
                 </View>
 
                 {loading && !refreshing ? (
-                    <View className="flex-1 px-5 pt-2">
+                    <View className="flex-1 px-gutter pt-2">
                         {[1, 2, 3, 4].map(i => <TeammateSkeleton key={i} />)}
                     </View>
                 ) : (
@@ -232,98 +194,49 @@ const FindAlumni = ({ navigation }: any) => {
                         data={alumni}
                         keyExtractor={(item) => item._id}
                         renderItem={renderAlumniItem}
-                        contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 10, paddingBottom: 100 }}
+                        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 100 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
                         }
                         onEndReached={loadMore}
                         onEndReachedThreshold={0.5}
-                        ListFooterComponent={() => (
-                            loadingMore ? (
-                                <ActivityIndicator size="small" color={C.brand[500]} className="py-6" />
-                            ) : null
-                        )}
+                        ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={C.brand[500]} style={{ paddingVertical: 24 }} /> : null}
                         ListEmptyComponent={
-                            <View className="items-center mt-20 px-gutter">
-                                <View className="bg-card p-card-pad rounded-sheet border border-line shadow-hair items-center">
-                                    <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                        <MaterialCommunityIcons name="account-search-outline" size={48} color={C.ink4} />
-                                    </View>
-                                    <Text className="text-ink font-display uppercase text-xl text-center">
-                                        Registry Clear
-                                    </Text>
-                                    <Text className="font-sans text-sm text-ink-3 mt-2 text-center px-4">
-                                        {searchQuery || selectedBatch ? "No signal detected matching your search protocol." : "The alumni archive is currently silent."}
-                                    </Text>
-                                </View>
-                            </View>
+                            <Empty
+                                icon="people-outline"
+                                title="No alumni found"
+                                hint={searchQuery || selectedBatch ? "Nothing matches your search. Try another name or batch." : "No alumni have joined yet."}
+                            />
                         }
                     />
                 )}
             </View>
 
-            {/* Filter Modal */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                statusBarTranslucent
+            <Sheet
                 visible={isFilterVisible}
-                onRequestClose={() => setIsFilterVisible(false)}
-            >
-                <View className="flex-1 justify-end bg-black/60">
-                    <TouchableOpacity
-                        className="flex-1"
-                        activeOpacity={1}
-                        onPress={() => setIsFilterVisible(false)}
-                    />
-                    <View className="bg-paper rounded-t-sheet px-gutter pt-10 shadow-hair border-t border-line" style={{ paddingBottom: bottomInset + 32 }}>
-                        <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mb-10" />
-
-                        <View className="flex-row items-center justify-between mb-8">
-                            <Text className="font-display uppercase text-ink text-h1">
-                                Filter <Text className="text-accent-text">Batches</Text>
-                            </Text>
-                            {selectedBatch && (
-                                <TouchableOpacity onPress={() => { setSelectedBatch(""); setIsFilterVisible(false); }}>
-                                    <Text className="text-accent-text font-display text-label uppercase">Wipe Filter</Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-
-                        <View className="flex-row items-center mt-6 mb-6" style={{ gap: 12 }}>
-                          <Text className="text-ink-3 text-label font-display uppercase">Archive Search Parameters</Text>
-                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                        </View>
-
-                        <ScrollView keyboardShouldPersistTaps="handled" className="max-h-[350px]" showsVerticalScrollIndicator={false}>
-                            <View className="flex-row flex-wrap gap-3">
-                                {batches.map((batch: string) => (
-                                    <TouchableOpacity
-                                        key={batch || "all"}
-                                        onPress={() => {
-                                            setSelectedBatch(batch);
-                                            setIsFilterVisible(false);
-                                        }}
-                                        className={`px-6 py-4 rounded-xl ${selectedBatch === batch ? 'bg-brand-500 shadow-hair ' : 'bg-paper-2 border-line'}`}
-                                    >
-                                        <Text className={`font-display text-sm uppercase ${selectedBatch === batch ? 'text-on-brand' : 'text-ink-3'}`}>
-                                            {batch === "" ? "Global Archive" : `Batch ${batch}`}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </ScrollView>
-
-                        <TouchableOpacity
-                            onPress={() => setIsFilterVisible(false)}
-                            className="bg-ink mt-10 h-16 rounded-card items-center justify-center shadow-hair"
-                        >
-                            <Text className="text-paper font-display uppercase text-xs">Apply Filter</Text>
-                        </TouchableOpacity>
+                onClose={() => setIsFilterVisible(false)}
+                title="Filter by batch"
+                footer={
+                    <View className="flex-row" style={{ gap: 12 }}>
+                        {selectedBatch ? (
+                            <Button title="Clear" style={{ flex: 1 }} onPress={() => { setSelectedBatch(""); setIsFilterVisible(false); }} />
+                        ) : null}
+                        <Button title="Done" variant="primary" style={{ flex: 1 }} onPress={() => setIsFilterVisible(false)} />
                     </View>
+                }
+            >
+                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                    {batches.map((batch: string) => (
+                        <Chip
+                            key={batch || "all"}
+                            label={batch === "" ? "All batches" : `Batch ${batch}`}
+                            active={selectedBatch === batch}
+                            onPress={() => { setSelectedBatch(batch); setIsFilterVisible(false); }}
+                        />
+                    ))}
                 </View>
-            </Modal>
+            </Sheet>
         </View>
     );
 };

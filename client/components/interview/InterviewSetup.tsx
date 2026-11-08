@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Pressable, Modal, Platform} from 'react-native'
+import { View, Text, ActivityIndicator, ScrollView, KeyboardAvoidingView, Pressable, Modal, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import * as DocumentPicker from 'expo-document-picker';
@@ -11,7 +11,7 @@ import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Card, Label, Button, FormField } from '../ui/kit';
 
 export default function InterviewSetup() {
   const navigation = useNavigation<any>();
@@ -221,121 +221,98 @@ export default function InterviewSetup() {
           {/* HEADER */}
           <AppBar title="AI Interview" onBack={() => navigation.goBack()} />
 
-          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} className="px-5">
+          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} className="px-gutter">
 
-            <Text className="text-ink-3 mb-8 mt-2 text-sm leading-5">
+            <Text className="text-ink-3 mb-6 mt-2 text-sm leading-5">
               Configure your AI interviewer. Upload your resume and let the system tailor the technical questions to your profile.
             </Text>
 
-            {/* MAIN FORM CARD */}
-            <View className="bg-card p-6 rounded-card border border-line shadow-hair">
-
+            <Card>
               <View className="gap-6">
-
-                {/* Domain Input */}
-                <View>
-                  <Text className="text-ink-3 font-semibold mb-2 ml-1 text-xs uppercase">Target Role / Domain</Text>
-                  <TextInput
-                    placeholder="e.g. React Native, Data Scientist"
-                    placeholderTextColor={C.ink4}
-                    className="bg-card text-ink p-4 border-[1.5px] border-ink font-medium rounded-md"
-                    value={domain}
-                    onChangeText={setDomain}
-                  />
-                </View>
-
-                {/* Experience Input */}
-                <View>
-                  <Text className="text-ink-3 font-semibold mb-2 ml-1 text-xs uppercase">Years of Experience</Text>
-                  <TextInput
-                    placeholder="e.g. 2"
-                    placeholderTextColor={C.ink4}
-                    className="bg-card text-ink p-4 border-[1.5px] border-ink font-medium rounded-md"
-                    keyboardType="numeric"
-                    value={experience}
-                    onChangeText={setExperience}
-                  />
-                </View>
+                <FormField
+                  label="Target role or domain"
+                  placeholder="e.g. React Native, Data Scientist"
+                  value={domain}
+                  onChangeText={setDomain}
+                />
+                <FormField
+                  label="Years of experience"
+                  placeholder="e.g. 2"
+                  keyboardType="numeric"
+                  value={experience}
+                  onChangeText={setExperience}
+                />
 
                 {/* Duration Selector */}
                 <View>
-                  <Text className="text-ink-3 font-semibold mb-3 ml-1 text-xs uppercase">Interview Duration & Price</Text>
+                  <Label className="mb-2">Interview duration and price</Label>
                   <View className="flex-row gap-3">
                     {[10, 15].map((min) => (
-                      <TouchableOpacity
+                      <Pressable
                         key={min}
-                        activeOpacity={0.8}
                         onPress={() => setDuration(min)}
                         disabled={!!paidDuration}
-                        className={`flex-1 p-4 rounded-card items-center border transition-all ${duration === min ? 'bg-brand-50 border-brand-500' : 'bg-paper-2 border-line' }`}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: duration === min, disabled: !!paidDuration }}
+                        className={`flex-1 p-4 rounded-2xl items-center border active:opacity-70 ${duration === min ? 'bg-brand-50 border-brand-500' : 'bg-paper-2 border-line'}`}
                       >
-                        <Text className={`font-display text-lg ${duration === min ? 'text-accent-text' : 'text-ink-3'}`}>
+                        <Text className={`font-display text-lg ${duration === min ? 'text-accent-text' : 'text-ink-2'}`}>
                           {min} <Text className="text-xs font-medium">min</Text>
                         </Text>
                         <Text className={`text-xs font-semibold mt-1 ${duration === min ? 'text-accent-text' : 'text-ink-3'}`}>
                           ₹{min === 10 ? '5' : '7'}
                         </Text>
-                      </TouchableOpacity>
+                      </Pressable>
                     ))}
                   </View>
                 </View>
 
                 {/* File Upload */}
                 <View>
-                  <Text className="text-ink-3 font-semibold mb-3 ml-1 text-xs uppercase">Resume (PDF)</Text>
+                  <Label className="mb-2">Resume (PDF)</Label>
                   <Pressable
                     onPress={pickResume}
-                    className={`p-6 rounded-card border-2 border-dashed items-center justify-center transition-all ${resume ? 'border-brand-500 bg-brand-50' : 'border-line bg-paper-2' }`}
+                    accessibilityRole="button"
+                    accessibilityLabel={resume ? `Resume ${resume.name}, tap to change` : 'Upload resume'}
+                    className={`p-6 rounded-2xl border border-dashed items-center justify-center active:opacity-70 ${resume ? 'border-brand-500 bg-brand-50' : 'border-line bg-paper-2'}`}
                   >
                     {resume ? (
                       <View className="items-center">
-                        <View className="bg-brand-100 p-3 rounded-full mb-3 border border-ink">
+                        <View className="bg-brand-100 p-3 rounded-full mb-3">
                           <Ionicons name="document-text" size={32} color={C.brand[500]} />
                         </View>
                         <Text className="text-ink font-semibold text-center" numberOfLines={1}>
                           {resume.name}
                         </Text>
-                        <Text className="text-accent-text font-semibold text-xs mt-1 uppercase">Ready to upload</Text>
+                        <Text className="text-accent-text font-semibold text-xs mt-1">Ready to upload</Text>
                       </View>
                     ) : (
                       <View className="items-center py-2">
-                        <Ionicons name="cloud-upload-outline" size={40} color={C.ink4} />
-                        <Text className="text-ink-3 font-semibold mt-3">Tap to Upload Resume</Text>
+                        <Ionicons name="cloud-upload-outline" size={40} color={C.ink3} />
+                        <Text className="text-ink-2 font-semibold mt-3">Tap to upload resume</Text>
                         <Text className="text-ink-3 text-xs mt-1">PDF format only</Text>
                       </View>
                     )}
                   </Pressable>
                 </View>
-
               </View>
-            </View>
+            </Card>
 
             {/* Start Button */}
-            <View className="mt-8">
+            <View className="mt-6">
               {paidDuration ? (
                 <Text className="text-accent-text font-semibold text-xs mb-3 text-center">
                   You have a paid {paidDuration}-min interview. No payment needed.
                 </Text>
               ) : null}
-              <TouchableOpacity
-                onPress={startSession}
+              <Button
+                variant="primary"
+                block
+                loading={loading}
                 disabled={loading}
-                accessibilityRole="button"
-                className={`w-full py-5 rounded-card border-2 border-ink flex-row justify-center items-center ${loading ? 'bg-brand-200' : 'bg-brand-500'}`}
-                style={{
-                  shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
-                  shadowOffset: { width: 4, height: 4 }, elevation: 0,
-                }}
-              >
-                {loading ? (
-                  <ActivityIndicator color={C.ink} />
-                ) : (
-                  <>
-                    <Text className="font-display text-on-brand uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>{paidDuration ? 'Retry Start' : 'Start Interview'}</Text>
-                    <Ionicons name="arrow-forward" size={16} color={C.onBrand} />
-                  </>
-                )}
-              </TouchableOpacity>
+                onPress={startSession}
+                title={paidDuration ? 'Retry start' : 'Start interview'}
+              />
             </View>
 
           </ScrollView>
@@ -357,7 +334,7 @@ export default function InterviewSetup() {
         <SafeAreaView style={{ flex: 1, backgroundColor: C.card }} edges={['bottom']}>
           <AppBar
             title="Secure Checkout"
-            right={<IconBtn name="close" onPress={() => {
+            right={<IconBtn name="close" accessibilityLabel="Cancel payment" onPress={() => {
               setShowWebView(false);
               setLoading(false);
               Alert.alert("Cancelled", "Payment was cancelled.");

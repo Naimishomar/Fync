@@ -1,77 +1,50 @@
 import React, { useState, useCallback, useRef, memo } from 'react';
-import {View, Text, TouchableOpacity, FlatList, TextInput, ActivityIndicator, RefreshControl, StatusBar, Modal, KeyboardAvoidingView, Platform} from 'react-native'
+import { View, Text, Pressable, FlatList, TextInput, ActivityIndicator, RefreshControl, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn, Empty, Button } from '../ui/kit';
+import { AppBar, IconBtn, Empty, Button, Sheet, ListRow, IconTile, SectionHeader, Tag, TagRow } from '../ui/kit';
 import { useBottomInset } from '../../constants/layout';
 
 // Ids may arrive populated ({ _id }) or bare, depending on the endpoint.
 const hasId = (arr: any[] | undefined, id?: string) => !!id && !!arr?.some((x: any) => (x?._id || x) === id);
 
 const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) => {
+    const isAdmin = hasId(item.admins, userId);
     return (
-        <TouchableOpacity
-            activeOpacity={0.8}
+        <Pressable
             onPress={() => !isInvitation && onPress(item._id)}
-            className="bg-card rounded-sheet mb-6 mx-gutter overflow-hidden border border-line shadow-hair"
+            disabled={isInvitation}
+            accessibilityRole="button"
+            accessibilityLabel={item.name}
+            className="bg-card rounded-2xl mb-3 mx-gutter border border-line p-4 flex-row active:opacity-70"
+            style={{ gap: 16 }}
         >
-            <View className="p-6 flex-row items-center">
-                <View className="relative">
-                    <Image
-                        source={item.logo ? { uri: item.logo } : undefined}
-                        style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: C.paper2, borderWidth: 1, borderColor: C.line }}
-                        cachePolicy="memory-disk"
-                    />
-                    {!isInvitation && (
-                        <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full border-4 border-card shadow-hair" />
-                    )}
-                </View>
-
-                <View className="flex-1 ml-6">
-                    <View className="flex-row justify-between items-center mb-1">
-                        <Text className="text-ink text-lg font-display uppercase leading-tight flex-1 mr-2" numberOfLines={1}>
-                            {item.name}
-                        </Text>
-                        <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                            <Text className="text-ink-3 text-label font-display uppercase">Active</Text>
-                        </View>
+            <Image
+                source={item.logo ? { uri: item.logo } : undefined}
+                style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: C.paper2 }}
+                cachePolicy="memory-disk"
+            />
+            <View className="flex-1" style={{ minWidth: 0, gap: 4 }}>
+                <Text className="text-ink font-semibold" style={{ fontSize: 16, lineHeight: 22 }} numberOfLines={1}>{item.name}</Text>
+                <Text className="text-ink-3" style={{ fontSize: 13, lineHeight: 18 }} numberOfLines={2}>
+                    {isInvitation ? "You've been invited to join this club." : (item.description || 'No description yet.')}
+                </Text>
+                {isInvitation ? (
+                    <View className="flex-row mt-2">
+                        <Button small variant="primary" title="Accept invite" onPress={() => onAccept(item._id)} />
                     </View>
-
-                    <Text className="text-ink-3 text-label font-medium leading-4 mb-3" numberOfLines={2}>
-                        {isInvitation ? "You've been invited to join this community." : (item.description || "Establish your presence in the conversation...")}
-                    </Text>
-
-                    <View className="flex-row items-center gap-2">
-                        {isInvitation ? (
-                            <TouchableOpacity
-                                onPress={() => onAccept(item._id)}
-                                className="bg-ink px-2.5 py-1 rounded-full"
-                            >
-                                <Text className="text-paper text-label font-display uppercase">Accept Intel</Text>
-                            </TouchableOpacity>
-                        ) : (
-                            <>
-                                <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                                    <Text className="text-accent-text text-label font-display uppercase">{item.category || 'HQ'}</Text>
-                                </View>
-                                {hasId(item.admins, userId) && (
-                                    <View className="bg-ink px-2.5 py-1 rounded-full">
-                                        <Text className="text-paper text-label font-display uppercase">Admin Access</Text>
-                                    </View>
-                                )}
-                            </>
-                        )}
-                    </View>
-                </View>
+                ) : (
+                    <TagRow style={{ marginTop: 8 }}>
+                        <Tag label={item.category || 'Club'} />
+                        {isAdmin ? <Tag icon="shield-checkmark-outline" label="Admin" /> : null}
+                    </TagRow>
+                )}
             </View>
-        </TouchableOpacity>
+        </Pressable>
     );
 });
 
@@ -153,131 +126,74 @@ const ClubListScreen = () => {
     const myClubs = clubs.filter(c => hasId(c.members, user?._id) || hasId(c.admins, user?._id));
     const invitations = clubs.filter(c => hasId(c.invitations, user?._id));
 
+    const data = [
+        ...(invitations.length > 0 ? [{ type: 'header', title: 'Invitations' }] : []),
+        ...invitations.map(i => ({ ...i, isInvitation: true })),
+        ...(myClubs.length > 0 ? [{ type: 'header', title: 'Your clubs' }] : []),
+        ...myClubs
+    ];
+    const openClub = useCallback((id: string) => navigation.navigate('ClubHub', { clubId: id }), [navigation]);
+    const renderItem = ({ item }: any) => item.type === 'header'
+        ? <SectionHeader title={item.title} style={{ paddingHorizontal: 20, marginTop: 16 }} />
+        : <ClubCard item={item} isInvitation={item.isInvitation} onAccept={handleAcceptInvitation} onPress={openClub} userId={user?._id} />;
+
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
-            
-            {/* Background Protocol Gradient */}
-
-            <View className="flex-1">
-                <AppBar
-                    title="College Clubs"
-                    onBack={() => navigation.goBack()}
-                    right={<IconBtn name="qr-code-outline" boxed onPress={() => setShowCodeModal(true)} />}
-                />
-                <FlatList keyboardShouldPersistTaps="handled"
-                    ListHeaderComponent={
-                        <TouchableOpacity
+            <AppBar
+                title="Clubs"
+                onBack={() => navigation.goBack()}
+                right={<IconBtn name="keypad-outline" boxed onPress={() => setShowCodeModal(true)} accessibilityLabel="Join with code" />}
+            />
+            <FlatList keyboardShouldPersistTaps="handled"
+                ListHeaderComponent={
+                    <View className="px-gutter pt-2">
+                        <ListRow
+                            leading={<IconTile icon="add" bg={C.brand[500]} color={C.onBrand} size={44} />}
+                            title="Create a club"
+                            subtitle="Start a space for your people"
                             onPress={() => navigation.navigate('CreateClub')}
-                            className="mx-gutter my-6 bg-ink p-5 rounded-card flex-row items-center justify-between shadow-hair"
-                        >
-                            <View className="flex-row items-center">
-                                <View className="w-14 h-14 bg-brand-600 rounded-card items-center justify-center">
-                                    <Ionicons name="add" size={32} color={C.onBrand} />
-                                </View>
-                                <View className="ml-6">
-                                    <Text className="text-paper font-display uppercase text-xs mb-1">Establish Hub</Text>
-                                    <Text className="text-paper/40 text-label font-semibold uppercase italic">New Community Protocol</Text>
-                                </View>
-                            </View>
-                            <Ionicons name="chevron-forward" size={24} color={C.paper} opacity={0.3} />
-                        </TouchableOpacity>
-                    }
-                    data={[
-                        ...(invitations.length > 0 ? [{ type: 'header', title: 'Pending Authorizations' }] : []),
-                        ...invitations.map(i => ({ ...i, isInvitation: true })),
-                        ...(myClubs.length > 0 ? [{ type: 'header', title: 'Active Deployments' }] : []),
-                        ...myClubs
-                    ]}
-                    keyExtractor={(item: any) => item._id || item.title}
-                    renderItem={({ item }: any) => {
-                        if (item.type === 'header') {
-                            return (
-                                <View className="px-gutter py-4 mt-4">
-                                    <Text className="text-ink-3 font-display uppercase text-label">{item.title}</Text>
-                                </View>
-                            );
-                        }
-                        return (
-                            <ClubCard 
-                                item={item} 
-                                isInvitation={item.isInvitation} 
-                                onAccept={handleAcceptInvitation}
-                                onPress={(id: string) => navigation.navigate('ClubHub', { clubId: id })}
-                                userId={user?._id}
-                            />
-                        );
-                    }}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: bottomInset }}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
-                    ListEmptyComponent={loading ? <ActivityIndicator color={C.brand[500]} className="mt-20" /> : loadError ? (
-                        <View className="mt-20">
-                            <Empty icon="cloud-offline-outline" title="Couldn't load clubs" action={<Button title="Try again" onPress={() => { setLoading(true); fetchClubs(); }} />} />
-                        </View>
-                    ) : (
-                        <View className="items-center mt-32 px-gutter">
-                            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                <MaterialCommunityIcons name="shield-lock-outline" size={48} color={C.ink4} />
-                            </View>
-                            <Text className="font-semibold text-base text-ink text-center">Hub Empty</Text>
-                            <Text className="font-sans text-sm text-ink-4 mt-2 text-center">
-                                Your authorization space is empty.{"\n"}Establish a hub or wait for a clearance signal.
-                            </Text>
-                        </View>
-                    )}
+                            style={{ backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.line, paddingHorizontal: 16, paddingVertical: 12 }}
+                        />
+                    </View>
+                }
+                data={data}
+                keyExtractor={(item: any) => item._id || item.title}
+                renderItem={renderItem}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: bottomInset }}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
+                ListEmptyComponent={loading ? <ActivityIndicator color={C.brand[500]} className="mt-20" /> : loadError ? (
+                    <View className="mt-20">
+                        <Empty icon="cloud-offline-outline" title="Couldn't load clubs" action={<Button title="Try again" onPress={() => { setLoading(true); fetchClubs(); }} />} />
+                    </View>
+                ) : (
+                    <View className="mt-16">
+                        <Empty icon="people-outline" title="No clubs yet" hint="Create one, or join with a code from a club admin." />
+                    </View>
+                )}
+            />
+
+            <Sheet
+                visible={showCodeModal}
+                onClose={() => setShowCodeModal(false)}
+                title="Join with code"
+                subtitle="Enter the 6-digit code a club admin shared with you."
+                footer={<Button title="Join club" variant="primary" block loading={verifying} disabled={joinCode.length !== 6} onPress={handleJoinByCode} />}
+            >
+                <TextInput
+                    placeholder="000000"
+                    placeholderTextColor={C.ink4}
+                    className="bg-paper-2 rounded-2xl text-center font-display text-ink"
+                    style={{ fontSize: 32, letterSpacing: 12, minHeight: 64, paddingVertical: 12 }}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    value={joinCode}
+                    onChangeText={setJoinCode}
+                    accessibilityLabel="Club code"
+                    autoFocus
                 />
-
-                {/* Join Code Modal */}
-                <Modal visible={showCodeModal} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowCodeModal(false)}>
-                    <KeyboardAvoidingView className="flex-1 bg-black/50 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                        <View className="bg-paper rounded-t-sheet p-card-pad border border-line">
-                            <View className="flex-row justify-between items-center mb-10">
-                                <Text className="text-ink font-display uppercase text-h1">Enter Code</Text>
-                                <TouchableOpacity
-                                    onPress={() => setShowCodeModal(false)}
-                                    className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line"
-                                >
-                                    <Ionicons name="close" size={24} color={C.ink} />
-                                </TouchableOpacity>
-                            </View>
-
-                            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-8 self-center">
-                                <Feather name="hash" size={32} color={C.ink} />
-                            </View>
-
-                            <Text className="font-sans text-sm text-ink-2 text-center mb-8">
-                                Input the 6-digit access code shared by HQ to authorise your deployment.
-                            </Text>
-
-                            <TextInput
-                                placeholder="000000"
-                                placeholderTextColor={C.ink4}
-                                className="bg-card w-full p-card-pad rounded-card text-center text-4xl font-display text-ink border-2 border-ink"
-                                style={{ letterSpacing: 12, shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 }}
-                                keyboardType="number-pad"
-                                maxLength={6}
-                                value={joinCode}
-                                onChangeText={setJoinCode}
-                                autoFocus
-                            />
-
-                            <TouchableOpacity
-                                onPress={handleJoinByCode}
-                                disabled={verifying || joinCode.length !== 6}
-                                className={`mt-10 w-full py-5 rounded-card items-center border-2 border-ink ${joinCode.length === 6 ? 'bg-brand-500' : 'bg-paper-2'}`}
-                            >
-                                {verifying ? <ActivityIndicator color={joinCode.length === 6 ? C.onBrand : C.ink} /> : (
-                                    <Text className={`font-display uppercase ${joinCode.length === 6 ? 'text-on-brand' : 'text-ink-4'}`} style={{ fontSize: 14, letterSpacing: 0.3 }}>
-                                        Join Club
-                                    </Text>
-                                )}
-                            </TouchableOpacity>
-                            <View className="h-10" />
-                        </View>
-                    </KeyboardAvoidingView>
-                </Modal>
-            </View>
+            </Sheet>
         </View>
     );
 };

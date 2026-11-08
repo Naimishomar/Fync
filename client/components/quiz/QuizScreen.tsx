@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, ScrollView, BackHandler, ActivityIndicator, Image, TouchableOpacity, Modal, StatusBar} from 'react-native'
+import { View, Text, ScrollView, BackHandler, ActivityIndicator, Image, Pressable, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -8,6 +8,7 @@ import socket from '../../utils/socket';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { BottomBar, Button, Card, H1, H2, IconBtn, Label, Num, Sheet } from '../ui/kit';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'QuizScreen'>;
 
@@ -124,72 +125,76 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
   const isLastQuestion = currentIndex === questions.length - 1;
   const isFirstQuestion = currentIndex === 0;
 
-  // --- RENDER WAITING MODAL ---
+  // --- WAITING FOR OPPONENT ---
   if (waitingForOpponent) {
     return (
       <View className="flex-1 bg-paper">
         <StatusBar barStyle={C.barStyle} />
         <SafeAreaView className="flex-1 justify-center items-center px-gutter">
-          <View className="bg-card p-card-pad rounded-sheet border border-line items-center w-full shadow-hair">
-            <View className="bg-paper-2 p-6 rounded-full mb-8 border border-line">
+          <Card padded style={{ alignItems: 'center', alignSelf: 'stretch' }}>
+            <View className="bg-paper-2 w-20 h-20 rounded-full mb-4 items-center justify-center">
               <ActivityIndicator size="large" color={C.brand[500]} />
             </View>
-            <Text className="text-3xl font-display text-ink text-center uppercase mt-6 mb-2">Submitted!</Text>
-            <Text className="text-ink-3 text-center text-lg font-display uppercase">
-              Waiting for <Text className="font-display text-accent-text">{opponent?.name || "Target"}</Text> to finalize...
+            <H1 style={{ textAlign: 'center', marginBottom: 8 }}>Submitted</H1>
+            <Text className="text-ink-2 text-center text-base">
+              Waiting for <Text className="font-semibold text-ink">{opponent?.name || "your opponent"}</Text> to finish…
             </Text>
-          </View>
+          </Card>
         </SafeAreaView>
       </View>
     );
   }
 
+  const unanswered = answers.filter(a => a === -1).length;
+  const low = timeLeft < 60;
+
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle={C.barStyle} />
 
-      <SafeAreaView className="flex-1">
-        {/* --- HEADER --- */}
-        <View className="px-gutter pt-8 pb-6 border-b border-line bg-card shadow-hair">
+      <SafeAreaView className="flex-1" edges={['top']}>
+        {/* Header */}
+        <View className="px-gutter pt-4 pb-4 border-b border-line bg-card">
 
           {mode === '1v1' && opponent && (
-            <View className="flex-row items-center justify-between mb-8 bg-paper-2 p-4 rounded-card border border-line shadow-hair">
+            <View className="flex-row items-center justify-between mb-4 bg-paper-2 p-3 rounded-2xl">
               <View className="flex-row items-center gap-3 flex-1 mr-3">
-                <View className="w-12 h-12 bg-card rounded-card border border-line overflow-hidden items-center justify-center shadow-hair">
+                <View className="w-11 h-11 bg-card rounded-full overflow-hidden items-center justify-center">
                   {opponent.avatar ? (
                     <Image source={{ uri: opponent.avatar }} className="w-full h-full" />
                   ) : (
-                    <Text className="font-display text-ink-4 text-xl">{opponent.username?.[0]?.toUpperCase()}</Text>
+                    <Text className="font-display text-ink-3 text-lg">{opponent.username?.[0]?.toUpperCase()}</Text>
                   )}
                 </View>
                 <View className="flex-1">
-                  <Text className="text-label text-ink-3 font-display uppercase">Global Opponent</Text>
-                  <Text className="font-display text-ink uppercase" numberOfLines={1}>{opponent.name || opponent.username}</Text>
+                  <Label>Opponent</Label>
+                  <Text className="font-semibold text-ink" numberOfLines={1}>{opponent.name || opponent.username}</Text>
                 </View>
               </View>
               <View className="bg-brand-500 px-2.5 py-1 rounded-full">
-                <Text className="text-on-brand font-display text-label uppercase">1V1 Match</Text>
+                <Text className="text-on-brand font-semibold text-xs">1v1 match</Text>
               </View>
             </View>
           )}
 
           <View className="flex-row justify-between items-center">
-            <View className="flex-row items-center">
-              <Text className="font-display text-xl text-ink uppercase">
-                Q. <Text className="text-accent-text text-2xl">{currentIndex + 1}</Text> / {questions.length}
-              </Text>
-            </View>
+            <Text className="font-semibold text-base text-ink-2">
+              Question <Num style={{ fontSize: 19 }}>{currentIndex + 1}</Num> of {questions.length}
+            </Text>
 
-            <View className={`px-5 py-2.5 rounded-card border flex-row items-center shadow-hair ${timeLeft < 60 ? 'bg-danger/10 border-danger/15 ' : 'bg-paper-2 border-line ' }`}>
-              <Ionicons name="stopwatch" size={20} color={timeLeft < 60 ? C.danger : C.brand[500]} />
-              <Text className={`font-display text-xl ml-3 uppercase ${timeLeft < 60 ? 'text-danger' : 'text-ink'}`}>
+            <View
+              className={`px-3 py-2 rounded-full flex-row items-center ${low ? 'bg-danger/10' : 'bg-paper-2'}`}
+              accessibilityLabel={`${formatTime(timeLeft)} left${low ? ', under a minute' : ''}`}
+            >
+              <Ionicons name={low ? 'alarm-outline' : 'stopwatch-outline'} size={18} color={low ? C.danger : C.ink2} />
+              <Num style={{ fontSize: 17, marginLeft: 8, color: low ? C.danger : C.ink }}>
                 {formatTime(timeLeft)}
-              </Text>
+              </Num>
             </View>
           </View>
 
-          {/* Progress Bar */}
-          <View className="w-full h-2 bg-paper-2 rounded-full mt-6 overflow-hidden border border-line">
+          {/* Progress */}
+          <View className="w-full h-1.5 bg-paper-2 rounded-full mt-4 overflow-hidden">
             <View
               className="h-full bg-brand-500 rounded-full"
               style={{ width: `${((currentIndex + 1) / Math.max(questions.length, 1)) * 100}%` }}
@@ -197,118 +202,80 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* --- CURRENT QUESTION --- */}
-        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-gutter pt-10" showsVerticalScrollIndicator={false}>
-          <View className="mb-10 bg-card p-card-pad rounded-sheet border border-line shadow-hair">
-            <Text className="text-2xl font-display text-ink mb-10 leading-8 uppercase">
-              {currentQuestion.question}
-            </Text>
+        {/* Current question */}
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-gutter" contentContainerStyle={{ paddingTop: 20, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+          <H2 style={{ marginBottom: 20 }}>{currentQuestion.question}</H2>
 
-            {(currentQuestion.options ?? []).map((opt: string, optIndex: number) => {
-              const isSelected = answers[currentIndex] === optIndex;
-              return (
-                <TouchableOpacity
-                  key={optIndex}
-                  disabled={submitted}
-                  activeOpacity={0.9}
-                  onPress={() => {
-                    const newAns = [...answers];
-                    newAns[currentIndex] = optIndex;
-                    setAnswers(newAns);
-                  }}
-                  className={`p-6 mb-5 rounded-card border flex-row items-center transition-all ${isSelected ? 'bg-card border-brand-500 shadow-hair ' : 'bg-paper-2 border-line' }`}
-                >
-                  <View className={`w-6 h-6 rounded-full border-2 mr-4 items-center justify-center ${isSelected ? 'border-brand-500 bg-brand-500' : 'border-line bg-card' }`}>
-                    {isSelected && <Ionicons name="checkmark" size={14} color={C.onBrand} />}
-                  </View>
-                  <Text className={`flex-1 text-base font-display uppercase ${isSelected ? 'text-ink' : 'text-ink-3'}`}>
-                    {opt}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+          {(currentQuestion.options ?? []).map((opt: string, optIndex: number) => {
+            const isSelected = answers[currentIndex] === optIndex;
+            return (
+              <Pressable
+                key={optIndex}
+                disabled={submitted}
+                onPress={() => {
+                  const newAns = [...answers];
+                  newAns[currentIndex] = optIndex;
+                  setAnswers(newAns);
+                }}
+                className={`p-4 mb-3 rounded-2xl flex-row items-center bg-card active:opacity-70 ${isSelected ? 'border-2 border-brand-500' : 'border border-line'}`}
+                style={{ minHeight: 56 }}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected, disabled: submitted }}
+              >
+                <View className={`w-6 h-6 rounded-full border mr-3 items-center justify-center ${isSelected ? 'border-brand-500 bg-brand-500' : 'border-line bg-card'}`}>
+                  {isSelected && <Ionicons name="checkmark" size={14} color={C.onBrand} />}
+                </View>
+                <Text className={`flex-1 text-base ${isSelected ? 'font-semibold text-ink' : 'font-sans text-ink-2'}`}>
+                  {opt}
+                </Text>
+              </Pressable>
+            );
+          })}
         </ScrollView>
 
-        {/* --- NAVIGATION BUTTONS --- */}
-        <View className="p-card-pad bg-card border-t border-line flex-row justify-between items-center pb-12 shadow-hair">
-
-          {/* Previous Button */}
-          <TouchableOpacity
+        {/* Navigation */}
+        <BottomBar>
+          <IconBtn
+            name="arrow-back"
+            boxed
             onPress={() => setCurrentIndex(prev => prev - 1)}
             disabled={isFirstQuestion || submitted}
-            className={`py-5 px-gutter rounded-card border ${isFirstQuestion ? 'bg-paper-2 border-line opacity-30' : 'bg-paper-2 border-line' }`}
-          >
-            <Ionicons name="arrow-back" size={24} color={isFirstQuestion ? C.ink3 : C.ink} />
-          </TouchableOpacity>
-
-          {/* Next / Submit Button */}
+            accessibilityLabel="Previous question"
+            style={isFirstQuestion ? { opacity: 0.4 } : undefined}
+          />
+          <View style={{ flex: 1 }} />
           {!isLastQuestion ? (
-            <TouchableOpacity
-              onPress={() => setCurrentIndex(prev => prev + 1)}
-              activeOpacity={0.9}
-              className="py-5 px-gutter rounded-card bg-brand-500 shadow-hair flex-row items-center"
-            >
-              <Text className="text-on-brand font-display uppercase text-sm mr-3">Next Step</Text>
-              <Ionicons name="arrow-forward" size={18} color={C.onBrand} />
-            </TouchableOpacity>
+            <Button title="Next" icon="arrow-forward" variant="primary" onPress={() => setCurrentIndex(prev => prev + 1)} />
           ) : (
-            <TouchableOpacity
-              onPress={() => setShowConfirmModal(true)}
-              disabled={submitted}
-              activeOpacity={0.9}
-              className="py-5 px-gutter rounded-card bg-brand-500 shadow-hair flex-row items-center"
-            >
-              <Text className="text-on-brand font-display uppercase text-sm mr-3">Finalize</Text>
-              <Ionicons name="rocket" size={22} color={C.onBrand} />
-            </TouchableOpacity>
+            <Button title="Submit" icon="checkmark" variant="primary" disabled={submitted} onPress={() => setShowConfirmModal(true)} />
           )}
+        </BottomBar>
 
-        </View>
-
-        {/* --- CONFIRMATION MODAL --- */}
-        <Modal
+        {/* Confirm submit */}
+        <Sheet
           visible={showConfirmModal}
-          transparent={true}
-          statusBarTranslucent
-          animationType="fade"
-          onRequestClose={() => setShowConfirmModal(false)}
-        >
-          <View className="flex-1 justify-center items-center px-gutter" style={{ backgroundColor: C.scrim }}>
-            <View className="bg-card p-card-pad rounded-sheet border border-line w-full items-center shadow-hair">
-              <View className="bg-warning/10 p-6 rounded-full mb-8 border border-warning/15">
-                <Ionicons name="alert-circle" size={48} color={C.warning} />
-              </View>
-              <Text className="text-3xl font-display text-ink text-center uppercase mt-6 mb-3">Complete Quiz?</Text>
-
-              {answers.includes(-1) ? (
-                <Text className="text-danger text-center font-display text-lg mb-10">
-                  Warning: <Text className="font-display">{answers.filter(a => a === -1).length}</Text> questions remain unaddressed!
-                </Text>
-              ) : (
-                <Text className="text-ink-3 text-center font-semibold text-base mb-10 uppercase">
-                  Protocol finished. Verify your inputs before final submission.
-                </Text>
-              )}
-
-              <View className="flex-row w-full gap-5">
-                <TouchableOpacity
-                  onPress={() => setShowConfirmModal(false)}
-                  className="flex-1 py-5 bg-paper-2 border border-line items-center shadow-hair rounded-md"
-                >
-                  <Text className="font-semibold text-base text-ink">Review</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={submitQuiz}
-                  className="flex-1 py-5 bg-brand-500 items-center border-2 border-ink rounded-md"
-                >
-                  <Text className="text-on-brand font-display uppercase text-sm">Confirm</Text>
-                </TouchableOpacity>
-              </View>
+          onClose={() => setShowConfirmModal(false)}
+          title="Submit quiz?"
+          footer={
+            <View className="flex-row" style={{ gap: 12 }}>
+              <Button title="Review" onPress={() => setShowConfirmModal(false)} style={{ flex: 1 }} />
+              <Button title="Submit" variant="primary" onPress={submitQuiz} style={{ flex: 1 }} />
             </View>
-          </View>
-        </Modal>
+          }
+        >
+          {unanswered > 0 ? (
+            <View className="flex-row items-center bg-danger/10 p-4 rounded-2xl" style={{ gap: 12 }}>
+              <Ionicons name="alert-circle-outline" size={22} color={C.danger} />
+              <Text className="text-danger font-semibold text-sm flex-1">
+                {unanswered} {unanswered === 1 ? 'question is' : 'questions are'} still unanswered.
+              </Text>
+            </View>
+          ) : (
+            <Text className="text-ink-2 text-base">
+              All questions answered. Check your answers before submitting — you can't change them after.
+            </Text>
+          )}
+        </Sheet>
 
       </SafeAreaView>
     </View>

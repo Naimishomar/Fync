@@ -2,11 +2,9 @@ import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   Image,
   ScrollView,
-  Modal,
   FlatList,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -17,6 +15,7 @@ import { collegesInIndia } from '../data/college';
 // @ts-ignore
 import loginImage from '../assets/loginImage.png';
 import { C } from '../constants/colors';
+import { Button, Chip, FormField, SearchField, Sheet, ListRow, Empty } from './ui/kit';
 
 export default function AlumniProfileSetup() {
   const navigation = useNavigation<any>();
@@ -88,206 +87,123 @@ export default function AlumniProfileSetup() {
         <Image
           source={{ uri: 'https://i.pinimg.com/736x/a2/05/60/a205602210656db27579657ba25f57a4.jpg' }}
           style={{ width: '100%', height: 400 }}
-          className="rounded-card"
+          className="rounded-2xl"
           resizeMode="cover"
         />
         
-        <View className="mt-8 bg-card rounded-sheet px-6 pt-8 pb-10 shadow-hair">
-          <Text className="text-3xl font-display text-ink mb-2">Professional Info</Text>
-          <Text className="text-ink-3 mb-6">Step 2: Tell us about your career</Text>
+        <View className="mt-6 bg-card border border-line rounded-2xl p-5" style={{ gap: 16 }}>
+          <View>
+            <Text className="text-h1 font-display text-ink mb-2" accessibilityRole="header">Professional info</Text>
+            <Text className="text-sm text-ink-3">Step 2: Tell us about your career</Text>
+          </View>
 
-          <Text className="text-ink-2 font-semibold mb-2">Basic Details</Text>
-          <TextInput
-            placeholderTextColor={C.ink3}
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
-            placeholder="Full Name"
-            value={name}
-            onChangeText={setName}
+          <Text className="text-ink font-semibold mt-2">Basic details</Text>
+          <FormField label="Full name" placeholder="Full name" value={name} onChangeText={setName} />
+          <FormField label="Username" placeholder="Username" value={username} onChangeText={setUsername} autoCapitalize="none" />
+          <FormField
+            label="Password"
+            placeholder="Password"
+            secureTextEntry={!passwordVisible}
+            value={password}
+            onChangeText={setPassword}
+            right={
+              <Pressable onPress={() => setPasswordVisible(!passwordVisible)} hitSlop={12} accessibilityRole="button" className="active:opacity-70"
+                accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}>
+                <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={22} color={C.ink3} />
+              </Pressable>
+            }
           />
-          <TextInput
-            placeholderTextColor={C.ink3}
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
-            placeholder="Username"
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-          />
-          <View className="mb-4 flex-row items-center rounded-xl border-2 border-ink px-4">
-            <TextInput
-            placeholderTextColor={C.ink3}
-              className="flex-1 py-4 text-ink"
-              placeholder="Password"
-              secureTextEntry={!passwordVisible}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <Pressable onPress={() => setPasswordVisible(!passwordVisible)} hitSlop={12}>
-              <Ionicons
-                name={passwordVisible ? 'eye-off' : 'eye'}
-                size={22}
-                color={C.ink4}
-              />
+
+          <Text className="text-ink font-semibold mt-2">Education</Text>
+          <View style={{ gap: 6 }}>
+            <Text className="font-semibold text-ink-2" style={{ fontSize: 13, lineHeight: 18 }}>College</Text>
+            <Pressable
+              onPress={() => setShowCollegeModal(true)}
+              className="bg-paper-2 border border-line rounded-2xl px-4 flex-row justify-between items-center active:opacity-70"
+              style={{ minHeight: 48, gap: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={`College. ${college || 'Not set'}`}
+            >
+              <Text className={`flex-1 text-base ${college ? "text-ink" : "text-ink-3"}`} numberOfLines={1}>
+                {college || "Select college"}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color={C.ink3} />
             </Pressable>
           </View>
+          <FormField label="Graduation year" placeholder="2022" keyboardType="number-pad"
+            value={graduationYear} onChangeText={setGraduationYear} />
+          <FormField label="Department / major" placeholder="e.g. CSE, MBA" value={major} onChangeText={setMajor} />
 
-          <Text className="text-ink-2 font-semibold mb-2">Education</Text>
-          <Pressable 
-            onPress={() => setShowCollegeModal(true)}
-            className="mb-4 rounded-xl border border-line px-4 py-4 flex-row justify-between items-center"
-          >
-            <Text className={college ? "text-ink" : "text-ink-3"}>
-              {college || "Select College"}
-            </Text>
-            <Ionicons name="chevron-down" size={20} color={C.ink4} />
-          </Pressable>
-          <TextInput
-            placeholderTextColor={C.ink3}
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
-            placeholder="Graduation Year"
-            keyboardType="number-pad"
-            value={graduationYear}
-            onChangeText={setGraduationYear}
-          />
-          <TextInput
-            placeholderTextColor={C.ink3}
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
-            placeholder="Department / Major (e.g. CSE, MBA)"
-            value={major}
-            onChangeText={setMajor}
-          />
-
-          <Text className="text-ink-2 font-semibold mb-2">Gender</Text>
-          <View className="flex-row mb-4">
-            {['Male', 'Female'].map((g) => (
-              <Pressable
-                key={g}
-                onPress={() => setGender(g)}
-                className={`mr-4 px-6 py-2 rounded-full border ${ gender === g ? 'bg-ink border-ink' : 'bg-transparent border-line' }`}
-              >
-                <Text className={gender === g ? 'text-paper' : 'text-ink-2'}>
-                  {g}
-                </Text>
-              </Pressable>
-            ))}
+          <View style={{ gap: 6 }}>
+            <Text className="font-semibold text-ink-2" style={{ fontSize: 13, lineHeight: 18 }}>Gender</Text>
+            <View className="flex-row" style={{ gap: 8 }}>
+              {['Male', 'Female'].map((g) => (
+                <Chip key={g} label={g} active={gender === g} onPress={() => setGender(g)} />
+              ))}
+            </View>
           </View>
 
-          <Text className="text-ink-2 font-semibold mb-2 mt-2">Work Experience</Text>
-          <TextInput
-            placeholderTextColor={C.ink3}
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
-            placeholder="Current Company / Startup"
-            value={company}
-            onChangeText={setCompany}
-          />
-          <TextInput
-            placeholderTextColor={C.ink3}
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
-            placeholder="Your Role (e.g. SDE-2, Founder)"
-            value={role}
-            onChangeText={setRole}
-          />
+          <Text className="text-ink font-semibold mt-2">Work experience</Text>
+          <FormField label="Current company / startup" placeholder="Company" value={company} onChangeText={setCompany} />
+          <FormField label="Your role" placeholder="e.g. SDE-2, Founder" value={role} onChangeText={setRole} />
 
-          <Text className="text-ink-2 font-semibold mb-2">Experience Level</Text>
-          <View className="flex-row flex-wrap mb-4">
-            {experienceLevels.map((level) => (
-              <Pressable
-                key={level}
-                onPress={() => setExperienceLevel(level)}
-                className={`mr-2 mb-2 px-4 py-2 rounded-full border ${ experienceLevel === level ? 'bg-ink border-ink' : 'bg-transparent border-line' }`}
-              >
-                <Text className={experienceLevel === level ? 'text-paper' : 'text-ink-2'}>
-                  {level}
-                </Text>
-              </Pressable>
-            ))}
+          <View style={{ gap: 6 }}>
+            <Text className="font-semibold text-ink-2" style={{ fontSize: 13, lineHeight: 18 }}>Experience level</Text>
+            <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+              {experienceLevels.map((level) => (
+                <Chip key={level} label={level} active={experienceLevel === level} onPress={() => setExperienceLevel(level)} />
+              ))}
+            </View>
           </View>
 
-          <Text className="text-ink-2 font-semibold mb-2">Domains (comma separated)</Text>
-          <TextInput
-            placeholderTextColor={C.ink3}
-            className="mb-4 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
-            placeholder="e.g. Backend, AI, Fintech"
-            value={domains}
-            onChangeText={setDomains}
-          />
+          <FormField label="Domains" hint="Comma separated" placeholder="e.g. Backend, AI, Fintech"
+            value={domains} onChangeText={setDomains} />
+          <FormField label="LinkedIn URL (optional)" placeholder="https://linkedin.com/in/username"
+            value={linkedIn} onChangeText={setLinkedIn} autoCapitalize="none" />
 
-          <Text className="text-ink-2 font-semibold mb-2">LinkedIn URL (Optional)</Text>
-          <TextInput
-            placeholderTextColor={C.ink3}
-            className="mb-8 border-[1.5px] border-ink px-4 py-4 rounded-md text-ink"
-            placeholder="https://linkedin.com/in/username"
-            value={linkedIn}
-            onChangeText={setLinkedIn}
-            autoCapitalize="none"
-          />
+          <Button variant="primary" block title="Next step" onPress={handleNext} style={{ marginTop: 8 }} />
 
-          <Pressable
-            className="bg-brand-500 py-4 items-center border-2 border-ink rounded-md"
-            onPress={handleNext}
-          >
-            <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Next Step</Text>
-          </Pressable>
-
-          <Text className="mt-5 text-center text-ink-3">Step 2 of 3</Text>
+          <Text className="text-center text-sm text-ink-3">Step 2 of 3</Text>
         </View>
       </ScrollView>
 
-      {/* College Selection Modal */}
-      <Modal
+      <Sheet
         visible={showCollegeModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowCollegeModal(false)}
+        onClose={() => setShowCollegeModal(false)}
+        title="Select college"
+        scroll={false}
+        height="80%"
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-paper rounded-t-sheet h-[80%] px-6 pt-8">
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="font-display text-h1 text-ink">Select College</Text>
-              <Pressable onPress={() => setShowCollegeModal(false)} hitSlop={8}>
-                <Ionicons name="close-circle" size={32} color={C.ink} />
-              </Pressable>
-            </View>
-
-            <View className="flex-row items-center bg-paper-2 rounded-card px-4 mb-6">
-              <Ionicons name="search" size={20} color={C.ink4} />
-              <TextInput
-            placeholderTextColor={C.ink3}
-                className="flex-1 py-4 ml-2 text-ink"
-                placeholder="Search your college..."
-                value={collegeSearch}
-                onChangeText={setCollegeSearch}
-              />
-            </View>
-
-            <FlatList
-              data={filteredColleges}
-              keyExtractor={(item) => item}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="on-drag"
-              // Last college sat under the gesture bar.
-              contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) }}
-              renderItem={({ item }) => (
-                <Pressable
-                  onPress={() => {
-                    setCollege(item);
-                    setShowCollegeModal(false);
-                    setCollegeSearch('');
-                  }}
-                  className="py-4 border-b border-line"
-                >
-                  <Text className="text-lg text-ink">{item}</Text>
-                </Pressable>
-              )}
-              ListEmptyComponent={
-                <View className="py-10 items-center">
-                  <Text className="text-ink-3">No colleges found</Text>
-                  <Text className="text-ink-3 text-sm mt-1">Try a different search term</Text>
-                </View>
-              }
+        <SearchField
+          placeholder="Search your college"
+          value={collegeSearch}
+          onChangeText={setCollegeSearch}
+          containerStyle={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4 }}
+        />
+        <FlatList
+          data={filteredColleges}
+          keyExtractor={keyOf}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 8 }}
+          renderItem={({ item }) => (
+            <ListRow
+              title={item}
+              titleLines={2}
+              chevron={false}
+              onPress={() => {
+                setCollege(item);
+                setShowCollegeModal(false);
+                setCollegeSearch('');
+              }}
+              right={item === college ? <Ionicons name="checkmark" size={20} color={C.accentText} accessibilityLabel="Selected" /> : undefined}
             />
-          </View>
-        </View>
-      </Modal>
+          )}
+          ListEmptyComponent={<Empty icon="school-outline" title="No colleges found" hint="Try a different search term" />}
+        />
+      </Sheet>
     </View>
   );
 }
+
+const keyOf = (item: string) => item;

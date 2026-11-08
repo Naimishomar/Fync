@@ -1,16 +1,67 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar} from 'react-native'
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { View, Text, Pressable, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Feather from '@expo/vector-icons/Feather';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Empty, Tag } from '../ui/kit';
+import { ChatComposer, clock } from './shared';
+
+const EchoMessage = memo(function EchoMessage({ item, myId, creatorId, isCreator, onReply, onDelete }: {
+    item: any; myId?: string; creatorId: string | null; isCreator: boolean;
+    onReply: (m: any) => void; onDelete: (id: string) => void;
+}) {
+    const isMine = item.sender?._id === myId;
+    const isSenderAdmin = (item.sender?._id || item.sender) === creatorId;
+    const canDelete = isMine || isCreator;
+    const fg = isMine ? C.paper : C.ink;
+    const sub = isMine ? C.paper + 'B3' : C.ink3;
+
+    return (
+        <View className={`mb-4 flex-row ${isMine ? 'justify-end' : 'justify-start'}`} style={{ gap: 8 }}>
+            {!isMine && (
+                <Image source={{ uri: item.sender?.avatar }} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
+            )}
+            <View className="max-w-[80%]" style={{ flexShrink: 1 }}>
+                {!isMine && (
+                    <View className="flex-row items-center mb-1 ml-1" style={{ gap: 6 }}>
+                        <Text className="text-ink font-semibold" style={{ fontSize: 13 }}>{item.sender?.name}</Text>
+                        {isSenderAdmin && <Tag label="Owner" />}
+                    </View>
+                )}
+                <Pressable
+                    onLongPress={canDelete ? () => onDelete(item._id) : undefined}
+                    className={`rounded-2xl px-4 py-3 ${isMine ? 'bg-ink rounded-tr-md' : 'bg-card border border-line rounded-tl-md'}`}
+                >
+                    {item.repliedTo && (
+                        <View className="mb-2 pl-3 py-1" style={{ borderLeftWidth: 3, borderLeftColor: isMine ? C.paper + '4D' : C.line }}>
+                            <Text className="font-semibold" style={{ fontSize: 12, color: sub }}>Replying to {item.repliedTo.sender?.name}</Text>
+                            <Text style={{ fontSize: 13, color: sub }} numberOfLines={2}>{item.repliedTo.text}</Text>
+                        </View>
+                    )}
+                    <Text style={{ fontSize: 15, lineHeight: 21, color: fg }}>{item.text}</Text>
+                    <View className="flex-row items-center justify-between mt-2" style={{ gap: 16 }}>
+                        <Text style={{ fontSize: 11, color: sub }}>{clock(item.createdAt)}</Text>
+                        <View className="flex-row items-center" style={{ gap: 16 }}>
+                            <Pressable onPress={() => onReply(item)} hitSlop={14} accessibilityRole="button" accessibilityLabel="Reply" className="active:opacity-60">
+                                <Ionicons name="arrow-undo-outline" size={16} color={sub} />
+                            </Pressable>
+                            {canDelete && (
+                                <Pressable onPress={() => onDelete(item._id)} hitSlop={14} accessibilityRole="button" accessibilityLabel="Delete message" className="active:opacity-60">
+                                    <Ionicons name="trash-outline" size={16} color={sub} />
+                                </Pressable>
+                            )}
+                        </View>
+                    </View>
+                </Pressable>
+            </View>
+        </View>
+    );
+});
 
 const SubCommunityChat = ({ navigation, route }: any) => {
     const { subId, subName, communityId } = route?.params ?? {};
@@ -100,10 +151,10 @@ const SubCommunityChat = ({ navigation, route }: any) => {
     };
 
     const handleDelete = (messageId: string) => {
-        Alert.alert("Purge Message", "Remove this data from the sector frequency?", [
-            { text: "Abort", style: "cancel" },
+        Alert.alert("Delete message?", "This removes it for everyone.", [
+            { text: "Cancel", style: "cancel" },
             { 
-              text: "Purge", 
+              text: "Delete", 
               style: "destructive", 
               onPress: async () => {
                 try { await axios.post('/communities/sub/message/delete', { messageId, userId: user?._id }); }
@@ -113,146 +164,57 @@ const SubCommunityChat = ({ navigation, route }: any) => {
         ]);
     };
 
-    const renderMessage = ({ item }: { item: any }) => {
-        const isMine = item.sender?._id === user?._id;
-        const isSenderAdmin = (item.sender?._id || item.sender) === creatorId;
-        const canDelete = isMine || isCreator;
+    const myId = user?._id;
+    const renderMessage = useCallback(({ item }: { item: any }) => (
+        <EchoMessage item={item} myId={myId} creatorId={creatorId} isCreator={isCreator} onReply={setReplyingTo} onDelete={handleDelete} />
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ), [myId, creatorId, isCreator]);
 
-        return (
-            <View className={`mb-8 flex-row gap-4 ${isMine ? 'justify-end' : 'justify-start'}`}>
-                {!isMine && (
-                    <View className="shadow-hair">
-                        <Image source={{ uri: item.sender?.avatar }} style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
-                    </View>
-                )}
-                <View className="flex-1 max-w-[85%]">
-                    {!isMine && (
-                        <View className="flex-row items-center gap-2 mb-2 ml-1">
-                            <Text className="text-ink font-display uppercase text-label">{item.sender?.name}</Text>
-                            {isSenderAdmin && (
-                                <View className="bg-brand-500/10 border border-ink px-2.5 py-1 rounded-full">
-                                    <Text className="text-accent-text font-display uppercase text-label">Guardian</Text>
-                                </View>
-                            )}
-                        </View>
-                    )}
-                    
-                    <TouchableOpacity 
-                        activeOpacity={0.9} 
-                        onLongPress={() => canDelete && handleDelete(item._id)}
-                        className={`rounded-card px-6 py-5 shadow-hair ${isMine ? 'bg-ink rounded-tr-none ' : 'bg-card rounded-tl-none border border-line '} ${isSenderAdmin && !isMine ? 'border-line bg-paper-2/20' : ''}`}
-                    >
-                        {item.repliedTo && (
-                            <View className={`mb-4 p-4 rounded-card border-l-[4px] ${isMine ? 'bg-paper/5 border-paper/20' : 'bg-paper-2 border-line'}`}>
-                                <Text className={`text-label font-display uppercase mb-1 ${isMine ? 'text-paper/40' : 'text-ink-3'}`}>
-                                    Responding to {item.repliedTo.sender?.name}
-                                </Text>
-                                <Text className={`text-label font-medium ${isMine ? 'text-paper/80' : 'text-ink-2'}`} numberOfLines={2}>{item.repliedTo.text}</Text>
-                            </View>
-                        )}
-                        <Text className={`font-medium text-sm leading-[24px] ${isMine ? 'text-paper' : 'text-ink'}`}>{item.text}</Text>
-                        
-                        <View className="flex-row items-center justify-between mt-4">
-                            <Text className={`text-label font-display uppercase ${isMine ? 'text-paper/30' : 'text-ink-4'}`}>
-                                {item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                            </Text>
-                            
-                            <View className="flex-row items-center gap-4">
-                                <TouchableOpacity onPress={() => setReplyingTo(item)} hitSlop={15}>
-                                    <Feather name="corner-up-left" size={16} color={isMine ? C.paper + '4D' : C.ink4} />
-                                </TouchableOpacity>
-                                {canDelete && (
-                                    <TouchableOpacity onPress={() => handleDelete(item._id)} hitSlop={15}>
-                                        <Feather name="trash-2" size={16} color={isMine ? C.paper + '4D' : C.ink4} />
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        );
-    };
+    const locked = subType === 'announcement' && !isCreator;
 
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} translucent backgroundColor="transparent" />
             <SafeAreaView className="flex-1" edges={['bottom']}>
-                <AppBar
-                    title={`#${subName}`}
-                    onBack={() => navigation.goBack()}
-                    right={<IconBtn name="ellipsis-horizontal" color={C.ink4} boxed />}
-                />
-
-                {/* Status Bar */}
-                <View className="bg-paper-2 py-2.5 items-center border-b border-line">
-                    <Text className="text-accent-text font-display uppercase text-label">Sector Signal Encrypted</Text>
-                </View>
+                <AppBar title={`#${subName}`} onBack={() => navigation.goBack()} />
 
                 <View className="flex-1">
                     {loading ? (
                         <View className="flex-1 items-center justify-center"><ActivityIndicator color={C.brand[500]} /></View>
                     ) : (
-                        <FlatList 
-                            ref={flatListRef} 
-                            data={messages} 
-                            keyExtractor={(item) => item._id} 
-                            renderItem={renderMessage} 
-                            contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 24, paddingTop: 16 }}
+                        <FlatList
+                            ref={flatListRef}
+                            data={messages}
+                            keyExtractor={(item) => item._id}
+                            renderItem={renderMessage}
+                            contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16 }}
                             showsVerticalScrollIndicator={false}
                             keyboardShouldPersistTaps="handled"
                             keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
                             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                            ListEmptyComponent={<Empty icon="chatbubbles-outline" title="No messages yet" />}
                         />
                     )}
                 </View>
 
                 <KeyboardAvoidingView behavior="padding">
-                    {subType === 'announcement' && !isCreator ? (
-                        <View className="p-card-pad bg-card items-center justify-center border-t border-line">
-                            <View className="bg-paper-2 px-gutter py-4 rounded-card border border-line flex-row items-center gap-3">
-                                <Feather name="lock" size={16} color={C.ink4} />
-                                <Text className="font-sans text-sm text-ink-3 text-center">Guardian Broadcast Restricted</Text>
-                            </View>
-                        </View>
-                    ) : (
-                        <View className="bg-card px-5 py-6 border-t border-line">
-                            {replyingTo && (
-                                <View className="mb-5 p-5 bg-paper-2 rounded-card border-l-[6px] border-brand-500 flex-row justify-between items-center shadow-hair">
-                                    <View className="flex-1 mr-5">
-                                        <Text className="text-accent-text font-display uppercase text-label mb-1">Responding to {replyingTo.sender?.name}</Text>
-                                        <Text className="text-ink-3 text-label font-medium" numberOfLines={1}>{replyingTo.text}</Text>
-                                    </View>
-                                    <TouchableOpacity onPress={() => setReplyingTo(null)}>
-                                        <Ionicons name="close-circle" size={24} color={C.ink4} />
-                                    </TouchableOpacity>
+                    <ChatComposer
+                        value={text}
+                        onChangeText={setText}
+                        onSend={handleSend}
+                        sending={sending}
+                        placeholder={subType === 'announcement' ? 'Write an announcement' : 'Message'}
+                        locked={locked && 'Only the owner can post here'}
+                        top={replyingTo ? (
+                            <View className="mb-3 pl-3 pr-1 py-2 bg-paper-2 rounded-xl flex-row items-center" style={{ borderLeftWidth: 3, borderLeftColor: C.brand[500], gap: 8 }}>
+                                <View className="flex-1" style={{ minWidth: 0 }}>
+                                    <Text className="text-accent-text font-semibold" style={{ fontSize: 12 }}>Replying to {replyingTo.sender?.name}</Text>
+                                    <Text className="text-ink-3" style={{ fontSize: 13 }} numberOfLines={1}>{replyingTo.text}</Text>
                                 </View>
-                            )}
-                            <View className="flex-row items-end gap-4">
-                                <TouchableOpacity className="w-14 h-14 bg-paper-2 rounded-card items-center justify-center mb-0.5 border border-line shadow-hair">
-                                    <Feather name="plus" size={28} color={C.ink4} />
-                                </TouchableOpacity>
-                                <View className="flex-1 min-h-[56px] max-h-[140px] bg-paper-2 rounded-card px-6 border border-line justify-center shadow-hair">
-                                    <TextInput 
-                                        placeholder={subType === 'announcement' ? "Initiate broadcast..." : "Link message..."} 
-                                        placeholderTextColor={C.ink4}
-                                        className="font-medium text-sm text-ink leading-[22px]"
-                                        value={text}
-                                        onChangeText={setText}
-                                        multiline
-                                    />
-                                </View>
-                                <TouchableOpacity 
-                                    onPress={handleSend} 
-                                    disabled={!text.trim() || sending} 
-                                    className={`w-14 h-14 rounded-card items-center justify-center shadow-hair mb-0.5 ${text.trim() ? 'bg-ink ' : 'bg-paper-2 shadow-none'}`}
-                                >
-                                    {sending ? <ActivityIndicator size="small" color={C.paper} /> : <Feather name="arrow-up" size={28} color={C.paper} />}
-                                </TouchableOpacity>
+                                <IconBtn name="close-circle" size={20} color={C.ink3} onPress={() => setReplyingTo(null)} accessibilityLabel="Cancel reply" />
                             </View>
-                        </View>
-                    )}
-                    <View className="h-4 bg-card" />
+                        ) : null}
+                    />
                 </KeyboardAvoidingView>
             </SafeAreaView>
         </View>

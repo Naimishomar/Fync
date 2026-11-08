@@ -2,17 +2,13 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   Image,
-  TouchableOpacity
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { AppBar } from './ui/kit';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -21,6 +17,7 @@ import { useAuth } from '../context/auth.context';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Device from "expo-device";
 import { C } from '../constants/colors';
+import { AppBar, Button, FormField } from './ui/kit';
 
 export default function RecruiterProfileSetup() {
   const navigation = useNavigation<any>();
@@ -150,106 +147,49 @@ export default function RecruiterProfileSetup() {
       className="flex-1 bg-paper" 
       behavior="padding"
     >
-      <AppBar title="Company Profile" onBack={() => navigation.goBack()}
-        right={<Text className="text-ink-3 font-semibold text-xs uppercase" style={{ marginRight: 11 }}>Step 2 of 2</Text>} />
-      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 50 }}>
-        <View className="px-5 pt-2 pb-6 bg-paper">
-          <Text className="text-ink-3 text-sm font-medium">Complete your recruiter profile.</Text>
+      <AppBar title="Company profile" onBack={() => navigation.goBack()}
+        right={<Text className="text-ink-3 font-semibold text-sm" style={{ marginRight: 11 }}>Step 2 of 2</Text>} />
+      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
+        <View className="px-gutter pt-2 pb-4">
+          <Text className="text-ink-3 text-sm">Complete your recruiter profile.</Text>
         </View>
 
-        <View className="px-5 py-6 border-b border-line">
-          <View className="items-center mb-6">
-            <Pressable onPress={pickImage} className="relative">
+        <View className="px-gutter pb-6" style={{ gap: 16 }}>
+          <View className="items-center mb-2">
+            <Pressable onPress={pickImage} className="relative active:opacity-70" accessibilityRole="button"
+              accessibilityLabel={avatarUri ? 'Change profile picture' : 'Upload profile picture'}>
               {avatarUri ? (
                 <Image source={{ uri: avatarUri }} className="h-24 w-24 rounded-full" />
               ) : (
-                <View className="h-24 w-24 rounded-full bg-paper-2 items-center justify-center border-4 border-line shadow-hair">
-                  <Ionicons name="business" size={40} color={C.ink4} />
+                <View className="h-24 w-24 rounded-full bg-paper-2 items-center justify-center border border-line">
+                  <Ionicons name="business-outline" size={40} color={C.ink3} />
                 </View>
               )}
-              <View className="absolute right-0 bg-brand-500 border-2 border-ink h-8 w-8 items-center justify-center border-paper rounded-md bottom-0">
+              <View className="absolute right-0 bottom-0 bg-brand-500 h-8 w-8 items-center justify-center rounded-full border-2 border-paper">
                 <Ionicons name="camera" size={14} color={C.onBrand} />
               </View>
             </Pressable>
-            <Text className="text-ink-3 font-medium text-xs mt-3">Upload Profile Picture</Text>
+            <Text className="text-ink-3 font-medium text-sm mt-3">Upload profile picture</Text>
           </View>
 
-          <Text className="text-sm font-semibold text-ink mb-2 mt-4">Personal Details</Text>
-          <TextInput
-            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor={C.ink3}
-            placeholder="Full Name"
-            value={name}
-            onChangeText={setName}
-          />
-          <TextInput
-            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor={C.ink3}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <Text className="text-base font-semibold text-ink mt-2">Personal details</Text>
+          <FormField label="Full name" placeholder="Full name" value={name} onChangeText={setName} />
+          <FormField label="Password" placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
 
-          <Text className="text-sm font-semibold text-ink mb-2 mt-4">Company Verification</Text>
-          <TextInput
-            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor={C.ink3}
-            placeholder="Company Name"
-            value={company}
-            onChangeText={setCompany}
-          />
-          <TextInput
-            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor={C.ink3}
-            placeholder="Designation / Role"
-            value={role}
-            onChangeText={setRole}
-          />
-          <TextInput
-            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor={C.ink3}
-            placeholder="Company Website URL (Optional)"
-            value={companyWebsite}
-            autoCapitalize="none"
-            onChangeText={setCompanyWebsite}
-          />
-          <TextInput
-            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor={C.ink3}
-            placeholder="Industry (e.g. IT, Finance) (Optional)"
-            value={industry}
-            onChangeText={setIndustry}
-          />
-          <TextInput
-            className="mb-4 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor={C.ink3}
-            placeholder="Number of Employees (Optional)"
-            value={companySize}
-            keyboardType="number-pad"
-            onChangeText={setCompanySize}
-          />
-          <Text className="text-sm font-semibold text-ink mb-2 mt-4">Professional Link</Text>
-          <TextInput
-            className="mb-8 bg-card border-2 border-ink px-4 py-3.5 font-medium text-ink rounded-xl"
-            placeholderTextColor={C.ink3}
-            placeholder="LinkedIn Profile URL (Optional)"
-            value={linkedIn}
-            autoCapitalize="none"
-            onChangeText={setLinkedIn}
-          />
+          <Text className="text-base font-semibold text-ink mt-2">Company verification</Text>
+          <FormField label="Company name" placeholder="Company name" value={company} onChangeText={setCompany} />
+          <FormField label="Designation / role" placeholder="e.g. Talent partner" value={role} onChangeText={setRole} />
+          <FormField label="Company website (optional)" placeholder="https://" value={companyWebsite}
+            autoCapitalize="none" onChangeText={setCompanyWebsite} />
+          <FormField label="Industry (optional)" placeholder="e.g. IT, Finance" value={industry} onChangeText={setIndustry} />
+          <FormField label="Number of employees (optional)" placeholder="50" value={companySize}
+            keyboardType="number-pad" onChangeText={setCompanySize} />
 
-          <Pressable
-            className={`rounded-full py-4 items-center ${isLoading ? 'bg-paper-2' : 'bg-ink'}`}
-            onPress={handleRegister}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color={C.ink} />
-            ) : (
-              <Text className="text-paper text-base font-semibold">Complete Setup</Text>
-            )}
-          </Pressable>
+          <Text className="text-base font-semibold text-ink mt-2">Professional link</Text>
+          <FormField label="LinkedIn profile URL (optional)" placeholder="https://linkedin.com/in/username" value={linkedIn}
+            autoCapitalize="none" onChangeText={setLinkedIn} />
+
+          <Button variant="solid" block title="Complete setup" onPress={handleRegister} loading={isLoading} style={{ marginTop: 8 }} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

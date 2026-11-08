@@ -24,7 +24,20 @@ import { ChatListSkeleton } from "./Skeleton";
 import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
-import { AppBar, Button, Empty } from './ui/kit';
+import { AppBar, Button, Empty, ListRow, Badge, SearchField, SectionHeader, Card } from './ui/kit';
+
+/** Avatar with a green presence dot. */
+const OnlineAvatar = React.memo(({ user, online }: { user: any; online: boolean }) => (
+  <View>
+    <Avatar user={user as any} size={44} />
+    {online && (
+      <View
+        className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-card"
+        accessibilityLabel="Online"
+      />
+    )}
+  </View>
+));
 
 const ChatList = () => {
   const autoHideTabBar = useTabBarAutoHide();
@@ -303,88 +316,35 @@ const ChatList = () => {
     const unread = unreadCounts[item._id] || 0;
     const isLastMsgMine = item.lastMessageSender === user._id;
 
+    const when = formatDateTime(item.updatedAt || new Date());
+    const typing = !!typingStates[item._id];
+
     return (
-      <TouchableOpacity
-        className="flex-row items-center p-card-pad mb-3 bg-card rounded-card border border-line"
+      <ListRow
         onPress={() => navigation.navigate("Chat", {
           conversationId: item._id,
           otherUser: otherUser
         })}
-        activeOpacity={0.7}
-      >
-        <View className="relative">
-          <Avatar
-            user={otherUser as any}
-            size={38}
-          />
-          {onlineUsers.has(otherUser?._id) && (
-            <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-card" />
-          )}
-        </View>
-
-        <View className="ml-4 flex-1 justify-center">
-          <View className="flex-row items-center justify-between mb-1">
-            <Text className="font-semibold text-base text-ink flex-1 mr-2" numberOfLines={1}>
-              {otherUser?.username || "Unknown"}
-            </Text>
-            <Text className="font-display text-label text-accent-text uppercase">
-              {formatDateTime(item.updatedAt || new Date()).time}
-            </Text>
-          </View>
-
-          <View className="flex-row items-center justify-between">
-            <Text
-              className={`flex-1 text-sm mr-4 ${typingStates[item._id] ? 'text-success font-semibold italic' : (unread > 0 ? 'text-ink font-semibold' : 'text-ink-3')}`}
-              numberOfLines={1}
-            >
-              {typingStates[item._id] ? "typing..." : (isLastMsgMine ? "You: " : "") + (item.lastMessage || "Started a chat")}
-            </Text>
-
-            <View className="flex-row items-center">
-              <Text className="font-display text-label text-ink-3 uppercase mr-2">
-                {formatDateTime(item.updatedAt || new Date()).date}
-              </Text>
-              
-              {unread > 0 && (
-                <View className="bg-brand-500 min-w-[18px] min-h-4 px-1 flex justify-center items-center rounded-full">
-                  <Text className="text-on-brand text-label font-display" maxFontSizeMultiplier={1.2}>
-                    {unread > 9 ? '9+' : unread}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
+        leading={<OnlineAvatar user={otherUser} online={onlineUsers.has(otherUser?._id)} />}
+        title={otherUser?.username || "Unknown"}
+        subtitle={typing ? "typing…" : (isLastMsgMine ? "You: " : "") + (item.lastMessage || "Started a chat")}
+        meta={when.date === 'Today' ? when.time : when.date}
+        right={unread > 0 ? <Badge value={unread} tone={C.brand[500]} /> : undefined}
+        chevron={false}
+        accessibilityLabel={`${otherUser?.username || 'Unknown'}${unread > 0 ? `, ${unread} unread` : ''}`}
+      />
     );
   }, [user._id, onlineUsers, navigation, typingStates, unreadCounts]);
 
   const renderUserItem = useCallback(({ item }: any) => (
-    <TouchableOpacity
-      className="flex-row items-center p-card-pad mb-3 bg-card rounded-card border border-line"
+    <ListRow
       onPress={() => startChat(item)}
-      activeOpacity={0.7}
-    >
-      <View className="relative">
-        <Avatar
-          user={item as any}
-          size={48}
-        />
-        {onlineUsers.has(item._id) && (
-          <View className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-card" />
-        )}
-      </View>
-
-      <View className="ml-4 flex-1">
-        <Text className="font-semibold text-ink text-base" numberOfLines={1}>
-          {item.username}
-        </Text>
-        <Text className="text-ink-3 text-sm mt-0.5" numberOfLines={1}>
-          {item.name}
-        </Text>
-      </View>
-      <Ionicons name="chatbubble-ellipses-outline" size={20} color={C.brand[500]} />
-    </TouchableOpacity>
+      leading={<OnlineAvatar user={item} online={onlineUsers.has(item._id)} />}
+      title={item.username}
+      subtitle={item.name}
+      right={<Ionicons name="chatbubble-ellipses-outline" size={20} color={C.ink3} />}
+      accessibilityLabel={`Message ${item.username}`}
+    />
   ), [onlineUsers]);
 
   return (
@@ -394,31 +354,19 @@ const ChatList = () => {
       <View className="flex-1">
         <AppBar title="Messages" onBack={showBack ? () => navigation.goBack() : undefined} />
         <View className="px-gutter">
-          {/* SEARCH DOCK */}
-          <View className="flex-row items-center bg-card px-5 py-1 border-2 border-ink shadow-hair mb-5 rounded-md">
-            <Ionicons name="search" size={20} color={C.ink3} />
-            <TextInput
-              placeholder="Search contacts..."
-              placeholderTextColor={C.ink4}
-              value={search}
-              onChangeText={handleSearchChange}
-              className="flex-1 text-ink font-semibold text-sm p-3"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            {search.length > 0 && (
-              <TouchableOpacity onPress={() => handleSearchChange("")} hitSlop={12}>
-                <Ionicons name="close-circle" size={18} color={C.ink4} />
-              </TouchableOpacity>
-            )}
-          </View>
+          <SearchField
+            placeholder="Search contacts"
+            value={search}
+            onChangeText={handleSearchChange}
+            containerStyle={{ marginBottom: 8 }}
+          />
         </View>
 
         {/* LIST CONTENT */}
         {loading ? (
           <View className="flex-1 px-gutter">
             {[1, 2, 3, 4].map(i => (
-              <View key={i} className="mb-4 bg-card rounded-card border border-line p-4 shadow-hair">
+              <View key={i} className="mb-3">
                 <ChatListSkeleton />
               </View>
             ))}
@@ -451,72 +399,39 @@ const ChatList = () => {
               <>
                 {/* Special Channels (Only when not searching) */}
                 {search.length === 0 && (user?.college || isFeatureOn('alumniConnect') || isFeatureOn('proHub')) && (
-                  <View className="mb-6">
-                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                      <Text className="text-ink-3 text-label font-display uppercase">Dedicated Channels</Text>
-                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                    </View>
+                  <View>
+                    <SectionHeader title="Channels" />
+                    <Card style={{ paddingHorizontal: 16 }}>
+                      {user?.college && (
+                        <ListRow
+                          onPress={() => navigation.navigate("CollegeChatScreen")}
+                          icon="school-outline"
+                          title={`${user.college} chat`}
+                          subtitle="Messages clear after 24 hours"
+                        />
+                      )}
 
-                    {user?.college && (
-                      <TouchableOpacity
-                        activeOpacity={0.8}
-                        onPress={() => navigation.navigate("CollegeChatScreen")}
-                        className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair mb-2"
-                      >
-                        <View className="w-12 h-12 rounded-card bg-paper-2 items-center justify-center border border-line mr-4">
-                          <Ionicons name="school" size={24} color={C.brand[500]} />
-                        </View>
-                        <View className="flex-1">
-                          <Text className="font-semibold text-base text-ink" numberOfLines={1}>{user.college} Area</Text>
-                          <Text className="text-ink-3 text-label font-semibold mt-1">24hr Expiring Zone</Text>
-                        </View>
-                        <View className="bg-brand-500 w-2 h-2 rounded-full" />
-                      </TouchableOpacity>
-                    )}
+                      {isFeatureOn('alumniConnect') && (user?.user_access === 'user' || user?.user_access === 'alumni' || user?.user_access === 'admin') && user?.college && (
+                        <ListRow
+                          onPress={() => navigation.navigate("AlumniConnect")}
+                          icon="people-outline"
+                          title="Student-alumni chat"
+                          subtitle="Talk to alumni from your college"
+                        />
+                      )}
 
-                    {isFeatureOn('alumniConnect') && (user?.user_access === 'user' || user?.user_access === 'alumni' || user?.user_access === 'admin') && user?.college && (
-                      <TouchableOpacity
-                        activeOpacity={0.8}
-                        onPress={() => navigation.navigate("AlumniConnect")}
-                        className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair mb-2"
-                      >
-                        <View className="w-12 h-12 rounded-card bg-recruiter/10 items-center justify-center border border-recruiter/15 mr-4">
-                          <Ionicons name="people" size={24} color={C.recruiter} />
-                        </View>
-                        <View className="flex-1">
-                          <Text className="font-semibold text-base text-ink">Student-Alumni Chat</Text>
-                          <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Global Networking Zone</Text>
-                        </View>
-                        <View className="bg-recruiter px-2.5 py-1 rounded-full">
-                          <Text className="text-label text-white font-display">Connect</Text>
-                        </View>
-                      </TouchableOpacity>
-                    )}
-
-                    {isFeatureOn('proHub') && (user?.user_access === 'user' || user?.user_access === 'alumni') && (
-                      <TouchableOpacity
-                        activeOpacity={0.8}
-                        onPress={() => navigation.navigate("ProfessionalHub")}
-                        className="flex-row items-center bg-card rounded-card p-5 border border-line shadow-hair"
-                      >
-                        <View className="w-12 h-12 rounded-card bg-ink items-center justify-center mr-4">
-                          <Ionicons name="briefcase" size={24} color={C.paper} />
-                        </View>
-                        <View className="flex-1">
-                          <Text className="font-semibold text-base text-ink">Professional Hub</Text>
-                          <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Global Alumni Network</Text>
-                        </View>
-                        <View className="bg-ink px-2.5 py-1 rounded-full">
-                          <Text className="text-label text-paper font-display">PRO</Text>
-                        </View>
-                      </TouchableOpacity>
-                    )}
+                      {isFeatureOn('proHub') && (user?.user_access === 'user' || user?.user_access === 'alumni') && (
+                        <ListRow
+                          onPress={() => navigation.navigate("ProfessionalHub")}
+                          icon="briefcase-outline"
+                          title="Professional hub"
+                          subtitle="Alumni network"
+                        />
+                      )}
+                    </Card>
                   </View>
                 )}
-                <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                  <Text className="text-ink-3 text-label font-display uppercase">Recent transmissions</Text>
-                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                </View>
+                <SectionHeader title={search.length > 0 ? "People" : "Recent chats"} />
               </>
             }
             ListEmptyComponent={search.length === 0 && loadError ? (
@@ -528,20 +443,12 @@ const ChatList = () => {
                 />
               </View>
             ) : (
-              <View className="items-center justify-center mt-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons
-                    name={search.length > 0 ? "person-remove-outline" : "chatbubbles-outline"}
-                    size={32}
-                    color={C.ink4}
-                  />
-                </View>
-                <Text className="font-semibold text-base text-ink text-center">
-                  {search.length > 0 ? "Registry Empty" : "No Transmissions"}
-                </Text>
-                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
-                  Initialize search to establish connection.
-                </Text>
+              <View className="mt-10">
+                <Empty
+                  icon={search.length > 0 ? "person-remove-outline" : "chatbubbles-outline"}
+                  title={search.length > 0 ? "No one found" : "No chats yet"}
+                  hint={search.length > 0 ? "Try a different name or username." : "Search for someone above to start a chat."}
+                />
               </View>
             )}
           />

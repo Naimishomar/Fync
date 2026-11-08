@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {View, Text, FlatList, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, Dimensions} from 'react-native'
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { View, Text, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
@@ -10,9 +10,7 @@ import socket from '../../utils/socket';
 import { goBack, navigate } from '../../utils/navigation';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
-
-const { width } = Dimensions.get('window');
+import { AppBar, IconBtn } from '../ui/kit';
 
 interface Message {
     _id: string;
@@ -36,6 +34,95 @@ interface Message {
         };
     };
 }
+
+const formatDateHeader = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+    return date.toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'long',
+        year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+    });
+};
+
+const MessageRow = memo(function MessageRow({ item, isMine, canDelete, showDate, onReply, onDelete }: {
+    item: Message; isMine: boolean; canDelete: boolean; showDate: boolean;
+    onReply: (m: Message) => void; onDelete: (id: string) => void;
+}) {
+    return (
+        <View>
+            {showDate && (
+                <View className="items-center my-4">
+                    <View className="bg-paper-2 px-3 py-1 rounded-full">
+                        <Text className="text-ink-3 text-xs font-semibold">{formatDateHeader(item.createdAt)}</Text>
+                    </View>
+                </View>
+            )}
+
+            <Pressable
+                onLongPress={() => {
+                    const options: any[] = [
+                        { text: "Reply", onPress: () => onReply(item) },
+                        { text: "Cancel", style: "cancel" }
+                    ];
+                    // Admin can delete anyone's message
+                    if (canDelete) {
+                        options.splice(1, 0, { text: "Delete", style: "destructive", onPress: () => onDelete(item._id) });
+                    }
+                    Alert.alert("Message options", "What would you like to do?", options);
+                }}
+                delayLongPress={500}
+                accessibilityHint="Long press for options"
+                className={`flex-row mb-3 ${isMine ? 'justify-end' : 'justify-start'} items-end px-4 active:opacity-70`}
+            >
+                {!isMine && (
+                    <Image
+                        source={{ uri: item.sender?.avatar }}
+                        style={{ width: 32, height: 32, borderRadius: 16, marginRight: 8, marginBottom: 4, backgroundColor: C.paper2 }}
+                        cachePolicy="memory-disk"
+                    />
+                )}
+                <View className={`max-w-[75%] overflow-hidden rounded-2xl ${isMine ? 'bg-recruiter rounded-br-md' : 'bg-card border border-line rounded-bl-md'}`}>
+                    {item.replyTo && (
+                        <View className={`m-2 p-2 rounded-xl border-l-4 ${isMine ? 'bg-black/10 border-white/40' : 'bg-paper-2 border-recruiter'}`}>
+                            <Text className={`text-xs font-semibold ${isMine ? 'text-white' : 'text-recruiter'}`}>
+                                {item.replyTo.sender?.name || "User"}
+                            </Text>
+                            <Text className={`text-xs ${isMine ? 'text-white/80' : 'text-ink-3'}`} numberOfLines={1}>
+                                {item.replyTo.text}
+                            </Text>
+                        </View>
+                    )}
+
+                    {item.image && (
+                        <Image source={{ uri: item.image }} style={{ width: 256, height: 192 }} contentFit="cover" cachePolicy="memory-disk" />
+                    )}
+
+                    <View className="px-3 py-2">
+                        {!isMine && (
+                            <Text className="text-xs font-semibold text-recruiter mb-0.5">{item.sender?.name}</Text>
+                        )}
+                        {item.text && item.text.trim() !== '' ? (
+                            <Text className={`text-base font-sans ${isMine ? 'text-white' : 'text-ink'}`}>{item.text}</Text>
+                        ) : null}
+                        <View className="flex-row items-center justify-end mt-0.5" style={{ gap: 4 }}>
+                            <Text className={`text-xs font-sans ${isMine ? 'text-white/70' : 'text-ink-3'}`}>
+                                {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </Text>
+                            {isMine && <Ionicons name="checkmark-done" size={12} color="rgba(255,255,255,0.7)" />}
+                        </View>
+                    </View>
+                </View>
+            </Pressable>
+        </View>
+    );
+});
 
 export default function EventCommunityChat({ route }: any) {
     const { eventId, eventName, type } = route?.params ?? {};
@@ -183,110 +270,14 @@ export default function EventCommunityChat({ route }: any) {
         }
     };
 
-    const formatDateHeader = (dateString: string) => {
-        const date = new Date(dateString);
-        const today = new Date();
-        const yesterday = new Date();
-        yesterday.setDate(today.getDate() - 1);
 
-        if (date.toDateString() === today.toDateString()) return 'Today';
-        if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
-
-        return date.toLocaleDateString('en-US', {
-            day: 'numeric',
-            month: 'long',
-            year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
-        });
-    };
-
+    const onReply = useCallback((m: Message) => setReplyingTo(m), []);
     const renderMessage = useCallback(({ item, index }: { item: Message, index: number }) => {
         const isMine = item.sender?._id === user?._id;
-
-        // Date separator logic
-        const showDateSeparator = index === 0 ||
+        const showDate = index === 0 ||
             new Date(messages[index - 1].createdAt).toDateString() !== new Date(item.createdAt).toDateString();
-
-        return (
-            <View>
-                {showDateSeparator && (
-                    <View className="items-center my-6">
-                        <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                            <Text className="text-ink-3 text-label font-display uppercase">
-                                {formatDateHeader(item.createdAt)}
-                            </Text>
-                        </View>
-                    </View>
-                )}
-
-                <TouchableOpacity
-                    onLongPress={() => {
-                        const options: any[] = [
-                            { text: "Reply", onPress: () => setReplyingTo(item) },
-                            { text: "Cancel", style: "cancel" }
-                        ];
-                        // Admin can delete anyone's message
-                        if (isMine || isAdmin) {
-                            options.splice(1, 0, { text: "Delete", style: "destructive", onPress: () => handleDeleteMessage(item._id) });
-                        }
-                        Alert.alert("Message Options", "What would you like to do?", options);
-                    }}
-                    delayLongPress={500}
-                    className={`flex-row mb-4 ${isMine ? 'justify-end' : 'justify-start'} items-end px-4`}
-                >
-                    {!isMine && (
-                        <Image
-                            source={{ uri: item.sender?.avatar }}
-                            style={{ width: 32, height: 32, borderRadius: 12, marginRight: 8, marginBottom: 4, backgroundColor: C.paper2 }}
-                            cachePolicy="memory-disk"
-                        />
-                    )}
-                    <View
-                        className={`max-w-[75%] shadow-hair ${isMine ? 'bg-recruiter rounded-card rounded-br-none' : 'bg-card rounded-card rounded-bl-none'} overflow-hidden`}
-                        style={{ elevation: 2 }}
-                    >
-                        {/* Reply Preview inside Bubble */}
-                        {item.replyTo && (
-                            <View className={`m-2 p-2 rounded-xl border-l-4 ${isMine ? 'bg-black/10 border-recruiter/40' : 'bg-paper-2 border-recruiter'}`}>
-                                <Text className={`text-label font-display uppercase ${isMine ? 'text-white' : 'text-recruiter'}`}>
-                                    {item.replyTo.sender?.name || "User"}
-                                </Text>
-                                <Text className={`text-label ${isMine ? 'text-white/80' : 'text-ink-3'}`} numberOfLines={1}>
-                                    {item.replyTo.text}
-                                </Text>
-                            </View>
-                        )}
-
-                        {item.image && (
-                            <Image
-                                source={{ uri: item.image }}
-                                style={{ width: 256, height: 192 }}
-                                contentFit="cover"
-                                cachePolicy="memory-disk"
-                            />
-                        )}
-
-                        <View className="p-3 px-4">
-                            {!isMine && (
-                                <Text className="text-label font-display uppercase text-recruiter mb-1">
-                                    {item.sender?.name}
-                                </Text>
-                            )}
-                            {item.text && item.text.trim() !== '' && (
-                                <Text className={`text-xs font-semibold leading-5 ${isMine ? 'text-white' : 'text-ink'}`}>
-                                    {item.text}
-                                </Text>
-                            )}
-                            <View className="flex-row items-center justify-end mt-1 gap-1">
-                                <Text className={`text-label font-semibold ${isMine ? 'text-white/70' : 'text-ink-3'}`}>
-                                    {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </Text>
-                                {isMine && <Ionicons name="checkmark-done" size={10} color="rgba(255,255,255,0.7)" />}
-                            </View>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-            </View>
-        );
+        return <MessageRow item={item} isMine={isMine} canDelete={isMine || isAdmin} showDate={showDate} onReply={onReply} onDelete={handleDeleteMessage} />;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [messages, user, isAdmin]);
 
     return (
@@ -298,7 +289,7 @@ export default function EventCommunityChat({ route }: any) {
                 {loading ? (
                     <View className="flex-1 items-center justify-center">
                         <ActivityIndicator size="large" color={C.recruiter} />
-                        <Text className="mt-4 text-ink-3 text-label font-semibold uppercase">Encrypting Chat...</Text>
+                        <Text className="mt-4 text-ink-3 text-sm font-sans">Loading chat…</Text>
                     </View>
                 ) : (
                     <FlatList
@@ -315,50 +306,41 @@ export default function EventCommunityChat({ route }: any) {
                 )}
 
                 <KeyboardAvoidingView behavior="padding">
-                    {/* Input Area */}
-                    <View className="p-4 bg-card border-t border-line">
-                        {/* Reply Indicator Preview */}
+                    <View className="px-4 pt-3 pb-3 bg-card border-t border-line">
                         {replyingTo && (
-                            <View className="px-5 py-3 bg-card border-t border-recruiter/15 flex-row items-center justify-between mb-4 rounded-card">
-                                <View className="border-l-4 border-recruiter pl-4">
-                                    <Text className="text-recruiter text-label font-display uppercase">
-                                        Replying to {replyingTo.sender?.name}
-                                    </Text>
-                                    <Text className="text-ink-3 text-label mt-0.5" numberOfLines={1}>
-                                        {replyingTo.text}
-                                    </Text>
+                            <View className="px-3 py-2 bg-paper-2 flex-row items-center justify-between mb-3 rounded-2xl">
+                                <View className="border-l-4 border-recruiter pl-3 flex-1">
+                                    <Text className="text-recruiter text-xs font-semibold">Replying to {replyingTo.sender?.name}</Text>
+                                    <Text className="text-ink-3 text-xs mt-0.5" numberOfLines={1}>{replyingTo.text}</Text>
                                 </View>
-                                <TouchableOpacity onPress={() => setReplyingTo(null)} hitSlop={12}>
-                                    <Ionicons name="close-circle" size={22} color={C.recruiter} />
-                                </TouchableOpacity>
+                                <IconBtn name="close-circle" color={C.ink3} size={20} onPress={() => setReplyingTo(null)} accessibilityLabel="Cancel reply" />
                             </View>
                         )}
 
-                        <View className="flex-row items-center bg-paper-2 rounded-card px-2 py-2 border border-fam-career/10">
-                            <TouchableOpacity
-                                onPress={pickImage}
-                                className="w-10 h-10 items-center justify-center"
-                             hitSlop={2}>
-                                <Ionicons name="image" size={22} color={C.recruiter} />
-                            </TouchableOpacity>
+                        <View className="flex-row items-center bg-paper-2 rounded-full pl-1 pr-1 min-h-[48px] border border-line">
+                            <IconBtn name="image-outline" color={C.ink2} onPress={pickImage} accessibilityLabel="Send a photo" />
                             <TextInput
-                                placeholder="Type a message..."
+                                placeholder="Type a message"
                                 value={inputText}
                                 onChangeText={setInputText}
-                                className="flex-1 h-10 text-ink font-semibold px-2 text-xs"
+                                accessibilityLabel="Message"
+                                className="flex-1 text-ink font-sans text-base px-1 py-2"
                                 placeholderTextColor={C.ink3}
                             />
-                            <TouchableOpacity
+                            <Pressable
                                 onPress={() => handleSend()}
                                 disabled={sending || (!inputText.trim())}
-                                className={`w-10 h-10 rounded-full items-center justify-center ${inputText.trim() ? 'bg-recruiter shadow-hair ' : 'bg-paper-2'}`}
+                                accessibilityRole="button"
+                                accessibilityLabel="Send message"
+                                accessibilityState={{ disabled: sending || !inputText.trim(), busy: sending }}
+                                className={`w-10 h-10 rounded-full items-center justify-center active:opacity-70 ${inputText.trim() ? 'bg-recruiter' : 'bg-paper-2'}`}
                             >
                                 {sending ? (
                                     <ActivityIndicator size="small" color="white" />
                                 ) : (
-                                    <Ionicons name="send" size={18} color={inputText.trim() ? 'white' : C.ink4} />
+                                    <Ionicons name="send" size={18} color={inputText.trim() ? 'white' : C.ink3} />
                                 )}
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
                     </View>
                 </KeyboardAvoidingView>

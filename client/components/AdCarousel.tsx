@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, FlatList, useWindowDimensions, TouchableOpacity, Linking, AppState } from "react-native";
+import { View, FlatList, useWindowDimensions, Pressable, Linking, AppState } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { Image } from "expo-image";
 import axios from "../context/axiosConfig";
@@ -89,8 +89,8 @@ const AdCarousel = () => {
           // Full-bleed. The gutter, the stamp and its 4px offset are all gone:
           // each of those reserved horizontal space, and an inset banner with a
           // border reads as a card rather than as the poster it is.
-          <TouchableOpacity
-            activeOpacity={item.linkUrl ? 0.85 : 1}
+          <Pressable
+            className={item.linkUrl ? 'active:opacity-80' : undefined}
             onPress={() => handleAdPress(item)}
             accessibilityRole={item.linkUrl ? 'link' : 'image'}
             accessibilityLabel={item.title || 'Sponsored'}
@@ -102,17 +102,17 @@ const AdCarousel = () => {
               contentFit="cover"
               cachePolicy="memory-disk"
             />
-          </TouchableOpacity>
+          </Pressable>
         )}
       />
 
       {/* Dot indicators */}
       {ads.length > 1 && (
-        <View className="absolute bottom-3 w-full flex-row justify-center gap-2">
+        <View className="absolute bottom-3 w-full flex-row justify-center gap-1.5" pointerEvents="none">
           {ads.map((_, index) => (
             <View
               key={index}
-              className={`h-2 rounded-full transition-all ${ currentIndex === index ? "bg-brand-500 w-4" : "bg-white/60 w-2" }`}
+              className={`h-1.5 rounded-full ${ currentIndex === index ? "bg-white w-4" : "bg-white/50 w-1.5" }`}
             />
           ))}
         </View>

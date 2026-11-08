@@ -1,16 +1,18 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
+import { View, Text } from 'react-native';
 import { C } from '../../constants/colors';
+import { Card, IconTile, Tag, TagRow } from '../ui/kit';
+import { OwnerActions } from './ProfileBits';
 
-const TYPE_CONFIG = (): Record<string, { icon: string; color: string; bg: string }> => ({
-  internship:   { icon: 'school-outline',    color: C.ink, bg: C.paper },
-  'full-time':  { icon: 'briefcase',         color: C.brand[500], bg: C.paper2 },
-  'part-time':  { icon: 'briefcase-outline', color: C.ink, bg: C.paper },
-  freelance:    { icon: 'laptop-outline',    color: C.brand[500], bg: C.paper2 },
-  contract:     { icon: 'document-outline', color: C.ink, bg: C.paper },
-  'open-source':{ icon: 'code-slash-outline',color: C.brand[500], bg: C.paper2 },
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+const TYPE_CONFIG = (): Record<string, { icon: string; color: string }> => ({
+  internship:   { icon: 'school-outline',     color: C.ink },
+  'full-time':  { icon: 'briefcase-outline',  color: C.accentText },
+  'part-time':  { icon: 'briefcase-outline',  color: C.ink },
+  freelance:    { icon: 'laptop-outline',     color: C.accentText },
+  contract:     { icon: 'document-outline',   color: C.ink },
+  'open-source':{ icon: 'code-slash-outline', color: C.accentText },
 });
 
 interface Internship {
@@ -58,66 +60,32 @@ export default function InternshipCard({ item, isOwner, onEdit, onDelete }: Prop
   }
 
   return (
-    <View className="mx-4 mb-4 bg-card rounded-card border border-line p-6 shadow-hair">
-      <View className="flex-row">
-        <View className="w-12 h-12 rounded-card items-center justify-center mr-4 flex-shrink-0 shadow-hair"
-          style={{ backgroundColor: type.bg, borderWidth: 1, borderColor: C.paper2 }}>
-          <Ionicons name={type.icon as any} size={20} color={type.color} />
-        </View>
+    <Card style={{ marginHorizontal: 16, marginBottom: 12, flexDirection: 'row', gap: 12 }}>
+      <IconTile icon={type.icon as any} size={48} color={type.color} />
 
-        <View className="flex-1" style={{ minWidth: 0 }}>
-          <Text className="text-ink font-display uppercase text-sm leading-tight" numberOfLines={2}>{item.role}</Text>
-          <Text className="text-ink-3 font-display uppercase text-label mt-0.5" numberOfLines={1}>{item.company}</Text>
+      <View className="flex-1" style={{ minWidth: 0 }}>
+        <Text className="text-ink font-semibold text-base" numberOfLines={2}>{item.role}</Text>
+        <Text className="text-ink-2 text-sm font-sans mt-0.5" numberOfLines={1}>{item.company}</Text>
 
-          <View className="flex-row flex-wrap items-center gap-x-4 gap-y-2 mt-3">
-            <View className="flex-row items-center gap-1.5">
-              <Feather name="calendar" size={10} color={C.ink3} />
-              <Text className="text-ink-3 font-semibold text-label uppercase">{start} — {end}</Text>
-            </View>
-            {durationStr ? (
-              <View className="bg-paper-2 px-2.5 py-1 rounded-full">
-                <Text className="text-ink-3 text-label font-display uppercase">{durationStr}</Text>
-              </View>
-            ) : null}
-            <View className="flex-row items-center gap-1.5">
-              <Feather name="map-pin" size={10} color={C.ink3} />
-              <Text className="text-ink-3 font-semibold text-label uppercase">{item.workMode || 'remote'}</Text>
-            </View>
-            {item.isCurrentlyWorking && (
-              <View className="bg-success/10 border border-success/15 px-2.5 py-1 rounded-full">
-                <Text className="text-success text-label font-display uppercase">Active</Text>
-              </View>
-            )}
-          </View>
+        <TagRow style={{ marginTop: 8 }}>
+          <Tag icon="calendar-outline" label={`${start} – ${end}`} />
+          {durationStr ? <Tag label={durationStr} /> : null}
+          <Tag icon="location-outline" label={cap(item.workMode || 'remote')} />
+          {item.isCurrentlyWorking ? <Tag label="Current" tone={{ fg: C.success }} /> : null}
+        </TagRow>
 
-          {item.description ? (
-            <Text className="text-ink-3 text-xs mt-4 leading-[18px] font-medium" numberOfLines={3}>
-              {item.description}
-            </Text>
-          ) : null}
+        {item.description ? (
+          <Text className="text-ink-3 text-sm mt-2 leading-5 font-sans" numberOfLines={3}>{item.description}</Text>
+        ) : null}
 
-          {item.techStack && item.techStack.length > 0 && (
-            <View className="flex-row flex-wrap gap-2 mt-4">
-              {item.techStack.slice(0, 4).map((t, i) => (
-                <View key={i} className="bg-ink px-2.5 py-1 rounded-full">
-                  <Text className="text-paper text-label font-display uppercase">{t}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {isOwner && (
-          <View className="ml-4 gap-3 border-l border-line pl-4">
-            <Pressable onPress={() => onEdit?.(item)} hitSlop={8} className="w-8 h-8 items-center justify-center bg-ink rounded-xl">
-              <Feather name="edit-3" size={12} color={C.paper} />
-            </Pressable>
-            <Pressable onPress={() => onDelete?.(item._id)} hitSlop={8} className="w-8 h-8 items-center justify-center bg-danger/10 rounded-xl">
-              <Ionicons name="trash-outline" size={14} color={C.danger} />
-            </Pressable>
-          </View>
-        )}
+        {item.techStack?.length ? (
+          <TagRow style={{ marginTop: 8 }}>
+            {item.techStack.slice(0, 4).map((t, i) => <Tag key={i} label={t} />)}
+          </TagRow>
+        ) : null}
       </View>
-    </View>
+
+      {isOwner ? <OwnerActions vertical what="experience" onEdit={() => onEdit?.(item)} onDelete={() => onDelete?.(item._id)} /> : null}
+    </Card>
   );
 }

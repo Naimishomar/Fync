@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Pressable, Animated, StatusBar, RefreshControl, ScrollView, KeyboardAvoidingView, Platform} from 'react-native'
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { View, Text, FlatList, ActivityIndicator, Pressable, Animated, StatusBar, RefreshControl } from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../context/axiosConfig';
@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import socket from '../utils/socket';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
-import { AppBar, IconBtn, Empty, Button } from './ui/kit';
+import { AppBar, IconBtn, Empty, Button, SegmentedTabs, Tag, Sheet, FormField } from './ui/kit';
 import { Image } from 'expo-image';
 
 // Module scope: declared inside the screen it was a new component type on every
@@ -27,8 +27,8 @@ const ItemSkeleton = () => {
     }, [pulseAnim]);
 
     return (
-        <Animated.View style={{ opacity: pulseAnim }} className="bg-card rounded-sheet mb-6 border border-line p-6 flex-row mx-gutter">
-            <View className="w-24 h-24 bg-paper-2 rounded-card mr-5" />
+        <Animated.View style={{ opacity: pulseAnim }} className="bg-card rounded-2xl mb-3 border border-line p-4 flex-row mx-gutter">
+            <View className="w-20 h-20 bg-paper-2 rounded-xl mr-4" />
             <View className="flex-1 justify-center">
                 <View className="h-4 bg-paper-2 rounded w-3/4 mb-3" />
                 <View className="h-3 bg-paper-2 rounded w-1/2 mb-2" />
@@ -55,6 +55,58 @@ interface LostAndFoundItem {
     is_found_item_claimed?: boolean;
     is_lost_item_found?: boolean;
 }
+const TABS = ['lost', 'found'] as const;
+const TAB_LABELS = { lost: 'Lost', found: 'Found' };
+
+/** One report. Module scope + memo so the list updates rows instead of remounting. */
+const LFRow = memo(function LFRow({ item, tab, isOwner, onClaim, onMessage }: {
+    item: LostAndFoundItem; tab: 'lost' | 'found'; isOwner: boolean;
+    onClaim: (id: string) => void; onMessage: (u: any) => void;
+}) {
+    const isResolved = tab === 'lost' ? item.is_lost_item_found : item.is_found_item_claimed;
+    const by = item.found_or_lost_by;
+    return (
+        <View className="mx-gutter mb-3 bg-card rounded-2xl border border-line p-4 flex-row" style={{ gap: 16 }}>
+            <View className="w-20 h-20 bg-paper-2 rounded-xl overflow-hidden items-center justify-center" style={isResolved ? { opacity: 0.5 } : undefined}>
+                {item.image ? (
+                    <Image source={{ uri: item.image }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={item.image} />
+                ) : (
+                    <Ionicons name="cube-outline" size={28} color={C.ink3} />
+                )}
+            </View>
+
+            <View className="flex-1" style={{ minWidth: 0 }}>
+                <View className="flex-row items-start" style={{ gap: 8 }}>
+                    <Text className="text-ink text-base font-semibold flex-1" numberOfLines={1}>{item.item}</Text>
+                    {/* Words, not just colour: the tag says lost / found / resolved. */}
+                    {isResolved
+                        ? <Tag icon="checkmark-circle" label="Resolved" />
+                        : <Tag label={tab === 'lost' ? 'Lost' : 'Found'} tone={{ fg: tab === 'lost' ? C.danger : C.success }} />}
+                </View>
+                <View className="flex-row items-center mt-1" style={{ gap: 4 }}>
+                    <Ionicons name="location-outline" size={14} color={C.ink3} />
+                    <Text className="text-ink-3 text-sm font-sans flex-1" numberOfLines={1}>{item.place}</Text>
+                </View>
+
+                <View className="flex-row items-center justify-between mt-3" style={{ gap: 8 }}>
+                    <View className="flex-row items-center flex-1" style={{ minWidth: 0, gap: 8 }}>
+                        <Image
+                            source={{ uri: by?.avatar || `https://ui-avatars.com/api/?name=${by?.username || 'U'}` }}
+                            style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: C.paper2 }}
+                            cachePolicy="memory-disk"
+                        />
+                        <Text className="text-ink-3 text-sm font-sans flex-shrink" numberOfLines={1}>@{by?.username || 'unknown'}</Text>
+                    </View>
+                    {isResolved ? null : isOwner ? (
+                        <Button small title="Update status" onPress={() => onClaim(item._id)} />
+                    ) : (
+                        <Button small variant="primary" title="Contact" onPress={() => onMessage(by)} accessibilityLabel={`Contact ${by?.username || 'owner'}`} />
+                    )}
+                </View>
+            </View>
+        </View>
+    );
+});
 
 const LostAndFound = () => {
     const { user } = useAuth();
@@ -218,95 +270,15 @@ const LostAndFound = () => {
         }
     };
 
-    const renderItem = ({ item, index }: { item: LostAndFoundItem; index: number }) => {
-        const isOwner = item.found_or_lost_by?._id === user?._id;
-        const isResolved = activeTab === 'lost' ? item.is_lost_item_found : item.is_found_item_claimed;
-
-        return (
-            <View
-                className={`mx-gutter mb-6 bg-card rounded-card overflow-hidden ${index === 0 ? 'border-2 border-ink' : 'border border-line'} ${isResolved ? 'opacity-50' : ''}`}
-                style={index === 0 ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
-            >
-                <View className="p-6 flex-row">
-                    <View className="w-24 h-24 bg-paper-2 rounded-card mr-6 overflow-hidden border border-line items-center justify-center relative">
-                        {item.image ? (
-                            <Image source={{ uri: item.image }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={item.image} />
-                        ) : (
-                            <Ionicons name="cube-outline" size={28} color={C.ink4} />
-                        )}
-                        {isResolved && (
-                            <View className="absolute inset-0 bg-card/40 items-center justify-center">
-                                <Ionicons name="checkmark-circle" size={32} color={C.brand[500]} />
-                            </View>
-                        )}
-                    </View>
-
-                    <View className="flex-1 justify-between py-1">
-                        <View>
-                            <View className="flex-row justify-between items-start mb-1">
-                                <Text className="text-ink text-lg font-display uppercase flex-1 mr-2" numberOfLines={1}>
-                                    {item.item}
-                                </Text>
-                                <View className={`px-3 py-1 rounded-full ${activeTab === 'lost' ? 'bg-danger/10' : 'bg-success/10'}`}>
-                                    <Text className={`text-label font-display uppercase ${activeTab === 'lost' ? 'text-danger' : 'text-success'}`}>
-                                        {activeTab === 'lost' ? 'Lost' : 'Found'}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            <View className="flex-row items-center">
-                                <Ionicons name="location" size={10} color={C.ink4} />
-                                <Text className="text-ink-3 text-label font-display uppercase ml-1.5" numberOfLines={1}>{item.place}</Text>
-                            </View>
-                        </View>
-
-                        <View className="flex-row items-center justify-between pt-4 mt-2 border-t border-line">
-                            <View className="flex-row items-center flex-1 min-w-0 mr-2">
-                                <Image
-                                    source={{ uri: item.found_or_lost_by?.avatar || `https://ui-avatars.com/api/?name=${item.found_or_lost_by?.username || 'U'}` }}
-                                    style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2, marginRight: 8 }}
-                                    cachePolicy="memory-disk"
-                                />
-                                <Text className="text-ink-3 text-label font-display uppercase flex-shrink" numberOfLines={1}>
-                                    @{item.found_or_lost_by?.username || 'unknown'}
-                                </Text>
-                            </View>
-
-                            {isResolved ? (
-                                <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                                    <Text className="text-ink-3 font-display text-label uppercase">
-                                        Resolved
-                                    </Text>
-                                </View>
-                            ) : (
-                                isOwner ? (
-                                    <TouchableOpacity
-                                        onPress={() => handleClaimItem(item._id)}
-                                        hitSlop={10}
-                                        className="bg-ink px-2.5 py-1 rounded-full"
-                                    >
-                                        <Text className="text-paper font-display text-label uppercase">
-                                            Update Status
-                                        </Text>
-                                    </TouchableOpacity>
-                                ) : (
-                                    <TouchableOpacity
-                                        onPress={() => handleMessage(item.found_or_lost_by)}
-                                        hitSlop={10}
-                                        className="bg-brand-500 px-2.5 py-1 rounded-full"
-                                    >
-                                        <Text className="text-on-brand font-display text-label uppercase">
-                                            Contact Owner
-                                        </Text>
-                                    </TouchableOpacity>
-                                )
-                            )}
-                        </View>
-                    </View>
-                </View>
-            </View>
-        );
-    };
+    const claimRef = useRef(handleClaimItem);
+    claimRef.current = handleClaimItem;
+    const messageRef = useRef(handleMessage);
+    messageRef.current = handleMessage;
+    const onClaim = useCallback((id: string) => claimRef.current(id), []);
+    const onMessage = useCallback((u: any) => messageRef.current(u), []);
+    const renderItem = useCallback(({ item }: { item: LostAndFoundItem }) => (
+        <LFRow item={item} tab={activeTab} isOwner={item.found_or_lost_by?._id === user?._id} onClaim={onClaim} onMessage={onMessage} />
+    ), [activeTab, user?._id, onClaim, onMessage]);
 
     return (
         <View className="flex-1 bg-paper">
@@ -314,25 +286,12 @@ const LostAndFound = () => {
 
             <View className="flex-1">
                 <AppBar
-                    title="Lost & Found"
+                    title="Lost & found"
                     onBack={() => navigation.goBack()}
-                    right={<IconBtn name="add" size={28} color={C.paper} boxed style={{ backgroundColor: C.ink }} onPress={() => setModalVisible(true)} />}
+                    right={<IconBtn name="add" boxed onPress={() => setModalVisible(true)} accessibilityLabel={activeTab === 'lost' ? 'Report a lost item' : 'Report a found item'} />}
                 />
-                <View className="px-gutter">
-                    <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line shadow-hair">
-                        <TouchableOpacity
-                            onPress={() => setActiveTab('lost')}
-                            className={`flex-1 py-3.5 rounded-xl items-center ${activeTab === 'lost' ? 'bg-ink' : 'bg-transparent'}`}
-                        >
-                            <Text className={`font-display text-label uppercase ${activeTab === 'lost' ? 'text-paper' : 'text-ink-3'}`}>Lost Assets</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => setActiveTab('found')}
-                            className={`flex-1 py-3.5 rounded-xl items-center ${activeTab === 'found' ? 'bg-brand-500' : 'bg-transparent'}`}
-                        >
-                            <Text className={`font-display text-label uppercase ${activeTab === 'found' ? 'text-on-brand' : 'text-ink-3'}`}>Found Units</Text>
-                        </TouchableOpacity>
-                    </View>
+                <View className="px-gutter mb-4">
+                    <SegmentedTabs items={TABS} labels={TAB_LABELS} value={activeTab} onChange={setActiveTab} />
                 </View>
 
                 {loading && !refreshing ? (
@@ -346,86 +305,67 @@ const LostAndFound = () => {
                         showsVerticalScrollIndicator={false}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchItems(true); }} tintColor={C.brand[500]} />}
                         ListEmptyComponent={loadError ? (
-                            <View className="mt-20">
-                                <Empty icon="cloud-offline-outline" title="Couldn't load items" action={<Button title="Try again" onPress={() => fetchItems()} />} />
-                            </View>
+                            <Empty icon="cloud-offline-outline" title="Couldn't load items" action={<Button title="Try again" onPress={() => fetchItems()} />} />
                         ) : (
-                            <View className="items-center justify-center mt-20 px-gutter">
-                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Ionicons name="search" size={32} color={C.ink4} />
-                                </View>
-                                <Text className="font-semibold text-base text-ink text-center">No Active Signals</Text>
-                                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">Scanning campus for artifacts...</Text>
-                            </View>
+                            <Empty
+                                icon="search-outline"
+                                title={activeTab === 'lost' ? 'Nothing lost right now' : 'Nothing found right now'}
+                                hint="Tap + to report an item."
+                            />
                         )}
                     />
                 )}
             </View>
 
-            <Modal visible={modalVisible} animationType="slide" transparent statusBarTranslucent onRequestClose={() => setModalVisible(false)}>
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1 bg-black/60 justify-end">
-                    <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setModalVisible(false)} />
-                    <View className="bg-paper rounded-t-sheet h-[80%] shadow-hair overflow-hidden">
-                        <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
-
-                        <View className="px-gutter py-6 border-b border-line flex-row justify-between items-center bg-card">
-                            <View>
-                                <Text className="text-ink font-display uppercase text-h1">Report <Text className="text-accent-text">Incident</Text></Text>
-                                <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Campus Recovery Protocol</Text>
-                            </View>
-                            <TouchableOpacity onPress={() => setModalVisible(false)} className="bg-paper-2 w-10 h-10 rounded-card items-center justify-center border border-line">
-                                <Ionicons name="close" size={20} color={C.ink} />
-                            </TouchableOpacity>
-                        </View>
-
-                        <ScrollView keyboardShouldPersistTaps="handled" className="p-card-pad" showsVerticalScrollIndicator={false}>
-                            <Text className="text-ink-3 text-label font-display uppercase mb-4">Identification</Text>
-                            <TextInput
-                                value={newItemName}
-                                onChangeText={setNewItemName}
-                                placeholder="e.g. TITAN v2 Pro (Blue Frame)"
-                                placeholderTextColor={C.ink4}
-                                className="font-semibold text-base text-ink bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair rounded-md"
-                            />
-
-                            <Text className="text-ink-3 text-label font-display uppercase mb-4">Location Coordinates</Text>
-                            <TextInput
-                                value={newItemPlace}
-                                onChangeText={setNewItemPlace}
-                                placeholder={activeTab === 'lost' ? "Last seen at..." : "Discovered at..."}
-                                placeholderTextColor={C.ink4}
-                                className="font-semibold text-base text-ink bg-card p-5 mb-8 border-[1.5px] border-ink shadow-hair rounded-md"
-                            />
-
-                            <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                              <Text className="text-ink-3 text-label font-display uppercase">Visual Evidence</Text>
-                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                            </View>
-                            <TouchableOpacity onPress={pickImage} className="flex-row items-center justify-center bg-paper-2 p-card-pad rounded-card mb-10 border border-dashed border-line">
-                                {newItemImage ? (
-                                    <Image source={{ uri: newItemImage.uri }} style={{ width: '100%', height: 160, borderRadius: 20 }} contentFit="cover" />
-                                ) : (
-                                    <View className="items-center">
-                                        <Ionicons name="camera-outline" size={28} color={C.ink4} />
-                                        <Text className="text-ink-3 font-display uppercase text-label mt-2">Capture Asset Image</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                onPress={handleCreateItem}
-                                disabled={submitting}
-                                className={`p-5 rounded-card items-center mb-20 shadow-hair ${activeTab === 'lost' ? 'bg-ink ' : 'bg-brand-500 '}`}
-                            >
-                                {/* Ink on the ink-filled "lost" button was invisible. */}
-                                {submitting
-                                    ? <ActivityIndicator color={activeTab === 'lost' ? C.paper : C.onBrand} />
-                                    : <Text className={`font-display uppercase text-sm ${activeTab === 'lost' ? 'text-paper' : 'text-on-brand'}`}>Deploy Report to HQ</Text>}
-                            </TouchableOpacity>
-                        </ScrollView>
+            <Sheet
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                title={activeTab === 'lost' ? 'Report a lost item' : 'Report a found item'}
+                subtitle="Others on campus will see this"
+                footer={
+                    <Button
+                        block
+                        variant="primary"
+                        title="Post report"
+                        loading={submitting}
+                        onPress={handleCreateItem}
+                    />
+                }
+            >
+                <View style={{ gap: 16 }}>
+                    <FormField
+                        label="Item"
+                        value={newItemName}
+                        onChangeText={setNewItemName}
+                        placeholder="e.g. Blue water bottle"
+                    />
+                    <FormField
+                        label={activeTab === 'lost' ? 'Last seen at' : 'Found at'}
+                        value={newItemPlace}
+                        onChangeText={setNewItemPlace}
+                        placeholder={activeTab === 'lost' ? "Last seen at..." : "Discovered at..."}
+                    />
+                    <View style={{ gap: 6 }}>
+                        <Text className="font-semibold text-ink-2" style={{ fontSize: 13 }}>Photo (optional)</Text>
+                        <Pressable
+                            onPress={pickImage}
+                            accessibilityRole="button"
+                            accessibilityLabel={newItemImage ? 'Change photo' : 'Add a photo'}
+                            className="items-center justify-center bg-paper-2 rounded-2xl border border-dashed border-line overflow-hidden active:opacity-70"
+                            style={{ minHeight: 120 }}
+                        >
+                            {newItemImage ? (
+                                <Image source={{ uri: newItemImage.uri }} style={{ width: '100%', height: 160 }} contentFit="cover" />
+                            ) : (
+                                <View className="items-center" style={{ gap: 8 }}>
+                                    <Ionicons name="camera-outline" size={28} color={C.ink3} />
+                                    <Text className="text-ink-3 font-sans text-sm">Add a photo</Text>
+                                </View>
+                            )}
+                        </Pressable>
                     </View>
-                </KeyboardAvoidingView>
-            </Modal>
+                </View>
+            </Sheet>
         </View>
     );
 };

@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { readCache, writeCache, userKey } from '../../utils/screenCache';
-import {View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator, Linking, Dimensions, Platform, StatusBar, TextInput} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator, Linking, StatusBar, TextInput } from 'react-native'
 import * as DocumentPicker from 'expo-document-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/auth.context';
 import axios from '../../context/axiosConfig';
@@ -25,61 +21,43 @@ import EducationCard, { EducationEntry } from './EducationCard';
 import AddEducationModal from './AddEducationModal';
 import { Alert } from '../ui/AlertModal';
 
-import { AppBar, StampCard } from '../ui/kit';
+import { AppBar, Card, SectionHeader, Button, SegmentedTabs, Empty, IconTile, Num } from '../ui/kit';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
-const { width } = Dimensions.get('window');
 
 // ─── Completeness Bar ─────────────────────────────────────────────────────────
 function CompletenessBar({ pct }: { pct: number }) {
   return (
-    <StampCard style={{ marginHorizontal: 16, marginBottom: 24 }}>
-    <View className="p-card-pad">
+    <Card style={{ marginHorizontal: 16, marginBottom: 12 }}>
       <View className="flex-row justify-between mb-3">
-        <Text className="text-ink font-display uppercase text-label">Profile Completeness</Text>
-        <Text className="font-display text-xs text-accent-text">{pct}%</Text>
+        <Text className="text-ink font-semibold text-sm">Profile completeness</Text>
+        <Text className="font-semibold text-sm text-accent-text">{pct}%</Text>
       </View>
-      <View className="h-2 bg-paper-2 rounded-full overflow-hidden">
-        <View className="h-full rounded-full overflow-hidden" style={{ width: `${pct}%` }}>
-          <View
-            className="h-full w-full"
-           style={{ backgroundColor: C.brand[500] }} />
-        </View>
+      <View className="h-2 bg-paper-2 rounded-full overflow-hidden" accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: pct }}>
+        <View className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: C.brand[500] }} />
       </View>
       {pct < 100 && (
-        <Text className="text-ink-3 font-semibold text-label uppercase mt-3">
+        <Text className="text-ink-3 font-sans text-sm mt-3">
           {pct < 50 ? 'Add projects and work experience to boost your score.'
             : pct < 80 ? 'Almost there — connect GitHub and add certificates.'
             : 'You are almost a Legend. Complete all sections.'}
         </Text>
       )}
-    </View>
-    </StampCard>
+    </Card>
   );
 }
 
 // ─── Section Header ───────────────────────────────────────────────────────────
-function SectionHeader({ title, icon, onAdd, addLabel }: {
-  title: string; icon: string; onAdd?: () => void; addLabel?: string;
-}) {
-  return (
-    <View className="flex-row items-center justify-between px-4 mb-4 mt-8">
-      <View className="flex-row items-center gap-3">
-        <View className="w-10 h-10 bg-ink rounded-card items-center justify-center shadow-hair">
-          <Ionicons name={icon as any} size={18} color={C.brand[500]} />
-        </View>
-        <Text className="text-ink font-display uppercase text-sm">{title}</Text>
-      </View>
-      {onAdd && (
-        <Pressable onPress={onAdd}
-          className="flex-row items-center gap-2 bg-card px-4 py-2.5 rounded-card border border-line shadow-hair">
-          <Ionicons name="add" size={16} color={C.ink} />
-          <Text className="text-ink text-label font-display uppercase">{addLabel || 'Add'}</Text>
-        </Pressable>
-      )}
-    </View>
-  );
-}
+const Section = ({ title, onAdd, addLabel }: { title: string; onAdd: () => void; addLabel: string }) => (
+  <SectionHeader
+    title={title}
+    style={{ paddingHorizontal: 16, marginTop: 8, marginBottom: 12 }}
+    right={<Button small icon="add" title={addLabel} onPress={onAdd} />}
+  />
+);
+
+const TABS = ['overview', 'projects', 'experience', 'certs'] as const;
+const TAB_LABELS = { overview: 'Overview', projects: 'Projects', experience: 'Work', certs: 'Certs' };
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function FyncProfileBuilder() {
@@ -361,98 +339,85 @@ export default function FyncProfileBuilder() {
   };
 
   if (loading) return (
-    <SafeAreaView className="flex-1 bg-paper items-center justify-center">
+    <View className="flex-1 bg-paper items-center justify-center">
       <ActivityIndicator size="large" color={C.brand[500]} />
-    </SafeAreaView>
+    </View>
   );
 
   const { projects = [], internships = [], education = [], certificates = [], completeness } = profile || {};
   const pct = completeness?.percentage || 0;
+  const hasResume = !!profile?.user?.resumeUrl;
 
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
         return (
-          <View className="px-1">
+          <View>
             <CompletenessBar pct={pct} />
 
-            {/* User Statistics Row */}
-            <View className="flex-row mx-4 mb-6 gap-4">
-              <View className="flex-1 bg-paper border border-line p-5 shadow-hair items-center justify-center rounded-md">
-                <View className="bg-brand-100 p-3 rounded-card mb-3">
-                   <Ionicons name="flame" size={24} color={C.brand[500]} />
-                </View>
-                <Text className="text-ink text-2xl font-display">{profile?.user?.highestStreak || 0}</Text>
-                <Text className="text-ink-3 text-label font-display uppercase mt-1">Max Streak</Text>
-              </View>
-              
-              <Pressable 
+            <View className="flex-row mx-4 mb-3" style={{ gap: 12 }}>
+              <Card style={{ flex: 1, alignItems: 'center' }}>
+                <IconTile icon="flame-outline" size={44} color={C.accentText} />
+                <Num style={{ fontSize: 24, lineHeight: 28, marginTop: 8 }}>{String(profile?.user?.highestStreak || 0)}</Num>
+                <Text className="text-ink-3 text-xs font-sans mt-1">Max streak</Text>
+              </Card>
+
+              <Pressable
                 onPress={() => setShowCodingModal(true)}
-                className="flex-1 bg-paper border border-line p-5 shadow-hair items-center justify-center rounded-md"
+                accessibilityRole="button"
+                accessibilityLabel="Coding profiles. Boost your score"
+                className="flex-1 bg-card border border-line rounded-2xl p-4 items-center justify-center active:opacity-70"
               >
-                <View className="bg-paper-2 p-3 rounded-card mb-3">
-                   <Ionicons name="code-working" size={24} color={C.ink} />
-                </View>
-                <Text className="text-ink text-label font-display uppercase text-center">Coding Profiles</Text>
-                <Text className="text-ink-3 text-label font-semibold uppercase mt-1">Boost Score</Text>
+                <IconTile icon="code-working-outline" size={44} />
+                <Text className="text-ink text-sm font-semibold text-center mt-2">Coding profiles</Text>
+                <Text className="text-ink-3 text-xs font-sans mt-1">Boost score</Text>
               </Pressable>
             </View>
 
             <FyncScoreCard userId={user?._id!} isOwner onRecalculate={fetchProfile} />
 
-            {/* Resume Upload Section (NEW) */}
-            <View className="mx-4 mb-6 bg-card border border-line rounded-card p-6 shadow-hair">
-              <View className="flex-row items-center justify-between mb-4">
-                <View className="flex-row items-center gap-3">
-                  <View className="w-10 h-10 bg-recruiter/15 rounded-card items-center justify-center">
-                    <Ionicons name="document-text" size={18} color={C.recruiter} />
-                  </View>
-                  <View>
-                    <Text className="text-ink font-display uppercase text-label">Career Document</Text>
-                    <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Resume / CV (PDF)</Text>
-                  </View>
+            <Card style={{ marginHorizontal: 16, marginBottom: 12 }}>
+              <View className="flex-row items-center mb-3" style={{ gap: 12 }}>
+                <IconTile icon="document-text-outline" size={40} />
+                <View className="flex-1" style={{ minWidth: 0 }}>
+                  <Text className="text-ink font-semibold text-sm">Resume</Text>
+                  <Text className="text-ink-3 font-sans text-xs mt-0.5">PDF only</Text>
                 </View>
-                {!!profile?.user?.resumeUrl && (
-                  <Pressable onPress={downloadResume} className="bg-recruiter/10 border border-recruiter/15 px-2.5 py-1 rounded-full">
-                    <Text className="text-recruiter font-display text-label uppercase">Preview</Text>
-                  </Pressable>
-                )}
+                {hasResume ? <Button small variant="tertiary" title="Preview" onPress={downloadResume} /> : null}
               </View>
 
-              <Pressable 
+              <Pressable
                 onPress={handlePickResume}
                 disabled={uploadingResume}
-                className={`flex-row items-center justify-center gap-3 h-14 rounded-card border-2 border-dashed ${profile?.user?.resumeUrl ? 'border-recruiter/25 bg-recruiter/10' : 'border-line bg-paper-2'}`}
+                accessibilityRole="button"
+                accessibilityLabel={hasResume ? 'Replace resume' : 'Upload resume'}
+                accessibilityState={{ busy: uploadingResume }}
+                className="flex-row items-center justify-center h-14 rounded-2xl border border-dashed border-line bg-paper-2 active:opacity-70"
+                style={{ gap: 8 }}
               >
                 {uploadingResume ? (
-                  <ActivityIndicator color={C.recruiter} size="small" />
+                  <ActivityIndicator color={C.ink2} size="small" />
                 ) : (
                   <>
-                    <Feather name={profile?.user?.resumeUrl ? "check-circle" : "upload-cloud"} size={18} color={profile?.user?.resumeUrl ? C.success : C.ink3} />
-                    <Text className={`font-display uppercase text-label ${profile?.user?.resumeUrl ? 'text-recruiter' : 'text-ink-3'}`}>
-                      {profile?.user?.resumeUrl ? (profile?.user?.resumeName || "Update Resume") : "Upload Resume (PDF)"}
+                    <Ionicons name={hasResume ? 'checkmark-circle' : 'cloud-upload-outline'} size={18} color={hasResume ? C.success : C.ink3} />
+                    <Text className="font-semibold text-sm text-ink-2" numberOfLines={1}>
+                      {hasResume ? (profile?.user?.resumeName || 'Update resume') : 'Upload resume (PDF)'}
                     </Text>
                   </>
                 )}
               </Pressable>
               {!!profile?.user?.resumeName && (
-                 <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
-                    Current: {profile.user.resumeName}
-                 </Text>
+                <Text className="font-sans text-xs text-ink-3 mt-2 text-center">Current: {profile.user.resumeName}</Text>
               )}
 
-              {/* --- Skills Section --- */}
-              <View className="mt-6 border-t border-line pt-5">
-                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                  <Text className="text-ink font-display uppercase text-label">Core Skills & Stack</Text>
-                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                </View>
-                <View className="bg-paper-2 rounded-card p-3 flex-row flex-wrap gap-2 border border-line">
+              <View className="mt-4 border-t border-line pt-4">
+                <Text className="text-ink-2 font-semibold text-sm mb-2">Skills</Text>
+                <View className="bg-paper-2 rounded-2xl p-3 flex-row flex-wrap border border-line" style={{ gap: 8, minHeight: 48 }}>
                   {skills.map((skill, index) => (
-                    <View key={index} className="bg-recruiter/15 border border-recruiter/15 flex-row items-center px-2.5 py-1 rounded-full">
-                      <Text className="text-recruiter font-semibold text-label uppercase mr-1">{skill}</Text>
-                      <Pressable onPress={() => removeSkill(index)} hitSlop={10}>
-                        <Ionicons name="close-circle" size={14} color={C.recruiter} />
+                    <View key={index} className="bg-card border border-line flex-row items-center pl-3 pr-1 rounded-full" style={{ minHeight: 32 }}>
+                      <Text className="text-ink-2 font-medium text-xs">{skill}</Text>
+                      <Pressable onPress={() => removeSkill(index)} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Remove ${skill}`} className="p-1 active:opacity-60">
+                        <Ionicons name="close-circle" size={16} color={C.ink3} />
                       </Pressable>
                     </View>
                   ))}
@@ -463,17 +428,15 @@ export default function FyncProfileBuilder() {
                     onSubmitEditing={() => handleSkillInput(skillInput + ',')}
                     returnKeyType="done"
                     submitBehavior="submit"
-                    placeholder={skills.length > 0 ? "" : "React, Node.js, Design..."}
+                    placeholder={skills.length > 0 ? "Add a skill" : "React, Node.js, Design..."}
                     placeholderTextColor={C.ink3}
-                    className="text-ink-2 min-w-[120px] flex-1 py-1 text-label font-semibold uppercase"
+                    accessibilityLabel="Add a skill"
+                    className="text-ink min-w-[120px] flex-1 py-1 text-sm font-sans"
                   />
                 </View>
-                <Text className="text-ink-3 text-label font-semibold uppercase mt-2 ml-1">
-                   * Type and press comma (,) to add a skill. Auto-saves.
-                </Text>
+                <Text className="text-ink-3 text-xs font-sans mt-2">Type a comma or press return to add. Saves automatically.</Text>
               </View>
-
-            </View>
+            </Card>
 
             <GitHubStatsCard
               username={profile?.user?.githubUsername}
@@ -488,20 +451,10 @@ export default function FyncProfileBuilder() {
 
       case 'projects':
         return (
-          <View className="px-1">
-            <SectionHeader title="Projects" icon="code-slash-outline"
-              onAdd={() => { setEditingProject(null); setShowAddProject(true); }}
-              addLabel="Add Project" />
+          <View>
+            <Section title="Projects" addLabel="Add project" onAdd={() => { setEditingProject(null); setShowAddProject(true); }} />
             {projects.length === 0 ? (
-              <View className="items-center py-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Feather name="box" size={32} color={C.ink4} />
-                </View>
-                <Text className="font-semibold text-base text-ink text-center">No projects yet</Text>
-                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
-                  Add your first project to boost your Fync Score!
-                </Text>
-              </View>
+              <Empty icon="cube-outline" title="No projects yet" hint="Add your first project to boost your Fync Score." />
             ) : projects.map((p: any) => (
               <ProjectCard key={p._id} project={p} isOwner currentUserId={user?._id}
                 onEdit={(p) => { setEditingProject(p); setShowAddProject(true); }}
@@ -514,67 +467,41 @@ export default function FyncProfileBuilder() {
 
       case 'experience':
         return (
-          <View className="px-1">
-            <SectionHeader title="Work Experience" icon="briefcase-outline"
-              onAdd={() => { setEditingInternship(null); setShowAddInternship(true); }}
-              addLabel="Add Experience" />
+          <View>
+            <Section title="Work experience" addLabel="Add" onAdd={() => { setEditingInternship(null); setShowAddInternship(true); }} />
             {internships.length === 0 ? (
-              <View className="items-center py-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="briefcase-outline" size={32} color={C.ink4} />
-                </View>
-                <Text className="font-semibold text-base text-ink text-center">No experience added yet</Text>
-                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
-                  Add internships, freelance, or jobs!
-                </Text>
-              </View>
+              <Empty icon="briefcase-outline" title="No experience added yet" hint="Add internships, freelance work or jobs." />
             ) : internships.map((i: any) => (
               <InternshipCard key={i._id} item={i} isOwner
                 onEdit={(i) => { setEditingInternship(i); setShowAddInternship(true); }}
                 onDelete={deleteInternship} />
             ))}
-            
+
             <View className="h-6" />
 
-            <SectionHeader title="Education" icon="school-outline"
-              onAdd={() => { setEditingEducation(null); setShowAddEducation(true); }}
-              addLabel="Add Education" />
+            <Section title="Education" addLabel="Add" onAdd={() => { setEditingEducation(null); setShowAddEducation(true); }} />
             {education.length === 0 ? (
-              <View className="items-center py-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="school-outline" size={32} color={C.ink4} />
-                </View>
-                <Text className="font-semibold text-base text-ink text-center">No education added yet</Text>
-                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
-                  Add your academic background!
-                </Text>
+              <Empty icon="school-outline" title="No education added yet" hint="Add your academic background." />
+            ) : (
+              <View className="mx-4">
+                {education.map((e: any) => (
+                  <EducationCard key={e._id} item={e} isOwner
+                    onEdit={(e) => { setEditingEducation(e); setShowAddEducation(true); }}
+                    onDelete={deleteEducation} />
+                ))}
               </View>
-            ) : education.map((e: any) => (
-              <EducationCard key={e._id} item={e} isOwner
-                onEdit={(e) => { setEditingEducation(e); setShowAddEducation(true); }}
-                onDelete={deleteEducation} />
-            ))}
+            )}
           </View>
         );
 
       case 'certs':
         return (
-          <View className="px-1">
-            <SectionHeader title="Certificates" icon="ribbon-outline"
-              onAdd={() => { setEditingCert(null); setShowAddCert(true); }}
-              addLabel="Add Cert" />
+          <View>
+            <Section title="Certificates" addLabel="Add certificate" onAdd={() => { setEditingCert(null); setShowAddCert(true); }} />
             {certificates.length === 0 ? (
-              <View className="items-center py-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="ribbon-outline" size={32} color={C.ink4} />
-                </View>
-                <Text className="font-semibold text-base text-ink text-center">No certificates added yet</Text>
-                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
-                  Showcase your learning!
-                </Text>
-              </View>
+              <Empty icon="ribbon-outline" title="No certificates added yet" hint="Showcase your learning." />
             ) : (
-              <View className="mx-4 gap-4">
+              <View className="mx-4" style={{ gap: 12 }}>
                 {certificates.map((c: any) => (
                   <CertificateCard key={c._id} cert={c} isOwner
                     onEdit={(c) => { setEditingCert(c); setShowAddCert(true); }}
@@ -587,59 +514,28 @@ export default function FyncProfileBuilder() {
     }
   };
 
-  const TABS = [
-    { key: 'overview',    label: 'Overview', icon: 'grid-outline' },
-    { key: 'projects',    label: 'Projects',  icon: 'code-slash-outline' },
-    { key: 'experience',  label: 'Work',      icon: 'briefcase-outline' },
-    { key: 'certs',       label: 'Certs',     icon: 'ribbon-outline' },
-  ] as const;
-
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
         <AppBar
-          title="Fync Portfolio"
+          title="Fync portfolio"
           onBack={() => navigation.goBack()}
-          right={
-            <Pressable onPress={downloadResume}
-              style={{ marginRight: 11 }}
-              className="bg-ink px-4 py-3 flex-row items-center border-2 border-ink rounded-md">
-              <Feather name="file-text" size={14} color={C.brand[500]} />
-              <Text className="text-paper font-display uppercase text-label ml-2">Resume</Text>
-            </Pressable>
-          }
+          right={<Button small variant="tertiary" icon="document-text-outline" title="Resume" onPress={downloadResume} />}
         />
-        {/* Modern Tab Strip */}
-        <View className="flex-row bg-card/50 px-5 py-2 border-b border-line">
-          {TABS.map(tab => (
-            <Pressable
-              key={tab.key}
-              onPress={() => setActiveTab(tab.key)}
-              className={`flex-1 items-center py-4 relative`}
-            >
-              <Ionicons name={tab.icon as any} size={20}
-                color={activeTab === tab.key ? C.brand[500] : C.ink3} />
-              <Text className={`text-label font-display uppercase mt-1.5 ${activeTab === tab.key ? 'text-ink' : 'text-ink-3'}`}>
-                {tab.label}
-              </Text>
-              {activeTab === tab.key && (
-                <View className="absolute w-12 h-1 bg-brand-500 rounded-full" style={{ bottom: 0 }} />
-              )}
-            </Pressable>
-          ))}
+        <View className="px-gutter pb-2">
+          <SegmentedTabs items={TABS} labels={TAB_LABELS} value={activeTab} onChange={setActiveTab} />
         </View>
 
         <ScrollView keyboardShouldPersistTaps="handled"
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
-          contentContainerStyle={{ paddingBottom: 44 + bottomInset, paddingTop: 16 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
+          contentContainerStyle={{ paddingBottom: 44 + bottomInset, paddingTop: 12 }}
         >
           {renderContent()}
         </ScrollView>
-
         {/* Modals */}
         <AddProjectModal
           visible={showAddProject}

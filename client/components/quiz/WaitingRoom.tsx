@@ -1,14 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {View, Text, Animated, StatusBar} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import socket from '../../utils/socket';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Card, IconTile, Label } from '../ui/kit';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WaitingRoom'>;
 
@@ -96,7 +95,7 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
       const diff = target - now;
 
       if (diff <= 0) {
-        setTimeString("STARTING...");
+        setTimeString("Starting…");
         setIsStarting(true);
         clearInterval(interval);
       } else {
@@ -117,47 +116,46 @@ const WaitingRoom: React.FC<Props> = ({ route, navigation }) => {
 
       <AppBar title="The Lobby" onBack={() => navigation.goBack()} />
 
-      <SafeAreaView className="flex-1 justify-between px-gutter pt-6 pb-12" edges={['bottom']}>
+      <SafeAreaView className="flex-1 justify-between px-gutter pt-6 pb-6" edges={['bottom']}>
 
         {/* MAIN CONTENT */}
         <View className="items-center">
 
-          {/* Room ID Badge */}
-          <View className="bg-card px-gutter py-3 rounded-full border border-line mb-14 flex-row items-center shadow-hair">
-            <View className="w-2 h-2 bg-brand-500 rounded-full animate-pulse" />
-            <Text className="text-ink-3 font-display ml-3 uppercase">Node: <Text className="text-ink">{roomId}</Text></Text>
+          {/* Room code */}
+          <View className="bg-card px-4 py-2 rounded-full border border-line mb-12 flex-row items-center">
+            <View className="w-2 h-2 bg-brand-500 rounded-full" />
+            <Text className="text-ink-3 font-semibold ml-3">Room <Text className="text-ink">{roomId}</Text></Text>
           </View>
 
-          {/* Pulsing Timer Circle */}
+          {/* Pulsing timer */}
           <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-            <View className={`w-72 h-72 rounded-sheet border border-line items-center justify-center shadow-hair overflow-hidden bg-card`}>
-              <View className="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-full -mr-16 -mt-16" />
-              <View className="absolute bottom-0 left-0 w-32 h-32 bg-paper-2 rounded-full -ml-16 -mb-16" />
-
+            <View className="w-72 h-72 rounded-full border border-line items-center justify-center bg-card">
               {!isStarting && (
-                <Text className="font-display text-label text-ink-3 uppercase mt-6 mb-4">Initializes In</Text>
+                <Label style={{ marginBottom: 8 }}>Starts in</Label>
               )}
-              <Text className={`font-display uppercase text-center px-4 ${isStarting ? 'text-ink text-4xl' : 'text-ink text-6xl'}`}>
+              <Text
+                className={`font-display text-center px-4 text-ink ${isStarting ? 'text-3xl' : 'text-5xl'}`}
+                accessibilityLiveRegion="polite"
+              >
                 {timeString}
               </Text>
             </View>
           </Animated.View>
 
-          <Text className="font-sans text-sm text-ink-3 mt-16 text-center px-gutter">
-            {isStarting ? "Establish connection... Preparing module." : "Awaiting Host protocol to initiate the sequence."}
+          <Text className="font-sans text-sm text-ink-3 mt-12 text-center px-gutter">
+            {isStarting ? "Starting — preparing questions." : "Waiting for the host to start the quiz."}
           </Text>
 
         </View>
 
-        {/* FOOTER WARNING */}
-        <View className="bg-card p-card-pad rounded-sheet flex-row items-center shadow-hair border border-line">
-          <View className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
-            <Ionicons name="shield-checkmark" size={24} color={C.brand[500]} />
-          </View>
-          <Text className="text-ink-3 ml-5 flex-1 text-label font-semibold uppercase leading-5">
-            <Text className="font-display text-ink">Protocol Active.</Text> Maintain active connection. Disconnection will result in session void.
+        {/* Footer note */}
+        <Card padded style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <IconTile icon="wifi-outline" size={44} />
+          <Text className="text-ink-2 flex-1 text-sm">
+            <Text className="font-semibold text-ink">Stay connected. </Text>
+            Leaving or losing connection ends your attempt.
           </Text>
-        </View>
+        </Card>
 
       </SafeAreaView>
     </View>

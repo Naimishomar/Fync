@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import {View, Text, FlatList, Pressable, ActivityIndicator, Animated, Easing, StatusBar} from 'react-native'
+import React, { memo, useEffect, useState, useRef } from 'react';
+import { View, Text, FlatList, ActivityIndicator, Animated, Easing, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -11,7 +11,40 @@ import { shareAsync } from 'expo-sharing';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, Card, Empty, IconBtn, Label, ListRow, Num } from '../ui/kit';
+
+// Top three get a trophy next to the rank number (the colour is not the only cue).
+const TROPHY = [() => C.warning, () => C.ink3, () => C.brand[600]];
+const ROW = { marginHorizontal: 20, paddingHorizontal: 16, marginBottom: 12 };
+
+const LeaderRow = memo(function LeaderRow({ item, index }: { item: any; index: number }) {
+  const name = item.user?.name || item.user?.username || 'Player';
+  return (
+    <Card style={ROW}>
+      <ListRow
+        leading={
+          <View className="flex-row items-center" style={{ gap: 8 }}>
+            <View className="w-8 items-center">
+              {index < 3 ? <Ionicons name="trophy" size={18} color={TROPHY[index]()} /> : null}
+              <Text className="font-display text-ink-3 text-xs">#{index + 1}</Text>
+            </View>
+            <View className="w-11 h-11 bg-paper-2 rounded-full justify-center items-center overflow-hidden">
+              {item.user?.avatar ? (
+                <Image source={{ uri: item.user.avatar }} style={{ width: 44, height: 44 }} cachePolicy="memory-disk" />
+              ) : (
+                <Text className="font-display text-ink-3 text-lg">{item.user?.username?.[0]?.toUpperCase()}</Text>
+              )}
+            </View>
+          </View>
+        }
+        title={name}
+        subtitle={`@${item.user?.username || 'unknown'}`}
+        right={<Num style={{ fontSize: 17 }}>{item.score} <Text className="text-ink-3 text-xs font-sans">pts</Text></Num>}
+        accessibilityLabel={`Rank ${index + 1}, ${name}, ${item.score} points`}
+      />
+    </Card>
+  );
+});
 
 type ScreenRouteProp = RouteProp<RootStackParamList, 'LeaderboardScreen'>;
 
@@ -148,52 +181,7 @@ const LeaderboardScreen = () => {
     }
   };
 
-  const renderItem = ({ item, index }: { item: any; index: number }) => {
-    // Styling for Top 3 Ranks
-    let rankColor = 'text-ink-3';
-    let iconColor = C.ink3;
-    let cardBg = 'bg-card';
-    if (index === 0) { rankColor = 'text-warning'; iconColor = C.warning; cardBg = 'bg-warning/10'; } // Gold
-    else if (index === 1) { rankColor = 'text-ink-3'; iconColor = C.ink3; cardBg = 'bg-paper-2/50'; } // Silver
-    else if (index === 2) { rankColor = 'text-accent-text'; iconColor = C.brand[600]; cardBg = 'bg-brand-50/50'; } // Bronze
-
-    return (
-      <View className={`flex-row items-center ${cardBg} p-5 mb-4 mx-gutter rounded-card border border-line shadow-hair`}>
-        {/* Rank */}
-        <View className="w-10 items-center justify-center mr-3">
-          {index < 3 ? (
-            <Ionicons name="trophy" size={28} color={iconColor} />
-          ) : (
-            <Text className={`text-xl font-display ${rankColor}`}>#{index + 1}</Text>
-          )}
-        </View>
-
-        {/* Avatar */}
-        <View className="w-14 h-14 bg-card rounded-card mr-4 border border-line justify-center items-center shadow-hair overflow-hidden p-1">
-          {item.user?.avatar ? (
-            <Image source={{ uri: item.user.avatar }} style={{ width: '100%', height: '100%', borderRadius: 12 }} cachePolicy="memory-disk" />
-          ) : (
-            <Text className="font-display text-ink-4 text-xl">{item.user?.username?.[0]?.toUpperCase()}</Text>
-          )}
-        </View>
-
-        {/* User Info */}
-        <View className="flex-1" style={{ minWidth: 0 }}>
-          <Text className="font-display text-ink text-base uppercase" numberOfLines={1}>
-            {item.user?.name || item.user?.username || "Global User"}
-          </Text>
-          <Text className="text-label text-ink-3 font-semibold uppercase mt-0.5" numberOfLines={1}>@{item.user?.username || "unknown"}</Text>
-        </View>
-
-        {/* Score Badge */}
-        <View className="bg-paper-2 px-4 py-2 rounded-card shadow-hair border border-line transform rotate-2">
-          <Text className="font-display text-accent-text text-base">
-            {item.score} <Text className="text-label uppercase">Pts</Text>
-          </Text>
-        </View>
-      </View>
-    );
-  };
+  const renderItem = ({ item, index }: { item: any; index: number }) => <LeaderRow item={item} index={index} />;
 
   return (
     <View className="flex-1 bg-paper">
@@ -205,39 +193,35 @@ const LeaderboardScreen = () => {
           title="Leaderboard"
           right={
           <>
-            <IconBtn name="home" onPress={() => navigation.navigate("Tabs")} />
+            <IconBtn name="home-outline" accessibilityLabel="Home" onPress={() => navigation.navigate("Tabs")} />
             <Animated.View style={{ transform: [{ rotate: spin }] }}>
-              <IconBtn name="refresh" onPress={handleManualRefresh} />
+              <IconBtn name="refresh" accessibilityLabel="Refresh" onPress={handleManualRefresh} />
             </Animated.View>
             {downloading ? (
               <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator size="small" color={C.ink} />
               </View>
             ) : (
-              <IconBtn boxed name="download" onPress={downloadPDF} />
+              <IconBtn boxed name="download-outline" accessibilityLabel="Download results as PDF" onPress={downloadPDF} />
             )}
           </>
           }
         />
 
-        {/* Room ID Badge */}
-        <View className="items-center mb-8">
-          <View className="bg-card border border-line px-2.5 py-1 rounded-full">
-            <Text className="text-label font-display text-ink-3 uppercase">Node: <Text className="text-ink">{roomId}</Text></Text>
+        {/* Room code */}
+        <View className="items-center mb-4">
+          <View className="bg-paper-2 px-3 py-1 rounded-full">
+            <Text className="text-xs font-semibold text-ink-3">Room <Text className="text-ink">{roomId}</Text></Text>
           </View>
         </View>
 
-        {/* User's Own Score Card (If played) */}
+        {/* Your score (if played) */}
         {myScore !== undefined && (
-          <View className="mx-gutter bg-card p-card-pad rounded-sheet mb-8 shadow-hair items-center overflow-hidden border border-line">
-            <View className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 rounded-full -mr-16 -mt-16" />
-            <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
-              <Text className="text-accent-text font-display text-label uppercase">My Final Ranking</Text>
-              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-            </View>
-            <Text className="text-ink text-6xl font-display">{myScore}</Text>
-            <Text className="text-ink-3 font-display text-label uppercase mt-2">Points Verified</Text>
-          </View>
+          <Card padded style={{ marginHorizontal: 20, marginBottom: 16, alignItems: 'center' }}>
+            <Label>Your score</Label>
+            <Num style={{ fontSize: 44, lineHeight: 48, marginTop: 4 }}>{myScore}</Num>
+            <Text className="text-ink-3 text-xs mt-1">points</Text>
+          </Card>
         )}
 
         {/* Leaderboard List */}
@@ -251,15 +235,7 @@ const LeaderboardScreen = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={
-              <View className="items-center justify-center mt-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="people" size={40} color={C.ink4} />
-                </View>
-                <Text className="text-ink font-display text-xl text-center uppercase">Dev Void</Text>
-                <Text className="font-sans text-sm text-ink-3 text-center mt-2">
-                  Awaiting entry from challengers.
-                </Text>
-              </View>
+              <Empty icon="people-outline" title="No entries yet" hint="Scores appear here as players finish." />
             }
           />
         )}

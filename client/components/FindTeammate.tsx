@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import {View, Text, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl, Linking, TextInput, StatusBar} from 'react-native'
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
+import { View, Text, Pressable, FlatList, ActivityIndicator, RefreshControl, Linking, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/auth.context';
 import axios from '../context/axiosConfig';
@@ -11,9 +10,7 @@ import { TeammateSkeleton } from './Skeleton';
 import Avatar from './Avatar';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
-import { AppBar } from './ui/kit';
-
-const BG_IMAGE = "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000&auto=format&fit=crop";
+import { AppBar, SearchField, SegmentedTabs, Tag, IconBtn, Button, Empty } from './ui/kit';
 
 interface UserProfile {
     _id: string;
@@ -29,6 +26,66 @@ interface UserProfile {
     github_id?: string;
     linkedIn_id?: string;
 }
+
+const openLink = (url: string | undefined) => {
+    if (url) Linking.openURL(url).catch(() => Alert.alert("Error", "Invalid Link"));
+};
+
+const TABS = ['global', 'college'] as const;
+const TAB_LABELS = { global: 'Global', college: 'Campus' };
+
+/** One developer. Module scope + memo so rows update instead of remounting. */
+const TeammateCard = memo(function TeammateCard({ item, connecting, busy, onOpen, onMessage }: {
+    item: UserProfile; connecting: boolean; busy: boolean;
+    onOpen: (u: UserProfile) => void; onMessage: (u: UserProfile) => void;
+}) {
+    const meta = [item.year ? `Year ${item.year}` : null, item.major].filter(Boolean).join(' · ') || 'Student';
+    return (
+        <View className="bg-card border border-line rounded-2xl p-4 mb-3 mx-gutter">
+            <View className="flex-row items-center" style={{ gap: 12 }}>
+                <Pressable
+                    className="flex-row items-center flex-1 active:opacity-70"
+                    style={{ gap: 12, minWidth: 0 }}
+                    onPress={() => onOpen(item)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${item.name}, open profile`}
+                >
+                    <Avatar user={item} size={56} showBadge={false} />
+                    <View className="flex-1" style={{ minWidth: 0 }}>
+                        <Text className="text-ink text-base font-semibold" numberOfLines={1}>{item.name}</Text>
+                        <Text className="text-ink-3 text-sm font-sans" numberOfLines={1}>@{item.username}</Text>
+                        <Text className="text-ink-3 text-sm font-sans" numberOfLines={1}>{meta}</Text>
+                    </View>
+                </Pressable>
+                <View className="flex-row" style={{ marginRight: -11 }}>
+                    {item.github_id ? <IconBtn name="logo-github" onPress={() => openLink(item.github_id)} accessibilityLabel="Open GitHub" /> : null}
+                    {item.linkedIn_id ? <IconBtn name="logo-linkedin" color="#0077b5" onPress={() => openLink(item.linkedIn_id)} accessibilityLabel="Open LinkedIn" /> : null}
+                </View>
+            </View>
+
+            {item.skills?.length ? (
+                <View className="flex-row flex-wrap mt-3" style={{ gap: 8 }}>
+                    {item.skills.slice(0, 4).map((skill, i) => <Tag key={i} label={String(skill)} />)}
+                    {item.skills.length > 4 ? <Tag label={`+${item.skills.length - 4}`} /> : null}
+                </View>
+            ) : null}
+
+            {(item.about || item.experience) ? (
+                <Text className="text-ink-2 text-sm font-sans leading-5 mt-3" numberOfLines={3}>
+                    {item.about || item.experience}
+                </Text>
+            ) : null}
+
+            <View className="flex-row items-center mt-4 pt-3 border-t border-line" style={{ gap: 12 }}>
+                <View className="flex-row items-center flex-1" style={{ gap: 6, minWidth: 0 }}>
+                    <Ionicons name="location-outline" size={14} color={C.ink3} />
+                    <Text className="text-ink-3 text-sm font-sans flex-1" numberOfLines={1}>{item.college}</Text>
+                </View>
+                <Button small variant="solid" icon="chatbubble-outline" title="Chat" loading={connecting} disabled={busy && !connecting} onPress={() => onMessage(item)} accessibilityLabel={`Chat with ${item.name}`} />
+            </View>
+        </View>
+    );
+});
 
 export default function FindTeammate() {
     const navigation = useNavigation<any>();
@@ -152,154 +209,31 @@ export default function FindTeammate() {
         }
     };
 
-    const openLink = (url: string | undefined) => {
-        if (url) Linking.openURL(url).catch(() => Alert.alert("Error", "Invalid Link"));
-    };
 
-    // --- RENDER CARD ---
-    const renderCard = ({ item, index }: { item: UserProfile; index: number }) => (
-        <View
-            className={`bg-card rounded-card p-card-pad mb-5 mx-gutter ${index === 0 ? 'border-2 border-ink' : 'border border-line'}`}
-            style={index === 0 ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
-        >
-
-            {/* Header */}
-            <View className="flex-row items-center mb-5">
-                <TouchableOpacity 
-                    className="flex-row items-center flex-1"
-                    onPress={() => navigation.navigate('PublicProfile', { userId: item._id })}
-                >
-                    <View className="p-1 rounded-full border border-line shadow-hair bg-card">
-                        <Avatar user={item} size={64} showBadge={false} />
-                    </View>
-                    <View className="ml-4 flex-1">
-                        <Text className="text-ink text-lg font-display uppercase" numberOfLines={1}>{item.name}</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5" numberOfLines={1}>@{item.username}</Text>
-                        <View className="flex-row items-center mt-1.5 bg-paper-2 self-start px-2 py-0.5 rounded-full border border-line">
-                            <MaterialCommunityIcons name="school" size={12} color={C.ink3} />
-                            <Text className="text-ink-3 text-label font-semibold ml-1 uppercase" numberOfLines={1}>
-                                {[item.year ? `${item.year}YR` : null, item.major].filter(Boolean).join(' • ') || 'Student'}
-                            </Text>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-
-                {/* Social Icons */}
-                <View className="flex-row gap-2">
-                    {item.github_id && (
-                        <TouchableOpacity onPress={() => openLink(item.github_id)} className="w-9 h-9 bg-paper-2 rounded-card items-center justify-center border border-line">
-                            <Ionicons name="logo-github" size={18} color={C.ink} />
-                        </TouchableOpacity>
-                    )}
-                    {item.linkedIn_id && (
-                        <TouchableOpacity onPress={() => openLink(item.linkedIn_id)} className="w-9 h-9 bg-fam-career/10 rounded-xl items-center justify-center border border-fam-career/15">
-                            <Ionicons name="logo-linkedin" size={18} color="#0077b5" />
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
-
-            {/* Skills */}
-            <View className="flex-row flex-wrap gap-2 mb-5">
-                {item.skills?.slice(0, 4).map((skill, index) => (
-                    <View key={index} className="bg-card border border-line px-2.5 py-1 rounded-full">
-                        <Text className="text-accent-text text-label font-display uppercase">{skill}</Text>
-                    </View>
-                ))}
-                {item.skills?.length > 4 && (
-                    <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                        <Text className="text-ink-3 text-label font-display uppercase">+{item.skills.length - 4}</Text>
-                    </View>
-                )}
-            </View>
-
-            {/* Bio */}
-            {(item.about || item.experience) && (
-                <View className="bg-paper-2/50 p-4 rounded-card mb-6 border border-line">
-                    <Text className="text-ink-3 text-xs font-medium leading-5" numberOfLines={3}>
-                        {item.about || item.experience || "No bio available."}
-                    </Text>
-                </View>
-            )}
-
-            {/* Footer */}
-            <View className="flex-row justify-between items-center bg-ink/5 p-2 rounded-card border border-ink/5">
-                <View className="flex-row items-center flex-1 ml-3 mr-4">
-                    <Ionicons name="location" size={14} color={C.ink3} />
-                    <Text className="text-ink-3 text-label font-display uppercase ml-2 flex-1" numberOfLines={1}>
-                        {item.college}
-                    </Text>
-                </View>
-
-                <TouchableOpacity onPress={() => handleMessage(item)} disabled={connectingId !== null} className='rounded-card overflow-hidden'>
-                    <View className="px-6 py-3 bg-ink flex-row items-center">
-                        {connectingId === item._id ? (
-                            <ActivityIndicator size="small" color={C.paper} />
-                        ) : (
-                            <>
-                                <Ionicons name="chatbubble" size={16} color={C.paper} />
-                                <Text className="text-paper font-display ml-2 text-label uppercase">Chat</Text>
-                            </>
-                        )}
-                    </View>
-                </TouchableOpacity>
-            </View>
-
-        </View>
-    );
+    const openProfile = useCallback((u: UserProfile) => navigation.navigate('PublicProfile', { userId: u._id }), [navigation]);
+    const messageRef = useRef(handleMessage);
+    messageRef.current = handleMessage;
+    const onMessage = useCallback((u: UserProfile) => messageRef.current(u), []);
+    const renderCard = useCallback(({ item }: { item: UserProfile }) => (
+        <TeammateCard item={item} connecting={connectingId === item._id} busy={connectingId !== null} onOpen={openProfile} onMessage={onMessage} />
+    ), [connectingId, openProfile, onMessage]);
 
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
 
-            {/* HEADER DECORATION */}
-
             <SafeAreaView className="flex-1" edges={['bottom']}>
-                <AppBar title="Squad Builder" onBack={() => navigation.goBack()} />
+                <AppBar title="Find teammates" onBack={() => navigation.goBack()} />
 
-                {/* SEARCH BAR */}
-                <View className="mx-gutter mt-6 mb-6">
-                    <View className="flex-row items-center bg-card px-6 py-4 border-2 border-ink shadow-hair rounded-md">
-                        <Ionicons name="search" size={20} color={C.ink4} />
-                        <TextInput
-                            placeholder="Search by skill or index..."
-                            placeholderTextColor={C.ink4}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            className="flex-1 ml-4 text-ink text-sm font-display"
-                        />
-                        {searchQuery.length > 0 && (
-                            <TouchableOpacity onPress={() => setSearchQuery("")} hitSlop={12} accessibilityLabel="Clear search">
-                                <Ionicons name="close-circle" size={20} color={C.ink4} />
-                            </TouchableOpacity>
-                        )}
-                    </View>
+                <View className="mx-gutter mt-2 mb-3" style={{ gap: 12 }}>
+                    <SearchField
+                        placeholder="Search by skill, name or username"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                    <SegmentedTabs items={TABS} labels={TAB_LABELS} value={activeTab} onChange={setActiveTab} />
                 </View>
 
-                {/* TABS */}
-                <View className="flex-row mb-8 mx-gutter bg-card p-1.5 rounded-card border border-line shadow-hair">
-                    <TouchableOpacity
-                        className={`flex-1 py-3.5 rounded-xl items-center justify-center flex-row ${activeTab === 'global' ? 'bg-ink' : 'bg-transparent'}`}
-                        onPress={() => setActiveTab('global')}
-                    >
-                        <Ionicons name="globe-outline" size={16} color={activeTab === 'global' ? C.paper : C.ink3} />
-                        <Text className={`font-display text-label uppercase ml-2 ${activeTab === 'global' ? 'text-paper' : 'text-ink-3'}`}>
-                            Global
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        className={`flex-1 py-3.5 rounded-xl items-center justify-center flex-row ${activeTab === 'college' ? 'bg-ink' : 'bg-transparent'}`}
-                        onPress={() => setActiveTab('college')}
-                    >
-                        <Ionicons name="school-outline" size={16} color={activeTab === 'college' ? C.paper : C.ink3} />
-                        <Text className={`font-display text-label uppercase ml-2 ${activeTab === 'college' ? 'text-paper' : 'text-ink-3'}`}>
-                            Campus
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* CONTENT */}
                 {loading && developers.length === 0 ? (
                     <View className="flex-1 mt-4">
                         {[1, 2, 3, 4].map(i => <TeammateSkeleton key={i} />)}
@@ -309,7 +243,7 @@ export default function FindTeammate() {
                         data={searchQuery.length > 0 ? filteredDevelopers : developers}
                         keyExtractor={(item) => item._id}
                         renderItem={renderCard}
-                        contentContainerStyle={{ paddingBottom: 120 }}
+                        contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />
@@ -322,15 +256,11 @@ export default function FindTeammate() {
                             loadingMore ? <ActivityIndicator size="small" color={C.brand[500]} style={{ paddingVertical: 24 }} /> : null
                         }
                         ListEmptyComponent={
-                            <View className="items-center mt-20 px-gutter">
-                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <MaterialCommunityIcons name="account-search-outline" size={40} color={C.ink4} />
-                                </View>
-                                <Text className="text-ink font-display text-xl text-center uppercase">No Talent Found</Text>
-                                <Text className="font-sans text-sm text-ink-3 text-center mt-2">
-                                    {searchQuery ? "Your criteria returned void results." : "The arena is currently empty."}
-                                </Text>
-                            </View>
+                            <Empty
+                                icon="people-outline"
+                                title="No one found"
+                                hint={searchQuery ? "Nothing matches your search. Try another skill." : "No one is looking for a team yet."}
+                            />
                         }
                     />
                 )}

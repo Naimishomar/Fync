@@ -1,15 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image, ActivityIndicator, RefreshControl, StatusBar, Share, StyleSheet} from 'react-native'
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Share } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn, Empty, Button } from '../ui/kit';
+import { AppBar, IconBtn, Empty, Button, Card, Divider, ListRow, SectionHeader, Tag, IconTile } from '../ui/kit';
+import { HubBanner, RoomIcon } from '../community/shared';
 
 const ClubHubScreen = () => {
     const navigation = useNavigation<any>();
@@ -145,179 +142,87 @@ const ClubHubScreen = () => {
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle="light-content" />
-            <ScrollView keyboardShouldPersistTaps="handled" 
+            <ScrollView keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchClubDetails(); }} tintColor={C.brand[500]} />}
             >
-                {/* Banner & Header */}
-                <View className="h-80 w-full relative">
-                    <Image 
-                        source={{ uri: club.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} 
-                        className="w-full h-full"
-                        style={{ backgroundColor: C.paper2 }}
-                    />
-                    <LinearGradient 
-                        colors={['transparent', 'rgba(0,0,0,0.9)']} 
-                        style={StyleSheet.absoluteFill}
-                    />
-                    
-                    <View className="absolute top-0 left-0 right-0">
-                        <AppBar
-                            overlay
-                            onBack={() => navigation.goBack()}
-                            right={<>
-                                <IconBtn overlay name="share-social-outline" size={18} onPress={onShare} />
-                                {isAdmin && (
-                                    <IconBtn overlay name="settings-outline" size={18} onPress={() => navigation.navigate('ClubAdminPanel', { clubId })} />
-                                )}
-                                {hasAccess && (
-                                    <IconBtn overlay name="log-out-outline" size={18} color={C.danger} onPress={handleLeaveClub} />
-                                )}
-                            </>}
-                        />
-                    </View>
+                <HubBanner
+                    banner={club.banner}
+                    logo={club.logo}
+                    name={club.name}
+                    meta={`${club.members?.length || 0} members${hasAccess ? ' · You\'re a member' : ''}`}
+                    onBack={() => navigation.goBack()}
+                    right={<>
+                        <IconBtn overlay name="share-social-outline" size={18} onPress={onShare} accessibilityLabel="Share club" />
+                        {isAdmin && (
+                            <IconBtn overlay name="settings-outline" size={18} onPress={() => navigation.navigate('ClubAdminPanel', { clubId })} accessibilityLabel="Club settings" />
+                        )}
+                        {hasAccess && (
+                            <IconBtn overlay name="log-out-outline" size={18} color={C.danger} onPress={handleLeaveClub} accessibilityLabel="Leave club" />
+                        )}
+                    </>}
+                />
 
-                    <View className="absolute bottom-10 left-5 flex-row items-center">
-                        <View className="relative">
-                            <Image 
-                                source={club.logo ? { uri: club.logo } : undefined}
-                                className="w-24 h-24 rounded-sheet border-4 border-white/20 bg-card"
-                            />
-                            {hasAccess && <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full border-4 border-ink" />}
-                        </View>
-                        <View className="ml-6 flex-1 pr-4">
-                            <Text className="text-white text-3xl font-display uppercase leading-tight" numberOfLines={2}>{club.name}</Text>
-                            <View className="flex-row items-center bg-card/10 px-4 py-2 rounded-card border border-white/20 mt-3 self-start backdrop-blur-sm">
-                                <Feather name="users" size={12} color="white" />
-                                <Text className="text-white text-label font-display uppercase ml-2">{club.members?.length || 0} Registered Personnel</Text>
-                            </View>
-                        </View>
-                    </View>
-                </View>
-
-                {/* About Section */}
-                <View className="px-gutter py-10 bg-card rounded-b-5xl shadow-hair">
-                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                      <Text className="text-ink-3 font-display uppercase text-label">Briefing Details</Text>
-                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                    </View>
-                    <Text className="text-ink-2 leading-7 text-sm font-medium italic">
-                        "{club.description || "The ultimate campus ecosystem for high-velocity growth and achievement."}"
+                <View className="px-gutter pt-5">
+                    <Text className="text-ink-2" style={{ fontSize: 15, lineHeight: 22 }}>
+                        {club.description || 'No description yet.'}
                     </Text>
                 </View>
 
                 {hasAccess ? (
-                    <>
-                        {/* Sub-Groups / Rooms Section (Visible to Members) */}
-                        <View className="px-gutter py-10">
-                            <View className="flex-row justify-between items-center mb-8">
-                                <View>
-                                    <Text className="text-ink text-2xl font-display uppercase">Secure <Text className="text-accent-text">Rooms</Text></Text>
-                                    <Text className="text-ink-3 text-label font-display uppercase mt-1">Authorized Sub-Domains</Text>
-                                </View>
-                                {isAdmin && (
-                                    <TouchableOpacity 
-                                        onPress={() => navigation.navigate('CreateSubGroup', { clubId: club._id })} 
-                                        className="w-12 h-12 bg-ink rounded-card items-center justify-center shadow-hair"
-                                    >
-                                        <Ionicons name="add" size={28} color={C.paper} />
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-
-                            {subGroups.length > 0 ? (
-                                subGroups.map((sub: any) => {
+                    <View className="px-gutter">
+                        <SectionHeader
+                            title="Rooms"
+                            right={isAdmin ? (
+                                <Button small title="New room" icon="add" onPress={() => navigation.navigate('CreateSubGroup', { clubId: club._id })} />
+                            ) : undefined}
+                        />
+                        {subGroups.length > 0 ? (
+                            <Card style={{ paddingHorizontal: 16, paddingVertical: 4 }}>
+                                {subGroups.map((sub: any, i: number) => {
                                     // Members may come back populated or as bare ids, as everywhere else here.
                                     const isSubMember = sub.members?.some((m: any) => (m?._id || m) === user?._id);
                                     const isPendingJoin = sub.joinRequests?.some((j: any) => (j._id || j) === user?._id);
-                                    
                                     return (
-                                        <TouchableOpacity 
-                                            key={sub._id}
-                                            activeOpacity={0.8}
-                                            disabled={!isSubMember}
-                                            onPress={() => isSubMember && navigation.navigate('SubGroupChat', { subGroupId: sub._id, subGroupName: sub.name, clubId: club._id })}
-                                            className={`p-6 rounded-sheet border ${sub.isGeneral ? 'bg-ink border-ink shadow-hair ' : 'bg-card border-line shadow-hair'} mb-6 flex-row items-center`}
-                                        >
-                                            <View className={`w-16 h-16 rounded-card items-center justify-center ${sub.isGeneral ? 'bg-ink' : 'bg-paper-2 border border-line'}`}>
-                                                {sub.isGeneral ? (
-                                                    <MaterialCommunityIcons name="shield-check" size={28} color={C.brand[500]} />
+                                        <View key={sub._id}>
+                                            {i > 0 ? <Divider /> : null}
+                                            <ListRow
+                                                leading={<RoomIcon uri={sub.isGeneral ? undefined : sub.logo} icon={sub.isGeneral ? 'megaphone-outline' : 'chatbubbles-outline'} />}
+                                                title={sub.name}
+                                                subtitle={sub.isGeneral ? 'Official channel' : sub.description || 'Room'}
+                                                onPress={isSubMember ? () => navigation.navigate('SubGroupChat', { subGroupId: sub._id, subGroupName: sub.name, clubId: club._id }) : undefined}
+                                                right={isSubMember ? undefined : isPendingJoin ? (
+                                                    <Tag label="Pending" />
                                                 ) : (
-                                                    sub.logo ? <Image source={{ uri: sub.logo }} className="w-full h-full rounded-card" /> : <Feather name="hash" size={24} color={C.ink3} />
+                                                    <Button small variant="primary" title="Join" loading={joining === sub._id} onPress={() => handleJoinSubGroup(sub._id)} />
                                                 )}
-                                            </View>
-                                            
-                                            <View className="flex-1 ml-5 pr-4">
-                                                <Text className={`${sub.isGeneral ? 'text-paper' : 'text-ink'} font-display text-lg uppercase`} numberOfLines={1}>
-                                                    {sub.name}
-                                                </Text>
-                                                <Text className={`${sub.isGeneral ? 'text-ink-3' : 'text-ink-3'} text-label font-display uppercase mt-1`} numberOfLines={1}>
-                                                    {sub.isGeneral ? "HQ / OFFICIAL CHANNEL" : sub.description || "SPECIALIZED SECTOR"}
-                                                </Text>
-                                            </View>
-
-                                            {isSubMember ? (
-                                                <Ionicons name="chevron-forward" size={20} color={sub.isGeneral ? C.paper : C.ink4} />
-                                            ) : isPendingJoin ? (
-                                                <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                                                    <Text className="text-ink-3 font-display text-label uppercase">Pending</Text>
-                                                </View>
-                                            ) : (
-                                                <TouchableOpacity 
-                                                    onPress={() => handleJoinSubGroup(sub._id)}
-                                                    disabled={joining === sub._id}
-                                                    className="bg-brand-600 px-5 py-3 rounded-card shadow-hair"
-                                                >
-                                                    {joining === sub._id ? <ActivityIndicator size="small" color={C.onBrand} /> : (
-                                                        <Text className="text-on-brand font-display text-label uppercase">Join</Text>
-                                                    )}
-                                                </TouchableOpacity>
-                                            )}
-                                        </TouchableOpacity>
+                                            />
+                                        </View>
                                     );
-                                })
-                            ) : (
-                                <View className="items-center p-12 bg-card rounded-sheet border border-dashed border-line mt-4">
-                                    <Feather name="layers" size={48} color={C.line} />
-                                    <Text className="font-sans text-sm mt-4 text-ink-4 text-center">No localized sub-domains established</Text>
-                                </View>
-                            )}
-                        </View>
-                    </>
+                                })}
+                            </Card>
+                        ) : (
+                            <Card>
+                                <Empty icon="layers-outline" title="No rooms yet" hint={isAdmin ? 'Create the first room for your members.' : undefined} />
+                            </Card>
+                        )}
+                    </View>
                 ) : (
-                    <View className="px-gutter py-12 mt-4">
-                        <View className="bg-ink p-card-pad rounded-sheet items-center shadow-hair">
-                            <View className="w-20 h-20 bg-ink rounded-sheet items-center justify-center mb-8 border border-ink">
-                                <Feather name="lock" size={32} color={C.brand[500]} />
-                            </View>
-                            <Text className="text-paper text-2xl font-display uppercase text-center">Protocol Restricted</Text>
-                            <Text className="text-ink-3 text-center mt-4 mb-10 leading-6 font-medium text-sm">
-                                This community hub is under tight security. Authorization clearance is required to view classified rooms and internal signals.
+                    <View className="px-gutter mt-6">
+                        <Card padded style={{ alignItems: 'center', gap: 8 }}>
+                            <IconTile icon="lock-closed-outline" size={56} iconSize={24} />
+                            <Text className="text-ink font-semibold text-center mt-2" style={{ fontSize: 17 }}>Members only</Text>
+                            <Text className="text-ink-3 text-center mb-4" style={{ fontSize: 13, lineHeight: 18 }}>
+                                Join this club to see its rooms and messages.
                             </Text>
-
                             {isPending ? (
-                                <View className="bg-ink py-5 px-gutter rounded-card border border-ink">
-                                    <Text className="text-accent-text font-display uppercase text-label">Clearance Request Pending</Text>
-                                </View>
+                                <Tag icon="time-outline" label="Request pending" />
                             ) : isInvited ? (
-                                <TouchableOpacity 
-                                    onPress={() => navigation.navigate('ClubList')}
-                                    className="bg-brand-600 py-6 px-gutter rounded-sheet w-full items-center shadow-hair"
-                                >
-                                    <Text className="text-on-brand font-display uppercase text-xs">Accept Invitation</Text>
-                                </TouchableOpacity>
+                                <Button block variant="primary" title="Accept invitation" onPress={() => navigation.navigate('ClubList')} />
                             ) : (
-                                <TouchableOpacity 
-                                    onPress={handleRequestAccess}
-                                    disabled={requesting}
-                                    className="bg-card py-6 px-gutter rounded-sheet w-full items-center shadow-hair"
-                                >
-                                    {requesting ? <ActivityIndicator color={C.ink} /> : (
-                                        <Text className="font-semibold text-base text-ink">Request Clearance</Text>
-                                    )}
-                                </TouchableOpacity>
+                                <Button block variant="primary" title="Request to join" loading={requesting} onPress={handleRequestAccess} />
                             )}
-                        </View>
+                        </Card>
                     </View>
                 )}
 

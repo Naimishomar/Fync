@@ -1,24 +1,21 @@
-import React, { useState, useEffect, useCallback, memo, useMemo, useRef } from 'react';
-import {View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Dimensions, StatusBar, Modal, ScrollView, KeyboardAvoidingView, Platform, Linking, Pressable} from 'react-native'
-import { Image as ExpoImage } from 'expo-image';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { View, FlatList, ActivityIndicator, RefreshControl, StatusBar, Platform } from 'react-native';
 import axios from '../../context/axiosConfig';
 import { navigate, goBack } from '../../utils/navigation';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useAuth } from '../../context/auth.context';
-import * as ImagePicker from 'expo-image-picker';
-import { collegesInIndia } from '../../data/college';
 // @ts-ignore
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useCameraPermissions } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
-
-const { width } = Dimensions.get('window');
+import { AppBar, Button, Empty, FilterChips, FormField, IconBtn, Label, Sheet } from '../ui/kit';
+import {
+    AttendeeRow, AttendeesSheet, BrandingPicker, CollaboratorsEditor, CollegePickerSheet, ContactsEditor, EventCard,
+    JoinedCard, PassSheet, PickerField, ScannerModal, TicketsSheet, ToggleRow, formatTime,
+} from './EventShared';
 
 // --- TYPES ---
 interface User {
@@ -86,221 +83,6 @@ interface BootcampRegistration {
 // --- HELPER ---
 const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
-const pickImage = async (setter: (uri: string) => void) => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        quality: 0.8,
-    });
-    if (!result.canceled) setter(result.assets[0].uri);
-};
-
-// --- 1. BOOTCAMP CARD ---
-const JoinedBootcampCard = memo(({ item, onShowQR, onRefresh }: { item: BootcampRegistration; onShowQR: (reg: BootcampRegistration) => void; onRefresh: () => void }) => {
-    const session = item.eventId as any;
-    if (!session) return null;
-
-    return (
-        <View className="bg-card rounded-sheet mb-6 mx-gutter overflow-hidden border border-line shadow-hair border-l-4 border-l-recruiter">
-            <View className="p-6">
-                <View className="flex-row justify-between items-start mb-4">
-                    <View className="flex-1 mr-4">
-                        <Text className="text-ink-3 text-label font-display uppercase mb-1">
-                            {(item as any).isAdmin ? 'Organizer Intel' : 'Bootcamp Archive'}
-                        </Text>
-                        <Text className="text-ink text-lg font-display uppercase leading-tight" numberOfLines={1}>
-                            {session.eventName}
-                        </Text>
-                    </View>
-                    <View className="flex-row gap-2">
-                        {(item as any).isAdmin && (
-                            <View className="bg-recruiter/10 border border-recruiter/15 px-2.5 py-1 rounded-full">
-                                <Text className="text-recruiter text-label font-display uppercase">Admin</Text>
-                            </View>
-                        )}
-                    </View>
-                </View>
-
-                <View className="flex-row items-center mb-6 bg-paper-2 self-start px-4 py-2 rounded-card border border-line">
-                    <Ionicons name="time-outline" size={14} color={C.recruiter} />
-                    <Text className="text-ink text-label font-display uppercase ml-2">
-                        {session.startTime} - {session.endTime}
-                    </Text>
-                </View>
-
-                <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => onShowQR(item)}
-                    className="flex-row items-center justify-center py-4 rounded-card bg-paper-2 border border-line"
-                >
-                    <Ionicons name="qr-code" size={16} color={C.recruiter} />
-                    <Text className="font-semibold text-base text-ink ml-3">
-                        Access Pass
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-    );
-});
-
-const BootcampCard = memo(({ item, onRegister, isAdmin, isPrimaryAdmin, onViewAttendees, onOpenScanner, onEditSession, isRegistered, stamped}: {
-    item: BootcampSession;
-    onRegister: (item: BootcampSession) => void;
-    isAdmin: boolean;
-    isPrimaryAdmin: boolean;
-    onViewAttendees: (eventId: string) => void;
-    onOpenScanner: (eventId: string) => void;
-    onEditSession: (session: BootcampSession) => void;
-    isRegistered?: boolean;
-    /** The featured entry carries the screen's one stamp. */
-    stamped?: boolean;
-}) => {
-    const isLimitReached = !isAdmin && !isRegistered && (item.userLimit ?? 0) > 0 && (item.userLimit ?? 0) < 1000000 && (item.registrationsCount ?? 0) >= (item.userLimit ?? 0);
-
-    return (
-        <View
-            className={`bg-card rounded-card mb-10 mx-gutter overflow-hidden ${stamped ? 'border-2 border-ink' : 'border border-line'}`}
-            style={stamped ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
-        >
-            <View className="h-48 relative">
-                {item.banner ? (
-                    <ExpoImage source={{ uri: item.banner }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="memory-disk" />
-                ) : (
-                    <View className="w-full h-full"  style={{ backgroundColor: C.recruiter }} />
-                )}
-
-                <View className="absolute top-6 left-6 bg-card/90 px-4 py-2 rounded-card border border-white/20 backdrop-blur-md">
-                    <Text className="text-ink text-label font-display uppercase">{item.college}</Text>
-                </View>
-
-                {isAdmin && (
-                    <View className="absolute top-6 right-6 flex-row gap-2">
-                        <TouchableOpacity onPress={() => onOpenScanner(item.eventId)} className="w-10 h-10 bg-recruiter rounded-card items-center justify-center shadow-hair">
-                            <Ionicons name="scan" size={18} color="white" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => onViewAttendees(item.eventId)} className="w-10 h-10 bg-card rounded-card items-center justify-center border border-line shadow-hair">
-                            <Ionicons name="people" size={18} color={C.ink} />
-                        </TouchableOpacity>
-                        {isPrimaryAdmin && (
-                            <TouchableOpacity onPress={() => onEditSession(item)} className="w-10 h-10 bg-card rounded-card items-center justify-center border border-line shadow-hair">
-                                <Ionicons name="settings-outline" size={18} color={C.ink} />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                )}
-
-                <View className="absolute -bottom-6 left-8 w-20 h-20 bg-card rounded-card p-1.5 border border-line shadow-hair">
-                    {item.logo ? (
-                        <ExpoImage source={{ uri: item.logo }} style={{ width: '100%', height: '100%', borderRadius: 12 }} cachePolicy="memory-disk" />
-                    ) : (
-                        <View className="w-full h-full bg-recruiter/10 rounded-card items-center justify-center">
-                            <Ionicons name="rocket" size={24} color={C.recruiter} />
-                        </View>
-                    )}
-                </View>
-            </View>
-
-            <View className="mt-12 p-6">
-                <Text className="text-ink text-2xl font-display uppercase leading-tight mb-2" numberOfLines={2}>{item.eventName}</Text>
-
-                <Text className="text-ink-2 text-sm font-medium leading-6 mb-8" numberOfLines={3}>
-                    "{item.description}"
-                </Text>
-
-                {item.contactDetails && item.contactDetails.length > 0 && (
-                    <View className="mb-8 bg-paper-2 p-6 rounded-card border border-line">
-                        <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                          <Text className="text-ink-3 font-display text-label uppercase">Contact Protocol</Text>
-                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                        </View>
-                        {item.contactDetails.map((contact, idx) => (
-                            <View key={idx} className="flex-row items-center justify-between mb-4 last:mb-0">
-                                <View className="flex-1">
-                                    <Text className="text-ink font-display uppercase text-label">{contact.name}</Text>
-                                    <View className="flex-row items-center gap-4 mt-1.5">
-                                        {contact.mobile && (
-                                            <TouchableOpacity onPress={() => Linking.openURL(`tel:${contact.mobile}`)} className="flex-row items-center">
-                                                <View className="w-5 h-5 bg-recruiter/15 rounded-lg items-center justify-center mr-2">
-                                                    <Ionicons name="call" size={8} color={C.recruiter} />
-                                                </View>
-                                                <Text className="text-recruiter font-display text-label uppercase">{contact.mobile}</Text>
-                                            </TouchableOpacity>
-                                        )}
-                                        {contact.email && (
-                                            <TouchableOpacity onPress={() => Linking.openURL(`mailto:${contact.email}`)} className="flex-row items-center">
-                                                <View className="w-5 h-5 bg-ink rounded-lg items-center justify-center mr-2">
-                                                    <Ionicons name="mail" size={8} color={C.paper} />
-                                                </View>
-                                                <Text className="text-ink font-display text-label uppercase">Email Intel</Text>
-                                            </TouchableOpacity>
-                                        )}
-                                    </View>
-                                </View>
-                            </View>
-                        ))}
-                    </View>
-                )}
-
-                <View className="flex-row items-center gap-3 mb-8">
-                    <View className="flex-row items-center bg-paper-2 px-4 py-2 rounded-card border border-line">
-                        <Ionicons name="calendar-outline" size={14} color={C.ink3} />
-                        <Text className="text-ink text-label font-display uppercase ml-2">
-                            {new Date(item.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-                        </Text>
-                    </View>
-                    <View className="flex-row items-center bg-paper-2 px-4 py-2 rounded-card border border-line">
-                        <Ionicons name="time-outline" size={14} color={C.ink3} />
-                        <Text className="text-ink text-label font-display uppercase ml-2">{item.startTime}</Text>
-                    </View>
-                </View>
-
-                {item.isCollegeSpecific && (
-                    <View className="flex-row items-center bg-fam-career/10 px-3 py-1.5 rounded-full self-start mb-6 border border-fam-career/15">
-                        <Ionicons name="shield-checkmark" size={12} color={C.info} />
-                        <Text className="text-fam-career text-label font-display uppercase ml-1.5">College Specific</Text>
-                    </View>
-                )}
-
-                {(isRegistered || isAdmin) && item.isCommunityActive !== false && (
-                    <TouchableOpacity
-                        onPress={() => navigate('EventCommunityChat', { eventId: item._id, eventName: item.eventName, type: 'Bootcamp' })}
-                        className="bg-recruiter/10 p-6 rounded-card flex-row items-center justify-between border border-recruiter/15 mb-4"
-                    >
-                        <View className="flex-row items-center gap-4">
-                            <View className="w-12 h-12 bg-recruiter rounded-card items-center justify-center">
-                                <Ionicons name="chatbubbles" size={20} color="white" />
-                            </View>
-                            <View>
-                                <Text className="text-recruiter font-display uppercase text-label">Intelligence Network</Text>
-                                <Text className="text-recruiter font-semibold text-label uppercase mt-0.5">Established Community</Text>
-                            </View>
-                        </View>
-                        <Ionicons name="chevron-forward" size={18} color={C.recruiter} />
-                    </TouchableOpacity>
-                )}
-
-                <View className="flex-row justify-between items-center bg-ink p-5 rounded-card mt-4 shadow-hair">
-                    <View>
-                        <Text className="text-paper/40 font-display uppercase text-label">Entry Protocol</Text>
-                        <Text className="text-paper text-xl font-display uppercase mt-0.5">{item.fee && item.fee > 0 ? `₹${item.fee}` : 'FREE ENTRY'}</Text>
-                    </View>
-
-                    <TouchableOpacity
-                        activeOpacity={0.8}
-                        onPress={() => !isRegistered && item.status === 'open' && !isLimitReached && onRegister(item)}
-                        className={`px-gutter py-4 rounded-card border ${(isRegistered || item.status === 'closed' || isLimitReached) ? 'bg-ink border-ink' : 'bg-card border-card'}`}
-                        disabled={isRegistered || item.status === 'closed' || isLimitReached}
-                    >
-                        <Text className={`${(isRegistered || item.status === 'closed' || isLimitReached) ? 'text-ink-3' : 'text-ink'} font-display text-label uppercase`}>
-                            {item.status === 'closed' ? 'Archived' : isRegistered ? 'Joined' : isLimitReached ? 'FULL' : 'Join'}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </View>
-    );
-});
-
 export default function BootcampScreen() {
     const { user } = useAuth();
     const [sessions, setSessions] = useState<BootcampSession[]>([]);
@@ -313,7 +95,6 @@ export default function BootcampScreen() {
     // Modals
     const [sessionModalVisible, setSessionModalVisible] = useState(false);
     const [collegeModalVisible, setCollegeModalVisible] = useState(false);
-    const [collegeSearch, setCollegeSearch] = useState('');
     const [attendeeModalVisible, setAttendeeModalVisible] = useState(false);
     const [scannerVisible, setScannerVisible] = useState(false);
     const [scanned, setScanned] = useState(false);
@@ -337,9 +118,6 @@ export default function BootcampScreen() {
     const [showStartTimePicker, setShowStartTimePicker] = useState(false);
     const [showEndTimePicker, setShowEndTimePicker] = useState(false);
 
-    const formatTime = (date: Date) => {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-    };
 
     // Attendees
     const [attendees, setAttendees] = useState<BootcampRegistration[]>([]);
@@ -678,722 +456,290 @@ export default function BootcampScreen() {
         }
     };
 
-    const filteredColleges = useMemo(() =>
-        collegesInIndia.filter(c => c.toLowerCase().includes(collegeSearch.toLowerCase())),
-        [collegeSearch]
-    );
 
-    if (loading) return <View className="flex-1 bg-paper items-center justify-center"><ActivityIndicator color={C.recruiter} size="large" /></View>;
+    const openScanner = async (id?: string) => {
+        const { status } = await requestPermission();
+        if (status === 'granted') {
+            if (id) setCurrentEvent(id);
+            setScanned(false);
+            setScannerVisible(true);
+        } else {
+            Alert.alert("Required", "Camera access is needed to scan tickets.");
+        }
+    };
+
+    const openEditor = (s?: BootcampSession) => {
+        if (s) {
+            setEditData(s);
+            setEventLogo(s.logo || null);
+            setEventBanner(s.banner || null);
+        } else {
+            setEditData({ admin_email: user?.email });
+            setEventLogo(null);
+            setEventBanner(null);
+        }
+        setSessionModalVisible(true);
+    };
+
+    const isAdminOf = (item: BootcampSession) => item.admin_email?.toLowerCase() === user?.email?.toLowerCase() ||
+        (item.secondaryAdmins || []).some(a => (typeof a === 'string' ? a === user?.id || a === user?.email : a._id === user?._id || a.email === user?.email));
+
+    const activeSession = sessions.find(s => s.eventId === currentEventForAttendees);
+    const attendanceDates = useMemo(
+        () => (activeSession ? getDatesInRange(activeSession.startDate, activeSession.endDate) : []),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [activeSession?.startDate, activeSession?.endDate]
+    );
+    const dateLabels = useMemo(
+        () => Object.fromEntries(attendanceDates.map(d => [d, new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })])),
+        [attendanceDates]
+    );
+    const isPrimaryAdminForActive = activeSession?.admin_email?.toLowerCase() === user?.email?.toLowerCase();
+
+    const renderAttendee = useCallback(({ item, index }: { item: BootcampRegistration; index: number }) => {
+        const u = (item.userId || {}) as User;
+        const isPresentToday = !!item.attendance?.find(a => a.date === attendanceDate)?.isPresent;
+        return (
+            <AttendeeRow
+                name={u.name}
+                email={u.email}
+                index={index}
+                status={[isPresentToday ? { icon: 'checkmark-circle', label: 'Present' } : { icon: 'ellipse-outline', label: 'Absent' }]}
+                tags={[u.college, u.department]}
+                right={item.status === 'pending' && isPrimaryAdminForActive ? (
+                    <Button small variant="primary" title="Approve" onPress={() => approvePayment(item._id)} />
+                ) : undefined}
+            />
+        );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [attendanceDate, isPrimaryAdminForActive, currentEventForAttendees]);
+
+    const renderTicket = useCallback(({ item }: { item: BootcampRegistration }) => {
+        const session = item.eventId as any;
+        if (!session) return null;
+        const isAdmin = !!(item as any).isAdmin;
+        return (
+            <JoinedCard
+                title={session.eventName}
+                eyebrow={isAdmin ? 'Organizer' : 'Bootcamp'}
+                timeLabel={`${session.startTime} - ${session.endTime}`}
+                isAdmin={isAdmin}
+                passLabel="Entry pass"
+                onPress={() => { setSelectedReg(item); setQrModalVisible(true); }}
+            />
+        );
+    }, []);
+
+    const pickCollege = useCallback((college: string) => {
+        setEditData(d => ({ ...d, college }));
+        setCollegeModalVisible(false);
+    }, []);
+
+    if (loading) return <View className="flex-1 bg-paper items-center justify-center"><ActivityIndicator color={C.brand[500]} size="large" /></View>;
+
+    const setField = (patch: Partial<BootcampSession>) => setEditData({ ...editData, ...patch });
+    const isOwner = !!editData._id && editData.admin_email === user?.email;
 
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
-                <AppBar title="Bootcamp Hub" onBack={() => goBack()}
+                <AppBar title="Bootcamps" onBack={() => goBack()}
                     right={<>
-                        <IconBtn name="ticket" size={20} color={C.brand[500]} boxed onPress={() => setTicketsModalVisible(true)} />
-                        <IconBtn name="add" size={24} color={C.paper} style={{ backgroundColor: C.ink, marginLeft: 12 }} onPress={() => {
-                            setEditData({ admin_email: user?.email });
-                            setEventLogo(null);
-                            setEventBanner(null);
-                            setSessionModalVisible(true);
-                        }} />
+                        <IconBtn name="ticket-outline" boxed onPress={() => setTicketsModalVisible(true)} accessibilityLabel="My tickets" />
+                        <IconBtn name="add" boxed onPress={() => openEditor()} accessibilityLabel="Create bootcamp" />
                     </>} />
                 <FlatList keyboardShouldPersistTaps="handled"
                     data={sessions}
                     keyExtractor={(item) => item._id}
-                    contentContainerStyle={{ paddingBottom: 120 }}
+                    contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
                     showsVerticalScrollIndicator={false}
-                    renderItem={({ item, index }) => (
-                        <BootcampCard
+                    renderItem={({ item }) => (
+                        <EventCard
                             item={item}
-                            stamped={index === 0}
-                            isAdmin={item.admin_email?.toLowerCase() === user?.email?.toLowerCase() ||
-                                (item.secondaryAdmins || []).some(a => (typeof a === 'string' ? a === user?.id || a === user?.email : a._id === user?._id || a.email === user?.email))}
+                            fallbackIcon="rocket-outline"
+                            chatType="Bootcamp"
+                            tags={[
+                                { icon: 'calendar-outline', label: new Date(item.startDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) },
+                                { icon: 'time-outline', label: item.startTime },
+                                ...(item.isCollegeSpecific ? [{ icon: 'shield-checkmark-outline' as const, label: 'College only' }] : []),
+                            ]}
+                            isAdmin={isAdminOf(item)}
                             isPrimaryAdmin={item.admin_email?.toLowerCase() === user?.email?.toLowerCase()}
                             isRegistered={userRegistrations.some(r => (r.eventId as any)?._id === item._id)}
-                            onRegister={handleRegister}
-                            onViewAttendees={viewAttendees}
-                            onOpenScanner={async (id) => {
-                                const { status } = await requestPermission();
-                                if (status === 'granted') {
-                                    setCurrentEvent(id);
-                                    setScanned(false);
-                                    setScannerVisible(true);
-                                } else {
-                                    Alert.alert("Required", "Camera access is needed to scan tickets.");
-                                }
-                            }}
-                            onEditSession={(s) => {
-                                setEditData(s);
-                                setEventLogo(s.logo || null);
-                                setEventBanner(s.banner || null);
-                                setSessionModalVisible(true);
-                            }}
+                            onRegister={() => handleRegister(item)}
+                            onAttendees={() => viewAttendees(item.eventId)}
+                            onScan={() => openScanner(item.eventId)}
+                            onEdit={() => openEditor(item)}
                         />
                     )}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchSessions(); }} tintColor={C.recruiter} colors={[C.recruiter]} />}
-                    ListEmptyComponent={<View className="py-20 items-center"><Text className="text-ink-3 font-semibold">No bootcamps available</Text></View>}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchSessions(); }} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
+                    ListEmptyComponent={<Empty icon="rocket-outline" title="No bootcamps yet" hint="Tap + to create one for your campus." />}
                 />
 
-                {/* MODALS (Simplified for now, can expand UI same as Speaker) */}
-                <Modal visible={attendeeModalVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setAttendeeModalVisible(false)}>
-                    <View className="flex-1 bg-black/50 justify-end">
-                        <View className="bg-paper h-[90%] rounded-t-sheet overflow-hidden">
-                            <View className="p-card-pad bg-ink h-48">
-                                <View className="flex-row justify-between items-center mb-6">
-                                    <View>
-                                        <Text className="text-paper font-display uppercase text-h1">Participants</Text>
-                                        <Text className="text-paper/50 font-semibold text-label uppercase mt-1">Multi-Day Attendance Tracker</Text>
-                                    </View>
-                                    <View className="flex-row items-center gap-2">
-                                        <TouchableOpacity
-                                            onPress={async () => {
-                                                const { status } = await requestPermission();
-                                                if (status === 'granted') {
-                                                    setScanned(false);
-                                                    setScannerVisible(true);
-                                                }
-                                            }}
-                                            className="w-12 h-12 bg-card/10 rounded-card items-center justify-center"
-                                        >
-                                            <Ionicons name="scan" size={24} color={C.paper} />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            onPress={() => exportToExcel('Bootcamp_Attendees')}
-                                            className="w-12 h-12 bg-card/10 rounded-card items-center justify-center"
-                                        >
-                                            <Ionicons name="download-outline" size={24} color={C.paper} />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => setAttendeeModalVisible(false)} className="w-12 h-12 bg-card rounded-card items-center justify-center">
-                                            <Ionicons name="close" size={24} color={C.recruiter} />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
+                <AttendeesSheet
+                    visible={attendeeModalVisible}
+                    onClose={() => setAttendeeModalVisible(false)}
+                    title="Participants"
+                    subtitle="Attendance by day"
+                    actions={<>
+                        <IconBtn name="scan-outline" onPress={() => openScanner()} accessibilityLabel="Scan tickets" />
+                        <IconBtn name="download-outline" onPress={() => exportToExcel('Bootcamp_Attendees')} disabled={exporting} accessibilityLabel="Export to Excel" />
+                    </>}
+                    top={attendanceDates.length ? (
+                        <FilterChips items={attendanceDates} value={attendanceDate} onChange={setAttendanceDate} labels={dateLabels} style={{ marginTop: 12 }} />
+                    ) : null}
+                    notice="Download the list now. Participant details and community messages are deleted 7 days after the event ends."
+                    loading={loadingAttendees}
+                    data={attendees}
+                    renderItem={renderAttendee}
+                />
 
-                                {/* Daily Attendance Date Selector */}
-                                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-                                    {(() => {
-                                        const activeSession = sessions.find(s => s.eventId === currentEventForAttendees);
-                                        if (!activeSession) return null;
-                                        const dates = getDatesInRange(activeSession.startDate, activeSession.endDate);
-                                        return dates.map(date => {
-                                            const isSelected = attendanceDate === date;
-                                            const dateObj = new Date(date);
-                                            return (
-                                                <TouchableOpacity
-                                                    key={date}
-                                                    onPress={() => setAttendanceDate(date)}
-                                                    className={`mr-3 px-6 h-12 rounded-card items-center justify-center border ${isSelected ? 'bg-recruiter border-recruiter' : 'bg-card/10 border-white/20'}`}
-                                                >
-                                                    <Text className={`font-display text-label uppercase ${isSelected ? 'text-white' : 'text-paper/40'}`}>
-                                                        {dateObj.toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
-                                                    </Text>
-                                                </TouchableOpacity>
-                                            );
-                                        });
-                                    })()}
-                                </ScrollView>
-                            </View>
-                            <View className="bg-warning/10 px-gutter py-3 border-b border-warning/15 flex-row items-center gap-3">
-                                <Ionicons name="information-circle" size={18} color={C.warning} />
-                                <Text className="text-warning text-label font-semibold uppercase flex-1">
-                                    Download the list now. All participant details and and community messages will be permanently deleted 7 days after event completion.
-                                </Text>
-                            </View>
+                <ScannerModal
+                    visible={scannerVisible}
+                    onClose={() => setScannerVisible(false)}
+                    onScanned={scanned ? undefined : handleBarCodeScanned}
+                    title="Scan ticket"
+                    hint="Bootcamp entry and attendance"
+                />
 
-                            <FlatList keyboardShouldPersistTaps="handled"
-                                data={attendees}
-                                keyExtractor={(it) => it._id}
-                                renderItem={({ item, index }) => {
-                                    const u = (item.userId || {}) as User;
-                                    const dayRecord = item.attendance?.find(a => a.date === attendanceDate);
-                                    const isPresentToday = dayRecord?.isPresent;
+                <Sheet
+                    visible={sessionModalVisible}
+                    onClose={() => setSessionModalVisible(false)}
+                    title={editData._id ? 'Edit bootcamp' : 'New bootcamp'}
+                    subtitle="Design your training session"
+                    height="88%"
+                    footer={<Button block variant="primary" title={editData._id ? 'Update bootcamp' : 'Create bootcamp'} loading={saving} onPress={handleSave} />}
+                >
+                    <View style={{ gap: 16 }}>
+                        <Label>Branding (optional)</Label>
+                        <BrandingPicker banner={eventBanner} logo={eventLogo} onBanner={setEventBanner} onLogo={setEventLogo} />
 
-                                    const activeSession = sessions.find(s => s.eventId === currentEventForAttendees);
-                                    const isPrimaryAdminForThis = activeSession?.admin_email?.toLowerCase() === user?.email?.toLowerCase();
+                        <FormField label="Title" placeholder="e.g. MERN masterclass" value={editData.eventName} onChangeText={(t) => setField({ eventName: t })} />
+                        <FormField label="Description" placeholder="Describe the curriculum" multiline value={editData.description} onChangeText={(t) => setField({ description: t })} />
 
-                                    return (
-                                        <View className="p-6 border-b border-line bg-card">
-                                            <View className="flex-row justify-between items-start mb-4">
-                                                <View className="flex-1">
-                                                    <View className="flex-row items-center gap-2 mb-2">
-                                                        <Text className="text-ink font-display text-lg uppercase">{u.name}</Text>
-                                                        <View className={`px-3 py-1 rounded-full border ${isPresentToday ? 'bg-recruiter/15 border-recruiter/25' : 'bg-paper-2 border-line'}`}>
-                                                            <Text className={`text-label font-display uppercase ${isPresentToday ? 'text-recruiter' : 'text-ink-3'}`}>
-                                                                {isPresentToday ? 'Present' : 'Absent'}
-                                                            </Text>
-                                                        </View>
-                                                    </View>
-                                                    <Text className="text-ink-3 text-label font-semibold uppercase">{u.email}</Text>
-                                                </View>
-                                                <Text className="text-ink-4 font-display text-xs">#{index + 1}</Text>
-                                            </View>
-                                            <View className="flex-row items-center justify-between border-t border-line pt-4">
-                                                <View className="flex-row flex-wrap gap-2 flex-1 mr-4">
-                                                    {u.college && <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full"><Text className="text-ink-2 text-label font-semibold">{u.college}</Text></View>}
-                                                    {u.department && <View className="bg-recruiter/10 border border-recruiter/15 px-2.5 py-1 rounded-full"><Text className="text-recruiter text-label font-semibold">{u.department}</Text></View>}
-                                                </View>
-                                                <View className="flex-row items-center space-x-2">
-                                                    {item.status === 'pending' && isPrimaryAdminForThis && (
-                                                        <TouchableOpacity
-                                                            onPress={() => approvePayment(item._id)}
-                                                            className="px-4 py-3 bg-success rounded-card shadow-hair"
-                                                        >
-                                                            <Text className="text-label font-display uppercase text-white">Approve</Text>
-                                                        </TouchableOpacity>
-                                                    )}
-                                                    {isPresentToday && (
-                                                        <View className="bg-recruiter px-gutter py-3 rounded-card shadow-hair">
-                                                            <Text className="text-label font-display uppercase text-white">Present</Text>
-                                                        </View>
-                                                    )}
-                                                </View>
-                                            </View>
-                                        </View>
-                                    );
+                        <ContactsEditor contacts={editData.contactDetails || []} onChange={(c) => setField({ contactDetails: c })} />
+
+                        <View className="flex-row" style={{ gap: 12 }}>
+                            <PickerField label="Starts" value={editData.startDate} placeholder="Select date" icon="calendar-outline" onPress={() => setShowStartDatePicker(true)} style={{ flex: 1 }} />
+                            <PickerField label="Ends" value={editData.endDate} placeholder="Select date" icon="calendar-outline" onPress={() => setShowEndDatePicker(true)} style={{ flex: 1 }} />
+                        </View>
+                        <View className="flex-row" style={{ gap: 12 }}>
+                            <PickerField label="Start time" value={editData.startTime} placeholder="Select time" icon="time-outline" onPress={() => setShowStartTimePicker(true)} style={{ flex: 1 }} />
+                            <PickerField label="End time" value={editData.endTime} placeholder="Select time" icon="time-outline" onPress={() => setShowEndTimePicker(true)} style={{ flex: 1 }} />
+                        </View>
+
+                        {showStartDatePicker && (
+                            <DateTimePicker
+                                value={editData.startDate ? new Date(editData.startDate) : new Date()}
+                                mode="date"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={(event, date) => {
+                                    setShowStartDatePicker(false);
+                                    if (date) setEditData({ ...editData, startDate: date.toISOString().split('T')[0] });
                                 }}
-                                contentContainerStyle={{ paddingBottom: 50 }}
+                            />
+                        )}
+                        {showEndDatePicker && (
+                            <DateTimePicker
+                                value={editData.endDate ? new Date(editData.endDate) : new Date()}
+                                mode="date"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={(event, date) => {
+                                    setShowEndDatePicker(false);
+                                    if (date) setEditData({ ...editData, endDate: date.toISOString().split('T')[0] });
+                                }}
+                            />
+                        )}
+                        {showStartTimePicker && (
+                            <DateTimePicker
+                                value={new Date()}
+                                mode="time"
+                                is24Hour={false}
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={(event, date) => {
+                                    setShowStartTimePicker(false);
+                                    if (date) setEditData({ ...editData, startTime: formatTime(date) });
+                                }}
+                            />
+                        )}
+                        {showEndTimePicker && (
+                            <DateTimePicker
+                                value={new Date()}
+                                mode="time"
+                                is24Hour={false}
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={(event, date) => {
+                                    setShowEndTimePicker(false);
+                                    if (date) setEditData({ ...editData, endTime: formatTime(date) });
+                                }}
+                            />
+                        )}
+
+                        <PickerField label="College" value={editData.college} placeholder="Select college" icon="business-outline" onPress={() => setCollegeModalVisible(true)} />
+                        <FormField label="Venue" placeholder="e.g. Auditorium" value={editData.venue} onChangeText={(t) => setField({ venue: t })} />
+                        <View className="flex-row" style={{ gap: 12 }}>
+                            <FormField label="Student limit" placeholder="100" keyboardType="numeric" value={editData.userLimit?.toString()} onChangeText={(t) => setField({ userLimit: parseInt(t) || 0 })} containerStyle={{ flex: 1 }} />
+                            <FormField label="Fee (INR)" placeholder="0 (free)" keyboardType="numeric" value={editData.fee?.toString()} onChangeText={(t) => setField({ fee: parseInt(t) || 0 })} containerStyle={{ flex: 1 }} />
+                        </View>
+
+                        {editData._id ? (
+                            <CollaboratorsEditor
+                                value={adminEmailInput}
+                                onChangeText={setAdminEmailInput}
+                                onAdd={handleAddAdmin}
+                                adding={addingAdmin}
+                                searching={isSearchingAdmins}
+                                suggestions={adminSuggestions}
+                                onPick={(username) => { setAdminEmailInput(username); setAdminSuggestions([]); }}
+                                admins={(editData.secondaryAdmins || []).map(a => ({ id: typeof a === 'string' ? a : a._id, label: typeof a === 'string' ? a : a.username }))}
+                                canRemove={editData.admin_email === user?.email}
+                                onRemove={handleRemoveAdmin}
+                            />
+                        ) : null}
+
+                        <View>
+                            <ToggleRow
+                                on={editData.isCommunityActive !== false}
+                                icon="people-outline"
+                                title="Community chat"
+                                hint={editData.isCommunityActive !== false ? 'Group chat is on for all participants' : 'Group chat is off'}
+                                onToggle={() => setField({ isCommunityActive: !editData.isCommunityActive })}
+                            />
+                            <ToggleRow
+                                on={!!editData.isCollegeSpecific}
+                                icon={editData.isCollegeSpecific ? 'shield-checkmark-outline' : 'globe-outline'}
+                                title="College only"
+                                hint={editData.isCollegeSpecific ? 'Only students of your college can see and join' : 'Anyone on Fync can discover and enrol'}
+                                onToggle={() => setField({ isCollegeSpecific: !editData.isCollegeSpecific })}
                             />
                         </View>
+
+                        {isOwner ? (
+                            <Button block variant="danger" icon="trash-outline" title="Delete bootcamp" onPress={handleDeleteBootcamp} />
+                        ) : null}
                     </View>
-                </Modal>
+                </Sheet>
 
-                {/* Creation Modal and Scanner Modal (UI similar to Speaker) */}
-                <Modal visible={scannerVisible} transparent statusBarTranslucent animationType="fade" onRequestClose={() => setScannerVisible(false)}>
-                    <View style={{ flex: 1, backgroundColor: 'black' }}>
-                        <CameraView
-                            style={{ flex: 1 }}
-                            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-                            barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-                        />
-                        <View className="absolute inset-0 items-center justify-between py-20 px-gutter">
-                            <View className="items-center">
-                                <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
-                                  <Text className="text-white font-display uppercase text-h1">QR Ticket Scanner</Text>
-                                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                </View>
-                                <Text className="text-white/60 text-label font-semibold uppercase">Bootcamp Entry & Attendance</Text>
-                            </View>
+                <TicketsSheet
+                    visible={ticketsModalVisible}
+                    onClose={() => setTicketsModalVisible(false)}
+                    subtitle={`${userRegistrations.length} active`}
+                    data={userRegistrations}
+                    renderItem={renderTicket}
+                    emptyText="Bootcamps you join show up here."
+                />
 
-                            <View className="w-72 h-72 border-2 border-white/30 rounded-sheet items-center justify-center">
-                                {/* Scanner Frame */}
-                                <View className="w-64 h-64 border-2 border-recruiter rounded-card shadow-hair" />
-                            </View>
+                <PassSheet
+                    visible={qrModalVisible}
+                    onClose={() => setQrModalVisible(false)}
+                    title={(selectedReg?.eventId as any)?.eventName}
+                    qrCode={selectedReg?.qrCode}
+                    caption={user?.name}
+                />
 
-                            <TouchableOpacity
-                                onPress={() => setScannerVisible(false)}
-                                className="bg-card/10 px-gutter py-5 rounded-card border border-white/20 shadow-hair"
-                            >
-                                <Text className="text-white font-display uppercase text-xs">Cancel Scan</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </Modal>
-
-                <Modal visible={sessionModalVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setSessionModalVisible(false)}>
-                    <KeyboardAvoidingView className="flex-1 bg-black/50 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                        <View className="bg-paper h-[80%] rounded-t-sheet overflow-hidden">
-                            <View className="p-card-pad flex-row justify-between items-center">
-                                <View>
-                                    <Text className="text-ink font-display uppercase text-h1">Configure Bootcamp Hub</Text>
-                                    <Text className="text-ink/50 font-semibold text-label uppercase mt-1">Design your training session</Text>
-                                </View>
-                                <TouchableOpacity onPress={() => setSessionModalVisible(false)} className="w-12 h-12 bg-card rounded-card items-center justify-center">
-                                    <Ionicons name="close" size={24} color={C.recruiter} />
-                                </TouchableOpacity>
-                            </View>
-                            <ScrollView className="p-card-pad" keyboardShouldPersistTaps="handled">
-                                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                                  <Text className="text-ink-3 font-semibold text-label uppercase">Event Branding (Optional)</Text>
-                                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                </View>
-                                <View className="flex-row gap-4 mb-8">
-                                    <TouchableOpacity onPress={() => pickImage(setEventBanner)} className="flex-1 h-32 bg-paper-2 items-center justify-center border border-dashed border-line overflow-hidden rounded-md">
-                                        {eventBanner ? <Image source={{ uri: eventBanner }} className="w-full h-full" /> : <Text className="text-label font-display text-ink-3 uppercase">Banner</Text>}
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => pickImage(setEventLogo)} className="w-32 h-32 bg-paper-2 rounded-card items-center justify-center border border-dashed border-line overflow-hidden">
-                                        {eventLogo ? <Image source={{ uri: eventLogo }} className="w-full h-full" /> : <Text className="text-label font-display text-ink-3 uppercase">Logo</Text>}
-                                    </TouchableOpacity>
-                                </View>
-                                <Text className="text-ink-3 font-semibold text-label uppercase mb-4">Event Details</Text>
-
-                                <TextInput
-                                    placeholder="Bootcamp Title (e.g., MERN Masterclass)"
-                                    placeholderTextColor={C.ink3}
-                                    value={editData.eventName}
-                                    onChangeText={(t) => setEditData({ ...editData, eventName: t })}
-                                    className="bg-paper-2 p-6 rounded-card mb-4 font-semibold text-ink border border-line"
-                                />
-
-                                <TextInput
-                                    placeholder="Describe the curriculum..."
-                                    placeholderTextColor={C.ink3}
-                                    multiline
-                                    value={editData.description}
-                                    onChangeText={(t) => setEditData({ ...editData, description: t })}
-                                    className="bg-paper-2 p-6 rounded-card mb-4 font-medium text-ink-2 border border-line h-32"
-                                />
-
-                                <View className="mb-8">
-                                    <View className="flex-row justify-between items-center mb-4 px-1">
-                                        <Text className="text-ink-3 font-semibold text-label uppercase">Connect Mentors (Optional)</Text>
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                                const contacts = [...(editData.contactDetails || []), { name: '', mobile: '', email: '' }];
-                                                setEditData({ ...editData, contactDetails: contacts });
-                                            }}
-                                            className="bg-recruiter/10 border border-recruiter/15 px-2.5 py-1 rounded-full"
-                                        >
-                                            <Text className="text-recruiter font-display text-label uppercase">+ Add More</Text>
-                                        </TouchableOpacity>
-                                    </View>
-
-                                    {(editData.contactDetails || []).map((contact, idx) => (
-                                        <View key={idx} className="bg-card p-6 rounded-card mb-4 border border-recruiter/10 relative">
-                                            <TouchableOpacity
-                                                onPress={() => {
-                                                    const contacts = (editData.contactDetails || []).filter((_, i) => i !== idx);
-                                                    setEditData({ ...editData, contactDetails: contacts });
-                                                }}
-                                                hitSlop={12}
-                                                className="absolute top-4 right-4 z-10"
-                                            >
-                                                <Ionicons name="trash-outline" size={16} color={C.danger} />
-                                            </TouchableOpacity>
-
-                                            <TextInput
-                                                placeholder="Mentor Name"
-                                                placeholderTextColor={C.ink3}
-                                                value={contact.name}
-                                                onChangeText={(t) => {
-                                                    const contacts = [...(editData.contactDetails || [])];
-                                                    contacts[idx] = { ...contacts[idx], name: t };
-                                                    setEditData({ ...editData, contactDetails: contacts });
-                                                }}
-                                                className="bg-paper-2 p-4 rounded-xl mb-3 font-semibold text-ink text-label border border-line"
-                                            />
-                                            <View className="flex-row gap-3">
-                                                <View className="flex-1">
-                                                    <TextInput
-                                                        placeholder="Mobile"
-                                                        placeholderTextColor={C.ink3}
-                                                        value={contact.mobile}
-                                                        onChangeText={(t) => {
-                                                            const contacts = [...(editData.contactDetails || [])];
-                                                            contacts[idx] = { ...contacts[idx], mobile: t };
-                                                            setEditData({ ...editData, contactDetails: contacts });
-                                                        }}
-                                                        keyboardType="phone-pad"
-                                                        className="bg-paper-2 p-4 rounded-xl font-semibold text-ink text-label border border-line"
-                                                    />
-                                                </View>
-                                                <View className="flex-1">
-                                                    <TextInput
-                                                        placeholder="Email"
-                                                        placeholderTextColor={C.ink3}
-                                                        value={contact.email}
-                                                        onChangeText={(t) => {
-                                                            const contacts = [...(editData.contactDetails || [])];
-                                                            contacts[idx] = { ...contacts[idx], email: t };
-                                                            setEditData({ ...editData, contactDetails: contacts });
-                                                        }}
-                                                        autoCapitalize="none"
-                                                        keyboardType="email-address"
-                                                        className="bg-paper-2 p-4 rounded-xl font-semibold text-ink text-label border border-line"
-                                                    />
-                                                </View>
-                                            </View>
-                                        </View>
-                                    ))}
-                                </View>
-
-                                <View className="flex-row gap-4 mb-4">
-                                    <View className="flex-1">
-                                        <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
-                                          <Text className="text-ink-3 font-semibold text-label uppercase">Starts</Text>
-                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                        </View>
-                                        <TouchableOpacity
-                                            onPress={() => setShowStartDatePicker(true)}
-                                            className="bg-paper-2 p-5 rounded-card border border-line"
-                                        >
-                                            <Text className="text-ink font-semibold">{editData.startDate || 'Select Date'}</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                    <View className="flex-1">
-                                        <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
-                                          <Text className="text-ink-3 font-semibold text-label uppercase">Ends</Text>
-                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                        </View>
-                                        <TouchableOpacity
-                                            onPress={() => setShowEndDatePicker(true)}
-                                            className="bg-paper-2 p-5 rounded-card border border-line"
-                                        >
-                                            <Text className="text-ink font-semibold">{editData.endDate || 'Select Date'}</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-
-                                <View className="flex-row gap-4 mb-4">
-                                    <View className="flex-1">
-                                        <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
-                                          <Text className="text-ink-3 font-semibold text-label uppercase">Time Start</Text>
-                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                        </View>
-                                        <TouchableOpacity
-                                            onPress={() => setShowStartTimePicker(true)}
-                                            className="bg-paper-2 p-5 rounded-card border border-line"
-                                        >
-                                            <Text className="text-ink font-semibold">{editData.startTime || 'Select Time'}</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                    <View className="flex-1">
-                                        <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
-                                          <Text className="text-ink-3 font-semibold text-label uppercase">Time End</Text>
-                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                        </View>
-                                        <TouchableOpacity
-                                            onPress={() => setShowEndTimePicker(true)}
-                                            className="bg-paper-2 p-5 rounded-card border border-line"
-                                        >
-                                            <Text className="text-ink font-semibold">{editData.endTime || 'Select Time'}</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-
-                                {showStartDatePicker && (
-                                    <DateTimePicker
-                                        value={editData.startDate ? new Date(editData.startDate) : new Date()}
-                                        mode="date"
-                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                        onChange={(event, date) => {
-                                            setShowStartDatePicker(false);
-                                            if (date) setEditData({ ...editData, startDate: date.toISOString().split('T')[0] });
-                                        }}
-                                    />
-                                )}
-
-                                {showEndDatePicker && (
-                                    <DateTimePicker
-                                        value={editData.endDate ? new Date(editData.endDate) : new Date()}
-                                        mode="date"
-                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                        onChange={(event, date) => {
-                                            setShowEndDatePicker(false);
-                                            if (date) setEditData({ ...editData, endDate: date.toISOString().split('T')[0] });
-                                        }}
-                                    />
-                                )}
-
-                                {showStartTimePicker && (
-                                    <DateTimePicker
-                                        value={new Date()}
-                                        mode="time"
-                                        is24Hour={false}
-                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                        onChange={(event, date) => {
-                                            setShowStartTimePicker(false);
-                                            if (date) setEditData({ ...editData, startTime: formatTime(date) });
-                                        }}
-                                    />
-                                )}
-
-                                {showEndTimePicker && (
-                                    <DateTimePicker
-                                        value={new Date()}
-                                        mode="time"
-                                        is24Hour={false}
-                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                        onChange={(event, date) => {
-                                            setShowEndTimePicker(false);
-                                            if (date) setEditData({ ...editData, endTime: formatTime(date) });
-                                        }}
-                                    />
-                                )}
-
-                                <TouchableOpacity
-                                    onPress={() => setCollegeModalVisible(true)}
-                                    className="bg-paper-2 p-6 rounded-card mb-4 flex-row justify-between items-center border border-line"
-                                >
-                                    <Text className={editData.college ? 'text-ink font-semibold' : 'text-ink-3 font-semibold'}>
-                                        {editData.college || 'College'}
-                                    </Text>
-                                    <Ionicons name="business" size={18} color={C.ink3} />
-                                </TouchableOpacity>
-
-                                <TextInput
-                                    placeholder="Venue / Campus Location (e.g. Auditorium)"
-                                    placeholderTextColor={C.ink3}
-                                    value={editData.venue}
-                                    onChangeText={(t) => setEditData({ ...editData, venue: t })}
-                                    className="bg-paper-2 p-6 rounded-card mb-4 font-semibold text-ink border border-line"
-                                />
-                                <View className="flex-row gap-4 mb-8">
-                                    <View className="flex-1">
-                                        <Text className="text-ink-3 font-semibold text-label uppercase mb-2">Student Limit</Text>
-                                        <TextInput
-                                            placeholder="100"
-                                            placeholderTextColor={C.ink3}
-                                            keyboardType="numeric"
-                                            value={editData.userLimit?.toString()}
-                                            onChangeText={(t) => setEditData({ ...editData, userLimit: parseInt(t) || 0 })}
-                                            className="bg-paper-2 p-4 rounded-xl font-semibold text-ink border border-line"
-                                        />
-                                    </View>
-                                    <View className="flex-1">
-                                        <Text className="text-ink-3 font-semibold text-label uppercase mb-2">Fee (INR)</Text>
-                                        <TextInput
-                                            placeholder="0 (Free)"
-                                            placeholderTextColor={C.ink3}
-                                            keyboardType="numeric"
-                                            value={editData.fee?.toString()}
-                                            onChangeText={(t) => setEditData({ ...editData, fee: parseInt(t) || 0 })}
-                                            className="bg-paper-2 p-4 rounded-xl font-semibold text-ink border border-line"
-                                        />
-                                    </View>
-                                </View>
-
-                                {editData._id && (
-                                    <View className="mb-8">
-                                        <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                                          <Text className="text-ink-3 font-semibold text-label uppercase">Collaborators (Secondary Admins)</Text>
-                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                        </View>
-                                        <View className="flex-row items-center gap-2 mb-4">
-                                            <View className="flex-1 bg-paper px-6 py-4 flex-row items-center border-2 border-ink rounded-md">
-                                                <Ionicons name="at" size={16} color={C.ink3} />
-                                                <TextInput
-                                                    placeholder="Admin Username"
-                                                    placeholderTextColor={C.ink3}
-                                                    value={adminEmailInput}
-                                                    onChangeText={setAdminEmailInput}
-                                                    className="flex-1 ml-3 font-semibold text-ink text-xs"
-                                                />
-                                            </View>
-                                            <TouchableOpacity
-                                                onPress={handleAddAdmin}
-                                                disabled={addingAdmin}
-                                                className="w-14 h-14 bg-recruiter rounded-card items-center justify-center shadow-hair"
-                                            >
-                                                {addingAdmin ? <ActivityIndicator size="small" color="white" /> : <Ionicons name="person-add" size={24} color="white" />}
-                                            </TouchableOpacity>
-                                        </View>
-
-                                        {/* Search Suggestions */}
-                                        {adminSuggestions.length > 0 && (
-                                            <View className="bg-card border border-line rounded-card mb-6 shadow-hair overflow-hidden">
-                                                {adminSuggestions.map((suggestion) => (
-                                                    <TouchableOpacity
-                                                        key={suggestion._id}
-                                                        onPress={() => {
-                                                            setAdminEmailInput(suggestion.username);
-                                                            setAdminSuggestions([]);
-                                                        }}
-                                                        className="flex-row items-center p-4 border-b border-line active:bg-paper-2"
-                                                    >
-                                                        <Image
-                                                            source={{ uri: suggestion.avatar }}
-                                                            className="w-10 h-10 rounded-xl bg-paper-2"
-                                                        />
-                                                        <View className="ml-4 flex-1">
-                                                            <Text className="text-ink font-semibold text-xs">{suggestion.name}</Text>
-                                                            <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">@{suggestion.username}</Text>
-                                                        </View>
-                                                        <Ionicons name="add-circle" size={20} color={C.recruiter} />
-                                                    </TouchableOpacity>
-                                                ))}
-                                            </View>
-                                        )}
-
-                                        <View className="flex-row flex-wrap gap-2">
-                                            {editData.secondaryAdmins?.map(admin => {
-                                                const adminId = typeof admin === 'string' ? admin : admin._id;
-                                                const display = typeof admin === 'string' ? admin : admin.username;
-                                                return (
-                                                    <View key={adminId} className="bg-paper-2 flex-row items-center py-2 px-4 rounded-xl border border-line">
-                                                        <Text className="text-ink-2 font-semibold text-label mr-2">{display}</Text>
-                                                        {editData.admin_email === user?.email && (
-                                                            <TouchableOpacity onPress={() => handleRemoveAdmin(adminId)}>
-                                                                <Ionicons name="close-circle" size={16} color={C.danger} />
-                                                            </TouchableOpacity>
-                                                        )}
-                                                    </View>
-                                                );
-                                            })}
-                                        </View>
-                                    </View>
-                                )}
-
-                                <TouchableOpacity
-                                    onPress={() => setEditData({ ...editData, isCommunityActive: !editData.isCommunityActive })}
-                                    className={`flex-row items-center gap-4 p-6 rounded-card mb-8 border ${editData.isCommunityActive !== false ? 'bg-recruiter/10 border-recruiter/15' : 'bg-paper-2 border-line'}`}
-                                >
-                                    <View className={`w-12 h-12 rounded-card items-center justify-center ${editData.isCommunityActive !== false ? 'bg-recruiter' : 'bg-paper-2'}`}>
-                                        <Ionicons name="people" size={24} color={editData.isCommunityActive !== false ? 'white' : C.ink3} />
-                                    </View>
-                                    <View className="flex-1">
-                                        <Text className={`font-display uppercase text-sm ${editData.isCommunityActive !== false ? 'text-recruiter' : 'text-ink-2'}`}>
-                                            {editData.isCommunityActive !== false ? "Community Active" : "Community Disabled"}
-                                        </Text>
-                                        <Text className="text-label text-ink-3 font-semibold uppercase mt-1">
-                                            {editData.isCommunityActive !== false ? "Enable group chat for all participants" : "Disable the interactive event group chat"}
-                                        </Text>
-                                    </View>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    onPress={() => setEditData({ ...editData, isCollegeSpecific: !editData.isCollegeSpecific })}
-                                    className={`flex-row items-center gap-4 p-6 rounded-card mb-8 border ${editData.isCollegeSpecific ? 'bg-recruiter/10 border-recruiter/15' : 'bg-paper-2 border-line'}`}
-                                >
-                                    <View className={`w-12 h-12 rounded-card items-center justify-center ${editData.isCollegeSpecific ? 'bg-recruiter' : 'bg-paper-2'}`}>
-                                        <Ionicons name={editData.isCollegeSpecific ? "shield-checkmark" : "globe-outline"} size={24} color={editData.isCollegeSpecific ? 'white' : C.ink3} />
-                                    </View>
-                                    <View className="flex-1">
-                                        <Text className={`font-display uppercase text-sm ${editData.isCollegeSpecific ? 'text-recruiter' : 'text-ink-2'}`}>
-                                            {editData.isCollegeSpecific ? "College Specific (Locked)" : "Open to All Colleges"}
-                                        </Text>
-                                        <Text className="text-label text-ink-3 font-semibold uppercase mt-1">
-                                            {editData.isCollegeSpecific ? "Only students of your college can see & join" : "Anyone on Fync can discover and enrol"}
-                                        </Text>
-                                    </View>
-                                </TouchableOpacity>
-
-                                <Pressable
-                                    onPress={handleSave}
-                                    disabled={saving}
-                                    className="bg-ink py-4 items-center justify-center mb-20 border-2 border-ink rounded-md"
-                                >
-                                    {saving ? <ActivityIndicator color={C.paper} /> : (
-                                        <Text className="text-paper text-lg font-display uppercase">
-                                            {editData._id ? "Update Bootcamp" : "Create Bootcamp"}
-                                        </Text>
-                                    )}
-                                </Pressable>
-
-                                {editData._id && editData.admin_email === user?.email && (
-                                    <TouchableOpacity
-                                        onPress={handleDeleteBootcamp}
-                                        className="bg-danger/10 p-6 rounded-card items-center justify-center mb-20 border border-danger/15 flex-row gap-2"
-                                    >
-                                        <Ionicons name="trash" size={18} color={C.danger} />
-                                        <Text className="text-danger font-display text-xs uppercase">Delete Bootcamp Hub</Text>
-                                    </TouchableOpacity>
-                                )}
-                            </ScrollView>
-                        </View>
-                    </KeyboardAvoidingView>
-                </Modal>
-
-                {/* My Tickets Dashboard Modal */}
-                <Modal visible={ticketsModalVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setTicketsModalVisible(false)}>
-                    <View className="flex-1 bg-black/50 justify-end">
-                        <View className="bg-paper h-[70%] rounded-t-sheet overflow-hidden">
-                            <View className="p-1 pt-12 flex-1">
-                                <View className="flex-row justify-between items-center mb-8 px-5">
-                                    <View>
-                                        <Text className="text-ink font-display uppercase text-h1">My Passes</Text>
-                                        <Text className="text-ink-3 text-xs font-semibold uppercase mt-1">{userRegistrations.length} Active Tickets</Text>
-                                    </View>
-                                    <TouchableOpacity onPress={() => setTicketsModalVisible(false)} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                        <Ionicons name="close" size={24} color={C.ink} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                <FlatList keyboardShouldPersistTaps="handled"
-                                    data={userRegistrations}
-                                    keyExtractor={(item) => item._id}
-                                    renderItem={({ item }) => (
-                                        <JoinedBootcampCard
-                                            item={item}
-                                            onShowQR={(reg) => { setSelectedReg(reg); setQrModalVisible(true); }}
-                                            onRefresh={() => fetchSessions()}
-                                        />
-                                    )}
-                                    ListEmptyComponent={
-                                        <View className="items-center mt-20">
-                                            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                                <Ionicons name="ticket-outline" size={40} color={C.ink4} />
-                                            </View>
-                                            <Text className="font-sans text-sm text-ink-3 text-center">No active bootcamps found</Text>
-                                        </View>
-                                    }
-                                    contentContainerStyle={{ paddingBottom: 50 }}
-                                />
-                            </View>
-                        </View>
-                    </View>
-                </Modal>
-
-                {/* Entry Pass Modal */}
-                <Modal visible={qrModalVisible} transparent statusBarTranslucent onRequestClose={() => setQrModalVisible(false)}>
-                    <View className="flex-1 bg-black/80 justify-center items-center px-gutter">
-                        <View className="bg-card w-full rounded-sheet overflow-hidden">
-                            <View className="p-card-pad items-center flex-row justify-center" style={{ backgroundColor: C.recruiter }}>
-                                <Text className="text-white text-xl font-display text-center">{(selectedReg?.eventId as any)?.eventName}</Text>
-                            </View>
-                            <View className="p-card-pad items-center bg-paper-2/50">
-                                <View className="flex-row items-center gap-4">
-                                    <View className="p-3 bg-card border-2 border-recruiter/15 rounded-card shadow-hair">
-                                        {selectedReg?.qrCode && <Image source={{ uri: selectedReg.qrCode }} style={{ width: 140, height: 140 }} resizeMode="contain" />}
-                                    </View>
-                                </View>
-                                <Text className='font-semibold mt-2 text-ink'>{user?.name}</Text>
-                                <TouchableOpacity onPress={() => setQrModalVisible(false)} className="mt-8 bg-ink w-full py-5 rounded-xl items-center shadow-hair">
-                                    <Text className="text-paper font-display text-xs uppercase">CLOSE TICKET</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
-                </Modal>
-
-                <Modal visible={collegeModalVisible} transparent statusBarTranslucent animationType="fade" onRequestClose={() => setCollegeModalVisible(false)}>
-                    <View className="flex-1 bg-black/50 items-center justify-center px-gutter">
-                        <View className="bg-card w-full max-h-[70%] rounded-sheet overflow-hidden">
-                            <View className="p-6 bg-ink">
-                                <View className="flex-row justify-between items-center mb-4">
-                                    <Text className="text-paper text-lg font-display uppercase">Select Bootcamp Base</Text>
-                                    <TouchableOpacity onPress={() => setCollegeModalVisible(false)} className="w-10 h-10 bg-card/10 rounded-xl items-center justify-center">
-                                        <Ionicons name="close" size={20} color={C.paper} />
-                                    </TouchableOpacity>
-                                </View>
-                                <View className="flex-row items-center bg-card/10 rounded-card px-4 border border-white/10">
-                                    <Ionicons name="search" size={16} color={C.ink3} />
-                                    <TextInput
-                                        placeholder="Search colleges..."
-                                        placeholderTextColor={C.ink3}
-                                        value={collegeSearch}
-                                        onChangeText={setCollegeSearch}
-                                        className="flex-1 h-12 text-paper font-semibold ml-3"
-                                    />
-                                </View>
-                            </View>
-                            <FlatList keyboardShouldPersistTaps="handled"
-                                data={filteredColleges}
-                                keyExtractor={(it) => it}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity
-                                        onPress={() => {
-                                            setEditData({ ...editData, college: item });
-                                            setCollegeModalVisible(false);
-                                            setCollegeSearch('');
-                                        }}
-                                        className="p-5 border-b border-line flex-row items-center"
-                                    >
-                                        <Ionicons name="business-outline" size={16} color={C.recruiter} />
-                                        <Text className="text-ink font-semibold ml-3 text-xs">{item}</Text>
-                                    </TouchableOpacity>
-                                )}
-                                ListEmptyComponent={<View className="p-card-pad items-center"><Text className="text-ink-3 font-semibold">No institution found</Text></View>}
-                            />
-                            <TouchableOpacity onPress={() => setCollegeModalVisible(false)} className="p-6 items-center">
-                                <Text className="text-ink-3 font-display text-label uppercase">Cancel</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </Modal>
-
+                <CollegePickerSheet visible={collegeModalVisible} onClose={() => setCollegeModalVisible(false)} onSelect={pickCollege} />
             </View>
         </View>
     );

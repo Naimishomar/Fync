@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import Avatar from './Avatar';
 import { C } from '../constants/colors';
 import { tapHaptic } from '../utils/haptics';
+import { Button } from './ui/kit';
 
 interface Suggestion {
   _id: string;
@@ -77,59 +77,53 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
   if (!shown.length) return null;
 
   return (
-    <View className="bg-card border-y-2 border-ink py-4 mb-3">
-      <View className="flex-row items-center px-5 mb-3">
-        <Text className="font-display text-ink uppercase" style={{ fontSize: 13, letterSpacing: 0.4 }}>
-          People you may know
-        </Text>
-        <View className="flex-1" />
-        <View className="h-[2px] flex-1 bg-ink ml-3" style={{ maxWidth: 60 }} />
-      </View>
+    <View className="py-4 mb-3 border-y border-line">
+      <Text className="font-semibold text-ink text-base px-gutter mb-3" accessibilityRole="header">
+        People you may know
+      </Text>
 
-      <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
         {shown.map((p) => (
           <View
             key={p._id}
-            className="bg-paper border-2 border-ink rounded-card p-3 mr-3 items-center"
+            className="bg-card border border-line rounded-2xl p-3 items-center"
             style={{ width: 148 }}
           >
-            <TouchableOpacity
+            <Pressable
               onPress={() => navigation.navigate('PublicProfile', { user: p })}
+              className="items-center self-stretch active:opacity-70"
               accessibilityRole="button"
               accessibilityLabel={`View ${p.name}'s profile`}
             >
               <Avatar user={p as any} size={56} />
-            </TouchableOpacity>
+              <Text className="font-semibold text-ink text-sm mt-2 text-center" numberOfLines={1}>
+                {p.name}
+              </Text>
+              <Text className="font-sans text-ink-3 text-xs text-center" numberOfLines={1}>
+                @{p.username}
+              </Text>
 
-            <Text className="font-display text-ink mt-2 text-center" style={{ fontSize: 13 }} numberOfLines={1}>
-              {p.name}
-            </Text>
-            <Text className="font-sans text-ink-3 text-center" style={{ fontSize: 11 }} numberOfLines={1}>
-              @{p.username}
-            </Text>
+              {/* Why this person is being suggested. A suggestion with no reason
+                  attached reads as random, which is what makes people ignore it. */}
+              <Text className="font-sans text-ink-3 text-xs text-center mt-0.5" numberOfLines={1}>
+                {p.mutuals > 0
+                  ? `${p.mutuals} mutual${p.mutuals > 1 ? 's' : ''}`
+                  : p.sameCollege
+                    ? 'Same college'
+                    : ' '}
+              </Text>
+            </Pressable>
 
-            {/* Why this person is being suggested. A suggestion with no reason
-                attached reads as random, which is what makes people ignore it. */}
-            <Text className="font-sans text-ink-3 text-center mt-1" style={{ fontSize: 10 }} numberOfLines={1}>
-              {p.mutuals > 0
-                ? `${p.mutuals} mutual${p.mutuals > 1 ? 's' : ''}`
-                : p.sameCollege
-                  ? 'Same college'
-                  : ' '}
-            </Text>
-
-            <TouchableOpacity
+            <Button
+              small
+              block
+              variant={followed[p._id] ? 'secondary' : 'primary'}
+              title={followed[p._id] ? 'Following' : 'Follow'}
               onPress={() => follow(p._id)}
               disabled={followed[p._id] || busy === p._id}
-              className={`w-full mt-3 rounded-xl border-2 border-ink items-center justify-center ${followed[p._id] ? 'bg-paper' : 'bg-brand-500'}`}
-              style={{ height: 36 }}
-              accessibilityRole="button"
               accessibilityLabel={followed[p._id] ? `Following ${p.name}` : `Follow ${p.name}`}
-            >
-              <Text className={`font-display ${followed[p._id] ? 'text-ink' : 'text-on-brand'}`} style={{ fontSize: 12 }}>
-                {followed[p._id] ? 'FOLLOWING' : 'FOLLOW'}
-              </Text>
-            </TouchableOpacity>
+              style={{ marginTop: 12 }}
+            />
           </View>
         ))}
       </ScrollView>

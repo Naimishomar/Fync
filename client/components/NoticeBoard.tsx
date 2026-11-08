@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {View, Text, FlatList, Image, TouchableOpacity, Modal, TextInput, ActivityIndicator, Pressable, Linking, ScrollView, RefreshControl, Platform, StyleSheet, Dimensions, Animated, StatusBar, KeyboardAvoidingView} from 'react-native'
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { View, Text, FlatList, Pressable, Linking, ScrollView, RefreshControl, Platform, StyleSheet, Animated, StatusBar, Modal, ActivityIndicator } from 'react-native'
 import { Image as ExpoImage } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
@@ -14,11 +13,10 @@ import { RAZORPAY_KEY_ID } from '../constants/keys';
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import { C } from '../constants/colors';
-import { AppBar, IconBtn, Empty, Button } from './ui/kit';
+import { AppBar, IconBtn, Empty, Button, SegmentedTabs, Tag, Sheet, FormField } from './ui/kit';
 import { isFeatureOn } from '../constants/features';
 import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 
-const { width } = Dimensions.get('window');
 const ADMIN_EMAIL = "dev.fync@fync.com";
 
 // Notice comments are flat (no replies); the rows already match the sheet's shape.
@@ -65,7 +63,7 @@ const NoticeSkeleton = React.memo(() => {
   }, [pulseAnim]);
 
   return (
-    <Animated.View style={{ opacity: pulseAnim }} className="bg-card rounded-sheet mb-6 border border-line p-card-pad mx-gutter">
+    <Animated.View style={{ opacity: pulseAnim }} className="bg-card rounded-2xl mb-3 border border-line p-4 mx-gutter">
       <View className="h-6 bg-paper-2 rounded w-3/4 mb-4" />
       <View className="h-3 bg-paper-2 rounded w-1/4 mb-10" />
       <View className="h-4 bg-paper-2 rounded w-full mb-3" />
@@ -81,6 +79,97 @@ const NoticeSkeleton = React.memo(() => {
         </View>
       </View>
     </Animated.View>
+  );
+});
+
+
+const TABS = ['college', 'global'] as const;
+const TAB_LABELS = { college: 'Campus', global: 'Global' };
+
+const openNoticeLink = (link: string) =>
+  Linking.openURL(/^[a-z][a-z0-9+.-]*:/i.test(link) ? link : `https://${link}`).catch(() => Alert.alert("Error", "Could not open this link."));
+
+/** One notice. Module scope + memo: rows update in place instead of remounting. */
+const NoticeCard = memo(function NoticeCard({ item, userId, official, onLike, onComments, onDelete, onImage }: {
+  item: NoticeType; userId?: string; official: boolean;
+  onLike: (id: string, liked: boolean) => void; onComments: (id: string) => void;
+  onDelete: (id: string) => void; onImage: (uri: string) => void;
+}) {
+  const isOwner = item.user?._id === userId;
+  const avatarUrl = item.user?.avatar || `https://ui-avatars.com/api/?name=${item.user?.username || 'Admin'}`;
+  const liked = !!item.liked_by?.includes(userId || '');
+  const date = item.createdAt && !isNaN(new Date(item.createdAt).getTime())
+    ? format(new Date(item.createdAt), "dd MMM yyyy · hh:mm a") : '';
+
+  return (
+    <View className="bg-card rounded-2xl mb-3 border border-line mx-gutter p-4">
+      <View className="flex-row items-center" style={{ gap: 12 }}>
+        <ExpoImage source={{ uri: avatarUrl?.trim() ? avatarUrl : `https://ui-avatars.com/api/?name=User` }} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2 }} cachePolicy="disk" />
+        <View className="flex-1" style={{ minWidth: 0 }}>
+          <Text className="font-semibold text-sm text-ink" numberOfLines={1}>{item.user?.name || "Official admin"}</Text>
+          {date ? <Text className="text-ink-3 text-xs font-sans">{date}</Text> : null}
+        </View>
+        {official ? <Tag icon="shield-checkmark-outline" label="Official" /> : null}
+      </View>
+
+      <Text className="text-ink font-semibold text-base leading-snug mt-3">{item.title}</Text>
+      <Text className="text-ink-2 text-sm leading-6 mt-1 font-sans">{item.description}</Text>
+
+      {item.link ? (
+        <Pressable
+          onPress={() => openNoticeLink(item.link!)}
+          accessibilityRole="link"
+          className="flex-row items-center bg-paper-2 rounded-full self-start mt-3 px-4 active:opacity-70"
+          style={{ minHeight: 40, gap: 8 }}
+        >
+          <Ionicons name="link-outline" size={16} color={C.ink} />
+          <Text className="text-ink text-sm font-semibold" numberOfLines={1}>Open link</Text>
+        </Pressable>
+      ) : null}
+
+      {item.image && item.image.length > 0 ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ gap: 12 }}>
+          {item.image.map((imgUri, idx) => (
+            <Pressable key={idx} onPress={() => onImage(imgUri)} accessibilityRole="imagebutton" accessibilityLabel={`Open image ${idx + 1}`} className="active:opacity-80">
+              <ExpoImage
+                source={{ uri: imgUri }}
+                style={{ width: 256, height: 160, borderRadius: 16, backgroundColor: C.paper2 }}
+                contentFit="cover"
+                cachePolicy="disk"
+              />
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : null}
+
+      <View className="flex-row items-center mt-3 pt-2 border-t border-line" style={{ marginLeft: -11 }}>
+        <Pressable
+          onPress={() => onLike(item._id, liked)}
+          accessibilityRole="button"
+          accessibilityLabel={liked ? 'Unlike' : 'Like'}
+          accessibilityState={{ selected: liked }}
+          className="flex-row items-center px-3 rounded-full active:opacity-70"
+          style={{ minHeight: 44, gap: 6 }}
+        >
+          <Ionicons name={liked ? "heart" : "heart-outline"} size={20} color={liked ? C.danger : C.ink3} />
+          <Text className="text-ink-2 text-sm font-semibold">{item.likes || 0}</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => onComments(item._id)}
+          accessibilityRole="button"
+          accessibilityLabel={`Comments, ${item.comments?.length || 0}`}
+          className="flex-row items-center px-3 rounded-full active:opacity-70"
+          style={{ minHeight: 44, gap: 6 }}
+        >
+          <Ionicons name="chatbubble-outline" size={19} color={C.ink3} />
+          <Text className="text-ink-2 text-sm font-semibold">{item.comments?.length || 0}</Text>
+        </Pressable>
+        <View className="flex-1" />
+        {isOwner ? (
+          <IconBtn name="trash-outline" size={20} color={C.danger} onPress={() => onDelete(item._id)} accessibilityLabel="Delete notice" style={{ marginRight: -11 }} />
+        ) : null}
+      </View>
+    </View>
   );
 });
 
@@ -360,142 +449,28 @@ const NoticeBoard = () => {
     }
   };
 
-  const renderNotice = useCallback(({ item, index }: { item: NoticeType; index: number }) => {
-    const isOwner = item.user?._id === user?._id;
-    const avatarUrl = item.user?.avatar || `https://ui-avatars.com/api/?name=${item.user?.username || 'Admin'}`;
 
-    return (
-      <View
-        className={`bg-card rounded-card mb-6 overflow-hidden mx-gutter ${index === 0 ? 'border-2 border-ink' : 'border border-line'}`}
-        style={index === 0 ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
-      >
-        <View className="p-6">
-          <View className="flex-row justify-between items-start mb-4">
-            <View className="flex-1 mr-4">
-              <Text className="text-ink font-display text-lg uppercase leading-tight">{item.title}</Text>
-              <Text className="text-ink-3 text-label mt-1 uppercase font-display">
-                {item.createdAt && !isNaN(new Date(item.createdAt).getTime())
-                  ? format(new Date(item.createdAt), "dd MMM, yyyy • hh:mm a")
-                  : ''}
-              </Text>
-            </View>
-            {activeTab === 'global' && (
-              <View className="bg-danger/10 px-3 py-1 rounded-full flex-row items-center border border-danger/15">
-                <MaterialCommunityIcons name="shield-check" size={12} color={C.fam.fun} />
-                <Text className="text-danger text-label font-display ml-1 uppercase">Official</Text>
-              </View>
-            )}
-          </View>
+  // Latest handlers behind stable callbacks, so memoized cards skip re-render.
+  const likeRef = useRef(handleLikeNotice); likeRef.current = handleLikeNotice;
+  const delRef = useRef(deleteNoticeItem); delRef.current = deleteNoticeItem;
+  const commentsRef = useRef(openComments); commentsRef.current = openComments;
+  const onLike = useCallback((id: string, liked: boolean) => likeRef.current(id, liked), []);
+  const onDelete = useCallback((id: string) => delRef.current(id), []);
+  const onComments = useCallback((id: string) => commentsRef.current(id), []);
+  const onImage = useCallback((uri: string) => { setSelectedImage(uri); setPreviewVisible(true); }, []);
 
-          <Text className="text-ink-2 text-sm leading-6 mb-6 font-medium">"{item.description}"</Text>
-
-          {item.link && (
-            <TouchableOpacity
-              onPress={() => Linking.openURL(/^[a-z][a-z0-9+.-]*:/i.test(item.link!) ? item.link! : `https://${item.link}`).catch(() => Alert.alert("Error", "Could not open this link."))}
-              activeOpacity={0.8}
-              className="flex-row items-center bg-paper-2 p-4 rounded-card mb-6 self-start border border-line"
-            >
-              <View className="w-8 h-8 bg-ink rounded-card items-center justify-center mr-3">
-                <Ionicons name="link" size={14} color={C.paper} />
-              </View>
-              <Text className="text-ink text-label font-display uppercase" numberOfLines={1}>
-                Open Attachment
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {item.image && item.image.length > 0 && (
-            <FlatList keyboardShouldPersistTaps="handled"
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={item.image}
-              keyExtractor={(img, idx) => idx.toString()}
-              className="mb-6"
-              initialNumToRender={2}
-              maxToRenderPerBatch={2}
-              windowSize={3}
-              removeClippedSubviews={Platform.OS === 'android'}
-              renderItem={({ item: imgUri }) => (
-                <TouchableOpacity
-                  onPress={() => { setSelectedImage(imgUri); setPreviewVisible(true); }}
-                  activeOpacity={0.8}
-                >
-                  <ExpoImage
-                    source={{ uri: imgUri }}
-                    style={{ width: 256, height: 160, borderRadius: 20, marginRight: 16, backgroundColor: C.paper2, borderWidth: 1, borderColor: C.line }}
-                    contentFit="cover"
-                    cachePolicy="disk"
-                  />
-                </TouchableOpacity>
-              )}
-            />
-          )}
-
-          <View className="h-[1px] bg-paper-2 mb-6" />
-
-          <View className="flex-row justify-between items-center">
-            <View className="flex-row items-center flex-1 mr-3" style={{ minWidth: 0 }}>
-              <ExpoImage source={{ uri: avatarUrl?.trim() ? avatarUrl : `https://ui-avatars.com/api/?name=User` }} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2, borderWidth: 1, borderColor: C.line }} cachePolicy="disk" />
-              <View className="ml-3 flex-1">
-                <Text className="text-label text-ink-3 uppercase font-display">By Protocol</Text>
-                <Text className="font-semibold text-base text-ink mt-0.5" numberOfLines={1}>
-                  {item.user?.name || "Official Admin"}
-                </Text>
-              </View>
-            </View>
-
-            <View className="flex-row items-center gap-3">
-              <TouchableOpacity
-                onPress={() => handleLikeNotice(item._id, !!item.liked_by?.includes(user?._id || ''))}
-                className="flex-row items-center px-4 py-2 bg-paper-2 rounded-card border border-line"
-              >
-                <Ionicons
-                  name={item.liked_by?.includes(user?._id || '') ? "heart" : "heart-outline"}
-                  size={16}
-                  color={item.liked_by?.includes(user?._id || '') ? C.fam.fun : C.ink4}
-                />
-                <Text className="text-ink text-label ml-2 font-display">{item.likes || 0}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => openComments(item._id)} className="flex-row items-center px-4 py-2 bg-paper-2 rounded-card border border-line">
-                <Ionicons name="chatbubble-outline" size={16} color={C.ink4} />
-                <Text className="text-ink text-label ml-2 font-display">{item.comments?.length || 0}</Text>
-              </TouchableOpacity>
-
-              {isOwner && (
-                <TouchableOpacity onPress={() => deleteNoticeItem(item._id)} className="w-10 h-10 bg-danger/10 rounded-card items-center justify-center border border-danger/15">
-                  <Ionicons name="trash-outline" size={16} color={C.fam.fun} />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  }, [user?._id, activeTab, handleLikeNotice, openComments, deleteNoticeItem]);
+  const renderNotice = useCallback(({ item }: { item: NoticeType }) => (
+    <NoticeCard item={item} userId={user?._id} official={activeTab === 'global'} onLike={onLike} onComments={onComments} onDelete={onDelete} onImage={onImage} />
+  ), [user?._id, activeTab, onLike, onComments, onDelete, onImage]);
 
   return (
     <View className="flex-1 bg-paper">
       <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
-        <AppBar title="Fync Board" onBack={() => navigation.goBack()} />
-        <View className="px-gutter">
-          <View className="flex-row bg-card p-1.5 rounded-card mb-8 border border-line shadow-hair">
-            <TouchableOpacity
-              onPress={() => setActiveTab('college')}
-              className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === 'college' ? 'bg-ink shadow-hair ' : 'bg-transparent'}`}
-            >
-              <Text className={`font-display text-label uppercase ${activeTab === 'college' ? 'text-paper' : 'text-ink-3'}`}>Campus</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setActiveTab('global')}
-              className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === 'global' ? 'bg-brand-500' : 'bg-transparent'}`}
-            >
-              <Text className={`font-display text-label uppercase ${activeTab === 'global' ? 'text-on-brand' : 'text-ink-3'}`}>Global</Text>
-            </TouchableOpacity>
-          </View>
+        <AppBar title="Notice board" onBack={() => navigation.goBack()} />
+        <View className="px-gutter mb-3">
+          <SegmentedTabs items={TABS} labels={TAB_LABELS} value={activeTab} onChange={setActiveTab} />
         </View>
 
         {loading && !refreshing ? (
@@ -505,7 +480,7 @@ const NoticeBoard = () => {
               data={notices}
               keyExtractor={item => item._id}
               renderItem={renderNotice}
-              contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
+              contentContainerStyle={{ paddingBottom: 120, paddingTop: 8 }}
               showsVerticalScrollIndicator={false}
               refreshControl={<RefreshControl tintColor={C.brand[500]} refreshing={refreshing} onRefresh={onRefresh} />}
               onEndReached={handleLoadMore}
@@ -514,122 +489,91 @@ const NoticeBoard = () => {
               maxToRenderPerBatch={5}
               windowSize={5}
               removeClippedSubviews={Platform.OS === 'android'}
-            ListFooterComponent={() => (
+            ListFooterComponent={
               loadingMore ? (
                 <View className="py-6 items-center">
                   <ActivityIndicator size="small" color={C.brand[500]} />
                 </View>
               ) : <View className="h-10" />
-            )}
+            }
             ListEmptyComponent={loadError ? (
-              <View className="mt-20">
-                <Empty icon="cloud-offline-outline" title="Couldn't load notices" action={<Button title="Try again" onPress={() => fetchNotices(1, false)} />} />
-              </View>
+              <Empty icon="cloud-offline-outline" title="Couldn't load notices" action={<Button title="Try again" onPress={() => fetchNotices(1, false)} />} />
             ) : (
-              <View className="items-center justify-center mt-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="clipboard-outline" size={32} color={C.ink4} />
-                </View>
-                <Text className="font-semibold text-base text-ink text-center">No Active Intel</Text>
-                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">The board is currently silent.</Text>
-              </View>
+              <Empty icon="clipboard-outline" title="No notices yet" hint="New notices for your campus show up here." />
             )}
           />
         )}
 
         {/* A global notice is a paid boost for non-admins; no in-app digital sales at launch. */}
         {(activeTab !== 'global' || isAdmin || isFeatureOn('paidDigital')) && (
-          <TouchableOpacity
-            activeOpacity={0.8}
+          <Pressable
             onPress={() => setCreateModalVisible(true)}
-            className="absolute right-8 w-14 h-14 rounded-card bg-ink items-center justify-center" style={{ bottom: bottomInset + 56 }}
+            accessibilityRole="button"
+            accessibilityLabel="Post a notice"
+            className="absolute right-gutter w-14 h-14 rounded-full bg-brand-500 items-center justify-center active:opacity-70 shadow-hair"
+            style={{ bottom: bottomInset + 56 }}
           >
-            <Ionicons name="pencil" size={24} color={C.paper} />
-          </TouchableOpacity>
+            <Ionicons name="create-outline" size={24} color={C.onBrand} />
+          </Pressable>
         )}
 
-        <Modal visible={createModalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setCreateModalVisible(false)}>
-          <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
-            <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-            <StatusBar barStyle={C.barStyle} />
-            <AppBar
-              inset={Platform.OS === 'android'}
-              title={activeTab === 'global' ? 'New Global Intel' : 'New Campus Intel'}
-              right={<IconBtn name="close" onPress={() => setCreateModalVisible(false)} />}
+        <Sheet
+          visible={createModalVisible}
+          onClose={() => setCreateModalVisible(false)}
+          title={activeTab === 'global' ? 'New global notice' : 'New campus notice'}
+          footer={
+            <Button
+              block
+              variant="primary"
+              icon="paper-plane-outline"
+              title={activeTab === 'global' && !isAdmin ? 'Post for ₹49' : 'Post notice'}
+              loading={submitting}
+              onPress={() => handleCreateNotice()}
             />
-            <ScrollView keyboardShouldPersistTaps="handled" className="px-gutter py-card-pad" contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
-
-              <Text className="text-ink-3 text-label font-display uppercase mb-4">Intel Subject</Text>
-              <TextInput
-                value={title}
-                onChangeText={setTitle}
-                className="font-semibold text-base text-ink bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair rounded-md"
-                placeholderTextColor={C.ink4}
-                placeholder="Notice Heading"
-              />
-
-              <Text className="text-ink-3 text-label font-display uppercase mb-4">Transmission Details</Text>
-              <TextInput
-                value={desc}
-                onChangeText={setDesc}
-                multiline
-                numberOfLines={5}
-                className="bg-card p-5 mb-6 border-[1.5px] border-ink shadow-hair text-ink-2 leading-6 min-h-[150px] font-medium text-xs rounded-md"
-                placeholderTextColor={C.ink4}
-                placeholder="Establish the facts..."
-                textAlignVertical="top"
-              />
-
-              <Text className="text-ink-3 text-label font-display uppercase mb-4">Resource Link (Optional)</Text>
-              <TextInput
-                value={link}
-                onChangeText={setLink}
-                className="bg-card p-5 mb-8 border-[1.5px] border-ink shadow-hair text-accent-text font-semibold text-xs rounded-md"
-                placeholderTextColor={C.ink4}
-                placeholder="https://protocol-link.com/..."
-                autoCapitalize="none"
-              />
-
-              <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                <Text className="text-ink-3 text-label font-display uppercase">Visual Evidence</Text>
-                <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-              </View>
-              <TouchableOpacity
+          }
+        >
+          <View style={{ gap: 16 }}>
+            <FormField label="Title" value={title} onChangeText={setTitle} placeholder="Notice heading" />
+            <FormField
+              label="Details"
+              value={desc}
+              onChangeText={setDesc}
+              multiline
+              numberOfLines={5}
+              placeholder="What should people know?"
+            />
+            <FormField
+              label="Link"
+              hint="Optional"
+              value={link}
+              onChangeText={setLink}
+              placeholder="https://"
+              autoCapitalize="none"
+              keyboardType="url"
+            />
+            <View style={{ gap: 6 }}>
+              <Text className="font-semibold text-ink-2" style={{ fontSize: 13 }}>Images (optional)</Text>
+              <Pressable
                 onPress={async () => {
                   const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 0.7 });
                   if (!result.canceled) setImages(result.assets);
                 }}
-                activeOpacity={0.8}
-                className="border-2 border-dashed border-line rounded-sheet p-card-pad items-center justify-center mb-8 bg-paper-2"
+                accessibilityRole="button"
+                accessibilityLabel={images.length ? `Change images, ${images.length} selected` : 'Add images'}
+                className="border border-dashed border-line rounded-2xl items-center justify-center bg-paper-2 active:opacity-70"
+                style={{ minHeight: 96, gap: 8 }}
               >
-                <Ionicons name="images-outline" size={32} color={C.ink4} />
-                <Text className="text-ink-3 font-display uppercase text-label mt-2">Attach Files</Text>
-              </TouchableOpacity>
-
+                <Ionicons name="images-outline" size={28} color={C.ink3} />
+                <Text className="text-ink-3 font-sans text-sm">{images.length ? `${images.length} selected` : 'Add images'}</Text>
+              </Pressable>
               {images.length > 0 && (
-                <ScrollView keyboardShouldPersistTaps="handled" horizontal className="mb-8" showsHorizontalScrollIndicator={false}>
-                  {images.map((img, i) => <Image key={i} source={{ uri: img.uri }} className="w-24 h-24 rounded-card mr-4 border border-line" />)}
+                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingTop: 6 }}>
+                  {images.map((img, i) => <ExpoImage key={i} source={{ uri: img.uri }} style={{ width: 80, height: 80, borderRadius: 12, backgroundColor: C.paper2 }} contentFit="cover" />)}
                 </ScrollView>
               )}
-
-              <TouchableOpacity
-                onPress={() => handleCreateNotice()}
-                disabled={submitting}
-                className={`py-5 rounded-card items-center shadow-hair flex-row justify-center ${submitting ? 'bg-paper-2' : 'bg-ink '}`}
-              >
-                {submitting ? <ActivityIndicator color={C.brand[500]} /> : (
-                  <>
-                    <Text className="text-paper font-display uppercase text-xs mr-3">
-                      {activeTab === 'global' && !isAdmin ? 'Deploy for ₹49' : 'Deploy Notice'}
-                    </Text>
-                    <Ionicons name="paper-plane" size={16} color={C.paper} />
-                  </>
-                )}
-              </TouchableOpacity>
-            </ScrollView>
-            </KeyboardAvoidingView>
-          </SafeAreaView>
-        </Modal>
+            </View>
+          </View>
+        </Sheet>
 
         <CommentsSheet
           visible={commentsModalVisible}
@@ -640,16 +584,16 @@ const NoticeBoard = () => {
           onCountChange={onCommentCount}
         />
 
-        {/* FULL SCREEN IMAGE PREVIEW MODAL */}
+        {/* Full-screen image preview: intentionally dark. */}
         <Modal visible={previewVisible} transparent={true} statusBarTranslucent animationType="fade" onRequestClose={() => setPreviewVisible(false)}>
           <View style={styles.previewContainer}>
-            <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setPreviewVisible(false)} />
-            <TouchableOpacity onPress={() => setPreviewVisible(false)} className="absolute top-12 right-8 z-50 w-12 h-12 bg-black/50 rounded-card items-center justify-center border border-white/20">
-              <Ionicons name="close" size={24} color="white" />
-            </TouchableOpacity>
+            <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setPreviewVisible(false)} accessibilityLabel="Close preview" />
+            <View className="absolute top-12 right-gutter z-50">
+              <IconBtn name="close" color="#fff" overlay onPress={() => setPreviewVisible(false)} accessibilityLabel="Close preview" />
+            </View>
             {selectedImage ? <ExpoImage source={{ uri: selectedImage }} style={{ width: '100%', height: '83%' }} contentFit="contain" cachePolicy="disk" /> : null}
             <View className="absolute items-center w-full" style={{ bottom: bottomInset + 48 }}>
-              <Text className="text-white/40 text-label font-display uppercase leading-tight">Secure Preview Protocol • Tap to Close</Text>
+              <Text className="text-white/60 text-xs font-sans">Tap anywhere to close</Text>
             </View>
           </View>
         </Modal>
@@ -658,8 +602,8 @@ const NoticeBoard = () => {
         <Modal visible={!!showPaymentParams} animationType="slide" transparent={false} statusBarTranslucent onRequestClose={() => setShowPaymentParams(null)}>
           <SafeAreaView style={{ flex: 1, backgroundColor: C.paper }} edges={['bottom']}>
             <AppBar
-              title="Secure Transaction"
-              right={<IconBtn name="close" onPress={() => { setShowPaymentParams(null); Alert.alert('Cancelled', 'Payment is required to post a global notice.'); }} />}
+              title="Payment"
+              right={<IconBtn name="close" onPress={() => { setShowPaymentParams(null); Alert.alert('Cancelled', 'Payment is required to post a global notice.'); }} accessibilityLabel="Cancel payment" />}
             />
             {showPaymentParams?.html ? (
               <WebView

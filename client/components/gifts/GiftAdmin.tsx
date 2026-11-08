@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, FlatList, Pressable, Modal, TextInput, ScrollView, Switch, ActivityIndicator, Linking, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, FlatList, Pressable, TextInput, ScrollView, Switch, ActivityIndicator, Linking } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,7 +7,7 @@ import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
-import { AppBar, Button, Chip, Empty, Label, Tabs } from '../ui/kit';
+import { Button, Chip, ChipRow, Empty, Label, Num, Tabs, IconBtn, ListRow, Sheet, FormField } from '../ui/kit';
 import { Alert } from '../ui/AlertModal';
 import { GiftOrder, GiftProduct, rupees, optValue, STATUS_LABEL, uploadGiftPhotos } from './shared';
 
@@ -26,9 +26,9 @@ const NEXT: Record<string, string[]> = {
 };
 const FILTERS = ['', 'paid', 'in_production', 'shipped', 'delivered', 'cancelled', 'refunded'];
 
-const Input = (p: React.ComponentProps<typeof TextInput>) => (
-  <TextInput placeholderTextColor={C.ink3} {...p}
-    className="mt-1.5 mb-3 rounded-card border border-line bg-card px-3 py-2.5 text-ink" style={[{ fontSize: 14 }, p.style]} />
+// Label is optional: the tracking inputs go by their placeholder.
+const Input = ({ label, ...p }: React.ComponentProps<typeof TextInput> & { label?: string }) => (
+  <FormField label={label} accessibilityLabel={label ?? p.placeholder} containerStyle={{ marginBottom: 12 }} {...p} />
 );
 
 /* ------------------------------------------------------------------ orders */
@@ -56,10 +56,15 @@ const OrderCard = ({ o, onSaved }: { o: GiftOrder; onSaved: (o: GiftOrder) => vo
   };
 
   return (
-    <Pressable onPress={() => setOpen((v) => !v)} className="mb-3 rounded-card border border-line bg-card p-4">
+    <Pressable
+      onPress={() => setOpen((v) => !v)}
+      className="mb-3 rounded-2xl border border-line bg-card p-4 active:opacity-70"
+      accessibilityRole="button"
+      accessibilityState={{ expanded: open }}
+    >
       <View className="flex-row items-center justify-between">
         <Text className="text-ink font-semibold flex-1" numberOfLines={1}>{o.productSnapshot.title}</Text>
-        <Text className="text-ink font-display">{rupees(o.amount)}</Text>
+        <Num style={{ fontSize: 15 }}>{rupees(o.amount)}</Num>
       </View>
       <Text className="text-ink-2 text-xs mt-1">
         {STATUS_LABEL[o.status]} · {new Date(o.paidAt || o.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
@@ -74,8 +79,8 @@ const OrderCard = ({ o, onSaved }: { o: GiftOrder; onSaved: (o: GiftOrder) => vo
             <ScrollView horizontal className="mt-2" contentContainerStyle={{ gap: 8 }}>
               {o.customization.photos.map((p) => (
                 // Opens the full-size file in the browser, where it can be saved.
-                <Pressable key={p} onPress={() => Linking.openURL(p)} accessibilityLabel="Open photo">
-                  <Image source={{ uri: p }} style={{ width: 72, height: 72, borderRadius: 8 }} contentFit="cover" />
+                <Pressable key={p} onPress={() => Linking.openURL(p)} accessibilityRole="button" accessibilityLabel="Open photo">
+                  <Image source={{ uri: p }} style={{ width: 72, height: 72, borderRadius: 12 }} contentFit="cover" cachePolicy="memory-disk" />
                 </Pressable>
               ))}
             </ScrollView>
@@ -83,16 +88,15 @@ const OrderCard = ({ o, onSaved }: { o: GiftOrder; onSaved: (o: GiftOrder) => vo
 
           <View className="flex-row items-center justify-between mt-4">
             <Label>Ship to</Label>
-            <Pressable onPress={() => { Clipboard.setStringAsync(address); Toast.show({ type: 'success', text1: 'Address copied' }); }} hitSlop={8}>
-              <Ionicons name="copy-outline" size={16} color={C.ink2} />
-            </Pressable>
+            <IconBtn name="copy-outline" size={18} color={C.ink2} accessibilityLabel="Copy address" style={{ marginRight: -11 }}
+              onPress={() => { Clipboard.setStringAsync(address); Toast.show({ type: 'success', text1: 'Address copied' }); }} />
           </View>
           <Text className="text-ink text-sm mt-1" selectable>{address}</Text>
-          {s?.surprise && <Text style={{ color: C.danger, fontSize: 12, marginTop: 4, fontWeight: '600' }}>SURPRISE: do not contact the recipient before delivery</Text>}
+          {s?.surprise && <Text style={{ color: C.danger, fontSize: 12, marginTop: 4, fontWeight: '600' }}>Surprise: do not contact the recipient before delivery</Text>}
           {!!s?.giftNote && <Text className="text-ink-2 text-sm mt-1">Gift note: “{s.giftNote}”</Text>}
           {o.buyer?.email && <Text className="text-ink-3 text-xs mt-1">Buyer: {o.buyer.email}</Text>}
 
-          <Label style={{ marginTop: 14 }}>Tracking</Label>
+          <Label style={{ marginTop: 16, marginBottom: 8 }}>Tracking</Label>
           <Input placeholder="Courier (e.g. Delhivery)" value={courier} onChangeText={setCourier} maxLength={60} />
           <Input placeholder="AWB number" value={awb} onChangeText={setAwb} maxLength={60} />
           <Input placeholder="Tracking link (https://…)" value={url} onChangeText={setUrl} maxLength={300} autoCapitalize="none" keyboardType="url" />
@@ -140,12 +144,12 @@ const Orders = () => {
       keyExtractor={(o) => o._id}
       contentContainerStyle={{ padding: 20, paddingBottom: 60 }}
       ListHeaderComponent={
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 12 }}>
+        <ChipRow style={{ marginHorizontal: -20, marginBottom: 12 }}>
           {FILTERS.map((f) => <Chip key={f || 'all'} label={f ? STATUS_LABEL[f] : 'All'} active={filter === f} onPress={() => setFilter(f)} />)}
-        </ScrollView>
+        </ChipRow>
       }
       ListEmptyComponent={loading ? <ActivityIndicator color={C.ink3} /> : <Empty icon="gift-outline" title="No paid gift orders" />}
-      ListFooterComponent={hasMore ? <Button title="Load more" onPress={() => load(true)} /> : null}
+      ListFooterComponent={hasMore ? <Button title="Load more" block onPress={() => load(true)} /> : null}
       renderItem={({ item }) => <OrderCard o={item} onSaved={(n) => setOrders((all) => all.map((x) => (x._id === n._id ? n : x)))} />}
     />
   );
@@ -221,55 +225,53 @@ const ProductForm = ({ product, onClose, onSaved }: { product: GiftProduct | nul
   };
 
   return (
-    <Modal visible animationType="slide" statusBarTranslucent onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: C.paper }}>
-        <AppBar title={product ? 'Edit gift' : 'New gift'} onBack={onClose} />
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
-            <Label>Images</Label>
-            <ScrollView horizontal contentContainerStyle={{ gap: 8, paddingVertical: 8 }}>
-              {images.map((u, i) => (
-                <Pressable key={u + i} onLongPress={() => setImages((s) => s.filter((_, j) => j !== i))}>
-                  <Image source={{ uri: u }} style={{ width: 72, height: 72, borderRadius: 8 }} contentFit="cover" />
-                </Pressable>
-              ))}
-              {images.length < 8 && (
-                <Pressable onPress={addImages} className="items-center justify-center rounded-card border-2 border-dashed border-line" style={{ width: 72, height: 72 }}>
-                  {busy ? <ActivityIndicator color={C.ink3} /> : <Ionicons name="add" size={24} color={C.ink3} />}
-                </Pressable>
-              )}
-            </ScrollView>
-            <Text className="text-ink-3 text-xs mb-3">Long-press an image to remove it.</Text>
-            <Label>Title</Label><Input value={v.title} onChangeText={set('title')} maxLength={80} />
-            <Label>Description</Label><Input value={v.description} onChangeText={set('description')} maxLength={1000} multiline />
-            <Label>Category</Label><Input value={v.category} onChangeText={set('category')} maxLength={30} placeholder="Albums, Mugs, Prints…" />
-            <View className="flex-row" style={{ gap: 12 }}>
-              <View style={{ flex: 1 }}><Label>Price (₹)</Label><Input value={v.price} onChangeText={set('price')} keyboardType="decimal-pad" /></View>
-              <View style={{ flex: 1 }}><Label>Delivery days</Label><Input value={v.deliveryDays} onChangeText={set('deliveryDays')} keyboardType="number-pad" /></View>
-            </View>
-            <View className="flex-row" style={{ gap: 12 }}>
-              <View style={{ flex: 1 }}><Label>Min photos</Label><Input value={v.photosMin} onChangeText={set('photosMin')} keyboardType="number-pad" /></View>
-              <View style={{ flex: 1 }}><Label>Max photos (0 = none)</Label><Input value={v.photosMax} onChangeText={set('photosMax')} keyboardType="number-pad" /></View>
-            </View>
-            <View className="flex-row" style={{ gap: 12 }}>
-              <View style={{ flex: 2 }}><Label>Text label</Label><Input value={v.textLabel} onChangeText={set('textLabel')} maxLength={60} placeholder="Message" /></View>
-              <View style={{ flex: 1 }}><Label>Max chars (0 = none)</Label><Input value={v.textMax} onChangeText={set('textMax')} keyboardType="number-pad" /></View>
-            </View>
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-ink text-sm">Text required</Text>
-              <Switch value={textRequired} onValueChange={setTextRequired} />
-            </View>
-            <Label>Options (one per line; "+200" = ₹200 extra)</Label>
-            <Input value={v.options} onChangeText={set('options')} multiline placeholder={'Size: A5, A4 +200\nFrame: Black, White, Wood +100'} style={{ minHeight: 90, textAlignVertical: 'top' }} autoCapitalize="none" />
-            <View className="flex-row items-center justify-between mb-5">
-              <Text className="text-ink text-sm">Visible in shop</Text>
-              <Switch value={active} onValueChange={setActive} />
-            </View>
-            <Button title={busy ? 'Saving…' : 'Save gift'} variant="primary" block disabled={busy} onPress={save} />
-          </ScrollView>
-        </KeyboardAvoidingView>
+    <Sheet
+      visible
+      onClose={onClose}
+      title={product ? 'Edit gift' : 'New gift'}
+      height="92%"
+      footer={<Button title="Save gift" variant="primary" block loading={busy} disabled={busy} onPress={save} />}
+    >
+      <Label>Images</Label>
+      <ScrollView horizontal keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 8, paddingVertical: 8 }}>
+        {images.map((u, i) => (
+          <Pressable key={u + i} onLongPress={() => setImages((s) => s.filter((_, j) => j !== i))} accessibilityLabel={`Image ${i + 1}, long-press to remove`}>
+            <Image source={{ uri: u }} style={{ width: 72, height: 72, borderRadius: 12 }} contentFit="cover" />
+          </Pressable>
+        ))}
+        {images.length < 8 && (
+          <Pressable onPress={addImages} accessibilityRole="button" accessibilityLabel="Add images"
+            className="items-center justify-center rounded-2xl border border-dashed border-line bg-paper-2 active:opacity-70" style={{ width: 72, height: 72 }}>
+            {busy ? <ActivityIndicator color={C.ink3} /> : <Ionicons name="add" size={24} color={C.ink3} />}
+          </Pressable>
+        )}
+      </ScrollView>
+      <Text className="text-ink-3 text-xs mb-3">Long-press an image to remove it.</Text>
+      <Input label="Title" value={v.title} onChangeText={set('title')} maxLength={80} />
+      <Input label="Description" value={v.description} onChangeText={set('description')} maxLength={1000} multiline />
+      <Input label="Category" value={v.category} onChangeText={set('category')} maxLength={30} placeholder="Albums, Mugs, Prints…" />
+      <View className="flex-row" style={{ gap: 12 }}>
+        <View style={{ flex: 1 }}><Input label="Price (₹)" value={v.price} onChangeText={set('price')} keyboardType="decimal-pad" /></View>
+        <View style={{ flex: 1 }}><Input label="Delivery days" value={v.deliveryDays} onChangeText={set('deliveryDays')} keyboardType="number-pad" /></View>
       </View>
-    </Modal>
+      <View className="flex-row" style={{ gap: 12 }}>
+        <View style={{ flex: 1 }}><Input label="Min photos" value={v.photosMin} onChangeText={set('photosMin')} keyboardType="number-pad" /></View>
+        <View style={{ flex: 1 }}><Input label="Max photos (0 = none)" value={v.photosMax} onChangeText={set('photosMax')} keyboardType="number-pad" /></View>
+      </View>
+      <View className="flex-row" style={{ gap: 12 }}>
+        <View style={{ flex: 2 }}><Input label="Text label" value={v.textLabel} onChangeText={set('textLabel')} maxLength={60} placeholder="Message" /></View>
+        <View style={{ flex: 1 }}><Input label="Max chars (0 = none)" value={v.textMax} onChangeText={set('textMax')} keyboardType="number-pad" /></View>
+      </View>
+      <View className="flex-row items-center justify-between mb-3" style={{ minHeight: 44 }}>
+        <Text className="text-ink text-sm">Text required</Text>
+        <Switch value={textRequired} onValueChange={setTextRequired} accessibilityLabel="Text required" />
+      </View>
+      <Input label={'Options (one per line; "+200" = ₹200 extra)'} value={v.options} onChangeText={set('options')} multiline placeholder={'Size: A5, A4 +200\nFrame: Black, White, Wood +100'} autoCapitalize="none" />
+      <View className="flex-row items-center justify-between" style={{ minHeight: 44 }}>
+        <Text className="text-ink text-sm">Visible in shop</Text>
+        <Switch value={active} onValueChange={setActive} accessibilityLabel="Visible in shop" />
+      </View>
+    </Sheet>
   );
 };
 
@@ -304,21 +306,21 @@ const Products = () => {
         data={products}
         keyExtractor={(p) => p._id}
         contentContainerStyle={{ padding: 20, paddingBottom: 60 }}
-        ListHeaderComponent={<Button title="Add gift" icon="add" variant="primary" block style={{ marginBottom: 14 }} onPress={() => setEditing(null)} />}
+        ListHeaderComponent={<Button title="Add gift" icon="add" variant="primary" block style={{ marginBottom: 16 }} onPress={() => setEditing(null)} />}
         ListEmptyComponent={loading ? <ActivityIndicator color={C.ink3} /> : <Empty icon="gift-outline" title="No products" />}
         renderItem={({ item: p }) => (
-          <Pressable onPress={() => setEditing(p)} className="mb-3 flex-row items-center rounded-card border border-line bg-card p-3">
-            <View style={{ width: 52, height: 52, borderRadius: 8, overflow: 'hidden', backgroundColor: C.paper2 }}>
-              {p.images?.[0] ? <Image source={{ uri: p.images[0] }} style={{ width: 52, height: 52 }} contentFit="cover" /> : null}
-            </View>
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text className="text-ink font-semibold" numberOfLines={1}>{p.title}</Text>
-              <Text className="text-ink-2 text-xs mt-0.5">{rupees(p.price)} · {p.category} · {p.deliveryDays}d{p.active ? '' : ' · HIDDEN'}</Text>
-            </View>
-            <Pressable onPress={() => remove(p)} hitSlop={10} accessibilityLabel="Delete">
-              <Ionicons name="trash-outline" size={18} color={C.danger} />
-            </Pressable>
-          </Pressable>
+          <ListRow
+            onPress={() => setEditing(p)}
+            style={{ marginBottom: 12, paddingHorizontal: 12, backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.line }}
+            leading={
+              <View style={{ width: 52, height: 52, borderRadius: 12, overflow: 'hidden', backgroundColor: C.paper2 }}>
+                {p.images?.[0] ? <Image source={{ uri: p.images[0] }} style={{ width: 52, height: 52 }} contentFit="cover" cachePolicy="memory-disk" /> : null}
+              </View>
+            }
+            title={p.title}
+            subtitle={`${rupees(p.price)} · ${p.category} · ${p.deliveryDays}d${p.active ? '' : ' · hidden'}`}
+            right={<IconBtn name="trash-outline" size={18} color={C.danger} onPress={() => remove(p)} accessibilityLabel={`Delete ${p.title}`} />}
+          />
         )}
       />
       {editing !== undefined && (

@@ -1,20 +1,36 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  ActivityIndicator,
-  Pressable,
-  Linking,
-  TextInput,
-  TouchableOpacity,
-  StatusBar
-} from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image as ExpoImage } from 'expo-image';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, FlatList, ActivityIndicator, Linking, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Empty, SearchField } from '../ui/kit';
+import { ListingCard, FooterStat, type ListingTag } from './OpportunityCard';
+
+const openLink = (slug?: string) => {
+  if (slug) Linking.openURL(`https://unstop.com/${slug}`).catch(() => {});
+};
+
+const HackathonCard = memo(({ item, onOpen }: { item: any; onOpen: (slug?: string) => void }) => {
+  const loc = item.job_location || 'Global';
+  const tags: ListingTag[] = [
+    { icon: /online/i.test(loc) ? 'globe-outline' : 'location-outline', label: loc },
+    ...(item.region && item.region.toLowerCase() !== loc.toLowerCase() ? [{ icon: 'earth-outline' as const, label: item.region }] : []),
+    { icon: 'calendar-outline', label: item.regnEndDate ? new Date(item.regnEndDate).toLocaleDateString() : 'Open' },
+    ...(item.filters || [])
+      .filter((f: any) => f.name && (f.type === 'opportunity_type' || /online|offline/i.test(f.name)))
+      .map((f: any) => ({ label: f.name })),
+  ];
+  return (
+    <ListingCard
+      title={item.title}
+      subtitle={item.organisation?.name || 'Global organisation'}
+      logo={item.logoUrl2 || item.organisation?.logoUrl}
+      logoKey={String(item.id)}
+      tags={tags}
+      footer={<FooterStat label="Prizes" value={item.payment_amount ? `₹${item.payment_amount}` : 'Prizes / certificates'} />}
+      action={{ title: 'Participate', onPress: () => onOpen(item.public_url) }}
+    />
+  );
+});
 
 const HackathonList = () => {
   const navigation = useNavigation<any>();
@@ -83,102 +99,8 @@ const HackathonList = () => {
     ));
   }, [hackathons, searchQuery]);
 
-  const openLink = (slug?: string) => {
-    if (slug) Linking.openURL(`https://unstop.com/${slug}`).catch(() => {});
-  };
-
   const renderItem = useCallback(({ item }: { item: any }) => (
-    <View className="bg-card rounded-card mb-5 mx-gutter p-6 shadow-hair border border-line">
-
-      {/* Header Row */}
-      <View className="flex-row gap-4 items-center">
-        {/* Logo */}
-        <View className="w-16 h-16 rounded-card border border-line overflow-hidden bg-paper-2 items-center justify-center p-2">
-          <ExpoImage
-            source={{ uri: item.logoUrl2 || item.organisation?.logoUrl }}
-            style={{ width: 48, height: 48, borderRadius: 12 }}
-            contentFit="contain"
-            cachePolicy="memory-disk"
-          />
-        </View>
-
-        {/* Title & Company */}
-        <View className="flex-1">
-          <Text className="text-ink text-lg font-display uppercase leading-5" numberOfLines={2}>
-            {item.title}
-          </Text>
-          <Text className="text-ink-2 text-label font-display uppercase mt-1" numberOfLines={1}>
-            {item.organisation?.name || "Global Organisation"}
-          </Text>
-        </View>
-      </View>
-
-      {/* Tags Row */}
-      <View className="mt-5 flex-row flex-wrap gap-2">
-        {/* Location / Mode */}
-        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons
-            name={item.job_location?.toLowerCase().includes('online') ? "globe-outline" : "location-sharp"}
-            size={14}
-            color={C.ink3}
-          />
-          <Text className="text-label font-display uppercase text-ink-3 ml-1">
-            {item.job_location || "Global"}
-          </Text>
-        </View>
-
-        {/* Mode (Online/Offline/Region) */}
-        {item.region && item.region.toLowerCase() !== (item.job_location || '').toLowerCase() && (
-          <View className="flex-row items-center bg-recruiter/10 px-3 py-1.5 rounded-xl border border-recruiter/15">
-            <Ionicons name="earth" size={14} color={C.recruiter} />
-            <Text className="text-label font-display uppercase text-recruiter ml-1">
-              {item.region}
-            </Text>
-          </View>
-        )}
-
-        {/* Region/Deadline */}
-        <View className="flex-row items-center bg-paper-2 px-3 py-1.5 rounded-xl border border-line">
-          <Ionicons name="calendar" size={14} color={C.ink3} />
-          <Text className="text-label font-display uppercase text-ink-3 ml-1">
-            {item.regnEndDate ? new Date(item.regnEndDate).toLocaleDateString() : "Open"}
-          </Text>
-        </View>
-
-        {item.filters?.map((f: any, i: number) => {
-          if (f.type === 'opportunity_type' || f.name?.toLowerCase().includes('online') || f.name?.toLowerCase().includes('offline')) {
-            return (
-              <View key={i} className="bg-fam-career/10 border border-fam-career/15 px-2.5 py-1 rounded-full">
-                <Text className="text-label font-display uppercase text-fam-career">{f.name}</Text>
-              </View>
-            )
-          }
-          return null;
-        })}
-      </View>
-
-      {/* Footer / CTA */}
-      <View className="mt-3 flex-row items-center justify-between">
-        <View>
-          <Text className="text-ink-2 font-display uppercase text-label">Opportunity Worth</Text>
-          <Text className="text-ink text-lg font-display mt-0.5 uppercase">
-            {item.payment_amount
-              ? `₹${item.payment_amount}`
-              : "Prizes/Certificates"
-            }
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          onPress={() => openLink(item.public_url)}
-          activeOpacity={0.9}
-          className="bg-brand-500 px-gutter py-3.5 rounded-card shadow-hair border border-brand-300"
-        >
-          <Text className="text-on-brand font-display uppercase text-sm">Participate</Text>
-        </TouchableOpacity>
-      </View>
-
-    </View>
+    <HackathonCard item={item} onOpen={openLink} />
   ), []);
 
   const renderFooter = () => {
@@ -197,24 +119,12 @@ const HackathonList = () => {
       <View className="flex-1">
         <AppBar title="Hackathons" onBack={() => navigation.goBack()} />
 
-        {/* 🔍 Search Bar */}
-        <View className="px-gutter mt-2 mb-4">
-          <View className="flex-row items-center bg-card px-6 py-2 border-2 border-ink shadow-hair rounded-md">
-            <Ionicons name="search" size={20} color={C.brand[500]} />
-            <TextInput
-              placeholder="Search hackathons, companies..."
-              placeholderTextColor={C.ink3}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              className="flex-1 ml-3 text-ink text-base font-display"
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")} hitSlop={12} className="bg-paper-2 p-1 rounded-full">
-                <Ionicons name="close" size={18} color={C.ink3} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+        <SearchField
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search hackathons or companies"
+          containerStyle={{ marginHorizontal: 20, marginTop: 8, marginBottom: 12 }}
+        />
 
         {/* List */}
         <FlatList keyboardShouldPersistTaps="handled"
@@ -231,15 +141,11 @@ const HackathonList = () => {
           removeClippedSubviews
           ListEmptyComponent={
             !loading ? (
-              <View className="items-center mt-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="search" size={40} color={C.ink4} />
-                </View>
-                <Text className="text-ink font-display text-xl text-center uppercase">Zero Hits</Text>
-                <Text className="font-sans text-sm text-ink-3 text-center mt-2">
-                  {searchQuery ? "We couldn't find matches for your search protocol." : "The hackathon vault is currently locked."}
-                </Text>
-              </View>
+              <Empty
+                icon="search-outline"
+                title="No hackathons found"
+                hint={searchQuery ? 'No hackathons match your search.' : 'No open hackathons right now.'}
+              />
             ) : null
           }
         />

@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Image, Pressable, ScrollView } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { View, Text, Pressable, ScrollView } from 'react-native';
+import { Avatar, Card, IconBtn, IconTile, ListRow, SectionHeader, Tag } from './ui/kit';
 import { useAuth } from '../context/auth.context';
 import { visibleFeatures } from '../constants/features';
 import { C } from '../constants/colors';
@@ -33,131 +33,79 @@ export default function CustomSidebar(props: any) {
         props.navigation.navigate(route, params);
     };
 
+    const badge = user?.fyncBadge || 'Newcomer';
+    const badgeIcon =
+        badge === 'Legend' ? 'star'
+        : badge === 'Pioneer' ? 'rocket'
+        : badge === 'Innovator' ? 'bulb'
+        : badge === 'Builder' ? 'hammer'
+        : badge === 'Explorer' ? 'compass'
+        : 'leaf';
+
     return (
         <View className="flex-1 bg-paper">
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 24 + insets.bottom }} showsVerticalScrollIndicator={false} bounces={false}>
-                {/* Inset-based top (was a fixed pt-16) so the header clears any status bar / notch. */}
-                <View className="pb-6 px-6 w-full" style={{ paddingTop: Math.max(64, insets.top + 24) }}>
-                    <View className="flex-row justify-between items-start mb-5">
+                {/* Inset-based top so the header clears any status bar / notch. */}
+                <View className="px-5 pb-4" style={{ paddingTop: insets.top + 16 }}>
+                    <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
                         <Pressable
                             onPress={() => go('Profile')}
-                            className="flex-row items-center gap-4 flex-1 mr-4"
+                            className="flex-row items-center flex-1 active:opacity-70"
+                            style={{ gap: 12 }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Open your profile"
                         >
-                            <Image
-                                source={{ uri: getFullUrl(user?.avatar?.trim()) || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'User')}` }}
-                                className="h-14 w-14 rounded-full border-2 border-brand-500 bg-paper-2"
-                            />
-                            <View className="flex-1 justify-center">
-                                <Text className="text-ink text-lg font-display leading-tight" numberOfLines={1}>
+                            <Avatar uri={getFullUrl(user?.avatar?.trim()) || undefined} initials={user?.name || user?.username} size={56} />
+                            <View className="flex-1">
+                                <Text className="text-ink text-lg font-semibold" numberOfLines={1}>
                                     {user?.name || user?.username || 'Fync User'}
                                 </Text>
-                                <Text className="text-ink-3 text-label font-semibold mt-0.5">
+                                <Text className="text-ink-3 text-sm" numberOfLines={1}>
                                     @{user?.username || 'username'}
                                 </Text>
                             </View>
                         </Pressable>
-
-                        <Pressable
-                            onPress={() => props.navigation.closeDrawer()}
-                            hitSlop={6}
-                            accessibilityRole="button"
-                            accessibilityLabel="Close menu"
-                            className="w-9 h-9 bg-card rounded-full items-center justify-center border border-line active:opacity-70"
-                        >
-                            <Ionicons name="close" size={18} color={C.brand[500]} />
-                        </Pressable>
+                        <IconBtn name="close" boxed onPress={() => props.navigation.closeDrawer()} accessibilityLabel="Close menu" style={{ marginRight: -4 }} />
                     </View>
 
-                    <Pressable
-                        onPress={() => go('FyncProfileBuilder')}
-                        className="flex-row items-center justify-between bg-card border border-line px-4 py-3 rounded-card active:opacity-70"
-                    >
-                        <View className="flex-row items-center gap-3">
-                            <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                {/* Vector, not emoji: emoji render differently on every
-                                    OS version, cannot take a design token, and are the
-                                    one icon rule the system states outright. */}
-                                <Ionicons
-                                    name={
-                                        user?.fyncBadge === 'Legend' ? 'star'
-                                        : user?.fyncBadge === 'Pioneer' ? 'rocket'
-                                        : user?.fyncBadge === 'Innovator' ? 'bulb'
-                                        : user?.fyncBadge === 'Builder' ? 'hammer'
-                                        : user?.fyncBadge === 'Explorer' ? 'compass'
-                                        : 'leaf'
-                                    }
-                                    size={18}
-                                    color={C.brand[500]}
-                                />
-                            </View>
-                            <View>
-                                <Text className="font-display text-label text-ink uppercase mb-0.5" style={{ letterSpacing: 1.4 }}>{user?.fyncBadge || 'Newcomer'}</Text>
-                                <Text className="font-display text-lg text-ink">
-                                    {user?.fyncScore || 0} <Text className="font-display text-label text-ink-3">/ 1000</Text>
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="w-8 h-8 bg-card rounded-xl items-center justify-center shadow-hair">
-                            <Ionicons name="arrow-forward" size={14} color={C.ink} />
-                        </View>
-                    </Pressable>
+                    <Card padded={false} style={{ paddingHorizontal: 16 }}>
+                        {/* Vector, not emoji: emoji render differently per OS and cannot take a token. */}
+                        <ListRow
+                            icon={badgeIcon}
+                            title={`${user?.fyncScore || 0} / 1000`}
+                            subtitle={`${badge} · Fync score`}
+                            onPress={() => go('FyncProfileBuilder')}
+                        />
+                    </Card>
                 </View>
 
-                <View className="px-4 pt-4">
+                <View className="px-5">
                     {/* The one pointer to where the features went. Without it the
                         drawer looks like features were removed, not moved. */}
-                    <Pressable
-                        onPress={() => go('TabNavigator', { screen: 'Explore' })}
-                        className="flex-row items-center bg-card rounded-card p-4 border border-line shadow-hair mb-6 active:opacity-70"
-                    >
-                        <View className="w-11 h-11 rounded-card bg-paper-2 items-center justify-center border border-line mr-4">
-                            <Ionicons name="compass" size={22} color={C.brand[500]} />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="font-semibold text-base text-ink">Explore Fync</Text>
-                            <Text className="text-ink-3 text-label font-semibold mt-0.5">All features, searchable</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={16} color={C.ink4} />
-                    </Pressable>
+                    <Card padded={false} style={{ paddingHorizontal: 16 }}>
+                        <ListRow
+                            icon="compass-outline"
+                            title="Explore Fync"
+                            subtitle="All features, searchable"
+                            onPress={() => go('TabNavigator', { screen: 'Explore' })}
+                        />
+                    </Card>
 
-                    <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                      <Text className="text-ink-3 text-label font-display uppercase">Your account</Text>
-                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                    </View>
+                    <SectionHeader title="Your account" />
+                    <ListRow icon="person-outline" title="Profile" onPress={() => go('Profile')} />
+                    <ListRow icon="settings-outline" title="Settings" onPress={() => go('SettingsScreen')} />
 
-                    <Pressable onPress={() => go('Profile')} className="flex-row items-center px-4 py-3.5 rounded-card active:bg-paper-2">
-                        <Ionicons name="person-outline" size={20} color={C.brand[500]} />
-                        <Text className="text-ink text-sm ml-4 font-display uppercase">Profile</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => go('SettingsScreen')} className="flex-row items-center px-4 py-3.5 rounded-card active:bg-paper-2">
-                        <Ionicons name="settings-outline" size={20} color={C.brand[500]} />
-                        <Text className="text-ink text-sm ml-4 font-display uppercase">Settings</Text>
-                    </Pressable>
-
-                    {accountItems.length > 0 && (
-                      <View className="flex-row items-center mt-5 mb-3" style={{ gap: 12 }}>
-                        <Text className="text-ink-3 text-label font-display uppercase">Admin</Text>
-                        <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                      </View>
-                    )}
-
+                    {accountItems.length > 0 && <SectionHeader title="Admin" />}
                     {accountItems.map((item) => (
-                        <Pressable
+                        <ListRow
                             key={item.id}
+                            leading={<IconTile icon={item.icon} color={item.tint} />}
+                            title={item.label}
                             onPress={() => go(item.route, item.params)}
-                            className="flex-row items-center px-4 py-3.5 rounded-card active:bg-paper-2"
-                        >
-                            <Ionicons name={item.icon} size={20} color={item.tint} />
-                            <Text className="text-ink text-sm ml-4 font-display uppercase flex-1">{item.label}</Text>
-                            {item.id === 'admin' && (
-                                <View className="bg-danger/10 border border-danger/30 px-2.5 py-1 rounded-full">
-                                    <Text className="text-label text-danger font-semibold">ADMIN</Text>
-                                </View>
-                            )}
-                        </Pressable>
+                            right={item.id === 'admin' ? <Tag label="Admin" tone={{ fg: C.danger }} /> : undefined}
+                            chevron
+                        />
                     ))}
-
                 </View>
             </ScrollView>
         </View>

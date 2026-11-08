@@ -1,14 +1,11 @@
 import React, { useRef, useState } from 'react';
-import {View, Text, TextInput, TouchableOpacity, Keyboard, Image, ScrollView, KeyboardAvoidingView, Platform, StatusBar} from 'react-native'
+import { View, Text, Keyboard, ScrollView, KeyboardAvoidingView, StatusBar } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Alert } from '../ui/AlertModal';
 
 import { useNavigation } from '@react-navigation/native';
-import { AppBar, StampCard } from '../ui/kit';
+import { AppBar, Card, Button, FormField, Label, Num } from '../ui/kit';
 import { C } from '../../constants/colors';
-// --- 🌌 BACKGROUND IMAGE ---
-const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
 
 export default function BunkOMeter() {
     const [attended, setAttended] = useState('');
@@ -100,132 +97,65 @@ export default function BunkOMeter() {
 
             <View className="flex-1">
                 <AppBar title="Bunk-O-Meter" onBack={() => navigation.goBack()} />
-                <KeyboardAvoidingView
-                    behavior="padding"
-                    className="flex-1"
-                >
+                <KeyboardAvoidingView behavior="padding" className="flex-1">
                     <ScrollView ref={scrollRef} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
 
-                        {/* --- INPUT CARD (Arena Style) --- */}
-                        <View className="bg-card mx-gutter mt-4 p-card-pad rounded-xl border border-line shadow-hair">
-
-                            {/* Row 1: Attended & Total */}
-                            <View className="flex-row gap-5 mb-6">
-                                <View className="flex-1">
-                                    <Text className="text-ink-3 mb-2 font-display text-label uppercase ml-1">Attended</Text>
-                                    <View className="flex-row items-center bg-paper-2 border-2 border-ink px-4 h-14 rounded-md">
-                                        <Ionicons name="checkmark-done" size={18} color={C.brand[500]} />
-                                        <TextInput
-                                            value={attended}
-                                            onChangeText={setAttended}
-                                            keyboardType="numeric"
-                                            placeholder="0"
-                                            placeholderTextColor={C.ink3}
-                                            className="flex-1 text-ink text-lg font-display ml-3 uppercase"
-                                        />
-                                    </View>
-                                </View>
-
-                                <View className="flex-1">
-                                    <Text className="text-ink-3 mb-2 font-display text-label uppercase ml-1">Total Held</Text>
-                                    <View className="flex-row items-center bg-paper-2 border-2 border-ink px-4 h-14 rounded-md">
-                                        <Ionicons name="list" size={18} color={C.ink3} />
-                                        <TextInput
-                                            value={total}
-                                            onChangeText={setTotal}
-                                            keyboardType="numeric"
-                                            placeholder="0"
-                                            placeholderTextColor={C.ink3}
-                                            className="flex-1 text-ink text-lg font-display ml-3 uppercase"
-                                        />
-                                    </View>
-                                </View>
+                        <Card padded style={{ marginHorizontal: 20, marginTop: 16, gap: 16 }}>
+                            <View className="flex-row" style={{ gap: 12 }}>
+                                <FormField
+                                    label="Attended"
+                                    containerStyle={{ flex: 1 }}
+                                    value={attended}
+                                    onChangeText={setAttended}
+                                    keyboardType="numeric"
+                                    placeholder="0"
+                                />
+                                <FormField
+                                    label="Total held"
+                                    containerStyle={{ flex: 1 }}
+                                    value={total}
+                                    onChangeText={setTotal}
+                                    keyboardType="numeric"
+                                    placeholder="0"
+                                />
                             </View>
 
-                            {/* Row 2: Target */}
-                            <View className="mb-8">
-                                <Text className="text-ink-3 mb-2 font-display text-label uppercase ml-1">Target Percentage (%)</Text>
-                                <View className="flex-row items-center bg-paper-2 border-2 border-ink px-4 h-14 rounded-md">
-                                    <Ionicons name="flash" size={18} color={C.brand[500]} />
-                                    <TextInput
-                                        value={targetInput}
-                                        onChangeText={setTargetInput}
-                                        keyboardType="numeric"
-                                        placeholder="75 (Threshold)"
-                                        placeholderTextColor={C.ink3}
-                                        className="flex-1 text-ink text-lg font-display ml-3 uppercase"
-                                    />
+                            <FormField
+                                label="Target percentage"
+                                value={targetInput}
+                                onChangeText={setTargetInput}
+                                keyboardType="numeric"
+                                placeholder="75"
+                                right={<Text className="text-ink-3 font-semibold">%</Text>}
+                            />
+
+                            <Button title="Calculate" variant="primary" block onPress={calculateAttendance} />
+                        </Card>
+
+                        {result ? (
+                            <Card padded style={{ marginHorizontal: 20, marginTop: 24, alignItems: 'center' }}>
+                                <Label style={{ marginBottom: 12 }}>Attendance</Label>
+
+                                <View className="mb-6 w-36 h-36 rounded-full items-center justify-center border border-line bg-paper-2">
+                                    <Num style={{ fontSize: 32, lineHeight: 36 }}>{result.percentage}%</Num>
                                 </View>
-                            </View>
 
-                            {/* Execute Button */}
-                            <TouchableOpacity
-                                onPress={calculateAttendance}
-                                activeOpacity={0.9}
-                                className="bg-ink h-16 flex-row items-center justify-center border-2 border-ink rounded-md"
-                            >
-                                <Text className="text-paper font-display uppercase text-label">Execute Analysis</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* --- RESULT DISPLAY (Arena Style) --- */}
-                        {result && (
-                            <StampCard radius={26} style={{ marginHorizontal: 20, marginTop: 32 }}>
-                                <View
-                                    className="p-card-pad items-center"
-                                 style={{ backgroundColor: C.paper2 }}>
-                                    <Text className="font-display text-label text-ink-3 uppercase mb-3" style={{ letterSpacing: 1.4 }}>Attendance Score</Text>
-
-                                    {/* Circular Percentage */}
-                                    <View className="mb-8 w-40 h-40 rounded-full items-center justify-center border-[2px] border-line bg-card shadow-hair">
-                                        <View className="w-32 h-32 rounded-full bg-card items-center justify-center border border-line">
-                                            <Text className="text-ink text-3xl font-display">{result.percentage}%</Text>
-                                            <View className="h-[2px] w-8 rounded-full bg-brand-500 my-1" />
-                                            <Text className="text-ink-3 font-display text-label uppercase">Protocol</Text>
-                                        </View>
-                                    </View>
-
-                                    {/* Status Body */}
-                                    <View className="items-center w-full">
-                                        <View className="flex-row items-center gap-3 mb-6 bg-card px-6 py-3 rounded-card border border-line shadow-hair">
-                                            <Ionicons name={result.icon} size={20} color={result.color} />
-                                            <Text className="font-semibold text-base text-ink">
-                                                {result.status === 'SAFE' ? 'The Great Escape' : 'System Critical'}
-                                            </Text>
-                                        </View>
-
-                                        <Text className="text-2xl font-display text-center mb-4 leading-tight" style={{ color: result.color }}>
-                                            {result.message}
-                                        </Text>
-
-                                        <View className="bg-card/60 p-3 rounded-xl border border-brand-50 border-2 border-dashed w-full mb-8">
-                                            <Text className="text-ink-3 font-semibold text-center text-xs leading-5">
-                                                {result.detail}
-                                            </Text>
-                                        </View>
-
-                                        {/* Technical Advisory Box */}
-                                        <View className="bg-brand-500/10 p-5 rounded-card w-full flex-row items-center border border-brand-500/20">
-                                            <View className="bg-card p-2.5 rounded-xl border border-line">
-                                                <Ionicons
-                                                    name="flash"
-                                                    size={18}
-                                                    color={C.brand[500]}
-                                                />
-                                            </View>
-                                            <View className="ml-4 flex-1">
-                                                <Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>Technical Advisory</Text>
-                                                <Text className="text-ink-3 text-label font-semibold leading-4 mt-0.5">
-                                                    {result.status === 'SAFE'
-                                                        ? "Bunk protocols confirmed safe. Maintain current trajectory."
-                                                        : "System failure imminent. Immediate lecture attendance required."}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    </View>
+                                <View className="flex-row items-center mb-4 bg-paper-2 px-4 py-2 rounded-full" style={{ gap: 8 }}>
+                                    <Ionicons name={result.icon} size={18} color={result.color} />
+                                    <Text className="font-semibold text-sm text-ink">
+                                        {result.status === 'SAFE' ? 'Safe zone' : 'Danger zone'}
+                                    </Text>
                                 </View>
-                            </StampCard>
-                        )}
+
+                                <Text className="text-2xl font-display text-center mb-2" style={{ color: result.color }}>
+                                    {result.message}
+                                </Text>
+
+                                <Text className="text-ink-2 font-sans text-center text-sm leading-5">
+                                    {result.detail}
+                                </Text>
+                            </Card>
+                        ) : null}
 
                     </ScrollView>
                 </KeyboardAvoidingView>

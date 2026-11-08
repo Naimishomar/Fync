@@ -5,11 +5,8 @@
  * POST /affiliate/add-product, which had no way to be called.
  */
 import React, { useState, useCallback } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity, ScrollView, Platform,
-  ActivityIndicator, RefreshControl,
-} from 'react-native';
-import { Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, RefreshControl } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -17,7 +14,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Card, Label, Num, SectionHeader, Button, Chip, Tag, Empty, FormField } from '../ui/kit';
 
 const CATEGORIES = ['Education', 'Electronics', 'Fashion', 'Books', 'Lifestyle', 'Other'];
 
@@ -160,148 +157,107 @@ export default function AffiliateAdminScreen() {
     );
 
   return (
-    <View className="flex-1" style={{ backgroundColor: C.paper }}>
+    <View className="flex-1 bg-paper">
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-        <AppBar title="Store Admin" onBack={() => navigation.goBack()} />
+        <AppBar title="Store admin" onBack={() => navigation.goBack()} />
 
-        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}
+        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-gutter pt-4" showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand[500]} colors={[C.brand[500]]} />}>
 
-          {/* the one stamped card on this screen */}
-          <View style={{ position: 'relative', marginBottom: 24 }}>
-            <View pointerEvents="none" style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: C.ink, borderRadius: 20 }} />
-            <View className="bg-card border-2 border-ink rounded-card p-card-pad">
-              <Text className="text-ink-3 font-display uppercase text-label mb-1">Commission per sale</Text>
-              <Text className="text-ink font-display" style={{ fontSize: 34, fontVariant: ['tabular-nums'] }}>
-                ₹{projected.toFixed(0)}
-              </Text>
-              <Text className="text-ink-2 text-sm mt-1">
-                If one of each of the {live.length} live products sells.
-              </Text>
-            </View>
-          </View>
+          <Card padded>
+            <Label>Commission per sale</Label>
+            <Num style={{ fontSize: 34, lineHeight: 40, marginTop: 4 }}>₹{projected.toFixed(0)}</Num>
+            <Text className="text-ink-2 text-sm mt-1">
+              If one of each of the {live.length} live products sells.
+            </Text>
+          </Card>
 
-          <View className="flex-row items-center mt-2 mb-3" style={{ gap: 12 }}>
-            <Text className="text-ink-3 text-label font-display uppercase">Add a product</Text>
-            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-          </View>
+          <SectionHeader title="Add a product" />
 
-          <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-5">
-            <View className="mb-4">
-              <Text className="text-ink-3 font-display uppercase text-label mb-2">Product photo</Text>
-              <TouchableOpacity
+          <Card padded style={{ gap: 16 }}>
+            <View>
+              <Text className="text-ink-2 font-semibold text-sm mb-2">Product photo</Text>
+              <Pressable
                 onPress={pickPhoto}
-                className="rounded-card border border-line overflow-hidden items-center justify-center bg-paper"
+                className="rounded-2xl border border-line overflow-hidden items-center justify-center bg-paper-2 active:opacity-70"
                 style={{ height: 160 }}
                 accessibilityRole="button"
                 accessibilityLabel={photo ? 'Change product photo' : 'Pick product photo from gallery'}
               >
                 {photo ? (
-                  <Image source={{ uri: photo.uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                  <Image source={{ uri: photo.uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                 ) : (
                   <>
-                    <Ionicons name="image-outline" size={34} color={C.ink3} />
-                    <Text className="text-ink-3 font-sans mt-2" style={{ fontSize: 13 }}>
-                      Pick from gallery
-                    </Text>
+                    <Ionicons name="image-outline" size={32} color={C.ink3} />
+                    <Text className="text-ink-3 text-sm mt-2">Pick from gallery</Text>
                   </>
                 )}
-              </TouchableOpacity>
+              </Pressable>
               {!!photo && (
-                <TouchableOpacity onPress={pickPhoto} className="mt-2 self-start" style={{ minHeight: 32 }}>
-                  <Text className="text-brand-600 font-display uppercase text-label">Change photo</Text>
-                </TouchableOpacity>
+                <Button small variant="tertiary" title="Change photo" onPress={pickPhoto} style={{ alignSelf: 'flex-start', marginTop: 8 }} />
               )}
             </View>
 
             {FIELDS.map((f) => (
-              <View key={f.key} className="mb-4">
-                <Text className="text-ink-3 font-display uppercase text-label mb-2">{f.label}</Text>
-                <TextInput
-                  value={form[f.key] ?? ''} onChangeText={(t) => set(f.key, t)}
-                  placeholder={f.placeholder} placeholderTextColor={C.ink3}
-                  keyboardType={f.numeric ? 'numeric' : 'default'}
-                  autoCapitalize={f.key === 'affiliateLink' ? 'none' : 'sentences'}
-                  multiline={f.multi} textAlignVertical={f.multi ? 'top' : 'center'}
-                  className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
-                  style={{ minHeight: f.multi ? 90 : 50 }}
-                />
-              </View>
+              <FormField
+                key={f.key}
+                label={f.label}
+                value={form[f.key] ?? ''} onChangeText={(t) => set(f.key, t)}
+                placeholder={f.placeholder}
+                keyboardType={f.numeric ? 'numeric' : 'default'}
+                autoCapitalize={f.key === 'affiliateLink' ? 'none' : 'sentences'}
+                multiline={f.multi}
+              />
             ))}
 
-            <Text className="text-ink-3 font-display uppercase text-label mb-2">Category</Text>
-            <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-              {CATEGORIES.map((c) => (
-                <TouchableOpacity key={c} onPress={() => setCategory(c)}
-                  className={`px-4 rounded-full border-2 items-center justify-center ${category === c ? 'bg-brand-500 border-ink' : 'bg-card border-line'}`}
-                  style={{ minHeight: 44 }} accessibilityRole="button">
-                  <Text className={`font-display uppercase text-label ${category === c ? 'text-on-brand' : 'text-ink-2'}`}>{c}</Text>
-                </TouchableOpacity>
-              ))}
+            <View>
+              <Text className="text-ink-2 font-semibold text-sm mb-2">Category</Text>
+              <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                {CATEGORIES.map((c) => (
+                  <Chip key={c} label={c} active={category === c} onPress={() => setCategory(c)} />
+                ))}
+              </View>
             </View>
-          </View>
+          </Card>
 
-          <TouchableOpacity onPress={submit} disabled={saving}
-            className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-6 ${saving ? 'bg-paper-2' : 'bg-brand-500'}`}
-            accessibilityRole="button">
-            {saving ? <ActivityIndicator color={C.ink} />
-              : <Text className="font-display uppercase text-base text-on-brand">List in Fync Store</Text>}
-          </TouchableOpacity>
+          <Button variant="primary" block title="List in Fync Store" onPress={submit} loading={saving} style={{ marginTop: 16 }} />
 
-          <View className="flex-row items-center mt-2 mb-3" style={{ gap: 12 }}>
-            <Text className="text-ink-3 text-label font-display uppercase">Listed</Text>
-            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-            <Text className="text-ink-3 font-mono text-label">{products.length}</Text>
-          </View>
+          <SectionHeader title="Listed" count={products.length} />
 
           {products.length === 0 && !loading ? (
-            <View className="items-center py-10">
-              <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-3">
-                <Ionicons name="pricetags-outline" size={32} color={C.ink2} />
-              </View>
-              <Text className="text-ink-2 text-sm">Nothing listed yet.</Text>
-            </View>
+            <Empty icon="pricetags-outline" title="Nothing listed yet" />
           ) : products.map((p) => (
-            <View key={p._id} className={`bg-card rounded-card p-4 border mb-2 ${p.isAvailable ? 'border-line' : 'border-ink-4'}`}>
-              <View className="flex-row items-center">
-                <View className="flex-1">
-                  <Text className={`text-sm ${p.isAvailable ? 'text-ink' : 'text-ink-3'}`} numberOfLines={1}>{p.name}</Text>
-                  <Text className="text-ink-3 text-label mt-0.5">
+            <Card key={p._id} padded style={{ marginBottom: 12 }}>
+              <View className="flex-row items-center" style={{ gap: 8 }}>
+                <View className="flex-1" style={{ minWidth: 0 }}>
+                  <Text className={`text-sm font-semibold ${p.isAvailable ? 'text-ink' : 'text-ink-3'}`} numberOfLines={1}>{p.name}</Text>
+                  <Text className="text-ink-3 text-xs mt-0.5">
                     ₹{p.price} · {p.commissionRate || 0}% · ₹{((p.price * (p.commissionRate || 0)) / 100).toFixed(0)} per sale
                   </Text>
                 </View>
-                {!p.isAvailable && (
-                  <View className="bg-paper-2 px-2.5 py-1 rounded-full">
-                    <Text className="text-ink-2 text-label font-display uppercase">Delisted</Text>
-                  </View>
-                )}
+                {!p.isAvailable && <Tag label="Delisted" icon="eye-off-outline" />}
               </View>
 
-              <View className="flex-row mt-3" style={{ gap: 10 }}>
-                <TouchableOpacity
+              <View className="flex-row mt-3" style={{ gap: 8 }}>
+                <Button
+                  small
+                  icon={p.isAvailable ? 'eye-off-outline' : 'eye-outline'}
+                  title={p.isAvailable ? 'Delist' : 'Relist'}
                   onPress={() => toggle(p)}
-                  className="flex-1 flex-row items-center justify-center bg-card border-[1.5px] border-line rounded-md"
-                  style={{ minHeight: 44 }}
-                  accessibilityRole="button"
                   accessibilityLabel={p.isAvailable ? `Delist ${p.name}` : `Relist ${p.name}`}
-                >
-                  <Ionicons name={p.isAvailable ? 'eye-off-outline' : 'eye-outline'} size={16} color={C.ink} style={{ marginRight: 7 }} />
-                  <Text className="font-display text-ink uppercase" style={{ fontSize: 12 }}>
-                    {p.isAvailable ? 'Delist' : 'Relist'}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+                  style={{ flex: 1, minHeight: 44 }}
+                />
+                <Button
+                  small
+                  variant="danger"
+                  icon="trash-outline"
+                  title="Delete"
                   onPress={() => remove(p)}
-                  className="flex-1 flex-row items-center justify-center bg-danger border-2 border-ink rounded-md"
-                  style={{ minHeight: 44 }}
-                  accessibilityRole="button"
                   accessibilityLabel={`Delete ${p.name}`}
-                >
-                  <Ionicons name="trash-outline" size={16} color={C.white} style={{ marginRight: 7 }} />
-                  <Text className="font-display text-white uppercase" style={{ fontSize: 12 }}>Delete</Text>
-                </TouchableOpacity>
+                  style={{ flex: 1, minHeight: 44 }}
+                />
               </View>
-            </View>
+            </Card>
           ))}
           <View style={{ height: 40 }} />
         </ScrollView>

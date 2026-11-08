@@ -7,6 +7,7 @@ import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
 import { isFeatureOn } from '../../constants/features';
 import Skeleton from '../Skeleton';
+import { SectionHeader } from '../ui/kit';
 import { daysLeftLabel } from '../../utils/deadline';
 
 type FeaturedType = 'hackathon' | 'internship' | 'job' | 'bootcamp' | 'speaker' | 'gig';
@@ -78,7 +79,7 @@ const Poster = ({ item, w, h }: { item: FeaturedItem; w: number; h: number }) =>
         colors={['transparent', 'rgba(0,0,0,0.85)']}
         style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 8, paddingBottom: 8, paddingTop: 28 }}
       >
-        <Text className="font-display" style={{ color: '#FFFFFF', fontSize: 13, lineHeight: 16 }} numberOfLines={3}>
+        <Text className="font-semibold" style={{ color: '#FFFFFF', fontSize: 13, lineHeight: 16 }} numberOfLines={3}>
           {item.title}
         </Text>
         {item.org ? (
@@ -213,11 +214,11 @@ const FeaturedCarousel = () => {
             accessibilityRole="button"
             accessibilityLabel={[item.title, item.org, item.pay, due?.label, ...item.chips].filter(Boolean).join('. ')}
           >
-            <View className="rounded-[14px] border border-line overflow-hidden bg-card">
+            <View className="rounded-2xl border border-line overflow-hidden bg-card">
               <Poster item={item} w={cardW} h={cardH} />
             </View>
             {item.pay ? (
-              <Text className="font-display text-ink mt-1.5" style={{ fontSize: 13 }} numberOfLines={1}>
+              <Text className="font-semibold text-ink mt-1.5" style={{ fontSize: 13 }} numberOfLines={1}>
                 💰 {item.pay}
               </Text>
             ) : null}
@@ -243,11 +244,6 @@ const FeaturedCarousel = () => {
   );
 };
 
-const Header = () => (
-  <View className="flex-row items-center mb-3" style={{ gap: 8 }}>
-    <View className="bg-brand-500 rounded-full" style={{ width: 4, height: 16 }} />
-    <Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>Featured</Text>
-  </View>
-);
+const Header = () => <SectionHeader title="Featured" style={{ marginTop: 0 }} />;
 
 export default FeaturedCarousel;

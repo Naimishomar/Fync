@@ -3,7 +3,7 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Share,
 } from 'react-native';
@@ -90,41 +90,42 @@ const MovieDetail = () => {
           />
           
           {/* Action Buttons Overlay */}
-          <View className="absolute bottom-6 w-full px-5">
-            <Text className="text-white text-3xl font-display mb-2 shadow-hair">{movie.title}</Text>
+          <View className="absolute bottom-6 w-full px-gutter">
+            <Text className="text-white text-3xl font-display mb-2" accessibilityRole="header">{movie.title}</Text>
             <View className="flex-row items-center gap-3 mb-6">
               <View className="flex-row items-center">
                 <Ionicons name="star" size={16} color={C.warning} />
                 <Text className="text-white text-sm ml-1 font-semibold">{Number(movie.vote_average ?? 0).toFixed(1)}</Text>
               </View>
-              <Text className="text-ink-3">•</Text>
-              <Text className="text-ink-3 text-sm font-medium">{releaseYear}</Text>
-              <Text className="text-ink-3">•</Text>
-              <Text className="text-ink-3 text-sm font-medium">{runtime}</Text>
+              <Text className="text-white/60">•</Text>
+              <Text className="text-white/60 text-sm font-medium">{releaseYear}</Text>
+              <Text className="text-white/60">•</Text>
+              <Text className="text-white/60 text-sm font-medium">{runtime}</Text>
             </View>
 
             <View className="flex-row gap-4">
-              <TouchableOpacity 
+              <Pressable
                 onPress={() => navigation.navigate('TrailerReels', { movies: [movie] })}
-                className="flex-1 bg-danger flex-row items-center justify-center py-4 rounded-xl shadow-hair"
+                className="flex-1 bg-danger flex-row items-center justify-center min-h-[48px] rounded-full active:opacity-70"
+                accessibilityRole="button"
               >
                 <Ionicons name="play" size={20} color="white" />
-                <Text className="text-white font-display ml-2 text-lg">Play Trailer</Text>
-              </TouchableOpacity>
+                <Text className="text-white font-semibold ml-2 text-base">Play trailer</Text>
+              </Pressable>
             </View>
           </View>
         </View>
 
         {/* Details Section */}
-        <View className="px-5 py-6">
-          <Text className="text-white text-xl font-display mb-3">Overview</Text>
-          <Text className="text-ink-3 leading-6 text-base mb-8">
+        <View className="px-gutter py-6">
+          <Text className="text-white text-base font-semibold mb-2" accessibilityRole="header">Overview</Text>
+          <Text className="text-white/70 leading-6 text-base mb-6">
             {movie.overview}
           </Text>
 
           {/* More Like This */}
           <View className="mb-10">
-            <Text className="text-white text-xl font-display mb-4">More Like This</Text>
+            <Text className="text-white text-base font-semibold mb-3" accessibilityRole="header">More like this</Text>
             <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false}>
               {movie.similar?.results?.map((item: any) => (
                 <MovieCard
@@ -141,7 +142,7 @@ const MovieDetail = () => {
       {/* Header Controls — outside the scroll so they stay put */}
       <View className="absolute top-0 w-full" pointerEvents="box-none">
         <AppBar overlay onBack={() => navigation.goBack()}
-          right={<IconBtn overlay name="share-outline" size={24} onPress={handleShare} />} />
+          right={<IconBtn overlay name="share-outline" size={24} accessibilityLabel="Share movie" onPress={handleShare} />} />
       </View>
     </View>
   );

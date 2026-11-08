@@ -1,14 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-    View, Text, Pressable, ScrollView, Dimensions,
-    ActivityIndicator, Modal, Linking, FlatList, TouchableOpacity
-} from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Video, ResizeMode } from 'expo-av';
-import { BlurView } from 'expo-blur';
 import { useRoute, useNavigation, RouteProp, useFocusEffect } from '@react-navigation/native';
 import axios from "../context/axiosConfig";
 import { useAuth } from '../context/auth.context';
@@ -20,14 +14,18 @@ import { FlashList } from '@shopify/flash-list';
 import { getFullUrl } from '../utils/imageUtils';
 import GitHubStatsCard from './profile/GitHubStatsCard';
 import { C } from '../constants/colors';
-import { AppBar, Button, Empty, IconBtn } from './ui/kit';
+import { AppBar, Button, Card, Empty, IconBtn, IconTile, ListRow, Tag, TagRow } from './ui/kit';
+import { ProfileHero, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab } from './profile-shared/ProfileHeader';
 import { Alert } from './ui/AlertModal';
 import { confirmBlock, report } from '../utils/safety';
 import { tapHaptic } from '../utils/haptics';
 import Toast from 'react-native-toast-message';
 
-const { width } = Dimensions.get('window');
-
+const PUBLIC_TABS: ProfileTab<'posts' | 'shorts' | 'tags'>[] = [
+    { key: 'posts', icon: 'grid-outline', activeIcon: 'grid', label: 'Posts' },
+    { key: 'shorts', icon: 'videocam-outline', activeIcon: 'videocam', label: 'Shorts' },
+    { key: 'tags', icon: 'person-outline', activeIcon: 'person', label: 'About' },
+];
 interface User {
     _id: string;
     username: string;
@@ -85,8 +83,6 @@ const PublicProfile = () => {
     const [loading, setLoading] = useState(true);
     const [isFollowing, setIsFollowing] = useState(false);
 
-    const [selectedItem, setSelectedItem] = useState<any>(null);
-    const [modalVisible, setModalVisible] = useState(false);
 
     // --- 1. REDIRECT IF OWN PROFILE ---
     useEffect(() => {
@@ -306,318 +302,159 @@ const PublicProfile = () => {
         return () => { cancelled = true; };
     }, [recruiterId]);
 
-    const openItem = (item: any) => {
-        setSelectedItem(item);
-        setModalVisible(true);
-    };
-
-    // --- GRID RENDERER ---
-    const COLUMN_SIZE = width / 3;
-    const renderGridItem = useCallback(({ item }: { item: any }) => {
-        const isVideo = activeTab === 'shorts';
-        return (
-            <Pressable
-                onPress={() => {
-                    if (isVideo) {
-                        navigation.navigate('IndividualPostOrShort', { shortId: item._id });
-                    } else {
-                        navigation.navigate('IndividualPostOrShort', { postId: item._id });
-                    }
-                }}
-                className="relative border border-black/50"
-                style={{ width: COLUMN_SIZE, height: isVideo ? COLUMN_SIZE * 1.5 : COLUMN_SIZE }}
-            >
-                {isVideo ? (
-                    <View className="flex-1 bg-night justify-center items-center overflow-hidden">
-                        {/* Still frame; see the note in profile.tsx. */}
-                        {item.thumbnail ? (
-                            <ExpoImage
-                                source={{ uri: getFullUrl(item.thumbnail) || '' }}
-                                style={{ width: '100%', height: '100%' }}
-                                contentFit="cover"
-                                cachePolicy="disk"
-                                transition={120}
-                            />
-                        ) : (
-                            <Video
-                                source={{ uri: getFullUrl(item.video) || '' }}
-                                style={{ width: '100%', height: '100%' }}
-                                resizeMode={ResizeMode.COVER}
-                                shouldPlay={false}
-                                positionMillis={100}
-                            />
-                        )}
-                        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} className="absolute bottom-0 w-full h-1/2 z-10" />
-                        <View className="absolute inset-0 items-center justify-center">
-                            <Ionicons name="play-outline" size={28} color="white" style={{ opacity: 0.8 }} />
-                        </View>
-                        <Text numberOfLines={1} className="text-white text-label font-semibold absolute bottom-1.5 left-2 w-[90%] z-20 shadow-hair">
-                            {item.title}
-                        </Text>
-                    </View>
-                ) : !item.image?.length ? (
-                    // Text-only post: an empty image source drew a blank tile.
-                    <View className="flex-1 bg-paper-2 items-center justify-center p-3">
-                        <Text className="text-accent-text text-label font-semibold text-center" numberOfLines={4}>{item.title || item.description}</Text>
-                    </View>
-                ) : (
-                    <>
-                        <ExpoImage
-                            source={{ uri: getFullUrl(item.image?.[0]) || '' }}
-                            style={{ flex: 1, backgroundColor: C.paper2 }}
-                            contentFit="cover"
-                            cachePolicy="disk"
-                        />
-
-                        {/* --- MULTIPLE IMAGES INDICATOR (ADDED) --- */}
-                        {item.image && item.image.length > 1 && (
-                            <View className="absolute top-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center gap-1">
-                                <Ionicons name="copy-outline" size={10} color="white" />
-                                <Text className="text-white text-label font-semibold">{item.image.length}</Text>
-                            </View>
-                        )}
-                    </>
-                )}
-            </Pressable>
-        );
-    }, [activeTab, navigation]);
+    // --- GRID ---
+    const openItem = useCallback((item: any, isShort: boolean) => {
+        navigation.navigate('IndividualPostOrShort', isShort ? { shortId: item._id } : { postId: item._id });
+    }, [navigation]);
 
     /** Rebuilt inline on every render, this re-rendered the whole grid. */
     const renderTabItem = useCallback(({ item }: { item: any }) => {
         if (activeTab === 'tags') return renderAbout();
-        return renderGridItem({ item });
+        return <GridCell item={item} isShort={activeTab === 'shorts'} onOpen={openItem} />;
         // renderAbout reads profileUser, so the About row must refresh with it.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeTab, renderGridItem, profileUser]);
+    }, [activeTab, openItem, profileUser]);
 
-    /** Rebuilt inline on every render, this re-rendered the whole grid. */
     // A plain render function, not a component: declared inside this one it was a
     // new component type each render and remounted every time.
-    // --- ABOUT SECTION (Light Mode) ---
-    const renderAbout = () => (
-        <View className="px-5 py-6 pb-32">
-            {/* About Card */}
-            <View className="bg-card rounded-sheet p-6 border border-line mb-6 shadow-hair">
-                <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                  <Text className="text-accent-text text-xs font-display uppercase">About</Text>
-                  <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                </View>
-                <Text className="text-ink-2 text-sm font-medium leading-relaxed">
-                    {profileUser?.about || "This user prefers to stay mysterious."}
-                </Text>
-            </View>
+    const renderAbout = () => {
+        const cp = profileUser?.codingProfiles;
+        const hasLinks = !!(profileUser?.github_id || profileUser?.linkedIn_id || cp?.leetcode || cp?.gfg);
+        return (
+            <View className="pt-2 pb-8">
+                <ProfileSection title="About">
+                    <Text className="text-ink-2 text-sm leading-[22px]">
+                        {profileUser?.about || "This user prefers to stay mysterious."}
+                    </Text>
+                    {!!profileUser?.experience && (
+                        <ListRow icon="briefcase-outline" title={profileUser.experience} subtitle="Experience" titleLines={3} style={{ marginTop: 8 }} />
+                    )}
+                </ProfileSection>
 
-            {/* Details Grid */}
-            <View className="flex-row flex-wrap gap-4 mb-6">
-                {!!profileUser?.experience && (
-                    <View className="w-full bg-card p-5 rounded-sheet border border-line flex-row items-center shadow-hair">
-                        <View className="bg-brand-50 p-3 rounded-card mr-4">
-                            <Ionicons name="briefcase" size={24} color={C.brand[500]} />
-                        </View>
-                        <View className="flex-1">
-                            <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
-                              <Text className="text-accent-text text-label font-display uppercase">Experience</Text>
-                              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                            </View>
-                            <Text className="text-ink-2 text-sm font-semibold">{profileUser.experience}</Text>
-                        </View>
-                    </View>
+                {!!(profileUser?.skills?.length || profileUser?.hobbies || profileUser?.interest) && (
+                    <ProfileSection title="Skills and interests">
+                        <TagRow>
+                            {profileUser?.skills?.map((skill, i) => <Tag key={i} label={skill} />)}
+                            {!!profileUser?.interest && <Tag label={profileUser.interest} icon="sparkles-outline" />}
+                            {!!profileUser?.hobbies && <Tag label={profileUser.hobbies} icon="heart-outline" />}
+                        </TagRow>
+                    </ProfileSection>
                 )}
-            </View>
 
-            {/* Tags Collection */}
-            {!!(profileUser?.skills?.length || profileUser?.hobbies || profileUser?.interest) && (
-                <View className="mb-6 bg-card p-6 rounded-sheet border border-line shadow-hair">
-                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                      <Text className="text-ink-3 text-label font-display uppercase">Tags & Interests</Text>
-                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                    </View>
-                    <View className="flex-row flex-wrap gap-2">
-                        {profileUser?.skills?.map((skill, i) => (
-                            <View key={i} className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                                <Text className="text-ink-2 text-label font-display uppercase">{skill}</Text>
-                            </View>
-                        ))}
-                        {!!profileUser?.interest && (
-                            <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                                <Text className="text-accent-text text-label font-display uppercase"> {profileUser.interest}</Text>
-                            </View>
-                        )}
-                        {!!profileUser?.hobbies && (
-                            <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                                <Text className="text-accent-text text-label font-display uppercase"> {profileUser.hobbies}</Text>
-                            </View>
-                        )}
-                    </View>
-                </View>
-            )}
-
-            {/* Social Links */}
-            <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-              <Text className="text-ink-3 text-label font-display uppercase">Connect</Text>
-              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-            </View>
-            
-            {!!profileUser?.github_id && (
-                <View className="-mx-5 mb-6">
-                    <GitHubStatsCard 
-                        username={ (profileUser as any).githubUsername || profileUser.github_id.split('/').pop() }
-                        stats={ (profileUser as any).githubStats }
-                        isOwner={false}
-                    />
-                </View>
-            )}
-
-            <View className="gap-3">
                 {!!profileUser?.github_id && (
-                    <Pressable onPress={() => Linking.openURL(profileUser.github_id!).catch(() => {})} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
-                        <Ionicons name="logo-github" size={24} color={C.ink} />
-                        <Text className="text-ink ml-4 font-display uppercase">GitHub</Text>
-                        <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
-                    </Pressable>
+                    <View className="mt-3">
+                        <GitHubStatsCard
+                            username={(profileUser as any).githubUsername || profileUser.github_id.split('/').pop()}
+                            stats={(profileUser as any).githubStats}
+                            isOwner={false}
+                        />
+                    </View>
                 )}
-                {!!profileUser?.linkedIn_id && (
-                    <Pressable onPress={() => Linking.openURL(profileUser.linkedIn_id!).catch(() => {})} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
-                        <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
-                        <Text className="text-ink ml-4 font-display uppercase">LinkedIn</Text>
-                        <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
-                    </Pressable>
-                )}
-                {!!profileUser?.codingProfiles?.leetcode && (
-                    <Pressable onPress={() => Linking.openURL(`https://leetcode.com/${profileUser.codingProfiles?.leetcode}`).catch(() => {})} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
-                        <ExpoImage source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} style={{ width: 24, height: 24 }} tintColor="#F5B700" cachePolicy="memory-disk" />
-                        <Text className="text-ink ml-4 font-display uppercase">LeetCode</Text>
-                        <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
-                    </Pressable>
-                )}
-                {!!profileUser?.codingProfiles?.gfg && (
-                    <Pressable onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${profileUser.codingProfiles?.gfg}`).catch(() => {})} className="flex-row items-center bg-card px-5 py-4 rounded-card border border-line shadow-hair">
-                        <ExpoImage source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }} style={{ width: 24, height: 24 }} cachePolicy="memory-disk" />
-                        <Text className="text-ink ml-4 font-display uppercase">GeeksForGeeks</Text>
-                        <Ionicons name="open-outline" size={18} color={C.ink3} style={{ marginLeft: 'auto' }} />
-                    </Pressable>
+
+                {hasLinks && (
+                    <ProfileSection title="Connect">
+                        {!!profileUser?.github_id && (
+                            <ListRow icon="logo-github" title="GitHub" right={<Ionicons name="open-outline" size={18} color={C.ink3} />}
+                                onPress={() => Linking.openURL(profileUser.github_id!).catch(() => {})} />
+                        )}
+                        {!!profileUser?.linkedIn_id && (
+                            <ListRow leading={<IconTile icon="logo-linkedin" color="#0077B5" />} title="LinkedIn"
+                                right={<Ionicons name="open-outline" size={18} color={C.ink3} />}
+                                onPress={() => Linking.openURL(profileUser.linkedIn_id!).catch(() => {})} />
+                        )}
+                        {!!cp?.leetcode && (
+                            <ListRow
+                                leading={<View className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center">
+                                    <ExpoImage source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png" }} style={{ width: 20, height: 20 }} tintColor="#F5B700" cachePolicy="memory-disk" />
+                                </View>}
+                                title="LeetCode" right={<Ionicons name="open-outline" size={18} color={C.ink3} />}
+                                onPress={() => Linking.openURL(`https://leetcode.com/${cp.leetcode}`).catch(() => {})} />
+                        )}
+                        {!!cp?.gfg && (
+                            <ListRow
+                                leading={<View className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center">
+                                    <ExpoImage source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/4/43/GeeksforGeeks.svg" }} style={{ width: 20, height: 20 }} cachePolicy="memory-disk" />
+                                </View>}
+                                title="GeeksForGeeks" right={<Ionicons name="open-outline" size={18} color={C.ink3} />}
+                                onPress={() => Linking.openURL(`https://www.geeksforgeeks.org/user/${cp.gfg}`).catch(() => {})} />
+                        )}
+                    </ProfileSection>
                 )}
             </View>
-        </View>
-    );
+        );
+    };
 
     // --- RECRUITER PROFILE LAYOUT ---
     // Also a render function: as a nested component it remounted on every parent
     // render, refetching its stats and jumping the ScrollView back to the top.
     const renderRecruiterProfile = () => {
+        const p = profileUser as any;
         return (
             <View className="flex-1 bg-paper">
             <View className="absolute left-0 right-0 top-0 z-20" pointerEvents="box-none">
                 <AppBar overlay onBack={() => navigation.goBack()} right={profileMenu} />
             </View>
-            <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 bg-paper" showsVerticalScrollIndicator={false}>
-                {/* Banner & Actions */}
-                <View className="h-48 w-full relative">
+            <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 bg-paper" showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
+                <View className="h-48 w-full">
                     <ExpoImage
-                        source={{ uri: getFullUrl((profileUser as any)?.banner) || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000' }}
-                        style={{ width: '100%', height: '100%' }}
+                        source={{ uri: getFullUrl(p?.banner) || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000' }}
+                        style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }}
                         contentFit="cover"
+                        cachePolicy="disk"
                     />
                     <View className="absolute inset-0 bg-black/30" />
                 </View>
 
-                {/* Info Card Overlay */}
-                <View className="px-5 -mt-12 pb-6">
+                <View className="px-gutter -mt-12">
                     <View className="flex-row items-end justify-between">
                         <AvatarZoom avatar={profileUser?.avatar} className="p-1.5 bg-card rounded-full shadow-hair">
                             <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
                                 <Avatar user={profileUser as any} size={100} />
                             </View>
                         </AvatarZoom>
-                        <View className="flex-row gap-2 mb-2">
-                            <TouchableOpacity onPress={startChat} className="bg-ink px-6 py-2.5 flex-row items-center gap-2 border-2 border-ink rounded-md">
-                                <Ionicons name="chatbubble-ellipses-outline" size={18} color={C.paper} />
-                                <Text className="text-paper font-display uppercase text-label">Message</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <Button small title="Message" icon="chatbubble-ellipses-outline" onPress={startChat} style={{ marginBottom: 8 }} />
                     </View>
 
                     <View className="mt-4">
-                        <View className="flex-row items-center gap-2">
-                            <Text className="text-2xl font-display text-ink uppercase" style={{ flexShrink: 1 }} numberOfLines={2}>
-                                {(profileUser as any)?.company || profileUser?.name}
+                        <View className="flex-row items-center" style={{ gap: 8 }}>
+                            <Text className="text-h1 font-display text-ink" style={{ flexShrink: 1 }} numberOfLines={2}>
+                                {p?.company || profileUser?.name}
                             </Text>
-                            <MaterialCommunityIcons name="check-decagram" size={22} color={C.recruiter} />
+                            <MaterialCommunityIcons name="check-decagram" size={22} color={C.recruiter} accessibilityLabel="Verified recruiter" />
                         </View>
-                        <Text className="text-ink-3 font-semibold text-xs uppercase mt-1">
-                            {(profileUser as any)?.industry || 'Corporate Partner'} • {(profileUser as any)?.companySize || 'Growing Team'}
+                        <Text className="text-ink-3 font-medium text-sm mt-1">
+                            {p?.industry || 'Corporate Partner'} · {p?.companySize || 'Growing Team'}
                         </Text>
                     </View>
 
-                    {/* Quick Stats */}
-                    <View className="flex-row bg-ink rounded-card p-5 mt-6 shadow-hair border border-ink">
-                        <View className="flex-1 items-center border-r border-ink">
-                            <Text className="text-paper text-xl font-display">{recruiterStats.active}</Text>
-                            <Text className="text-ink-3 text-label font-display uppercase mt-1">Active Roles</Text>
-                        </View>
-                        <View className="flex-1 items-center">
-                            <Text className="text-paper text-xl font-display">{recruiterStats.total}</Text>
-                            <Text className="text-ink-3 text-label font-display uppercase mt-1">Total Posts</Text>
-                        </View>
-                    </View>
+                    <StatsCard items={[
+                        { label: 'Active roles', value: recruiterStats.active },
+                        { label: 'Total posts', value: recruiterStats.total },
+                    ]} />
 
-                    {/* About */}
-                    <View className="mt-8 bg-card p-6 rounded-sheet border border-line shadow-hair">
-                        <View className="flex-row items-center gap-2 mb-4">
-                            <View className="w-1 h-5 rounded-full bg-recruiter" />
-                            <Text className="font-semibold text-base text-ink">About Organization</Text>
-                        </View>
-                        <Text className="text-ink-3 text-xs leading-5">
+                    <Card padded style={{ marginTop: 12 }}>
+                        <Text className="font-semibold text-base text-ink mb-2" accessibilityRole="header">About organization</Text>
+                        <Text className="text-ink-2 text-sm leading-[22px]">
                             {profileUser?.about || "We're committed to finding the best talent and building the future of innovation."}
                         </Text>
-
-                        <View className="gap-4 mt-6">
-                            <View className="flex-row items-center gap-4">
-                                <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
-                                    <Ionicons name="location-outline" size={20} color={C.danger} />
-                                </View>
-                                <View>
-                                    <Text className="text-ink-3 text-label font-display uppercase">Headquarters</Text>
-                                    <Text className="text-ink font-semibold text-sm">{(profileUser as any)?.college || 'India (Remote)'}</Text>
-                                </View>
-                            </View>
-                            {!!(profileUser as any)?.companyWebsite && (
-                                <TouchableOpacity
-                                    onPress={() => Linking.openURL((profileUser as any).companyWebsite).catch(() => {})}
-                                    className="flex-row items-center gap-4"
-                                >
-                                    <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
-                                        <Ionicons name="globe-outline" size={20} color={C.recruiter} />
-                                    </View>
-                                    <View>
-                                        <Text className="text-ink-3 text-label font-display uppercase">Official Website</Text>
-                                        <Text className="text-recruiter font-semibold text-sm underline">Visit Page</Text>
-                                    </View>
-                                </TouchableOpacity>
+                        <View className="mt-2">
+                            <ListRow icon="location-outline" title={p?.college || 'India (Remote)'} subtitle="Headquarters" />
+                            {!!p?.companyWebsite && (
+                                <ListRow icon="globe-outline" title="Visit website" subtitle="Official website"
+                                    right={<Ionicons name="open-outline" size={18} color={C.ink3} />}
+                                    onPress={() => Linking.openURL(p.companyWebsite).catch(() => {})} />
                             )}
                         </View>
-                    </View>
+                    </Card>
 
-                    {/* CTA Buttons */}
-                    <View className="flex-row gap-3 mt-8">
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('InternshipList', { recruiterId: profileUser?._id })}
-                            className="flex-1 bg-brand-500 p-4 rounded-card items-center shadow-hair"
-                        >
-                            <Ionicons name="school-outline" size={20} color={C.onBrand} className="mb-1" />
-                            <Text className="text-on-brand font-display uppercase text-label">View Internships</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('JobList', { recruiterId: profileUser?._id })}
-                            className="flex-1 bg-ink p-4 rounded-card items-center shadow-hair"
-                        >
-                            <Ionicons name="briefcase-outline" size={20} color={C.paper} className="mb-1" />
-                            <Text className="text-paper font-display uppercase text-label">View Job Openings</Text>
-                        </TouchableOpacity>
+                    <View className="flex-row mt-5" style={{ gap: 12 }}>
+                        <Button variant="primary" icon="school-outline" title="Internships" style={{ flex: 1 }}
+                            onPress={() => navigation.navigate('InternshipList', { recruiterId: profileUser?._id })} />
+                        <Button icon="briefcase-outline" title="Jobs" style={{ flex: 1 }}
+                            onPress={() => navigation.navigate('JobList', { recruiterId: profileUser?._id })} />
                     </View>
                 </View>
-                <View className="h-20" />
             </ScrollView>
             </View>
         );
@@ -676,138 +513,48 @@ const PublicProfile = () => {
                 onEndReachedThreshold={0.5}
                 ListHeaderComponent={
                     <View>
-                        {/* Banner Overlay */}
-                        <View className="h-64 w-full relative">
-                            <ExpoImage
-                                source={{ uri: getFullUrl((profileUser as any)?.banner) || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000' }}
-                                style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="disk" 
-                            />
-                            <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
-                        </View>
+                        <ProfileHero
+                            user={profileUser}
+                            banner={(profileUser as any)?.banner}
+                            bio={profileUser?.about || "Ready to connect and collaborate"}
+                            college={profileUser?.college}
+                        >
+                            <StatsCard items={[
+                                { label: 'Posts', value: postCount ?? posts.length },
+                                { label: 'Followers', value: profileUser?.followers?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "followers" }) },
+                                { label: 'Following', value: profileUser?.following?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "following" }) },
+                            ]} />
 
-                        {/* Top Profile Card */}
-                        <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
-                            <AvatarZoom avatar={profileUser?.avatar} className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
-                                <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
-                                    <Avatar user={profileUser as any} size={110} />
-                                </View>
-                            </AvatarZoom>
-
-                            {/* Name + username */}
-                            <Text className="font-display text-ink mt-4 text-h1">
-                                {profileUser?.name || profileUser?.username}
-                            </Text>
-                            <Text className="text-accent-text font-display text-sm mt-1">
-                                @{profileUser?.username}
-                            </Text>
-                            
-                            <Text className="text-ink-3 text-center mt-4 px-6 text-sm leading-[22px] font-medium">
-                                {profileUser?.about || "Ready to connect and collaborate"}
-                            </Text>
-
-                            <View className="flex-row items-center mt-4 px-4 py-2 bg-paper-2 rounded-card border border-line gap-2">
-                                <Ionicons name="location" size={16} color={C.brand[500]} />
-                                <Text className="font-semibold text-base text-ink">{profileUser?.college || 'Earth'}</Text>
-                            </View>
-
-                            {/* Stats Dashboard */}
-                            <View className="flex-row w-full bg-ink rounded-sheet mt-6 p-6 shadow-hair">
-                                {[
-                                    { label: 'Posts', value: postCount ?? posts.length },
-                                    { label: 'Followers', value: profileUser?.followers?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "followers" }) },
-                                    { label: 'Following', value: profileUser?.following?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "following" }) },
-                                ].map((s, i) => (
-                                    <React.Fragment key={i}>
-                                        {i > 0 && <View className="w-[1px] h-8 self-center bg-card/10" />}
-                                        <Pressable className="items-center flex-1" onPress={s.onPress}>
-                                            <Text className="text-xl font-display text-paper">{s.value}</Text>
-                                            <Text className="text-ink-3 text-label font-display uppercase mt-1">{s.label}</Text>
-                                        </Pressable>
-                                    </React.Fragment>
-                                ))}
-                            </View>
-
-                            {/* Action Buttons */}
                             {currentUser?._id !== profileUser._id && (
-                                <View className="flex-row gap-3 mt-6 w-full">
-                                    <Pressable
+                                <View className="flex-row mt-3 w-full" style={{ gap: 12 }}>
+                                    <Button
+                                        title={isFollowing ? "Following" : "Follow"}
+                                        icon={isFollowing ? "checkmark" : "person-add-outline"}
+                                        variant={isFollowing ? 'secondary' : 'primary'}
+                                        style={{ flex: 1 }}
                                         onPress={handleFollowToggle}
-                                        className={`flex-1 py-4 rounded-card items-center justify-center border shadow-hair ${isFollowing ? 'bg-card border-line ' : 'bg-brand-500 border-brand-500 '}`}
-                                    >
-                                        <Text className={`font-display uppercase text-sm ${isFollowing ? 'text-ink-3' : 'text-on-brand'}`}>
-                                            {isFollowing ? "Following" : "Follow"}
-                                        </Text>
-                                    </Pressable>
-                                    <Pressable
-                                        onPress={startChat}
-                                        className="flex-1 bg-ink py-4 items-center justify-center border-2 border-ink rounded-md"
-                                    >
-                                        <Text className="text-paper font-display uppercase text-xs">Message</Text>
-                                    </Pressable>
+                                    />
+                                    <Button title="Message" icon="chatbubble-ellipses-outline" style={{ flex: 1 }} onPress={startChat} />
                                 </View>
                             )}
-                        </View>
+                        </ProfileHero>
 
-                        {/* Custom Tab Bar */}
-                        <View className="flex-row border-b border-line bg-card">
-                            <Pressable onPress={() => setActiveTab('posts')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'posts' ? 'border-b-[3px] border-brand-500' : ''}`}>
-                                <Ionicons name="grid" size={22} color={activeTab === 'posts' ? C.brand[500] : C.ink3} />
-                            </Pressable>
-                            <Pressable onPress={() => setActiveTab('shorts')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'shorts' ? 'border-b-[3px] border-brand-500' : ''}`}>
-                                <Ionicons name="videocam" size={24} color={activeTab === 'shorts' ? C.brand[500] : C.ink3} />
-                            </Pressable>
-                            <Pressable onPress={() => setActiveTab('tags')} className={`flex-1 items-center pb-4 pt-4 ${activeTab === 'tags' ? 'border-b-[3px] border-brand-500' : ''}`}>
-                                <MaterialCommunityIcons name="account-details" size={26} color={activeTab === 'tags' ? C.brand[500] : C.ink3} />
-                            </Pressable>
-                        </View>
+                        <ProfileTabs items={PUBLIC_TABS} value={activeTab} onChange={setActiveTab} />
                     </View>
                 }
                 renderItem={renderTabItem}
                 ListFooterComponent={
                     isFetchingMore ? (
-                        <View className="py-4 bg-card">
-                            <ActivityIndicator size="small" color={C.brand[500]} />
+                        <View className="py-4">
+                            <ActivityIndicator size="small" color={C.ink3} />
                         </View>
                     ) : null
                 }
                 ListEmptyComponent={
-                    <View className="items-center mt-20 opacity-50 bg-paper-2">
-                        <Ionicons name={activeTab === 'shorts' ? "videocam-off-outline" : "images-outline"} size={48} color={C.ink4} />
-                        <Text className="text-ink-3 mt-2 font-semibold uppercase text-label">Nothing to see here</Text>
-                    </View>
+                    <Empty icon={activeTab === 'shorts' ? "videocam-off-outline" : "images-outline"} title="Nothing to see here" />
                 }
-                className="bg-paper-2"
                 contentContainerStyle={{ paddingBottom: insets.bottom }}
             />
-
-            {/* Light Modal */}
-            <Modal visible={modalVisible} transparent={true} animationType="fade" onRequestClose={() => setModalVisible(false)}>
-                <BlurView intensity={90} tint="light" className="flex-1 justify-center items-center px-4">
-                    <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} onPress={() => setModalVisible(false)} />
-
-                    {selectedItem && (
-                        <View className="w-full bg-card rounded-card overflow-hidden border border-line shadow-hair">
-                            <View className="w-full h-96 bg-paper-2 justify-center items-center relative">
-                                {activeTab === 'shorts' ? (
-                                    <View className="items-center">
-                                        <Ionicons name="play-circle" size={64} color={C.brand[500]} />
-                                        <Text className="text-ink-3 mt-2 font-semibold uppercase text-label">PREVIEW MODE</Text>
-                                    </View>
-                                ) : (
-                                    <ExpoImage source={{ uri: getFullUrl(selectedItem.image ? selectedItem.image[0] : '') || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
-                                )}
-                                <Pressable onPress={() => setModalVisible(false)} className="absolute top-4 right-4 bg-card/80 p-2 rounded-full">
-                                    <Ionicons name="close" size={20} color={C.ink} />
-                                </Pressable>
-                            </View>
-                            <View className="p-5">
-                                {activeTab === 'shorts' && <Text className="text-lg font-display text-ink mb-2 uppercase">{selectedItem.title}</Text>}
-                                <Text className="text-ink-3 font-medium leading-6">{selectedItem.description || "No caption."}</Text>
-                            </View>
-                        </View>
-                    )}
-                </BlurView>
-            </Modal>
         </View>
     );
 };

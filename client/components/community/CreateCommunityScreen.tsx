@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
-import {View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Dimensions, StatusBar, Modal, Platform} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import Feather from '@expo/vector-icons/Feather';
+import { View, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import RazorpayCheckout from 'react-native-razorpay';
 import { RAZORPAY_KEY_ID } from '../../constants/keys';
-import { WebView } from 'react-native-webview';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { Button, Sheet, FormField, SectionHeader, SegmentedTabs } from '../ui/kit';
+import { ImagePick, PayWebView, PLANS, PLAN_LABELS } from './shared';
 
-const { width } = Dimensions.get('window');
 
 const CreateCommunityScreen = () => {
     const navigation = useNavigation<any>();
@@ -199,164 +194,42 @@ const CreateCommunityScreen = () => {
         }
     };
 
-    const screenHeight = Dimensions.get('window').height;
-
     return (
-        <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1"
-            style={{ backgroundColor: C.scrim }}
-        >
+        <View className="flex-1">
             <StatusBar barStyle="light-content" />
-            
-            {/* Touchable backdrop to go back */}
-            <TouchableOpacity 
-                activeOpacity={1} 
-                onPress={() => navigation.goBack()} 
-                accessibilityRole="button"
-                accessibilityLabel="Close"
-                className="flex-1" 
-            />
-
-            <View 
-                className="w-full bg-paper rounded-t-sheet overflow-hidden"
-                style={{ height: screenHeight * 0.8 }}
+            <Sheet
+                visible
+                onClose={() => navigation.goBack()}
+                title="Create community"
+                subtitle="A paid space with rooms, feeds and announcements"
+                height="88%"
+                footer={<Button title={`Pay and create · ${plan === 'yearly' ? '₹999' : '₹99'}`} variant="primary" block loading={loading} onPress={handleCreate} />}
             >
-                <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
-                
-                <AppBar
-                    inset={false}
-                    title="Create Community"
-                    right={<IconBtn name="close" size={20} onPress={() => navigation.goBack()} />}
-                />
-
-                <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="px-gutter flex-1">
-                    <View className="flex-row items-center mt-4 mb-4" style={{ gap: 12 }}>
-                      <Text className="text-ink-3 font-display uppercase text-label">Visual Identity</Text>
-                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                <View style={{ gap: 16 }}>
+                    <View className="flex-row" style={{ gap: 12 }}>
+                        <ImagePick uri={banner} onPress={() => pickImage(setBanner, true)} label="Banner" style={{ flex: 2, height: 128 }} />
+                        <ImagePick uri={logo} onPress={() => pickImage(setLogo, false)} label="Logo" icon="camera-outline" style={{ flex: 1, height: 128 }} />
                     </View>
-                    <View className="flex-row gap-4 mb-10">
-                        <TouchableOpacity 
-                            onPress={() => pickImage(setBanner, true)}
-                            className="flex-[2] h-40 bg-card rounded-sheet border border-dashed border-line items-center justify-center overflow-hidden shadow-hair"
-                        >
-                            {banner ? (
-                                <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
-                            ) : (
-                                <View className="items-center">
-                                    <Feather name="image" size={24} color={C.ink4} />
-                                    <Text className="text-ink-4 font-display uppercase text-label mt-2">Banner Asset</Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            onPress={() => pickImage(setLogo, false)}
-                            className="flex-1 h-40 bg-card rounded-sheet border border-dashed border-line items-center justify-center overflow-hidden shadow-hair"
-                        >
-                            {logo ? (
-                                <Image source={{ uri: logo }} className="w-full h-full" resizeMode="cover" />
-                            ) : (
-                                <View className="items-center">
-                                    <Feather name="camera" size={24} color={C.ink4} />
-                                    <Text className="text-ink-4 font-display uppercase text-label mt-2">1:1 Logo</Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
-                    </View>
+                    <FormField label="Name" placeholder="Community name" value={name} onChangeText={setName} />
+                    <FormField label="About" placeholder="What is this community for?" multiline value={desc} onChangeText={setDesc} />
 
-                    <Text className="text-ink-3 font-display uppercase text-label mb-4">Core Directives</Text>
-                    <TextInput 
-                        placeholder="Ecosystem Designation" 
-                        placeholderTextColor={C.ink4}
-                        className="bg-card p-5 border-[1.5px] border-ink font-display text-xs mb-4 shadow-hair text-ink rounded-md" 
-                        value={name}
-                        onChangeText={setName}
-                    />
-                    <TextInput 
-                        placeholder="Describe the mission parameters of this hub..." 
-                        placeholderTextColor={C.ink4}
-                        multiline
-                        className="bg-card p-5 border-[1.5px] border-ink font-medium text-xs mb-10 h-32 text-ink-2 shadow-hair rounded-md" 
-                        textAlignVertical="top"
-                        value={desc}
-                        onChangeText={setDesc}
-                    />
+                    <SectionHeader title="Plan" style={{ marginTop: 8, marginBottom: 0 }} />
+                    <SegmentedTabs items={PLANS} value={plan} onChange={setPlan} labels={PLAN_LABELS} />
 
-                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                      <Text className="text-ink-3 font-display uppercase text-label">Activation Tier</Text>
-                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                    </View>
-                    <View className="flex-row gap-3 mb-10">
-                        <TouchableOpacity 
-                            onPress={() => setPlan('monthly')}
-                            className={`flex-1 p-5 rounded-card border ${plan === 'monthly' ? 'bg-ink border-ink shadow-hair ' : 'bg-card border-line shadow-hair '}`}
-                        >
-                            <Text className={`font-display uppercase text-label ${plan === 'monthly' ? 'text-paper' : 'text-ink'}`}>Monthly</Text>
-                            <Text className={`font-semibold text-label mt-1 ${plan === 'monthly' ? 'text-paper/60' : 'text-ink-3'}`}>₹99 / 30 Days</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            onPress={() => setPlan('yearly')}
-                            className={`flex-1 p-5 rounded-card border ${plan === 'yearly' ? 'bg-brand-500 border-brand-500 shadow-hair ' : 'bg-card border-line shadow-hair '}`}
-                        >
-                            <View className="flex-row justify-between items-center">
-                                <Text className={`font-display uppercase text-label ${plan === 'yearly' ? 'text-on-brand' : 'text-ink'}`}>Yearly</Text>
-                                <View className="bg-card/20 px-2.5 py-1 rounded-full">
-                                    <Text className={`text-label ${plan === 'yearly' ? 'text-on-brand' : 'text-ink'} font-display uppercase`}>Elite</Text>
-                                </View>
-                            </View>
-                            <Text className={`font-semibold text-label mt-1 ${plan === 'yearly' ? 'text-white/90' : 'text-ink-3'}`}>₹999 / 365 Days</Text>
-                        </TouchableOpacity>
-                    </View>
+                    <SectionHeader title="Links" style={{ marginTop: 8, marginBottom: 0 }} />
+                    <FormField label="YouTube" placeholder="https://youtube.com/…" value={youtube} onChangeText={setYoutube} autoCapitalize="none" keyboardType="url" />
+                    <FormField label="GitHub" placeholder="https://github.com/…" value={github} onChangeText={setGithub} autoCapitalize="none" keyboardType="url" />
+                    <FormField label="Website" placeholder="https://…" value={website} onChangeText={setWebsite} autoCapitalize="none" keyboardType="url" />
+                </View>
+            </Sheet>
 
-                    <Text className="text-ink-3 font-display uppercase text-label mb-4">External Links</Text>
-                    <View className="bg-card p-6 rounded-sheet border border-line mb-10 shadow-hair">
-                        <View className="flex-row items-center gap-4 mb-6">
-                            <FontAwesome5 name="youtube" size={16} color={C.danger} />
-                            <TextInput placeholder="YouTube Protocol" placeholderTextColor={C.ink4} value={youtube} onChangeText={setYoutube} className="flex-1 font-display text-label text-ink" />
-                        </View>
-                        <View className="flex-row items-center gap-4 mb-6">
-                            <FontAwesome5 name="github" size={16} color={C.ink} />
-                            <TextInput placeholder="GitHub Repository" placeholderTextColor={C.ink4} value={github} onChangeText={setGithub} className="flex-1 font-display text-label text-ink" />
-                        </View>
-                        <View className="flex-row items-center gap-4">
-                            <Ionicons name="globe-outline" size={16} color={C.brand[500]} />
-                            <TextInput placeholder="Web Portal" placeholderTextColor={C.ink4} value={website} onChangeText={setWebsite} className="flex-1 font-display text-label text-ink" />
-                        </View>
-                    </View>
-
-                    <TouchableOpacity 
-                        onPress={handleCreate}
-                        disabled={loading}
-                        className={`p-6 rounded-card items-center shadow-hair mb-20 ${loading ? 'bg-paper-2' : 'bg-ink '}`}
-                    >
-                        {loading ? <ActivityIndicator color={C.brand[500]} /> : (
-                            <View className="flex-row items-center">
-                                <Text className="text-paper font-display uppercase text-xs mr-3">Deploy Ecosystem Hub</Text>
-                                <Ionicons name="rocket" size={18} color={C.paper} />
-                            </View>
-                        )}
-                    </TouchableOpacity>
-                </ScrollView>
-            </View>
-
-            <Modal
+            <PayWebView
                 visible={showWebView}
-                animationType="slide"
-                statusBarTranslucent
-                onRequestClose={() => { setShowWebView(false); setLoading(false); }}
-            >
-                <SafeAreaView className="flex-1 bg-paper">
-                    <WebView
-                        source={{ html: webViewHtml }}
-                        onMessage={onWebViewMessage}
-                        javaScriptEnabled={true}
-                        domStorageEnabled={true}
-                        originWhitelist={['*']}
-                        style={{ flex: 1, backgroundColor: C.paper }}
-                    />
-                </SafeAreaView>
-            </Modal>
-        </KeyboardAvoidingView>
+                html={webViewHtml}
+                onMessage={onWebViewMessage}
+                onClose={() => { setShowWebView(false); setLoading(false); }}
+            />
+        </View>
     );
 };
 

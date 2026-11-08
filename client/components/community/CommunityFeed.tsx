@@ -1,15 +1,14 @@
-import React, { useCallback, useRef, useState } from 'react';
-import {View, Text, FlatList, TouchableOpacity, TextInput, Modal, ActivityIndicator, RefreshControl, StatusBar, KeyboardAvoidingView, Platform} from 'react-native'
+import React, { memo, useCallback, useRef, useState } from 'react';
+import { View, Text, FlatList, Pressable, ActivityIndicator, RefreshControl, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Button, Chip, ChipRow, Empty, Sheet, FormField } from '../ui/kit';
+import { VoteControl, ago } from './shared';
 import { useBottomInset } from '../../constants/layout';
 
 type Post = {
@@ -30,15 +29,36 @@ const SORTS = [
     { key: 'top', label: 'Top', icon: 'trophy-outline' },
 ] as const;
 
-const ago = (iso: string) => {
-    const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-    if (Number.isNaN(mins)) return '';
-    if (mins < 1) return 'now';
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
-    return `${Math.floor(hours / 24)}d`;
-};
+const PostRow = memo(function PostRow({ item, onOpen, onVote }: { item: Post; onOpen: (id: string) => void; onVote: (p: Post, dir: 1 | -1) => void }) {
+    return (
+        <Pressable
+            onPress={() => onOpen(item._id)}
+            accessibilityRole="button"
+            accessibilityLabel={item.title}
+            className="bg-card mx-5 mb-3 rounded-2xl border border-line p-4 active:opacity-70"
+        >
+            <Text className="text-ink-3 mb-1" style={{ fontSize: 12 }} numberOfLines={1}>
+                {item.author?.username || 'unknown'} · {ago(item.createdAt)}
+            </Text>
+            <Text className="text-ink font-semibold" style={{ fontSize: 16, lineHeight: 22 }}>{item.title}</Text>
+            {!!item.body && (
+                <Text numberOfLines={3} className="text-ink-2 mt-1" style={{ fontSize: 14, lineHeight: 20 }}>{item.body}</Text>
+            )}
+            {!!item.image?.length && (
+                <Image source={{ uri: item.image[0] }} style={{ width: '100%', height: 176, borderRadius: 12, marginTop: 12, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
+            )}
+            <View className="flex-row items-center mt-3" style={{ gap: 16 }}>
+                <VoteControl score={item.score} myVote={item.myVote} onVote={(d) => onVote(item, d)} />
+                <View className="flex-row items-center" style={{ gap: 6 }}>
+                    <Ionicons name="chatbubble-outline" size={16} color={C.ink3} />
+                    <Text className="text-ink-3" style={{ fontSize: 13 }}>
+                        {item.commentCount} {item.commentCount === 1 ? 'comment' : 'comments'}
+                    </Text>
+                </View>
+            </View>
+        </Pressable>
+    );
+});
 
 export default function CommunityFeed() {
     const navigation = useNavigation<any>();
@@ -104,7 +124,7 @@ export default function CommunityFeed() {
 
     // The arrow updates before the request resolves, and rolls back if it fails.
     // Waiting for a round-trip on every tap makes a feed feel broken.
-    const vote = async (post: Post, dir: 1 | -1) => {
+    const vote = useCallback(async (post: Post, dir: 1 | -1) => {
         const target = post.myVote === dir ? 0 : dir;
         const delta = target - post.myVote;
         const rollback = { myVote: post.myVote, score: post.score };
@@ -124,7 +144,7 @@ export default function CommunityFeed() {
             setPosts((prev) => prev.map((p) => (p._id === post._id ? { ...p, ...rollback } : p)));
             Alert.alert("Vote Failed", err.response?.data?.message || "Try again.");
         }
-    };
+    }, []);
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.7 });
@@ -161,142 +181,63 @@ export default function CommunityFeed() {
         }
     };
 
-    const renderPost = ({ item }: { item: Post }) => (
-        <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => navigation.navigate('CommunityPostDetail', { postId: item._id, subName })}
-            className="bg-card mx-5 mb-3 rounded-card border border-line shadow-hair flex-row overflow-hidden"
-        >
-            {/* Vote rail */}
-            <View className="bg-paper-2 px-3 py-5 items-center justify-start border-r border-line">
-                <TouchableOpacity onPress={() => vote(item, 1)} hitSlop={8}>
-                    <Ionicons name={item.myVote === 1 ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={26} color={item.myVote === 1 ? C.brand[500] : C.ink3} />
-                </TouchableOpacity>
-                <Text className={`font-display text-sm my-1 ${item.myVote === 1 ? 'text-accent-text' : item.myVote === -1 ? 'text-fam-career' : 'text-ink'}`}>
-                    {item.score}
-                </Text>
-                <TouchableOpacity onPress={() => vote(item, -1)} hitSlop={8}>
-                    <Ionicons name={item.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={26} color={item.myVote === -1 ? C.info : C.ink3} />
-                </TouchableOpacity>
-            </View>
-
-            <View className="flex-1 p-5">
-                <Text className="text-ink-3 font-display text-label uppercase mb-1" numberOfLines={1}>
-                    {item.author?.username || 'unknown'} · {ago(item.createdAt)}
-                </Text>
-                <Text className="text-ink font-semibold text-base leading-snug">{item.title}</Text>
-                {!!item.body && (
-                    <Text numberOfLines={3} className="text-ink-2 text-sm mt-2 leading-snug">{item.body}</Text>
-                )}
-                {!!item.image?.length && (
-                    <Image source={{ uri: item.image[0] }} style={{ width: '100%', height: 176, borderRadius: 20, marginTop: 12, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
-                )}
-                <View className="flex-row items-center mt-3">
-                    <Feather name="message-circle" size={14} color={C.ink3} />
-                    <Text className="text-ink-3 font-display text-label uppercase ml-2">
-                        {item.commentCount} {item.commentCount === 1 ? 'Comment' : 'Comments'}
-                    </Text>
-                </View>
-            </View>
-        </TouchableOpacity>
-    );
+    const openPost = useCallback((postId: string) => navigation.navigate('CommunityPostDetail', { postId, subName }), [navigation, subName]);
+    const renderPost = useCallback(({ item }: { item: Post }) => <PostRow item={item} onOpen={openPost} onVote={vote} />, [openPost, vote]);
 
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
-            <View className="flex-1">
-                <AppBar
-                    title={subName}
-                    onBack={() => navigation.goBack()}
-                    right={<IconBtn name="add" boxed onPress={() => setComposerOpen(true)} />}
-                />
+            <AppBar
+                title={subName}
+                onBack={() => navigation.goBack()}
+                right={<IconBtn name="add" boxed onPress={() => setComposerOpen(true)} accessibilityLabel="New post" />}
+            />
 
-                <View className="flex-row px-5 gap-2 mb-4">
-                    {SORTS.map((s) => (
-                        <TouchableOpacity
-                            key={s.key}
-                            onPress={() => changeSort(s.key)}
-                            className={`flex-row items-center px-4 h-10 rounded-xl border ${sort === s.key ? 'bg-ink border-ink' : 'bg-card border-line'}`}
-                        >
-                            <Ionicons name={s.icon as any} size={14} color={sort === s.key ? C.paper : C.ink3} />
-                            <Text className={`font-display text-label uppercase ml-2 ${sort === s.key ? 'text-paper' : 'text-ink-3'}`}>
-                                {s.label}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
+            <ChipRow style={{ marginBottom: 12 }}>
+                {SORTS.map((s) => (
+                    <Chip key={s.key} icon={s.icon} label={s.label} active={sort === s.key} onPress={() => changeSort(s.key)} />
+                ))}
+            </ChipRow>
 
-                {loading ? (
-                    <ActivityIndicator size="large" color={C.brand[500]} className="mt-10" />
-                ) : (
-                    <FlatList keyboardShouldPersistTaps="handled"
-                        data={posts}
-                        keyExtractor={(p) => p._id}
-                        renderItem={renderPost}
-                        contentContainerStyle={{ paddingBottom: bottomInset + 24 }}
-                        onEndReached={loadMore}
-                        onEndReachedThreshold={0.4}
-                        ListFooterComponent={loadingMore ? <ActivityIndicator color={C.brand[500]} className="my-4" /> : null}
-                        refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setCursor(null); fetchFeed(sort); }} tintColor={C.brand[500]} />
-                        }
-                        ListEmptyComponent={
-                            <View className="bg-paper-2 mx-5 p-card-pad rounded-sheet items-center border border-line border-dashed">
-                                <Feather name="feather" size={32} color={C.ink4} />
-                                <Text className="font-sans text-sm text-ink-3 mt-4 text-center">Nothing posted yet</Text>
-                            </View>
-                        }
-                    />
-                )}
-            </View>
-
-            <Modal visible={composerOpen} animationType="slide" statusBarTranslucent onRequestClose={() => setComposerOpen(false)}>
-                <SafeAreaView className="flex-1 bg-paper" edges={['bottom']}>
-                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-                        <AppBar
-                            title="New Post"
-                            onBack={() => setComposerOpen(false)}
-                            right={<TouchableOpacity
-                                onPress={submitPost}
-                                disabled={posting || !title.trim()}
-                                style={{ marginRight: 11 }}
-                                className={`px-5 h-10 rounded-xl items-center justify-center ${posting || !title.trim() ? 'bg-paper-2' : 'bg-ink'}`}
-                            >
-                                {posting
-                                    ? <ActivityIndicator color={C.ink} size="small" />
-                                    : <Text className="text-paper font-display uppercase text-label">Post</Text>}
-                            </TouchableOpacity>}
+            {loading ? (
+                <ActivityIndicator size="large" color={C.brand[500]} className="mt-10" />
+            ) : (
+                <FlatList keyboardShouldPersistTaps="handled"
+                    data={posts}
+                    keyExtractor={(p) => p._id}
+                    renderItem={renderPost}
+                    contentContainerStyle={{ paddingBottom: bottomInset + 24 }}
+                    onEndReached={loadMore}
+                    onEndReachedThreshold={0.4}
+                    ListFooterComponent={loadingMore ? <ActivityIndicator color={C.brand[500]} className="my-4" /> : null}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setCursor(null); fetchFeed(sort); }} tintColor={C.brand[500]} />
+                    }
+                    ListEmptyComponent={
+                        <Empty
+                            icon="create-outline"
+                            title="Nothing posted yet"
+                            action={<Button title="Write a post" variant="primary" onPress={() => setComposerOpen(true)} />}
                         />
+                    }
+                />
+            )}
 
-                        <View className="p-5 flex-1">
-                            <TextInput
-                                value={title}
-                                onChangeText={setTitle}
-                                placeholder="Title"
-                                placeholderTextColor={C.ink3}
-                                maxLength={300}
-                                className="text-ink text-xl font-display mb-4"
-                            />
-                            <TextInput
-                                value={body}
-                                onChangeText={setBody}
-                                placeholder="Body (optional)"
-                                placeholderTextColor={C.ink3}
-                                multiline
-                                className="text-ink-2 text-base flex-1 leading-relaxed"
-                                textAlignVertical="top"
-                            />
-                            {!!image && <Image source={{ uri: image }} style={{ width: '100%', height: 160, borderRadius: 20, marginBottom: 12 }} contentFit="cover" />}
-                            <TouchableOpacity onPress={pickImage} className="flex-row items-center h-12 px-4 bg-paper-2 rounded-card border border-line">
-                                <Feather name="image" size={16} color={C.brand[500]} />
-                                <Text className="text-ink-3 font-display uppercase text-label ml-3">
-                                    {image ? 'Change Image' : 'Add Image'}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </KeyboardAvoidingView>
-                </SafeAreaView>
-            </Modal>
+            <Sheet
+                visible={composerOpen}
+                onClose={() => setComposerOpen(false)}
+                title="New post"
+                footer={<Button title="Post" variant="primary" block loading={posting} disabled={!title.trim()} onPress={submitPost} />}
+            >
+                <View style={{ gap: 16 }}>
+                    <FormField label="Title" placeholder="Title" value={title} onChangeText={setTitle} maxLength={300} />
+                    <FormField label="Body" placeholder="Optional" value={body} onChangeText={setBody} multiline />
+                    {!!image && <Image source={{ uri: image }} style={{ width: '100%', height: 160, borderRadius: 12 }} contentFit="cover" />}
+                    <View className="flex-row">
+                        <Button small variant="tertiary" icon="image-outline" title={image ? 'Change image' : 'Add image'} onPress={pickImage} />
+                    </View>
+                </View>
+            </Sheet>
         </View>
     );
 }

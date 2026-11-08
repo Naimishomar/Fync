@@ -1,22 +1,87 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {View, Text, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, Modal, ScrollView} from 'react-native'
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { View, Text, Pressable, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn, Empty, Button } from '../ui/kit';
+import { AppBar, IconBtn, Empty, Button, Sheet, FormField } from '../ui/kit';
+import { ChatComposer, clock } from '../community/shared';
 import Avatar from '../Avatar';
+
+const votesOf = (opts: any[] = []) => opts.reduce((acc: number, o: any) => acc + (o.votes?.length ?? 0), 0);
+
+const ClubMessage = memo(function ClubMessage({ item, myId, senderIsAdmin, onVote }: { item: any; myId?: string; senderIsAdmin: boolean; onVote: (id: string, idx: number) => void }) {
+    const isMine = item.sender?._id === myId;
+    const total = votesOf(item.pollOptions);
+    return (
+        <View className={`mb-3 flex-row ${isMine ? 'justify-end' : 'justify-start'}`} style={{ gap: 8 }}>
+            {!isMine && <Avatar user={item.sender} size={32} showBadge={false} />}
+            <View className={`max-w-[80%] rounded-2xl px-4 py-3 ${isMine ? 'bg-paper-2' : 'bg-card border border-line'}`}>
+                {!isMine && (
+                    <Text className="text-ink font-semibold mb-1" style={{ fontSize: 13 }}>
+                        {item.sender?.name}{senderIsAdmin ? ' · Admin' : ''}
+                    </Text>
+                )}
+
+                {item.fileUrl && (
+                    <View className="mb-2">
+                        {item.fileType === 'image' ? (
+                            <Image source={{ uri: item.fileUrl }} style={{ width: 192, height: 192, borderRadius: 12, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
+                        ) : (
+                            <View className="bg-paper-2 p-2 rounded-xl flex-row items-center" style={{ gap: 8 }}>
+                                <Ionicons name="document-outline" size={20} color={C.ink2} />
+                                <Text className="text-ink-2 font-semibold" style={{ fontSize: 13, flexShrink: 1 }} numberOfLines={1}>{item.fileName}</Text>
+                            </View>
+                        )}
+                    </View>
+                )}
+
+                {item.isPoll ? (
+                    <View className="w-56">
+                        <Text className="text-ink font-semibold mb-3" style={{ fontSize: 15 }}>{item.pollQuestion}</Text>
+                        {(item.pollOptions ?? []).map((opt: any, idx: number) => {
+                            const pct = total === 0 ? 0 : ((opt.votes?.length ?? 0) / total) * 100;
+                            const hasVoted = !!opt.votes?.includes(myId);
+                            return (
+                                <Pressable
+                                    key={idx}
+                                    onPress={() => onVote(item._id, idx)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`${opt.optionText}, ${Math.round(pct)} percent`}
+                                    accessibilityState={{ selected: hasVoted }}
+                                    className={`mb-2 bg-paper-2 rounded-xl overflow-hidden border active:opacity-70 ${hasVoted ? 'border-brand-500' : 'border-line'}`}
+                                >
+                                    <View className="flex-row items-center justify-between p-3">
+                                        <View className="absolute left-0 top-0 bottom-0 bg-brand-500/15" style={{ width: `${pct}%` }} />
+                                        <View className="flex-row items-center flex-1" style={{ gap: 6 }}>
+                                            <Text className="text-ink font-semibold" style={{ fontSize: 13 }}>{opt.optionText}</Text>
+                                            {hasVoted && <Ionicons name="checkmark-circle" size={14} color={C.brand[500]} />}
+                                        </View>
+                                        <Text className="text-ink-2 font-semibold" style={{ fontSize: 12, fontVariant: ['tabular-nums'] }}>{Math.round(pct)}%</Text>
+                                    </View>
+                                </Pressable>
+                            );
+                        })}
+                        <Text className="text-ink-3 mt-1" style={{ fontSize: 12 }}>{total} {total === 1 ? 'vote' : 'votes'}</Text>
+                    </View>
+                ) : (
+                    <Text className="text-ink" style={{ fontSize: 15, lineHeight: 21 }}>{item.text}</Text>
+                )}
+
+                <Text className="text-ink-3 text-right mt-1" style={{ fontSize: 11 }}>{clock(item.createdAt)}</Text>
+            </View>
+        </View>
+    );
+});
 
 const SubGroupChat = ({ navigation, route }: any) => {
     const { subGroupId, subGroupName, clubId } = route.params ?? {};
     const { user } = useAuth();
-    const insets = useSafeAreaInsets();
     
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -171,84 +236,11 @@ const SubGroupChat = ({ navigation, route }: any) => {
     const isRoomAdmin = subGroup?.admins?.some((a: any) => (a?._id || a) === user?._id) || clubAdmins.includes(user?._id);
     const canType = !subGroup?.onlyAdminsCanMessage || isRoomAdmin;
 
-    const renderMessage = ({ item }: { item: any }) => {
-        const isMine = item.sender?._id === user?._id;
-        const isAdmin = clubAdmins.includes(item.sender?._id);
-
-        return (
-            <View className={`mb-4 flex-row ${isMine ? 'justify-end' : 'justify-start'}`}>
-                {!isMine && (
-                    <View className="mr-2"><Avatar user={item.sender} size={32} showBadge={false} /></View>
-                )}
-                <View className={`max-w-[80%] rounded-card px-4 py-3 ${isMine ? 'bg-paper-2' : 'bg-card border border-line'}`}>
-                    {!isMine && (
-                        <Text className="text-ink font-semibold text-label mb-1">{item.sender?.name} {isAdmin && '• [Admin]'}</Text>
-                    )}
-                    
-                    {item.fileUrl && (
-                        <View className="mb-2">
-                            {item.fileType === 'image' ? (
-                                <Image source={{ uri: item.fileUrl }} style={{ width: 192, height: 192, borderRadius: 8, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
-                            ) : (
-                                <View className="bg-paper-2 p-2 rounded-lg flex-row items-center border border-line">
-                                    <Feather name="file" size={20} color={C.ink2} />
-                                    <Text className="ml-2 text-ink-2 text-xs font-semibold" numberOfLines={1}>{item.fileName}</Text>
-                                </View>
-                            )}
-                        </View>
-                    )}
-
-                    {item.isPoll ? (
-                        <View className="w-56">
-                            <Text className="text-ink font-semibold text-sm mb-3">{item.pollQuestion}</Text>
-                            {(item.pollOptions ?? []).map((opt: any, idx: number) => {
-                                const totalVotes = item.pollOptions.reduce((acc: number, curr: any) => acc + (curr.votes?.length ?? 0), 0);
-                                const percentage = totalVotes === 0 ? 0 : ((opt.votes?.length ?? 0) / totalVotes) * 100;
-                                const hasVoted = !!opt.votes?.includes(user?._id);
-
-                                return (
-                                    <TouchableOpacity 
-                                        key={idx} 
-                                        onPress={() => voteInPoll(item._id, idx)}
-                                        className={`mb-2 bg-paper-2 rounded-lg overflow-hidden border ${hasVoted ? 'border-fam-career bg-fam-career/10' : 'border-line'}`}
-                                    >
-                                        <View className="flex-row items-center justify-between p-3 relative">
-                                            <View 
-                                                className={`absolute left-0 top-0 bottom-0 ${percentage === 100 ? 'bg-fam-career/40' : 'bg-fam-career/15'}`} 
-                                                style={{ width: `${percentage}%` }} 
-                                            />
-                                            <View className="flex-row items-center z-10 flex-1">
-                                                <Text className={`text-xs font-semibold ${hasVoted ? 'text-fam-career' : 'text-ink'}`}>{opt.optionText}</Text>
-                                                {hasVoted && (
-                                                    <Ionicons name="checkmark-circle" size={14} color={C.info} style={{ marginLeft: 6 }} />
-                                                )}
-                                            </View>
-                                            <Text className={`text-label font-display z-10 ${percentage === 100 ? 'text-ink' : 'text-ink-3'}`}>{Math.round(percentage)}%</Text>
-                                        </View>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                            <View className="mt-2 pt-2 border-t border-line flex-row items-center justify-between">
-                                <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                                    <Text className="text-ink-3 text-label font-display uppercase">
-                                        {(item.pollOptions ?? []).reduce((acc: number, curr: any) => acc + (curr.votes?.length ?? 0), 0)} Votes
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    ) : (
-                        <Text className="text-base text-ink">{item.text}</Text>
-                    )}
-
-                    <View className="flex-row justify-end mt-1">
-                         <Text className={`text-label font-semibold ${isMine ? 'text-ink-3' : 'text-ink-4'}`}>
-                            {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                    </View>
-                </View>
-            </View>
-        );
-    };
+    const myId = user?._id;
+    const renderMessage = useCallback(({ item }: { item: any }) => (
+        <ClubMessage item={item} myId={myId} senderIsAdmin={clubAdmins.includes(item.sender?._id)} onVote={voteInPoll} />
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ), [myId, clubAdmins]);
 
     return (
         <View className="flex-1 bg-paper">
@@ -258,129 +250,80 @@ const SubGroupChat = ({ navigation, route }: any) => {
                     title={subGroupName}
                     onBack={() => navigation.goBack()}
                     right={<>
-                        <IconBtn name="information-circle-outline" color={C.ink2} onPress={() => navigation.navigate('EditSubGroup', { subGroupId })} />
+                        <IconBtn name="information-circle-outline" color={C.ink2} onPress={() => navigation.navigate('EditSubGroup', { subGroupId })} accessibilityLabel="Room settings" />
                         {isRoomAdmin && (
-                            <IconBtn name="bar-chart-outline" color={C.ink2} onPress={() => setShowPollModal(true)} />
+                            <IconBtn name="bar-chart-outline" color={C.ink2} onPress={() => setShowPollModal(true)} accessibilityLabel="Create poll" />
                         )}
                         {!subGroup?.isGeneral && (
-                            <IconBtn name="log-out-outline" color={C.danger} onPress={handleLeaveRoom} />
+                            <IconBtn name="log-out-outline" color={C.danger} onPress={handleLeaveRoom} accessibilityLabel="Leave room" />
                         )}
                     </>}
                 />
 
                 <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                {/* Chat Area */}
-                <View className="flex-1 bg-paper">
-                    {loading ? (
-                        <ActivityIndicator color={C.ink} className="mt-10" />
-                    ) : (
-                        <FlatList 
-                            ref={flatListRef}
-                            data={messages}
-                            keyExtractor={(item) => item._id}
-                            renderItem={renderMessage}
-                            contentContainerStyle={{ padding: 20 }}
-                            showsVerticalScrollIndicator={false}
-                            keyboardShouldPersistTaps="handled"
-                            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-                            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                            ListEmptyComponent={loadError ? (
-                                <Empty
-                                    icon="cloud-offline-outline"
-                                    title="Couldn't load messages"
-                                    action={<Button title="Try again" onPress={() => { setLoading(true); fetchMessages(); }} />}
-                                />
-                            ) : (
-                                <Empty icon="chatbubbles-outline" title="No messages yet" />
-                            )}
-                        />
-                    )}
-                </View>
-
-                {/* Input Area */}
-                    <View className="bg-card px-5 py-4 border-t border-line">
-                        {canType ? (
-                            <View className="flex-row items-end gap-3">
-                                <TouchableOpacity 
-                                    onPress={handlePickDocument}
-                                    className="w-11 h-11 bg-paper-2 rounded-card items-center justify-center mb-1"
-                                >
-                                    <Feather name="paperclip" size={20} color={C.ink2} />
-                                </TouchableOpacity>
-                                <View className="flex-1 min-h-[40px] max-h-32 bg-paper-2 rounded-card px-4 border border-line justify-center">
-                                    <TextInput placeholderTextColor={C.ink4} 
-                                        placeholder="Type message..." 
-                                        className="text-ink text-sm font-semibold"
-                                        multiline
-                                        value={text}
-                                        onChangeText={setText}
-                                    />
-                                </View>
-                                <TouchableOpacity 
-                                    onPress={() => handleSend()}
-                                    disabled={sending || (!text.trim())}
-                                    className={`w-11 h-11 rounded-card items-center justify-center mb-1 ${text.trim() ? 'bg-ink' : 'bg-paper-2'}`}
-                                >
-                                    {sending ? <ActivityIndicator color={C.paper} size="small" /> : <Feather name="arrow-up" size={24} color={text.trim() ? C.paper : C.ink4} />}
-                                </TouchableOpacity>
-                            </View>
+                    <View className="flex-1 bg-paper">
+                        {loading ? (
+                            <ActivityIndicator color={C.ink} className="mt-10" />
                         ) : (
-                            <View className="bg-paper-2 py-4 rounded-card items-center justify-center border border-dashed border-line">
-                                <Feather name="lock" size={14} color={C.ink3} />
-                                <Text className="text-ink-3 text-label font-display uppercase mt-1">Only admins can send messages</Text>
-                            </View>
+                            <FlatList
+                                ref={flatListRef}
+                                data={messages}
+                                keyExtractor={(item) => item._id}
+                                renderItem={renderMessage}
+                                contentContainerStyle={{ padding: 20 }}
+                                showsVerticalScrollIndicator={false}
+                                keyboardShouldPersistTaps="handled"
+                                keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+                                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                                ListEmptyComponent={loadError ? (
+                                    <Empty
+                                        icon="cloud-offline-outline"
+                                        title="Couldn't load messages"
+                                        action={<Button title="Try again" onPress={() => { setLoading(true); fetchMessages(); }} />}
+                                    />
+                                ) : (
+                                    <Empty icon="chatbubbles-outline" title="No messages yet" />
+                                )}
+                            />
                         )}
                     </View>
+
+                    <ChatComposer
+                        value={text}
+                        onChangeText={setText}
+                        onSend={() => handleSend()}
+                        sending={sending}
+                        onAttach={handlePickDocument}
+                        locked={!canType && 'Only admins can send messages'}
+                    />
                 </KeyboardAvoidingView>
 
-                {/* Poll Creation Modal */}
-                <Modal visible={showPollModal} animationType="slide" transparent statusBarTranslucent onRequestClose={() => setShowPollModal(false)}>
-                    <KeyboardAvoidingView className="flex-1 bg-black/60 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                        <ScrollView className="bg-paper rounded-t-sheet" style={{ flexGrow: 0, maxHeight: '92%' }} contentContainerStyle={{ padding: 16, paddingBottom: Math.max(insets.bottom, 16) + 8 }} keyboardShouldPersistTaps="handled">
-                            <View className="flex-row justify-between items-center mb-6">
-                                <Text className="text-ink font-display uppercase text-h1">Create Poll</Text>
-                                <TouchableOpacity onPress={() => setShowPollModal(false)} hitSlop={10}>
-                                    <Ionicons name="close" size={28} color={C.ink} />
-                                </TouchableOpacity>
-                            </View>
-                            
-                            <TextInput placeholderTextColor={C.ink4} 
-                                placeholder="What's your question?"
-                                className="bg-paper-2 p-4 rounded-card mb-4 font-semibold text-ink"
-                                value={pollQuestion}
-                                onChangeText={setPollQuestion}
+                <Sheet
+                    visible={showPollModal}
+                    onClose={() => setShowPollModal(false)}
+                    title="Create poll"
+                    footer={<Button title="Post poll" variant="primary" block onPress={handleCreatePoll} disabled={!pollQuestion.trim() || pollOptions.some(o => !o.trim())} />}
+                >
+                    <View style={{ gap: 12 }}>
+                        <FormField label="Question" placeholder="What's your question?" value={pollQuestion} onChangeText={setPollQuestion} />
+                        {pollOptions.map((opt, idx) => (
+                            <FormField
+                                key={idx}
+                                placeholder={`Option ${idx + 1}`}
+                                accessibilityLabel={`Option ${idx + 1}`}
+                                value={opt}
+                                onChangeText={(val) => {
+                                    const newOpts = [...pollOptions];
+                                    newOpts[idx] = val;
+                                    setPollOptions(newOpts);
+                                }}
                             />
-
-                            {pollOptions.map((opt, idx) => (
-                                <TextInput placeholderTextColor={C.ink4} 
-                                    key={idx}
-                                    placeholder={`Option ${idx + 1}`}
-                                    className="bg-paper-2 p-4 rounded-xl mb-3 text-ink"
-                                    value={opt}
-                                    onChangeText={(val) => {
-                                        const newOpts = [...pollOptions];
-                                        newOpts[idx] = val;
-                                        setPollOptions(newOpts);
-                                    }}
-                                />
-                            ))}
-
-                            <TouchableOpacity 
-                                onPress={() => setPollOptions([...pollOptions, ''])}
-                                className="items-center py-2"
-                            >
-                                <Text className="text-fam-career font-semibold">+ Add Option</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity 
-                                onPress={handleCreatePoll}
-                                className="bg-ink py-4 mt-6 items-center border-2 border-ink rounded-md"
-                            >
-                                <Text className="text-paper font-display uppercase">Post Poll</Text>
-                            </TouchableOpacity>
-                        </ScrollView>
-                    </KeyboardAvoidingView>
-                </Modal>
+                        ))}
+                        <View className="flex-row">
+                            <Button small variant="tertiary" icon="add" title="Add option" onPress={() => setPollOptions([...pollOptions, ''])} />
+                        </View>
+                    </View>
+                </Sheet>
             </SafeAreaView>
         </View>
     );

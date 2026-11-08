@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { AppBar } from '../../ui/kit';
+import { Button, FormField } from '../../ui/kit';
 import * as Print from 'expo-print';
 import { Alert } from '../../ui/AlertModal';
-import { sharePdf, savePdfToDevice } from './pdfKit';
-import { C } from '../../../constants/colors';
+import { ToolScreen, OptionCard, PdfResult } from './PdfToolShell';
 
 export default function UrlToPdfScreen() {
-  const navigation = useNavigation<any>();
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [pdf, setPdf] = useState<string | null>(null);
@@ -40,56 +34,21 @@ export default function UrlToPdfScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: C.paper }}>
-      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-        <AppBar title="Web Page to PDF" onBack={() => navigation.goBack()} />
+    <ToolScreen title="Web Page to PDF" blurb="Save a syllabus page, notice or article as a PDF you can read offline.">
+      <OptionCard>
+        <FormField
+          label="Page address" hint="Pages that need a login will not save."
+          value={url} onChangeText={(t) => { setUrl(t); setPdf(null); }}
+          placeholder="college.ac.in/notices" autoCapitalize="none" keyboardType="url" autoCorrect={false}
+        />
+      </OptionCard>
 
-        <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          <Text className="text-ink-2 text-sm mb-5">Save a syllabus page, notice or article as a PDF you can read offline.</Text>
+      <Button
+        variant="primary" block title="Save as PDF" onPress={build}
+        loading={busy} disabled={!url.trim()} style={{ marginBottom: 12 }}
+      />
 
-          <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-5">
-            <Text className="text-ink-3 font-display uppercase text-label mb-2">Page address</Text>
-            <TextInput
-              value={url} onChangeText={(t) => { setUrl(t); setPdf(null); }}
-              placeholder="college.ac.in/notices" placeholderTextColor={C.ink3}
-              className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
-              style={{ minHeight: 50 }} autoCapitalize="none" keyboardType="url" autoCorrect={false}
-            />
-            <Text className="text-ink-3 text-label mt-2">Pages that need a login will not save.</Text>
-          </View>
-
-          <TouchableOpacity onPress={build} disabled={busy || !url.trim()}
-            className={`w-full py-4 rounded-md items-center justify-center border-2 border-ink mb-3 ${busy || !url.trim() ? 'bg-paper-2' : 'bg-brand-500'}`}
-            accessibilityRole="button">
-            {busy ? <ActivityIndicator color={C.ink} />
-              : <Text className={`font-display uppercase text-base ${url.trim() ? 'text-on-brand' : 'text-ink-3'}`}>Save as PDF</Text>}
-          </TouchableOpacity>
-
-          {pdf && (
-            <View className="bg-card rounded-card p-card-pad border-2 border-ink mb-10" style={{ marginTop: 8 }}>
-              <Text className="text-ink font-display uppercase text-label mb-1">Done</Text>
-              <Text className="text-ink-2 text-sm mb-4">The page was saved as a PDF.</Text>
-              <View className="flex-row" style={{ gap: 12 }}>
-                <TouchableOpacity onPress={() => sharePdf(pdf).catch((e) => Alert.alert('Error', e.message))}
-                  className="flex-1 flex-row items-center justify-center bg-ink border-2 border-ink rounded-md" style={{ minHeight: 44 }}
-                  accessibilityRole="button">
-                  <Ionicons name="share-outline" size={16} color={C.paper} style={{ marginRight: 7 }} />
-                  <Text className="font-display text-paper uppercase" style={{ fontSize: 12 }}>Share</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => savePdfToDevice(pdf, 'fync-page.pdf')
-                    .then(() => Alert.alert('Saved', 'The file was saved to your device.'))
-                    .catch((e) => Alert.alert('Error', e.message))}
-                  className="flex-1 flex-row items-center justify-center bg-card border-[1.5px] border-line rounded-md" style={{ minHeight: 44 }}
-                  accessibilityRole="button">
-                  <Ionicons name="download-outline" size={16} color={C.ink} style={{ marginRight: 7 }} />
-                  <Text className="font-display text-ink uppercase" style={{ fontSize: 12 }}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-          <View style={{ height: 40 }} />
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+      {pdf && <PdfResult uri={pdf} filename="fync-page.pdf" note="The page was saved as a PDF." />}
+    </ToolScreen>
   );
 }

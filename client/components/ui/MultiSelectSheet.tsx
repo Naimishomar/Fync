@@ -1,17 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  Pressable,
-} from 'react-native';
+import { View, Text, FlatList, Pressable } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
-import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
+import { Sheet } from './Sheet';
+import { SearchField } from './Field';
+import { Button } from './kit';
 
 /**
  * "Everyone, or these specific ones."
@@ -49,7 +42,6 @@ const MultiSelectSheet = ({
   searchPlaceholder = 'Search',
 }: MultiSelectSheetProps) => {
   const [query, setQuery] = useState('');
-  const bottomInset = useBottomInset();
 
   useEffect(() => {
     if (!visible) setQuery('');
@@ -69,123 +61,78 @@ const MultiSelectSheet = ({
     );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
-      <Pressable className="flex-1 bg-ink/50 justify-end" onPress={onClose}>
-        {/* The sheet swallows taps so only the scrim dismisses. */}
-        <Pressable
-          className="bg-paper rounded-t-sheet border-t-2 border-ink"
-          style={{ height: '78%' }}
-          onPress={(e) => e.stopPropagation()}
-        >
-          <View className="flex-row items-center justify-between px-gutter pt-4 pb-3 border-b border-line">
-            <View className="flex-1 mr-3">
-              <Text className="text-ink text-base font-display">{title}</Text>
-              {hint ? <Text className="text-ink-3 text-label font-semibold mt-0.5">{hint}</Text> : null}
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title={title}
+      subtitle={hint}
+      closeLabel="Done"
+      height="78%"
+      scroll={false}
+      footer={
+        <Button
+          variant="solid"
+          block
+          onPress={onClose}
+          title={allSelected ? allLabel : `Done · ${selected.length} selected`}
+        />
+      }
+    >
+      {searchable ? (
+        <SearchField
+          value={query}
+          onChangeText={setQuery}
+          placeholder={searchPlaceholder}
+          containerStyle={{ marginHorizontal: 20, marginTop: 12 }}
+        />
+      ) : null}
+
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item}
+        keyboardShouldPersistTaps="handled"
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16, gap: 8 }}
+        ListHeaderComponent={
+          // Pinned above the list rather than buried in it: "open to
+          // everyone" is the common answer.
+          <Option label={allLabel} on={allSelected} onPress={() => onChange([])} radio />
+        }
+        renderItem={({ item }) => (
+          <Option label={item} on={selected.includes(item)} onPress={() => toggle(item)} />
+        )}
+        ListEmptyComponent={
+          <View className="items-center pt-12 px-6" style={{ gap: 12 }}>
+            <View className="w-14 h-14 rounded-full bg-paper-2 items-center justify-center">
+              <Ionicons name="search-outline" size={24} color={C.ink3} />
             </View>
-            <TouchableOpacity
-              onPress={onClose}
-              className="w-11 h-11 items-center justify-center"
-              accessibilityRole="button"
-              accessibilityLabel="Done"
-            >
-              <Ionicons name="close" size={22} color={C.ink} />
-            </TouchableOpacity>
+            <Text className="text-ink-3 font-sans text-center" style={{ fontSize: 13 }}>
+              Nothing matches “{query}”
+            </Text>
           </View>
-
-          {searchable ? (
-            <View className="px-gutter pt-3">
-              <View className="flex-row items-center bg-card border-2 border-ink rounded-md px-3" style={{ height: 46 }}>
-                <Feather name="search" size={16} color={C.ink3} />
-                <TextInput
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder={searchPlaceholder}
-                  placeholderTextColor={C.ink3}
-                  autoCorrect={false}
-                  className="flex-1 ml-2 text-ink text-sm"
-                  style={{ paddingVertical: 0 }}
-                />
-                {query.length ? (
-                  <TouchableOpacity onPress={() => setQuery('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear search">
-                    <Ionicons name="close-circle" size={17} color={C.ink4} />
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            </View>
-          ) : null}
-
-          <FlatList
-            data={filtered}
-            keyExtractor={(item) => item}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 + bottomInset }}
-            ListHeaderComponent={
-              // Pinned above the list rather than buried in it: "open to
-              // everyone" is the common answer.
-              <TouchableOpacity
-                onPress={() => onChange([])}
-                className={`flex-row items-center border-2 rounded-card p-4 mb-3 ${allSelected ? 'bg-brand-500 border-ink' : 'bg-card border-line'}`}
-                activeOpacity={0.85}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: allSelected }}
-              >
-                <Ionicons
-                  name={allSelected ? 'checkmark-circle' : 'ellipse-outline'}
-                  size={20}
-                  color={allSelected ? C.onBrand : C.ink3}
-                />
-                <Text className={`${allSelected ? 'text-on-brand' : 'text-ink'} text-sm font-semibold ml-3`}>{allLabel}</Text>
-              </TouchableOpacity>
-            }
-            renderItem={({ item }) => {
-              const on = selected.includes(item);
-              return (
-                <TouchableOpacity
-                  onPress={() => toggle(item)}
-                  className={`flex-row items-center border rounded-card p-3.5 mb-2 ${on ? 'bg-paper-2 border-ink' : 'bg-card border-line'}`}
-                  activeOpacity={0.85}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: on }}
-                >
-                  <Ionicons
-                    name={on ? 'checkbox' : 'square-outline'}
-                    size={19}
-                    color={on ? C.brand[700] : C.ink3}
-                  />
-                  <Text className="text-ink text-sm font-semibold ml-3 flex-1">{item}</Text>
-                </TouchableOpacity>
-              );
-            }}
-            ListEmptyComponent={
-              <View className="items-center pt-14 px-6">
-                <Feather name="search" size={24} color={C.ink4} />
-                <Text className="text-ink-2 text-label font-semibold mt-3 text-center">
-                  Nothing matches “{query}”
-                </Text>
-              </View>
-            }
-          />
-
-          <View
-            className="border-t border-line px-gutter pt-3 bg-paper"
-            style={{ paddingBottom: 12 + bottomInset }}
-          >
-            <TouchableOpacity
-              onPress={onClose}
-              className="items-center justify-center bg-ink border-2 border-ink rounded-card"
-              style={{ minHeight: 48 }}
-              activeOpacity={0.9}
-              accessibilityRole="button"
-            >
-              <Text className="text-paper text-sm font-semibold">
-                {allSelected ? allLabel : `Done · ${selected.length} selected`}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
+        }
+      />
+    </Sheet>
   );
 };
+
+/** One selectable row. `radio` for the "all" option, checkbox otherwise. */
+const Option = React.memo(function Option({
+  label, on, onPress, radio,
+}: { label: string; on: boolean; onPress: () => void; radio?: boolean }) {
+  const icon = radio ? (on ? 'checkmark-circle' : 'ellipse-outline') : on ? 'checkbox' : 'square-outline';
+  return (
+    <Pressable
+      onPress={onPress}
+      className={`flex-row items-center rounded-2xl border px-4 active:opacity-70 ${on ? 'bg-paper-2 border-ink' : 'bg-card border-line'}`}
+      style={{ minHeight: 52, gap: 12 }}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: on }}
+    >
+      <Ionicons name={icon} size={20} color={on ? C.ink : C.ink3} />
+      <Text className="text-ink font-medium flex-1" style={{ fontSize: 15 }} numberOfLines={2}>{label}</Text>
+    </Pressable>
+  );
+});
 
 export default MultiSelectSheet;

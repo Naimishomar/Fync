@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, RefreshControl, Linking, Dimensions, ActivityIndicator} from 'react-native'
+import { View, Text, ScrollView, RefreshControl, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { Image as ExpoImage } from 'expo-image';
@@ -12,10 +11,8 @@ import Avatar from './Avatar';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
 import { getFullUrl } from '../utils/imageUtils';
-import { AppBar, IconBtn } from './ui/kit';
+import { AppBar, Button, Card, Divider, H1, IconBtn, Label, ListRow, Num, SectionHeader, Tabs, Tag } from './ui/kit';
 import { useTabBarAutoHide, useTabBarClearance } from '../constants/layout';
-
-const { width } = Dimensions.get('window');
 
 const RecruiterProfile = () => {
     const autoHideTabBar = useTabBarAutoHide();
@@ -77,159 +74,94 @@ const RecruiterProfile = () => {
     };
 
     const renderHeader = () => (
-        <View className="bg-card">
+        <View>
             {/* Banner */}
-            <View className="h-44 w-full relative">
+            <View className="h-44 w-full">
                 <ExpoImage
                     // getFullUrl: an uploaded banner is a relative path, which rendered blank.
                     source={{ uri: getFullUrl(user?.banner) || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000' }}
                     style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }}
                     contentFit="cover"
+                    cachePolicy="memory-disk"
                 />
-                <View className="absolute inset-0 bg-black/20" />
             </View>
 
-            {/* Profile Info Overlay */}
-            <View className="px-5 -mt-12 pb-6">
-                <View className="flex-row items-end justify-between">
-                    <View className="p-1.5 bg-card rounded-full shadow-hair">
-                        <Avatar user={user as any} size={100} />
-                    </View>
+            <View className="px-gutter -mt-12">
+                <View className="self-start p-1 bg-paper rounded-full">
+                    <Avatar user={user as any} size={96} />
                 </View>
 
-                <View className="mt-4">
-                    <View className="flex-row items-center gap-2">
-                        <Text className="text-2xl font-display text-ink uppercase flex-shrink" numberOfLines={2}>
-                            {user?.company || user?.name}
-                        </Text>
-                        <MaterialCommunityIcons name="check-decagram" size={20} color={C.recruiter} />
+                <View className="mt-3">
+                    <View className="flex-row items-center" style={{ gap: 8 }}>
+                        <H1 style={{ flexShrink: 1 }} numberOfLines={2}>{user?.company || user?.name}</H1>
+                        <MaterialCommunityIcons name="check-decagram" size={20} color={C.recruiter} accessibilityLabel="Verified recruiter" />
                     </View>
-                    <Text className="text-ink-3 font-semibold text-xs uppercase mt-1">
-                        {user?.industry || 'Corporate Partner'} • {user?.companySize || 'Growing Team'}
+                    <Text className="text-ink-3 text-sm mt-1">
+                        {user?.industry || 'Corporate Partner'} · {user?.companySize || 'Growing Team'}
                     </Text>
 
-                    <View className="flex-row items-center gap-4 mt-4">
-                        <View className="flex-row items-center gap-1.5 bg-paper-2 px-3 py-1.5 rounded-full">
-                            <Ionicons name="business-outline" size={14} color={C.ink3} />
-                            <Text className="text-ink-2 text-label font-semibold uppercase">{user?.role || 'Hiring Manager'}</Text>
-                        </View>
+                    <View className="flex-row flex-wrap items-center mt-3" style={{ gap: 8 }}>
+                        <Tag icon="business-outline" label={user?.role || 'Hiring Manager'} />
                         {user?.companyWebsite && (
-                            <TouchableOpacity
+                            <Button
+                                small
+                                icon="globe-outline"
+                                title="Visit website"
                                 onPress={() => Linking.openURL(user.companyWebsite).catch(() => {})}
-                                className="flex-row items-center gap-1.5 bg-recruiter/10 px-3 py-1.5 rounded-full"
-                            >
-                                <Ionicons name="globe-outline" size={14} color={C.recruiter} />
-                                <Text className="text-recruiter text-label font-semibold uppercase">Visit Website</Text>
-                            </TouchableOpacity>
+                            />
                         )}
                     </View>
 
-                    <Text className="text-ink-3 text-xs mt-4 leading-5">
+                    <Text className="text-ink-2 text-sm mt-3 leading-5">
                         {user?.about || "We're committed to finding the best talent and building the future of innovation."}
                     </Text>
                 </View>
 
-                {/* Corporate Stats Card */}
-                <View className="flex-row bg-ink rounded-card p-5 mt-6 shadow-hair border border-ink">
-                    <View className="flex-1 items-center border-r border-ink">
-                        <Text className="text-paper text-xl font-display">{stats.activePosts}</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase mt-1">Active Roles</Text>
-                    </View>
-                    <View className="flex-1 items-center border-r border-ink">
-                        <Text className="text-paper text-xl font-display">{stats.totalApplicants}</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase mt-1">Total Applicants</Text>
-                    </View>
-                    <View className="flex-1 items-center">
-                        <Text className="text-paper text-xl font-display">{stats.totalPosts}</Text>
-                        <Text className="text-ink-3 text-label font-display uppercase mt-1">Total Posts</Text>
-                    </View>
-                </View>
+                {/* Stats */}
+                <Card style={{ flexDirection: 'row', paddingVertical: 16, marginTop: 16 }}>
+                    {[
+                        { n: stats.activePosts, l: 'Active roles' },
+                        { n: stats.totalApplicants, l: 'Applicants' },
+                        { n: stats.totalPosts, l: 'Total posts' },
+                    ].map((x, i) => (
+                        <View key={x.l} className={`flex-1 items-center ${i < 2 ? 'border-r border-line' : ''}`}>
+                            <Num style={{ fontSize: 20 }}>{x.n}</Num>
+                            <Label style={{ marginTop: 2 }}>{x.l}</Label>
+                        </View>
+                    ))}
+                </Card>
             </View>
         </View>
     );
 
     const renderAboutTab = () => (
-        <View className="p-5">
-            {/* Company Highlights */}
-            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mb-4">
-                <View className="flex-row items-center gap-2 mb-4">
-                    <View className="w-1 h-5 rounded-full bg-recruiter" />
-                    <Text className="font-semibold text-base text-ink">Company Overview</Text>
-                </View>
+        <View className="px-gutter">
+            <SectionHeader title="Company overview" />
+            <Card style={{ paddingHorizontal: 16 }}>
+                <ListRow icon="briefcase-outline" title={user?.industry || 'Technology & Services'} subtitle="Industry" />
+                <Divider />
+                <ListRow icon="people-outline" title={user?.companySize || '50-200 Employees'} subtitle="Company size" />
+                <Divider />
+                <ListRow icon="location-outline" title={user?.college || 'India (Remote)'} subtitle="Headquarters" />
+            </Card>
 
-                <View className="gap-4">
-                    <View className="flex-row items-center gap-4">
-                        <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
-                            <Ionicons name="briefcase-outline" size={20} color={C.recruiter} />
-                        </View>
-                        <View>
-                            <Text className="text-ink-3 text-label font-display uppercase">Industry</Text>
-                            <Text className="text-ink font-semibold text-sm">{user?.industry || 'Technology & Services'}</Text>
-                        </View>
-                    </View>
+            <SectionHeader title="Contact information" />
+            <Card style={{ paddingHorizontal: 16 }}>
+                <ListRow icon="mail-outline" title={user?.email || ''} subtitle="Professional email" />
+                <Divider />
+                <ListRow
+                    icon="logo-linkedin"
+                    title="LinkedIn profile"
+                    subtitle="View profile"
+                    onPress={() => user?.linkedIn_id && Linking.openURL(user.linkedIn_id).catch(() => {})}
+                />
+            </Card>
 
-                    <View className="flex-row items-center gap-4">
-                        <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
-                            <Ionicons name="people-outline" size={20} color={C.success} />
-                        </View>
-                        <View>
-                            <Text className="text-ink-3 text-label font-display uppercase">Company Size</Text>
-                            <Text className="text-ink font-semibold text-sm">{user?.companySize || '50-200 Employees'}</Text>
-                        </View>
-                    </View>
-
-                    <View className="flex-row items-center gap-4">
-                        <View className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center">
-                            <Ionicons name="location-outline" size={20} color={C.danger} />
-                        </View>
-                        <View>
-                            <Text className="text-ink-3 text-label font-display uppercase">Headquarters</Text>
-                            <Text className="text-ink font-semibold text-sm">{user?.college || 'India (Remote)'}</Text>
-                        </View>
-                    </View>
-                </View>
-            </View>
-
-            {/* Recruiter Details */}
-            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
-                <View className="flex-row items-center gap-2 mb-4">
-                    <View className="w-1 h-5 rounded-full bg-brand-500" />
-                    <Text className="font-semibold text-base text-ink">Contact Information</Text>
-                </View>
-
-                <View className="gap-3">
-                    <View className="flex-row items-center justify-between py-3 border-b border-line">
-                        <Text className="text-ink-3 text-label font-display uppercase">Professional Email</Text>
-                        <Text className="text-ink font-semibold text-sm flex-shrink ml-3" numberOfLines={1}>{user?.email}</Text>
-                    </View>
-                    <View className="flex-row items-center justify-between py-3">
-                        <Text className="text-ink-3 text-label font-display uppercase">LinkedIn Profile</Text>
-                        <TouchableOpacity onPress={() => user?.linkedIn_id && Linking.openURL(user.linkedIn_id).catch(() => {})}>
-                            <Text className="text-recruiter font-semibold text-sm">View Profile</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
-
-            {/* Help & Support Section */}
-            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mt-4">
-                <View className="flex-row items-center gap-2 mb-4">
-                    <View className="w-1 h-5 rounded-full bg-success" />
-                    <Text className="font-semibold text-base text-ink">Support & Feedback</Text>
-                </View>
-
-                <Text className="text-ink-3 text-label leading-4 mb-4 font-semibold">
-                    Need help? Our team is available for assistance.
-                </Text>
-
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('ContactUs')}
-                    className="flex-row items-center justify-center gap-2 bg-ink py-4 rounded-card"
-                >
-                    <Ionicons name="chatbubbles-outline" size={18} color={C.paper} />
-                    <Text className="text-paper font-display uppercase text-label">Contact Support</Text>
-                </TouchableOpacity>
-            </View>
+            <SectionHeader title="Support & feedback" />
+            <Card padded>
+                <Text className="text-ink-2 text-sm mb-4">Need help? Our team is available for assistance.</Text>
+                <Button block icon="chatbubbles-outline" title="Contact support" onPress={() => navigation.navigate('ContactUs')} />
+            </Card>
         </View>
     );
 
@@ -240,8 +172,8 @@ const RecruiterProfile = () => {
                 title="Profile"
                 right={
                     <>
-                        <IconBtn name="settings-outline" onPress={() => navigation.navigate('EditProfile')} />
-                        <IconBtn name="log-out-outline" color={C.danger} onPress={handleLogout} />
+                        <IconBtn name="settings-outline" onPress={() => navigation.navigate('EditProfile')} accessibilityLabel="Edit profile" />
+                        <IconBtn name="log-out-outline" color={C.danger} onPress={handleLogout} accessibilityLabel="Log out" />
                     </>
                 }
             />
@@ -249,25 +181,18 @@ const RecruiterProfile = () => {
                 {...autoHideTabBar}
                 contentContainerStyle={{ paddingBottom: tabBarClearance }}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.recruiter} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.recruiter} colors={[C.recruiter]} />
                 }
             >
                 {renderHeader()}
 
-                {/* Tabs */}
-                <View className="flex-row px-5 mt-4">
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('about')}
-                        className={`flex-1 py-4 items-center border-b-2 ${activeTab === 'about' ? 'border-recruiter' : 'border-transparent'}`}
-                    >
-                        <Text className={`font-display uppercase text-label ${activeTab === 'about' ? 'text-recruiter' : 'text-ink-3'}`}>Company Info</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('Dashboard')}
-                        className={`flex-1 py-4 items-center border-b-2 border-transparent`}
-                    >
-                        <Text className={`font-display uppercase text-label text-ink-3`}>Manage Roles</Text>
-                    </TouchableOpacity>
+                <View className="mt-4">
+                    <Tabs
+                        fill
+                        items={['Company info', 'Manage roles']}
+                        value="Company info"
+                        onChange={(t) => { if (t === 'Manage roles') navigation.navigate('Dashboard'); else setActiveTab('about'); }}
+                    />
                 </View>
 
                 {activeTab === 'about' && renderAboutTab()}

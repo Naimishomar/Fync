@@ -3,7 +3,7 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Dimensions,
   ActivityIndicator,
   StatusBar,
@@ -75,11 +75,17 @@ const EntertainmentHome = () => {
 
   const renderSection = (title: string, data: any[], type: 'trending' | 'popular' | 'upcoming' | 'bollywood') => (
     <View className="mb-6">
-      <View className="flex-row justify-between items-center px-5 mb-3">
-        <Text className="text-white text-lg font-display">{title}</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('MovieList', { title, type })}>
-          <Text className="text-danger font-medium">See All</Text>
-        </TouchableOpacity>
+      <View className="flex-row justify-between items-center px-gutter mb-3">
+        <Text className="text-white text-base font-semibold" accessibilityRole="header">{title}</Text>
+        <Pressable
+          onPress={() => navigation.navigate('MovieList', { title, type })}
+          hitSlop={12}
+          className="active:opacity-70"
+          accessibilityRole="button"
+          accessibilityLabel={`See all ${title}`}
+        >
+          <Text className="text-brand-400 text-sm font-semibold">See all</Text>
+        </Pressable>
       </View>
       <FlatList keyboardShouldPersistTaps="handled"
         data={data}
@@ -92,7 +98,7 @@ const EntertainmentHome = () => {
             onPress={() => navigation.navigate('MovieDetail', { movieId: item.id })}
           />
         )}
-        contentContainerStyle={{ paddingLeft: 16 }}
+        contentContainerStyle={{ paddingLeft: 20, paddingRight: 8 }}
       />
     </View>
   );
@@ -101,16 +107,17 @@ const EntertainmentHome = () => {
     <SafeAreaView className="flex-1 bg-night" edges={['bottom']}>
       <StatusBar barStyle="light-content" />
       <AppBar night title="Fync Cinema" onBack={() => navigation.goBack()}
-        right={<IconBtn name="search-outline" color="white" onPress={() => navigation.navigate('MovieSearch')} />} />
+        right={<IconBtn name="search-outline" color="white" accessibilityLabel="Search movies" onPress={() => navigation.navigate('MovieSearch')} />} />
 
       <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
         {/* Hero Banner */}
         {featuredMovie && (
-          <TouchableOpacity
-            activeOpacity={0.9}
+          <Pressable
             onPress={() => navigation.navigate('MovieDetail', { movieId: featuredMovie.id })}
-            className="w-full h-[500px] mb-8"
+            className="w-full h-[500px] mb-6 active:opacity-90"
+            accessibilityRole="button"
+            accessibilityLabel={`${featuredMovie.title}, open details`}
           >
             <Image
               source={{ uri: getImageUrl(featuredMovie.poster_path, 'w780') || '' }}
@@ -120,60 +127,56 @@ const EntertainmentHome = () => {
             />
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,1)']}
-              className="absolute bottom-0 w-full h-1/2 justify-end px-5 pb-6"
+              className="absolute bottom-0 w-full h-1/2 justify-end px-gutter pb-6"
             >
               <View className="items-center mb-4">
                 <Text className="text-white text-3xl font-display text-center mb-2" numberOfLines={2}>
                   {featuredMovie.title}
                 </Text>
                 <View className="flex-row items-center gap-2">
-                  <View
-                    className="bg-danger px-2.5 py-1 border-2 border-night"
-                    style={{
-                      borderRadius: 4, transform: [{ rotate: '-1.6deg' }],
-                      shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
-                      shadowOffset: { width: 2, height: 2 }, elevation: 0,
-                    }}
-                  >
-                    <Text className="font-display text-white uppercase" style={{ fontSize: 10, letterSpacing: 1 }}>Trending</Text>
+                  <View className="bg-danger px-2.5 py-0.5 rounded-full">
+                    <Text className="font-semibold text-white text-xs">Trending</Text>
                   </View>
                   <View className="flex-row items-center">
                     <Ionicons name="star" size={14} color={C.warning} />
                     <Text className="text-white text-xs ml-1 font-semibold">{Number(featuredMovie.vote_average ?? 0).toFixed(1)}</Text>
                   </View>
-                  <Text className="font-sans text-sm text-night-3">Movie</Text>
+                  <Text className="font-sans text-sm text-white/60">Movie</Text>
                 </View>
               </View>
 
               <View className="flex-row gap-3">
-                <TouchableOpacity
+                <Pressable
                   onPress={() => navigation.navigate('TrailerReels', { movies: trending, initialIndex: 0 })}
-                  className="flex-1 bg-paper flex-row items-center justify-center py-3 rounded-lg"
+                  className="flex-1 bg-white flex-row items-center justify-center min-h-[48px] rounded-full active:opacity-70"
+                  accessibilityRole="button"
                 >
-                  <Ionicons name="play" size={20} color={C.ink} />
-                  <Text className="text-ink font-semibold ml-2">Watch Trailers</Text>
-                </TouchableOpacity>
+                  <Ionicons name="play" size={20} color="#12100E" />
+                  <Text className="text-[#12100E] font-semibold ml-2">Watch trailers</Text>
+                </Pressable>
               </View>
             </LinearGradient>
-          </TouchableOpacity>
+          </Pressable>
         )}
 
         {/* Categories / Moods (Quick filter) */}
         <ScrollView keyboardShouldPersistTaps="handled"
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="px-5 mb-8"
-          contentContainerStyle={{ gap: 10 }}
+          className="mb-6"
+          contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}
         >
           {/* TMDB genre ids; "Anime" maps to TMDB's Animation genre. */}
           {([['Action', 28], ['Comedy', 35], ['Horror', 27], ['Drama', 18], ['Sci-Fi', 878], ['Anime', 16]] as const).map(([cat, genre]) => (
-            <TouchableOpacity
+            <Pressable
               key={cat}
               onPress={() => navigation.navigate('MovieList', { title: cat, genre })}
-              className="bg-night px-6 py-2.5 rounded-full border border-night"
+              hitSlop={{ top: 4, bottom: 4 }}
+              className="bg-white/10 px-4 h-9 justify-center rounded-full border border-white/15 active:opacity-70"
+              accessibilityRole="button"
             >
               <Text className="text-white font-medium text-sm">{cat}</Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
 

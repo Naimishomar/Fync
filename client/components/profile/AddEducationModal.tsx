@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ActivityIndicator, Modal, KeyboardAvoidingView, ScrollView, TextInput, Switch, Dimensions } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { EducationEntry } from './EducationCard';
 import { useAuth } from '../../context/auth.context';
-import { C } from '../../constants/colors';
-import { useBottomInset } from '../../constants/layout';
+import { Sheet, FormField, Button } from '../ui/kit';
+import { ToggleRow } from './ProfileBits';
 
-const { height: screenHeight } = Dimensions.get('window');
+const FIELDS = [
+  { label: 'Institution *', key: 'institution', ph: 'e.g. IIT Delhi, DPS School' },
+  { label: 'Degree / level', key: 'degree', ph: 'e.g. B.Tech, 12th, MBA' },
+  { label: 'Field / stream', key: 'field', ph: 'e.g. Computer Science, PCM' },
+  { label: 'Grade / percentage', key: 'grade', ph: 'e.g. 9.2 CGPA, 92%' },
+  { label: 'Start year', key: 'startYear', ph: '2020', num: true },
+] as const;
 
 export default function AddEducationModal({ visible, initial, onClose, onSuccess }: {
   visible: boolean; initial?: EducationEntry; onClose: () => void; onSuccess: () => void;
 }) {
   const { user } = useAuth();
-  const bottomInset = useBottomInset();
   const [form, setForm] = useState({
     institution: user?.college || '', degree: '', field: '', grade: '',
     startYear: '', endYear: '', isCurrent: false, description: ''
@@ -55,111 +57,34 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
   };
 
   return (
-    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/60 justify-end">
-        <Pressable className="absolute inset-0" onPress={onClose} />
-        <KeyboardAvoidingView
-          behavior="padding"
-          className="bg-paper rounded-t-sheet overflow-hidden"
-          style={{ height: screenHeight * 0.85 }}
-        >
-          {/* Handle */}
-          <View className="items-center py-4">
-            <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
-          </View>
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title={isEdit ? 'Edit education' : 'Add education'}
+      height="85%"
+      footer={<Button variant="primary" block icon={isEdit ? 'save-outline' : 'add'} title={isEdit ? 'Save changes' : 'Add education'} onPress={save} loading={saving} />}
+    >
+      {FIELDS.map(f => (
+        <FormField
+          key={f.key}
+          label={f.label}
+          placeholder={f.key === 'institution' ? user?.college || f.ph : f.ph}
+          value={form[f.key]}
+          onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
+          keyboardType={'num' in f ? 'numeric' : 'default'}
+          containerStyle={{ marginBottom: 16 }}
+        />
+      ))}
 
-          {/* Header */}
-          <View className="flex-row items-center justify-between px-gutter pb-3 border-b border-line">
-            <View>
-              <Text className="text-ink font-display uppercase text-h1">
-                {isEdit ? 'Update' : 'Record'} <Text className="text-accent-text">Education</Text>
-              </Text>
-              <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Academic History Module</Text>
-            </View>
-            <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
-              <Ionicons name="close" size={20} color={C.ink} />
-            </Pressable>
-          </View>
+      <ToggleRow label="Currently studying here" value={form.isCurrent} onChange={v => setForm(p => ({ ...p, isCurrent: v }))} />
 
-          <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            {[
-              { label: 'Institution *', key: 'institution', ph: user?.college || 'e.g. IIT Delhi, DPS School', icon: 'book' },
-              { label: 'Degree / Level', key: 'degree', ph: 'e.g. B.Tech, 12th, MBA', icon: 'award' },
-              { label: 'Field / Stream', key: 'field', ph: 'e.g. Computer Science, PCM', icon: 'layers' },
-              { label: 'Grade / Percentage', key: 'grade', ph: 'e.g. 9.2 CGPA, 92%', icon: 'star' },
-              { label: 'Start Year', key: 'startYear', ph: '2020', icon: 'calendar', num: true },
-            ].map(f => (
-              <View key={f.key} className="mb-6">
-                <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color={C.ink3} />
-                  <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
-                </View>
-                <TextInput
-                  className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
-            style={{ minHeight: 50 }}
-                  placeholder={f.ph} placeholderTextColor={C.ink3}
-                  value={form[f.key as keyof typeof form] as string}
-                  onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
-                  keyboardType={f.num ? 'numeric' : 'default'}
-                />
-              </View>
-            ))}
+      {!form.isCurrent ? (
+        <FormField label="End year" placeholder="2024" keyboardType="numeric" value={form.endYear}
+          onChangeText={v => setForm(p => ({ ...p, endYear: v }))} containerStyle={{ marginBottom: 16 }} />
+      ) : null}
 
-            {/* Currently studying toggle */}
-            <View className="flex-row items-center justify-between mb-6 bg-paper-2 px-5 py-4 rounded-card border border-line">
-              <View className="flex-row items-center gap-2">
-                <Feather name="clock" size={12} color={C.ink} />
-                <Text className="text-ink font-display uppercase text-label">Currently Studying Here</Text>
-              </View>
-              <Switch value={form.isCurrent}
-                onValueChange={v => setForm(p => ({ ...p, isCurrent: v }))}
-                trackColor={{ true: C.brand[500] }} />
-            </View>
-
-            {!form.isCurrent && (
-              <View className="mb-6">
-                <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name="calendar" size={12} color={C.ink3} />
-                  <Text className="text-ink-3 font-display uppercase text-label">End Year</Text>
-                </View>
-                <TextInput className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
-            style={{ minHeight: 50 }}
-                  placeholder="2024" placeholderTextColor={C.ink3} keyboardType="numeric"
-                  value={form.endYear} onChangeText={v => setForm(p => ({ ...p, endYear: v }))} />
-              </View>
-            )}
-
-            <View className="mb-12">
-              <View className="flex-row items-center gap-2 mb-2">
-                <Feather name="align-left" size={12} color={C.ink3} />
-                <Text className="text-ink-3 font-display uppercase text-label">Description</Text>
-              </View>
-              <TextInput className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink text-base font-sans rounded-md"
-                placeholder="Clubs, achievements, projects..." placeholderTextColor={C.ink3}
-                style={{ minHeight: 100, textAlignVertical: 'top' }}
-                value={form.description} multiline
-                onChangeText={v => setForm(p => ({ ...p, description: v }))} />
-            </View>
-            <View className="h-4" />
-          </ScrollView>
-
-          {/* Footer Action */}
-          <View className="p-card-pad border-t border-line bg-paper" style={{ paddingBottom: bottomInset }}>
-            <Pressable onPress={save} disabled={saving}
-              className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
-              {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
-                : (
-                  <>
-                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color={C.paper} className="mr-2" />
-                    <Text className="text-paper font-display uppercase text-xs ml-2">
-                      {isEdit ? 'Update Record' : 'Commit Education'}
-                    </Text>
-                  </>
-                )}
-            </Pressable>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
+      <FormField label="Description" placeholder="Clubs, achievements, projects..." multiline value={form.description}
+        onChangeText={v => setForm(p => ({ ...p, description: v }))} />
+    </Sheet>
   );
 }

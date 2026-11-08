@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, TouchableOpacity, FlatList, Image, ActivityIndicator, StatusBar, Modal, TextInput, KeyboardAvoidingView, ScrollView, RefreshControl, Animated, Pressable} from 'react-native'
+import { View, Text, FlatList, StatusBar, RefreshControl, Animated, Dimensions } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 
-import { StampCard, AppBar } from '../ui/kit';
+import { AppBar, Button, Card, Empty, Label, Num, Sheet, FormField } from '../ui/kit';
 import { C } from '../../constants/colors';
+import { ProductTile } from '../olx/ProductTile';
+
+// 20px gutter each side, 12 between the two columns.
+const COLUMN_WIDTH = (Dimensions.get('window').width - 40 - 12) / 2;
 // Outside the screen so a parent re-render doesn't remount it and restart the pulse.
 const ProductSkeleton = () => {
     const pulseAnim = useRef(new Animated.Value(0.4)).current;
@@ -28,15 +29,15 @@ const ProductSkeleton = () => {
 
     return (
         <Animated.View
-            style={{ opacity: pulseAnim, width: '48%' }}
-            className="bg-card rounded-card overflow-hidden mb-4 border border-line"
+            style={{ opacity: pulseAnim, width: COLUMN_WIDTH }}
+            className="bg-card rounded-2xl overflow-hidden mb-3 border border-line"
         >
             <View className="bg-paper-2 w-full" style={{ aspectRatio: 1 }} />
             <View className="px-3 pt-3 pb-4">
                 <View className="h-4 bg-paper-2 rounded w-3/4 self-center mb-4" />
                 <View className="flex-row items-center justify-between">
                     <View className="h-3 bg-paper-2 rounded w-1/2" />
-                    <View className="h-7 bg-paper-2 rounded-xl w-14" />
+                    <View className="h-9 bg-paper-2 rounded-full w-16" />
                 </View>
             </View>
         </Animated.View>
@@ -137,55 +138,27 @@ const MarketplaceScreen = () => {
     // --- Renders ---
     const renderProduct = ({ item }: { item: any }) => {
         const canAfford = (user?.coins || 0) >= item.coins_required;
-
         return (
-            <Pressable
+            <ProductTile
+                image={item.product_image}
+                title={item.product_name}
+                price={`${item.coins_required} coins`}
+                contain
+                cover={item.is_available ? undefined : 'Out of stock'}
+                width={COLUMN_WIDTH}
                 onPress={() => handleBuyItem(item)}
-                style={{ width: '48%' }}
-                className="bg-card rounded-xl overflow-hidden mb-5 border border-line shadow-hair"
-            >
-                <View className="bg-paper-2 w-full items-center justify-center relative" style={{ aspectRatio: 1 }}>
-                    <ExpoImage
-                        source={{ uri: item.product_image }}
-                        style={{ width: '85%', height: '85%', borderRadius: 12 }}
-                        contentFit="contain"
-                        cachePolicy="memory-disk"
-                    />
-                    {!item.is_available && (
-                        <View className="absolute inset-0 items-center justify-center" style={{ backgroundColor: C.scrim }}>
-                            <View className="bg-card border border-line px-2.5 py-1 rounded-full">
-                                <Text className="text-ink font-display text-label uppercase">Stock Out</Text>
-                            </View>
-                        </View>
-                    )}
-                </View>
-
-                {/* Content */}
-                <View className="p-3">
-                    <Text className="text-ink font-semibold text-xs mb-1" numberOfLines={1}>
-                        {item.product_name}
-                    </Text>
-
-                    <View className="flex-row items-center justify-between mb-3">
-                        <View className="flex-row items-center">
-                            <Text className="text-ink font-semibold text-base">{item.coins_required}</Text>
-                            <Text className="text-label ml-1"></Text>
-                        </View>
-                    </View>
-
-                    {/* Buy Button */}
-                    <TouchableOpacity
-                        activeOpacity={0.8}
+                footer={
+                    <Button
+                        small
+                        block
+                        variant={item.is_available && canAfford ? 'primary' : 'secondary'}
+                        title={item.is_available ? (canAfford ? 'Redeem' : 'Not enough coins') : 'Out of stock'}
                         onPress={() => handleBuyItem(item)}
                         disabled={!item.is_available}
-                        className={`w-full py-2.5 rounded-xl items-center justify-center flex-row ${item.is_available && canAfford ? 'bg-ink shadow-hair ' : 'bg-paper-2 border border-line'}`}
-                    >
-                        <Text className={`font-display text-label uppercase ${item.is_available && canAfford ? 'text-paper' : 'text-ink-3'}`}>
-                            {item.is_available ? (canAfford ? 'Redeem Item' : 'Low Coins') : 'Stock Out'}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </Pressable>
+                        style={{ marginTop: 4 }}
+                    />
+                }
+            />
         );
     };
 
@@ -195,21 +168,14 @@ const MarketplaceScreen = () => {
 
             <View className="flex-1">
                 <AppBar title="Reward Store" onBack={() => navigation.goBack()} />
-                <View className="px-gutter pt-2 flex-row justify-end items-center mb-8">
-                    <StampCard>
-                        <View className="items-center py-3 px-4">
-                            <Text className="font-display text-label text-ink-3 uppercase">Balance</Text>
-                            <Text className="font-display text-ink mt-1" style={{ fontSize: 26, lineHeight: 28, letterSpacing: -0.8 }}>
-                                {user?.coins || 0}
-                            </Text>
-                            <Text className="font-display text-label text-ink-3 uppercase">Fync Coins</Text>
-                        </View>
-                    </StampCard>
-                </View>
+                <Card style={{ marginHorizontal: 20, marginBottom: 16 }}>
+                    <Label>Your balance</Label>
+                    <Num style={{ fontSize: 28, lineHeight: 32, marginTop: 4 }}>{user?.coins || 0} <Text className="text-ink-3 text-sm font-medium">Fync coins</Text></Num>
+                </Card>
 
                 {loading && !refreshing ? (
-                    <View className="flex-1 px-gutter" style={{ paddingTop: 10 }}>
-                        <View className="flex-row justify-between mb-4">
+                    <View className="flex-1 px-gutter">
+                        <View className="flex-row justify-between">
                             <ProductSkeleton />
                             <ProductSkeleton />
                         </View>
@@ -225,114 +191,62 @@ const MarketplaceScreen = () => {
                         renderItem={renderProduct}
                         numColumns={2}
                         columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 20 }}
-                        contentContainerStyle={{ paddingTop: 10, paddingBottom: 100 }}
+                        contentContainerStyle={{ paddingBottom: 100 }}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.warning} />}
                         ListEmptyComponent={
-                            <View className="items-center mt-32 p-card-pad">
-                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Ionicons name="storefront-outline" size={32} color={C.ink4} />
-                                </View>
-                                <Text className="font-semibold text-base text-ink text-center">Store Empty</Text>
-                                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">New artifacts arriving soon.</Text>
+                            <View className="mt-20">
+                                <Empty icon="storefront-outline" title="Store is empty" hint="New rewards are arriving soon." />
                             </View>
                         }
                         showsVerticalScrollIndicator={false}
                     />
                 )}
 
-                {/* Checkout Modal (Bottom Sheet Style) */}
-                <Modal visible={buyModalVisible} animationType="slide" transparent={true} statusBarTranslucent onRequestClose={() => setBuyModalVisible(false)}>
-                    {/* C.scrim, not bg-ink/60: ink is near-white in dark mode, which turned the backdrop light. */}
-                    <View className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
-                        <TouchableOpacity activeOpacity={1} style={{ flex: 1 }} onPress={() => setBuyModalVisible(false)} />
-
-                        <View className="bg-paper rounded-t-sheet h-[75%] overflow-hidden shadow-hair">
-                            <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
-
-                            <KeyboardAvoidingView behavior="padding" className="flex-1">
-                                <View className="px-gutter py-6 border-b border-line flex-row justify-between items-center bg-card">
-                                    <View>
-                                        <Text className="font-display text-ink uppercase text-h1">Checkout</Text>
-                                        <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Shipping Destination</Text>
-                                    </View>
-                                    <TouchableOpacity onPress={() => setBuyModalVisible(false)} className="bg-paper-2 w-10 h-10 rounded-card items-center justify-center border border-line">
-                                        <Ionicons name="close" size={20} color={C.ink} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 p-card-pad" showsVerticalScrollIndicator={false}>
-                                    <View className="flex-row items-center bg-paper-2 p-5 rounded-card mb-8 border border-line">
-                                        <Image source={{ uri: selectedProduct?.product_image }} className="w-20 h-20 rounded-card bg-card border border-line" resizeMode="contain" />
-                                        <View className="ml-5 flex-1">
-                                            <Text className="text-ink font-display uppercase text-sm" numberOfLines={1}>{selectedProduct?.product_name}</Text>
-                                            <View className="flex-row items-center mt-2 bg-card self-start px-2 py-1 rounded-lg border border-line">
-                                                <Text className="text-warning font-display text-sm">{selectedProduct?.coins_required} Coins</Text>
-                                                <Text className="text-xs ml-1"></Text>
-                                            </View>
-                                        </View>
-                                    </View>
-
-                                    <View className="flex-row gap-4 mb-6">
-                                        <View className="flex-1">
-                                            <Text className="text-ink-3 font-display text-label uppercase mb-3 ml-1">Mobile Comms</Text>
-                                            <TextInput
-                                                className="font-semibold text-base text-ink bg-card px-5 py-4 border-[1.5px] border-ink shadow-hair rounded-md"
-                                                placeholder="+91..."
-                                                placeholderTextColor={C.ink4}
-                                                keyboardType="phone-pad"
-                                                value={phone}
-                                                onChangeText={setPhone}
-                                            />
-                                        </View>
-                                        <View className="w-1/3">
-                                            <Text className="text-ink-3 font-display text-label uppercase mb-3 ml-1">Zip Code</Text>
-                                            <TextInput
-                                                className="font-semibold text-base text-ink bg-card px-5 py-4 border-[1.5px] border-ink shadow-hair rounded-md"
-                                                placeholder="201206"
-                                                placeholderTextColor={C.ink4}
-                                                keyboardType="numeric"
-                                                maxLength={6}
-                                                value={pincode}
-                                                onChangeText={setPincode}
-                                            />
-                                        </View>
-                                    </View>
-
-                                    <View className="mb-10">
-                                        <Text className="text-ink-3 font-display text-label uppercase mb-3 ml-1">Delivery Node</Text>
-                                        <TextInput
-                                            className="bg-card px-5 py-5 font-medium text-xs border-[1.5px] border-ink shadow-hair text-ink h-28 rounded-md"
-                                            placeholder="Complete address with landmark..."
-                                            placeholderTextColor={C.ink4}
-                                            multiline
-                                            textAlignVertical="top"
-                                            value={address}
-                                            onChangeText={setAddress}
-                                        />
-                                    </View>
-                                </ScrollView>
-
-                                <View className="p-card-pad border-t border-line bg-card pb-12">
-                                    <TouchableOpacity
-                                        onPress={confirmPurchase}
-                                        disabled={purchasing}
-                                        className={`py-5 rounded-card items-center justify-center flex-row shadow-hair ${purchasing ? 'bg-paper-2' : 'bg-ink '}`}
-                                    >
-                                        {purchasing ? (
-                                            <ActivityIndicator color={C.warning} />
-                                        ) : (
-                                            <>
-                                                <Ionicons name="flash-outline" size={20} color={C.warning} />
-                                                <Text className="text-paper font-display uppercase text-xs ml-2">Authorize Redemption</Text>
-                                            </>
-                                        )}
-                                    </TouchableOpacity>
-                                </View>
-                            </KeyboardAvoidingView>
+                <Sheet
+                    visible={buyModalVisible}
+                    onClose={() => setBuyModalVisible(false)}
+                    title="Checkout"
+                    subtitle="Where should we deliver it?"
+                    footer={<Button variant="primary" block icon="flash-outline" title="Redeem now" onPress={confirmPurchase} loading={purchasing} />}
+                >
+                    <View style={{ gap: 16 }}>
+                        <View className="flex-row items-center bg-paper-2 p-3 rounded-2xl" style={{ gap: 12 }}>
+                            <ExpoImage source={{ uri: selectedProduct?.product_image }} style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: C.card }} contentFit="contain" cachePolicy="memory-disk" />
+                            <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
+                                <Text className="text-ink font-semibold text-base" numberOfLines={1}>{selectedProduct?.product_name}</Text>
+                                <Text className="text-ink-2 text-sm">{selectedProduct?.coins_required} coins</Text>
+                            </View>
                         </View>
-                    </View>
-                </Modal>
 
+                        <View className="flex-row" style={{ gap: 12 }}>
+                            <FormField
+                                label="Mobile number"
+                                placeholder="+91..."
+                                keyboardType="phone-pad"
+                                value={phone}
+                                onChangeText={setPhone}
+                                containerStyle={{ flex: 1 }}
+                            />
+                            <FormField
+                                label="Pincode"
+                                placeholder="201206"
+                                keyboardType="numeric"
+                                maxLength={6}
+                                value={pincode}
+                                onChangeText={setPincode}
+                                containerStyle={{ width: '36%' }}
+                            />
+                        </View>
+
+                        <FormField
+                            label="Delivery address"
+                            placeholder="Complete address with landmark"
+                            multiline
+                            value={address}
+                            onChangeText={setAddress}
+                        />
+                    </View>
+                </Sheet>
             </View>
         </View>
     );

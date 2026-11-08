@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   ScrollView,
+  FlatList,
   Platform,
-  Modal,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
@@ -20,6 +19,7 @@ import type { RootStackParamList } from '../App';
 import { collegesInIndia } from 'data/college';
 import { PASSOUT_YEARS, MAJORS } from 'data/academics';
 import { C } from '../constants/colors';
+import { Button, FormField, SearchField, Sheet, ListRow, Empty } from './ui/kit';
 //@ts-ignore
 
 type ProfileSetup1RouteProp = RouteProp<RootStackParamList, 'ProfileSetup1'>;
@@ -90,6 +90,27 @@ export default function ProfileSetup1() {
   const yearOptions = PASSOUT_YEARS;
   const majorOptions = MAJORS;
 
+  const closeDropdown = () => { setSearch(''); setDropdownType(null); };
+  const pick = (item: string) => {
+    if (dropdownType === 'gender') setGender(item);
+    if (dropdownType === 'passout year') setYear(item);
+    if (dropdownType === 'your major') setMajor(item);
+    if (dropdownType === 'college name') setCollege(item);
+    closeDropdown();
+  };
+  const isCollege = dropdownType === 'college name';
+  const options = dropdownType === 'gender'
+    ? genderOptions
+    : dropdownType === 'passout year'
+    ? yearOptions
+    : isCollege
+    ? filteredColleges
+    : majorOptions;
+  const current = dropdownType === 'gender' ? gender
+    : dropdownType === 'passout year' ? year
+    : dropdownType === 'your major' ? major
+    : college;
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
@@ -101,10 +122,10 @@ export default function ProfileSetup1() {
           {/* A labelled form, not a photo + sheet. Every field carries a visible
               label rather than relying on a placeholder that vanishes on focus. */}
           <View className="px-gutter pt-14 pb-2">
-            <Text className="font-display text-ink uppercase" style={{ fontSize: 34, lineHeight: 35, letterSpacing: -1.2 }}>
-              Profile Setup
+            <Text className="font-display text-ink" style={{ fontSize: 30, lineHeight: 36, letterSpacing: -0.8 }} accessibilityRole="header">
+              Profile setup
             </Text>
-            <Text className="font-display text-label text-ink-3 uppercase mt-3" style={{ letterSpacing: 1.4 }}>Step 1 of 2</Text>
+            <Text className="font-semibold text-sm text-ink-3 mt-2">Step 1 of 2</Text>
           </View>
 
           <ScrollView
@@ -112,68 +133,31 @@ export default function ProfileSetup1() {
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
           >
-            <View className="relative mt-4">
-              <View pointerEvents="none" className="absolute left-1 top-1 -right-1 -bottom-1 bg-ink rounded-card" />
-              <View className="bg-card border-2 border-ink rounded-card p-card-pad">
+            <View className="bg-card border border-line rounded-2xl p-4 mt-4" style={{ gap: 16 }}>
+              <FormField
+                label="Full name"
+                placeholder="Naimish Omar"
+                value={fullName}
+                onChangeText={setFullName}
+                autoCapitalize="words"
+                autoComplete="name"
+              />
 
-                <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>Full Name</Text>
-                <View className="mt-2 border-[1.5px] border-ink bg-card px-4 rounded-md" style={{ minHeight: 50, justifyContent: 'center' }}>
-                  <TextInput
-                    className="font-sans text-base text-ink"
-                    placeholder="Naimish Omar"
-                    placeholderTextColor={C.ink3}
-                    value={fullName}
-                    onChangeText={setFullName}
-                    autoCapitalize="words"
-                    autoComplete="name"
-                  />
-                </View>
+              <PickerField label="Birthday" value={birthday} placeholder="Select a date"
+                icon="calendar-outline" onPress={() => setShowDatePicker(true)} />
 
-                <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>Birthday</Text>
-                <Pressable
-                  className="mt-2 flex-row items-center justify-between border-[1.5px] border-ink bg-card px-4 rounded-md"
-                  style={{ minHeight: 50 }}
-                  onPress={() => setShowDatePicker(true)}
-                  accessibilityRole="button"
-                >
-                  <Text className={`font-sans text-base ${birthday ? 'text-ink' : 'text-ink-3'}`}>
-                    {birthday || 'Select a date'}
-                  </Text>
-                  <Ionicons name="calendar-outline" size={20} color={C.ink3} />
-                </Pressable>
+              {([
+                ['Gender', gender],
+                ['College name', college],
+                ['Your major', major],
+                ['Passout year', year],
+              ] as [string, string][]).map(([label, value]) => (
+                <PickerField key={label} label={label} value={value}
+                  placeholder={`Select ${label.toLowerCase()}`}
+                  onPress={() => setDropdownType(label.toLowerCase())} />
+              ))}
 
-                {([
-                  ['Gender', gender],
-                  ['College Name', college],
-                  ['Your Major', major],
-                  ['Passout Year', year],
-                ] as [string, string][]).map(([label, value]) => (
-                  <View key={label}>
-                    <Text className="font-display text-label text-ink-3 uppercase mt-4" style={{ letterSpacing: 1.4 }}>{label}</Text>
-                    <Pressable
-                      className="mt-2 flex-row items-center justify-between border-[1.5px] border-ink bg-card px-4 rounded-md"
-                      style={{ minHeight: 50 }}
-                      onPress={() => setDropdownType(label.toLowerCase())}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${label}. ${value || 'Not set'}`}
-                    >
-                      <Text className={`font-sans text-base ${value ? 'text-ink' : 'text-ink-3'}`} numberOfLines={1}>
-                        {value || `Select ${label.toLowerCase()}`}
-                      </Text>
-                      <Ionicons name="chevron-down" size={20} color={C.ink3} />
-                    </Pressable>
-                  </View>
-                ))}
-
-                <Pressable
-                  className="mt-5 bg-brand-500 items-center justify-center border-2 border-ink rounded-md"
-                  style={{ minHeight: 48 }}
-                  accessibilityRole="button"
-                  onPress={handleContinue}
-                >
-                  <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Continue</Text>
-                </Pressable>
-              </View>
+              <Button variant="primary" block title="Continue" onPress={handleContinue} />
             </View>
           </ScrollView>
         </View>
@@ -189,74 +173,63 @@ export default function ProfileSetup1() {
           />
         )}
 
-        {/* Dropdown Modal */}
-        <Modal
-          transparent
+        <Sheet
           visible={!!dropdownType}
-          animationType="fade"
-          onRequestClose={() => {
-            setSearch('');
-            setDropdownType(null);
-          }}
+          onClose={closeDropdown}
+          title={dropdownType ? `Select ${dropdownType}` : undefined}
+          scroll={false}
+          height={isCollege ? '78%' : undefined}
         >
-          <View className="flex-1 items-center justify-center" style={{ backgroundColor: C.scrim }}>
-            <View className="w-80 max-h-[70%] rounded-lg bg-card p-4">
-              <Text className="mb-4 text-center text-lg font-display text-ink">
-                Select {dropdownType}
-              </Text>
-
-              {dropdownType === 'college name' && (
-                <TextInput
-                  placeholder="Search college..."
-                  className="mb-3 rounded-lg border-[1.5px] border-ink px-3 py-2 text-ink"
-                  placeholderTextColor={C.ink3}
-                  value={search}
-                  onChangeText={setSearch}
-                />
-              )}
-
-              <ScrollView keyboardShouldPersistTaps="handled">
-                {dropdownType === 'college name' && filteredColleges.length === 0 && (
-                  <Text className="text-center text-ink-3 p-3">No college matches "{search}"</Text>
-                )}
-                {(dropdownType === 'gender'
-                  ? genderOptions
-                  : dropdownType === 'passout year'
-                  ? yearOptions
-                  : dropdownType === 'college name'
-                  ? filteredColleges
-                  : majorOptions
-                ).map((item) => (
-                  <Pressable
-                    key={item}
-                    className="border-b border-line p-3"
-                    onPress={() => {
-                      if (dropdownType === 'gender') setGender(item);
-                      if (dropdownType === 'passout year') setYear(item);
-                      if (dropdownType === 'your major') setMajor(item);
-                      if (dropdownType === 'college name') setCollege(item);
-                      setSearch('');
-                      setDropdownType(null);
-                    }}
-                  >
-                    <Text className="text-center text-ink">{item}</Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-
-              <Pressable
-                className="mt-3 rounded bg-paper-2 p-3"
-                onPress={() => {
-                  setSearch('');
-                  setDropdownType(null);
-                }}
-              >
-                <Text className="text-center font-semibold text-ink">Cancel</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
+          {isCollege && (
+            <SearchField
+              placeholder="Search college"
+              value={search}
+              onChangeText={setSearch}
+              containerStyle={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4 }}
+            />
+          )}
+          <FlatList
+            data={options}
+            keyExtractor={keyOf}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 8 }}
+            ListEmptyComponent={isCollege ? <Empty icon="school-outline" title={`No college matches "${search}"`} /> : null}
+            renderItem={({ item }) => (
+              <ListRow
+                title={item}
+                onPress={() => pick(item)}
+                right={item === current ? <Ionicons name="checkmark" size={20} color={C.accentText} accessibilityLabel="Selected" /> : undefined}
+                chevron={false}
+              />
+            )}
+          />
+        </Sheet>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
+  );
+}
+
+const keyOf = (item: string) => item;
+
+/** Label + tappable box that opens a picker; matches FormField's box. */
+function PickerField({ label, value, placeholder, onPress, icon = 'chevron-down' }: {
+  label: string; value: string; placeholder: string; onPress: () => void; icon?: React.ComponentProps<typeof Ionicons>['name'];
+}) {
+  return (
+    <View style={{ gap: 6 }}>
+      <Text className="font-semibold text-ink-2" style={{ fontSize: 13, lineHeight: 18 }}>{label}</Text>
+      <Pressable
+        className="flex-row items-center justify-between bg-paper-2 border border-line rounded-2xl px-4 active:opacity-70"
+        style={{ minHeight: 48, gap: 8 }}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}. ${value || 'Not set'}`}
+      >
+        <Text className={`flex-1 font-sans text-base ${value ? 'text-ink' : 'text-ink-3'}`} numberOfLines={1}>
+          {value || placeholder}
+        </Text>
+        <Ionicons name={icon} size={20} color={C.ink3} />
+      </Pressable>
+    </View>
   );
 }

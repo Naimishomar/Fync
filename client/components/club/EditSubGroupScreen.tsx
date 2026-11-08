@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Switch, Platform} from 'react-native'
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { View, Pressable, Image, ScrollView, ActivityIndicator, StatusBar, KeyboardAvoidingView, Switch, Platform } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -8,8 +7,8 @@ import { useAuth } from '../../context/auth.context';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, Empty, Button } from '../ui/kit';
-import Avatar from '../Avatar';
+import { AppBar, Empty, Button, Card, Divider, ListRow, SectionHeader, FormField, IconBtn } from '../ui/kit';
+import { MemberRow, DecideButtons } from '../community/shared';
 
 const EditSubGroupScreen = () => {
     const navigation = useNavigation<any>();
@@ -232,7 +231,7 @@ const EditSubGroupScreen = () => {
 
     if (loading || !subGroup) return (
         <View className="flex-1 bg-paper">
-            <AppBar title="Room Control" onBack={() => navigation.goBack()} />
+            <AppBar title="Room settings" onBack={() => navigation.goBack()} />
             {loading ? (
                 <View className="flex-1 justify-center items-center"><ActivityIndicator color={C.brand[500]} /></View>
             ) : (
@@ -245,183 +244,120 @@ const EditSubGroupScreen = () => {
         </View>
     );
 
+    const canPromote = isSuperAdmin || isMainAdmin;
+    const cardPad = { paddingHorizontal: 16, paddingVertical: 4 };
+
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
-            <View className="flex-1">
-                <AppBar title="Room Control" onBack={() => navigation.goBack()} />
+            <AppBar title="Room settings" onBack={() => navigation.goBack()} />
 
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-                    <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                        
-                        {/* Logo Picker */}
-                        <View className="items-center mb-8 mt-4">
-                            <TouchableOpacity onPress={canEditRoom ? pickLogo : undefined} activeOpacity={0.8} className="relative">
-                                {logo ? (
-                                    <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
-                                ) : (
-                                    <Image source={subGroup?.logo ? { uri: subGroup.logo } : undefined} className="w-24 h-24 rounded-sheet border-2 border-line bg-paper-2" />
-                                )}
-                                <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-card">
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+                <ScrollView className="flex-1" contentContainerStyle={{ padding: 20 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                    <View className="items-center mb-6 mt-2">
+                        <Pressable
+                            onPress={canEditRoom ? pickLogo : undefined}
+                            disabled={!canEditRoom}
+                            accessibilityRole="button"
+                            accessibilityLabel="Change room logo"
+                            className="relative active:opacity-70"
+                        >
+                            <Image source={logo ? { uri: logo.uri } : subGroup?.logo ? { uri: subGroup.logo } : undefined} className="w-24 h-24 rounded-2xl border border-line bg-paper-2" />
+                            {canEditRoom ? (
+                                <View className="absolute -bottom-1 -right-1 bg-ink w-8 h-8 rounded-full items-center justify-center border-4 border-paper">
                                     <Feather name="edit-2" size={14} color={C.paper} />
                                 </View>
-                            </TouchableOpacity>
-                        </View>
+                            ) : null}
+                        </Pressable>
+                    </View>
 
-                        {/* Form Fields */}
-                        <View className="mt-2">
-                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Room Identity</Text>
-                            <TextInput placeholderTextColor={C.ink4} 
-                                placeholder="New Room Name"
-                                className={`bg-paper-2 p-5 rounded-card mb-4 font-semibold border border-line ${subGroup?.isGeneral ? 'text-ink-3' : 'text-ink'}`}
-                                value={name}
-                                onChangeText={setName}
-                                editable={canEditRoom && !subGroup?.isGeneral}
+                    <View style={{ gap: 16 }}>
+                        <FormField
+                            label="Room name"
+                            placeholder="Room name"
+                            value={name}
+                            onChangeText={setName}
+                            editable={canEditRoom && !subGroup?.isGeneral}
+                            hint={subGroup?.isGeneral ? "The General room's name can't be changed." : undefined}
+                        />
+                        <FormField label="About" placeholder="What happens in this room" multiline value={description} onChangeText={setDescription} editable={canEditRoom} />
+                        <Card style={cardPad}>
+                            <ListRow
+                                title="Announcement mode"
+                                subtitle="Only admins can send messages"
+                                subtitleLines={2}
+                                right={
+                                    <Switch
+                                        value={onlyAdminsCanMessage}
+                                        onValueChange={setOnlyAdminsCanMessage}
+                                        trackColor={{ false: C.line, true: C.brand[500] }}
+                                        thumbColor="white"
+                                        disabled={!canEditRoom}
+                                        accessibilityLabel="Announcement mode"
+                                    />
+                                }
                             />
-                            {subGroup?.isGeneral && (
-                                <Text className="text-success font-semibold text-label uppercase mb-6 ml-1">
-                                    * The 'General' Room hub name is fixed
-                                </Text>
-                            )}
-                            
-                            <Text className="text-ink-3 font-display text-label uppercase mb-2 ml-1">Scope & Mission</Text>
-                            <TextInput placeholderTextColor={C.ink4} 
-                                placeholder="Refined scope..."
-                                className="bg-card p-5 mb-8 font-semibold border-[1.5px] border-ink text-ink rounded-md"
-                                multiline
-                                numberOfLines={4}
-                                textAlignVertical="top"
-                                value={description}
-                                onChangeText={setDescription}
-                                editable={canEditRoom}
-                            />
+                        </Card>
+                    </View>
 
-                            <View className="mb-10 bg-paper-2 p-6 rounded-card border border-line flex-row items-center justify-between">
-                                <View className="flex-1 mr-4">
-                                    <Text className="font-semibold text-base text-ink">Announcement Mode</Text>
-                                    <Text className="text-ink-3 text-label font-semibold uppercase mt-1">
-                                        Only admins can send messages
-                                    </Text>
-                                </View>
-                                <Switch 
-                                    value={onlyAdminsCanMessage}
-                                    onValueChange={setOnlyAdminsCanMessage}
-                                    trackColor={{ false: C.line, true: C.info }}
-                                    thumbColor="white"
-                                    disabled={!canEditRoom}
-                                />
-                            </View>
-
-                            {/* Pending Approvals Section */}
-                            {(isMainAdmin || isRoomLeader) && joinRequests.length > 0 && (
-                                <View className="mb-8">
-                                    <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
-                                        <Text className="text-ink-3 text-label font-display uppercase">Pending Approvals ({joinRequests.length})</Text>
-                                        <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
+                    {(isMainAdmin || isRoomLeader) && joinRequests.length > 0 && (
+                        <>
+                            <SectionHeader title="Requests" count={joinRequests.length} />
+                            <Card style={cardPad}>
+                                {joinRequests.map((req: any, i: number) => (
+                                    <View key={req._id}>
+                                        {i > 0 ? <Divider /> : null}
+                                        <MemberRow
+                                            person={req}
+                                            right={<DecideButtons name={req.name} disabled={!!actingId} onApprove={() => handleRequestAction(req._id, 'approve')} onReject={() => handleRequestAction(req._id, 'reject')} />}
+                                        />
                                     </View>
-                                    <View className="bg-paper-2 rounded-card border border-line overflow-hidden p-2">
-                                        {joinRequests.map((req: any) => (
-                                            <View key={req._id} className="flex-row items-center justify-between p-3 bg-card rounded-card mb-2 border border-brand-50 shadow-hair">
-                                                <View className="flex-row items-center flex-1 mr-2" style={{ minWidth: 0 }}>
-                                                    <Avatar user={req} size={40} showBadge={false} />
-                                                    <View className="ml-3 flex-1">
-                                                        <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{req.name}</Text>
-                                                        <Text className="text-ink-3 font-semibold text-label" numberOfLines={1}>@{req.username}</Text>
-                                                    </View>
+                                ))}
+                            </Card>
+                        </>
+                    )}
+
+                    <SectionHeader title="Members" count={members.length} />
+                    {memberLoading ? (
+                        <ActivityIndicator color={C.ink} />
+                    ) : (
+                        <Card style={cardPad}>
+                            {members.map((m: any, i: number) => {
+                                const isSubAdmin = subAdmins.includes(m._id);
+                                const isMainClubAdmin = club?.admins?.some((a: any) => (a._id || a) === m._id);
+                                return (
+                                    <View key={m._id}>
+                                        {i > 0 ? <Divider /> : null}
+                                        <MemberRow
+                                            person={m}
+                                            size={40}
+                                            subtitle={isMainClubAdmin ? 'Club admin' : isSubAdmin ? 'Room leader' : undefined}
+                                            right={!isMainClubAdmin && (canPromote || canEditRoom) ? (
+                                                <View className="flex-row items-center" style={{ gap: 4 }}>
+                                                    {canPromote ? (
+                                                        <Button small variant={isSubAdmin ? 'tertiary' : 'secondary'} title={isSubAdmin ? 'Remove leader' : 'Make leader'} onPress={() => toggleAdminStatus(m._id)} />
+                                                    ) : null}
+                                                    {canEditRoom ? (
+                                                        <IconBtn name="trash-outline" size={18} color={C.danger} onPress={() => handleRemoveFromRoom(m._id)} accessibilityLabel={`Remove ${m.name} from room`} />
+                                                    ) : null}
                                                 </View>
-                                                <View className="flex-row items-center gap-2">
-                                                    <TouchableOpacity onPress={() => handleRequestAction(req._id, 'approve')} disabled={!!actingId} className="w-10 h-10 rounded-xl bg-success items-center justify-center">
-                                                        <Feather name="check" size={18} color="white" />
-                                                    </TouchableOpacity>
-                                                    <TouchableOpacity onPress={() => handleRequestAction(req._id, 'reject')} disabled={!!actingId} className="w-10 h-10 rounded-xl bg-danger/15 items-center justify-center border border-danger/25">
-                                                        <Feather name="x" size={18} color={C.danger} />
-                                                    </TouchableOpacity>
-                                                </View>
-                                            </View>
-                                        ))}
+                                            ) : undefined}
+                                        />
                                     </View>
-                                </View>
-                            )}
+                                );
+                            })}
+                        </Card>
+                    )}
 
-                            {/* Member Management Section */}
-                            <View className="mb-10">
-                                <Text className="text-ink-3 font-display text-label uppercase mb-4 ml-1">Room Members ({members.length})</Text>
-                                {memberLoading ? (
-                                    <ActivityIndicator color={C.ink} />
-                                ) : (
-                                    <View className="bg-paper-2 rounded-card border border-line overflow-hidden">
-                                        {members.map((m: any) => {
-                                            const isSubAdmin = subAdmins.includes(m._id);
-                                            const isMainClubAdmin = club?.admins?.some((a: any) => (a._id || a) === m._id);
-                                            const canPromote = isSuperAdmin || isMainAdmin;
-
-                                            return (
-                                                <View key={m._id} className="flex-row items-center justify-between p-4 border-b border-line">
-                                                    <View className="flex-row items-center flex-1 mr-2" style={{ minWidth: 0 }}>
-                                                        <Avatar user={m} size={32} showBadge={false} />
-                                                        <View className="ml-3 flex-1">
-                                                            <Text className="text-ink font-semibold text-xs" numberOfLines={1}>{m.name}</Text>
-                                                            {isMainClubAdmin && <Text className="text-fam-career font-semibold text-label uppercase">Main Club Admin</Text>}
-                                                        </View>
-                                                    </View>
-                                                    
-                                                    {canPromote && !isMainClubAdmin && (
-                                                        <TouchableOpacity 
-                                                            onPress={() => toggleAdminStatus(m._id)}
-                                                            className={`px-4 py-1.5 rounded-full ${isSubAdmin ? 'bg-danger/10' : 'bg-fam-career/10'}`}
-                                                        >
-                                                            <Text className={`font-display text-label uppercase ${isSubAdmin ? 'text-danger' : 'text-fam-career'}`}>
-                                                                {isSubAdmin ? 'Revoke Leader' : 'Make Leader'}
-                                                            </Text>
-                                                        </TouchableOpacity>
-                                                    )}
-
-                                                    {canEditRoom && !isMainClubAdmin && (
-                                                        <TouchableOpacity 
-                                                            onPress={() => handleRemoveFromRoom(m._id)}
-                                                            hitSlop={8}
-                                                            className="ml-2 w-8 h-8 bg-danger/10 rounded-lg items-center justify-center border border-danger/15"
-                                                        >
-                                                            <Ionicons name="trash-outline" size={12} color={C.danger} />
-                                                        </TouchableOpacity>
-                                                    )}
-                                                </View>
-                                            );
-                                        })}
-                                    </View>
-                                )}
-                            </View>
-                        </View>
-
-                        {canEditRoom && (
-                            <TouchableOpacity 
-                                onPress={handleUpdate}
-                                disabled={updating}
-                                className="bg-ink py-5 items-center border-2 border-ink rounded-md"
-                            >
-                                {updating ? (
-                                    <ActivityIndicator color={C.paper} />
-                                ) : (
-                                    <Text className="text-paper font-display uppercase text-xs">Synchronize Room</Text>
-                                )}
-                            </TouchableOpacity>
-                        )}
-
-                        {canDelete && (
-                            <TouchableOpacity 
-                                onPress={handleDeleteRoom}
-                                disabled={updating}
-                                className="mt-4 border border-danger/30 py-4 rounded-card flex-row items-center justify-center bg-danger/10"
-                            >
-                                <Ionicons name="trash-outline" size={16} color={C.danger} />
-                                <Text className="text-danger font-semibold uppercase text-label ml-2">Delete Room Permanently</Text>
-                            </TouchableOpacity>
-                        )}
-                        
-                        <View className="h-20" />
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </View>
+                    {canEditRoom && (
+                        <Button title="Save changes" variant="primary" block loading={updating} onPress={handleUpdate} style={{ marginTop: 24 }} />
+                    )}
+                    {canDelete && (
+                        <Button title="Delete room" variant="danger" icon="trash-outline" block disabled={updating} onPress={handleDeleteRoom} style={{ marginTop: 12 }} />
+                    )}
+                    <View className="h-20" />
+                </ScrollView>
+            </KeyboardAvoidingView>
         </View>
     );
 };

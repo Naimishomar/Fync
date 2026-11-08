@@ -16,7 +16,8 @@ import axios from '../context/axiosConfig';
 import { useAuth } from '../context/auth.context';
 import { NotificationSkeleton } from './Skeleton';
 import { C, themed } from '../constants/colors';
-import { AppBar, Button, Empty } from './ui/kit';
+import { AppBar, Button, Empty, IconTile } from './ui/kit';
+import Avatar from './Avatar';
 import { withTimeHeaders, HeaderRow } from '../utils/timeBuckets';
 import { getFullUrl } from '../utils/imageUtils';
 
@@ -170,7 +171,7 @@ const Notification = () => {
   const renderItem = useCallback(({ item: row }: { item: NotificationItem | HeaderRow }) => {
     if ('kind' in row) {
       return (
-        <Text className="text-ink-3 text-label font-display uppercase mt-3 mb-2" accessibilityRole="header">
+        <Text className="text-ink-3 text-[13px] font-semibold mt-4 mb-1" accessibilityRole="header">
           {row.label}
         </Text>
       );
@@ -268,45 +269,42 @@ const Notification = () => {
 
     return (
       <Pressable
-        className={`flex-row items-center p-3 mb-2 rounded-xl border ${!item.isRead ? 'bg-card border-line shadow-hair' : 'bg-card/80 border-line' }`}
+        className={`flex-row items-center py-3 px-3 -mx-3 rounded-2xl active:opacity-70 ${!item.isRead ? 'bg-paper-2' : ''}`}
+        style={{ minHeight: 64 }}
         onPress={() => handlePress(item)}
+        accessibilityRole="button"
+        accessibilityLabel={`${!item.isRead ? 'Unread. ' : ''}${anonymous ? '' : (item.sender?.username || 'Fync') + ' '}${message}, ${getTimeAgo(item.createdAt)}`}
       >
         {/* Avatar Section */}
         <View className="relative mr-3">
           {anonymous ? (
-            <View style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="person" size={18} color={C.ink3} />
             </View>
           ) : (
-          <ExpoImage
-            source={{
-              uri: getFullUrl(item.sender?.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.sender?.username || 'Fync')}`
-            }}
-            style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2 }}
-            cachePolicy="memory-disk"
-          />
+          <Avatar user={item.sender as any} size={44} showBadge={false} />
           )}
           {!item.isRead && (
-            <View className="absolute -top-1 -right-1 w-3 h-3 bg-brand-500 rounded-full border-2 border-card" />
+            <View className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-brand-500 rounded-full border-2 border-paper" />
           )}
         </View>
 
         {/* Text Section */}
         <View className="flex-1">
           {/* Capped: a long comment used to stretch one row over half the screen. */}
-          <Text className="font-sans text-sm text-ink-2" numberOfLines={3}>
+          <Text className="font-sans text-sm leading-5 text-ink-2" numberOfLines={3}>
             {anonymous || item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
               // Opportunity notifications: show full message without username prefix
-              <Text className="font-semibold text-base text-ink">{message}</Text>
+              <Text className="font-semibold text-sm text-ink">{message}</Text>
             ) : (
               <>
-                <Text className="font-semibold text-base text-ink">
+                <Text className="font-semibold text-sm text-ink">
                   {item.sender?.username || item.sender?.name || 'Fync'}
                 </Text>{' '}{message}
               </>
             )}
           </Text>
-          <Text className="font-display text-label text-ink-3 uppercase">
+          <Text className="font-sans text-xs text-ink-3 mt-0.5">
             {getTimeAgo(item.createdAt)}
           </Text>
         </View>
@@ -315,14 +313,12 @@ const Notification = () => {
         {item.type === 'broadcast' && item.imageUrl ? (
           <ExpoImage source={{ uri: getFullUrl(item.imageUrl) || '' }} style={s.thumb} cachePolicy="memory-disk" />
         ) : item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
-          <View style={{ backgroundColor: 'rgba(249,115,22,0.12)', borderRadius: 12, padding: 8 }}>
-            <Ionicons name={item.type === 'broadcast' ? 'megaphone' : 'briefcase'} size={18} color={C.brand[500]} />
-          </View>
+          <IconTile icon={item.type === 'broadcast' ? 'megaphone-outline' : 'briefcase-outline'} size={40} style={{ marginLeft: 8 }} />
         ) : item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
           <ExpoImage source={{ uri: getFullUrl(item.post.image[0]) || '' }} style={s.thumb} cachePolicy="memory-disk" />
         ) : item.type === 'follow' ? (
-          <View className="bg-ink ml-2 px-2.5 py-1 rounded-full">
-            <Text className="text-paper text-label font-display uppercase">Profile</Text>
+          <View className="bg-paper-2 border border-line ml-2 px-3 py-1.5 rounded-full">
+            <Text className="text-ink text-xs font-semibold">View profile</Text>
           </View>
         ) : null}
       </Pressable>
@@ -334,11 +330,11 @@ const Notification = () => {
       <StatusBar barStyle={C.barStyle} />
 
       <View className="flex-1">
-        <AppBar title="Updates Center" onBack={() => navigation.goBack()} />
+        <AppBar title="Notifications" onBack={() => navigation.goBack()} />
 
         {/* List */}
         {loading ? (
-          <View className="flex-1 px-5 pt-6">
+          <View className="flex-1 px-gutter pt-4">
             {[1, 2, 3, 4, 5, 6].map(i => (
               <NotificationSkeleton key={i} />
             ))}
@@ -357,12 +353,6 @@ const Notification = () => {
             }
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
-            ListHeaderComponent={
-              <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                <Text className="text-ink-3 text-label font-display uppercase">Recent transmissions</Text>
-                <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-              </View>
-            }
             ListFooterComponent={
               loadingMore ? (
                 <View className="py-6 items-center">
@@ -379,12 +369,8 @@ const Notification = () => {
                 />
               </View>
             ) : (
-              <View className="items-center justify-center mt-20 px-gutter">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                  <Ionicons name="notifications-off-outline" size={32} color={C.ink4} />
-                </View>
-                <Text className="font-semibold text-base text-ink text-center">Sync Complete</Text>
-                <Text className="font-sans text-sm text-ink-3 mt-2 text-center">No active signals found in the registry.</Text>
+              <View className="mt-16">
+                <Empty icon="notifications-off-outline" title="You're all caught up" hint="Likes, follows and replies will show up here." />
               </View>
             )}
             contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10 }}
@@ -396,7 +382,7 @@ const Notification = () => {
   );
 };
 
-const s = themed(() => ({ thumb: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: C.line, marginLeft: 8, backgroundColor: C.paper2 } }));
+const s = themed(() => ({ thumb: { width: 48, height: 48, borderRadius: 12, marginLeft: 8, backgroundColor: C.paper2 } }));
 
 // --- HELPER FUNCTION: Time Ago ---
 const getTimeAgo = (dateString: string) => {

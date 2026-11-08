@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, TouchableOpacity, TextInput, Dimensions, PanResponder, KeyboardAvoidingView, Platform, FlatList} from 'react-native'
+import {View, Text, Pressable, TextInput, Dimensions, PanResponder, KeyboardAvoidingView, Platform, FlatList} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Polyline } from 'react-native-svg';
@@ -10,7 +10,19 @@ import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, IconTile, Button } from '../ui/kit';
+
+type Msg = { username: string; text: string; isCorrect: boolean };
+const GuessLine = React.memo(function GuessLine({ m }: { m: Msg }) {
+  return (
+    <Text className="mb-2">
+      <Text className="font-semibold text-ink">{m.username}: </Text>
+      <Text className="text-ink-2">{m.text}</Text>
+    </Text>
+  );
+});
+const renderGuess = ({ item }: { item: Msg }) => <GuessLine m={item} />;
+const guessKey = (_: Msg, i: number) => String(i);
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -25,7 +37,7 @@ const DrawAndGuess = () => {
   const [paths, setPaths] = useState<string[][]>([]); // Array of lines, each line is array of "x,y"
   const [currentPath, setCurrentPath] = useState<string[]>([]);
   const [guess, setGuess] = useState("");
-  const [messages, setMessages] = useState<{username: string, text: string, isCorrect: boolean}[]>([]);
+  const [messages, setMessages] = useState<Msg[]>([]);
   
   const batchedPoints = useRef<string[]>([]);
   const messagesRef = useRef<FlatList<any>>(null);
@@ -182,35 +194,31 @@ const DrawAndGuess = () => {
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: C.paper }}>
       {/* Header */}
       <AppBar title="Draw & Guess" onBack={() => navigation.goBack()}
-        right={<IconBtn name="trophy" size={24} color={C.warning} onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'DrawAndGuess' })} />} />
+        right={<IconBtn name="trophy-outline" accessibilityLabel="Leaderboard" onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'DrawAndGuess' })} />} />
 
       {!matchData ? (
         <View className="flex-1 items-center justify-center p-6">
-          <Ionicons name="color-palette" size={80} color={C.info} />
-          <Text className="text-2xl font-display text-ink mt-6 mb-2">Multiplayer Pictionary</Text>
+          <IconTile icon="color-palette-outline" size={80} iconSize={36} />
+          <Text className="text-2xl font-display text-ink mt-6 mb-2" accessibilityRole="header">Multiplayer Pictionary</Text>
           <Text className="text-center text-ink-3 mb-8 px-4">
             Compete against random students. Draw the word, or guess what your opponent is drawing!
           </Text>
-          <TouchableOpacity 
-            onPress={findMatch}
-            disabled={isSearching}
-            className={`w-full py-4 rounded-xl items-center shadow-hair ${isSearching ? 'bg-ink-4' : 'bg-fam-career '}`}
-          >
-            <Text className="text-white font-display text-lg">{isSearching ? "Searching for players..." : "Find a Match"}</Text>
-          </TouchableOpacity>
+          <Button variant="primary" block onPress={findMatch} loading={isSearching} title="Find a match"
+            accessibilityLabel={isSearching ? 'Searching for players' : 'Find a match'} />
+          {isSearching ? <Text className="text-ink-3 mt-3">Searching for players...</Text> : null}
         </View>
       ) : (
         <View className="flex-1">
           {/* Status Bar */}
-          <View className="bg-fam-career/10 p-4 border-b border-fam-career/15 flex-row justify-between items-center">
+          <View className="bg-paper-2 px-gutter py-3 border-b border-line flex-row justify-between items-center">
             <Text className="font-semibold text-ink-2">Vs: {matchData.opponent}</Text>
             {matchData.role === "drawer" ? (
               <View className="items-end">
                 <Text className="text-xs text-ink-3">You are drawing:</Text>
-                <Text className="font-semibold text-fam-career text-lg">{matchData.word}</Text>
+                <Text className="font-display text-ink text-lg">{matchData.word}</Text>
               </View>
             ) : (
-              <Text className="font-semibold text-danger">You are guessing!</Text>
+              <Text className="font-semibold text-accent-text">You are guessing!</Text>
             )}
           </View>
 
@@ -229,9 +237,9 @@ const DrawAndGuess = () => {
             </Svg>
 
             {matchData.role === "drawer" && (
-              <TouchableOpacity onPress={clearCanvas} className="absolute right-4 bottom-4 bg-paper-2 p-3 rounded-full shadow-hair" hitSlop={6}>
-                <Ionicons name="trash" size={20} color={C.danger} />
-              </TouchableOpacity>
+              <View className="absolute right-4 bottom-4">
+                <IconBtn name="trash-outline" boxed color={C.danger} onPress={clearCanvas} accessibilityLabel="Clear canvas" />
+              </View>
             )}
           </View>
 
@@ -241,16 +249,11 @@ const DrawAndGuess = () => {
             <FlatList
               style={{ flex: 1, marginBottom: 16 }}
               data={messages}
-              keyExtractor={(_, i) => String(i)}
+              keyExtractor={guessKey}
               keyboardShouldPersistTaps="handled"
               onContentSizeChange={() => messagesRef.current?.scrollToEnd({ animated: true })}
               ref={messagesRef}
-              renderItem={({ item: m }) => (
-                <Text className="mb-2">
-                  <Text className="font-semibold text-ink-2">{m.username}: </Text>
-                  <Text className="text-ink-2">{m.text}</Text>
-                </Text>
-              )}
+              renderItem={renderGuess}
             />
             
             {matchData.role === "guesser" && (
@@ -259,12 +262,13 @@ const DrawAndGuess = () => {
                   value={guess}
                   onChangeText={setGuess}
                   placeholder="Type your guess..."
-                  className="flex-1 bg-paper border border-line rounded-full px-5 py-3 shadow-hair mr-2 text-ink"
+                  className="flex-1 bg-card border border-line rounded-full px-5 mr-2 text-ink" style={{ minHeight: 48 }}
                   onSubmitEditing={sendGuess}
                 />
-                <TouchableOpacity onPress={sendGuess} className="bg-fam-career w-12 h-12 rounded-full items-center justify-center shadow-hair">
-                  <Ionicons name="send" size={20} color="white" />
-                </TouchableOpacity>
+                <Pressable onPress={sendGuess} className="bg-brand-500 w-12 h-12 rounded-full items-center justify-center active:opacity-70"
+                  accessibilityRole="button" accessibilityLabel="Send guess">
+                  <Ionicons name="send" size={20} color={C.onBrand} />
+                </Pressable>
               </View>
             )}
           </View>

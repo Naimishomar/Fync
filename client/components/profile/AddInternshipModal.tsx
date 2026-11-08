@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Modal, View, Text, TextInput, Pressable, ScrollView,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Switch, Dimensions
-} from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Text, Pressable, Platform } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { C } from '../../constants/colors';
-import { useBottomInset } from '../../constants/layout';
+import { Sheet, FormField, Button } from '../ui/kit';
+import { ChoiceChips, FieldLabel, ToggleRow } from './ProfileBits';
 
-const { height: screenHeight } = Dimensions.get('window');
 const TYPES = ['internship', 'full-time', 'part-time', 'freelance', 'contract', 'open-source'];
 const MODES = ['remote', 'onsite', 'hybrid'];
 
@@ -22,8 +18,16 @@ interface Props {
   onSuccess: () => void;
 }
 
+const FIELDS = [
+  { label: 'Company *', key: 'company', ph: 'e.g. Google' },
+  { label: 'Role *', key: 'role', ph: 'e.g. SDE Intern' },
+  { label: 'Description', key: 'description', ph: 'What did you work on?', multi: true },
+  { label: 'Tech stack', key: 'techStack', ph: 'React, Node.js, etc (comma separated)' },
+  { label: 'Location', key: 'location', ph: 'Bangalore, India' },
+  { label: 'Start date (YYYY-MM-DD) *', key: 'startDate', ph: '2024-06-01' },
+] as const;
+
 export default function AddInternshipModal({ visible, initial, onClose, onSuccess }: Props) {
-  const bottomInset = useBottomInset();
   const [form, setForm] = useState({
     company: '', role: '', type: 'internship', description: '',
     techStack: '', startDate: '', endDate: '', isCurrentlyWorking: false,
@@ -136,181 +140,58 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
     }
   };
 
+  const current = form.isCurrentlyWorking;
+  const picked = current ? offerLetter : completionCertificate;
+  const existing = current ? existingOfferLetter : existingCertificate;
+
   return (
-    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/60 justify-end">
-        <Pressable className="absolute inset-0" onPress={onClose} />
-        <KeyboardAvoidingView
-          behavior="padding"
-          className="bg-paper rounded-t-sheet overflow-hidden"
-          style={{ height: screenHeight * 0.85 }}
-        >
-          {/* Handle */}
-          <View className="items-center py-4">
-            <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
-          </View>
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title={isEdit ? 'Edit experience' : 'Add experience'}
+      height="85%"
+      footer={<Button variant="primary" block icon={isEdit ? 'save-outline' : 'add'} title={isEdit ? 'Save changes' : 'Add experience'} onPress={save} loading={saving} />}
+    >
+      <ChoiceChips label="Type" items={TYPES} value={form.type} onChange={t => setForm(p => ({ ...p, type: t }))} />
 
-          {/* Header */}
-          <View className="flex-row items-center justify-between px-gutter pb-3 border-b border-line">
-            <View>
-              <Text className="text-ink font-display uppercase text-h1">
-                {isEdit ? 'Update' : 'Record'} <Text className="text-accent-text">Experience</Text>
-              </Text>
-              <Text className="text-ink-3 font-semibold text-label uppercase mt-0.5">Career History Module</Text>
-            </View>
-            <Pressable onPress={onClose} className="w-11 h-11 rounded-xl items-center justify-center" hitSlop={2}>
-              <Ionicons name="close" size={20} color={C.ink} />
-            </Pressable>
-          </View>
+      {FIELDS.map(f => (
+        <FormField
+          key={f.key}
+          label={f.label}
+          placeholder={f.ph}
+          value={form[f.key]}
+          onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
+          multiline={'multi' in f}
+          containerStyle={{ marginBottom: 16 }}
+        />
+      ))}
 
-          <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            {/* Type */}
-            <View className="mb-6">
-              <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="layers" size={12} color={C.ink3} />
-                <Text className="text-ink-3 font-display uppercase text-label">Engagement Type</Text>
-              </View>
-              <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false}>
-                <View className="flex-row gap-2 pr-6">
-                  {TYPES.map(t => (
-                    <Pressable key={t} onPress={() => setForm(p => ({ ...p, type: t }))}
-                      className={`px-4 py-2.5 rounded-xl border items-center shadow-hair ${form.type === t ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
-                      <Text className={`text-label font-display uppercase ${form.type === t ? 'text-paper' : 'text-ink-3'}`}>{t.replace('-', ' ')}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </ScrollView>
-            </View>
+      <ToggleRow label="I currently work here" value={current} onChange={v => setForm(p => ({ ...p, isCurrentlyWorking: v }))} />
 
-            {[
-              { label: 'Company *', key: 'company', ph: 'e.g. Google', icon: 'briefcase' },
-              { label: 'Role *', key: 'role', ph: 'e.g. SDE Intern', icon: 'user' },
-              { label: 'Description', key: 'description', ph: 'What did you work on?', multi: true, icon: 'align-left' },
-              { label: 'Tech Stack', key: 'techStack', ph: 'React, Node.js, etc (comma separated)', icon: 'cpu' },
-              { label: 'Location', key: 'location', ph: 'Bangalore, India', icon: 'map-pin' },
-              { label: 'Start Date (YYYY-MM-DD) *', key: 'startDate', ph: '2024-06-01', icon: 'calendar' },
-            ].map(f => (
-              <View key={f.key} className="mb-6">
-                <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name={f.icon as any} size={12} color={C.ink3} />
-                  <Text className="text-ink-3 font-display uppercase text-label">{f.label}</Text>
-                </View>
-                <TextInput
-                  className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
-                  style={[{ minHeight: 50 }, f.multi ? { height: 100, textAlignVertical: 'top' } : null]}
-                  placeholder={f.ph} placeholderTextColor={C.ink3}
-                  value={form[f.key as keyof typeof form] as string}
-                  onChangeText={v => setForm(p => ({ ...p, [f.key]: v }))}
-                  multiline={!!f.multi}
-                />
-              </View>
-            ))}
+      {!current ? (
+        <FormField label="End date (YYYY-MM-DD)" placeholder="2024-09-30" value={form.endDate}
+          onChangeText={v => setForm(p => ({ ...p, endDate: v }))} containerStyle={{ marginBottom: 16 }} />
+      ) : null}
 
-            {/* Currently working toggle */}
-            <View className="flex-row items-center justify-between mb-6 bg-paper-2 px-5 py-4 rounded-card border border-line">
-              <View className="flex-row items-center gap-2">
-                <Feather name="clock" size={12} color={C.ink} />
-                <Text className="text-ink font-display uppercase text-label">Currently Active</Text>
-              </View>
-              <Switch value={form.isCurrentlyWorking}
-                onValueChange={v => setForm(p => ({ ...p, isCurrentlyWorking: v }))}
-                trackColor={{ true: C.brand[500] }} />
-            </View>
+      <ChoiceChips label="Work mode" items={MODES} value={form.workMode} onChange={m => setForm(p => ({ ...p, workMode: m }))} />
 
-            {!form.isCurrentlyWorking && (
-              <View className="mb-6">
-                <View className="flex-row items-center gap-2 mb-2">
-                  <Feather name="calendar" size={12} color={C.ink3} />
-                  <Text className="text-ink-3 font-display uppercase text-label">End Date (YYYY-MM-DD)</Text>
-                </View>
-                <TextInput className="bg-card border-[1.5px] border-ink px-4 text-ink text-base font-sans rounded-md"
-            style={{ minHeight: 50 }}
-                  placeholder="2024-09-30" placeholderTextColor={C.ink3}
-                  value={form.endDate} onChangeText={v => setForm(p => ({ ...p, endDate: v }))} />
-              </View>
-            )}
-
-            {/* Work mode */}
-            <View className="mb-8">
-              <View className="flex-row items-center gap-2 mb-3">
-                <Feather name="globe" size={12} color={C.ink3} />
-                <Text className="text-ink-3 font-display uppercase text-label">Work Mode</Text>
-              </View>
-              <View className="flex-row gap-3">
-                {MODES.map(m => (
-                  <Pressable key={m} onPress={() => setForm(p => ({ ...p, workMode: m }))}
-                    className={`flex-1 py-3.5 rounded-card border items-center shadow-hair ${form.workMode === m ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
-                    <Text className={`text-label font-display uppercase ${form.workMode === m ? 'text-paper' : 'text-ink-3'}`}>{m}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-
-            {/* Document Section */}
-            <View className="mb-12 p-6 bg-paper-2 border border-line rounded-card shadow-hair">
-               <View className="flex-row items-center mb-4">
-                 <View className="w-8 h-8 bg-card rounded-xl items-center justify-center shadow-hair mr-3">
-                   <Ionicons name="shield-checkmark" size={16} color={C.brand[500]} />
-                 </View>
-                 <Text className="font-semibold text-base text-ink">Integrity Verification</Text>
-               </View>
-               
-               {form.isCurrentlyWorking ? (
-                 <View>
-                   <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                     <Text className="text-accent-text text-label uppercase font-display">Upload Offer Letter (PDF)</Text>
-                     <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                   </View>
-                   <Pressable onPress={() => pickDocument('offer')} 
-                     className="bg-card border border-line p-5 rounded-card flex-row items-center justify-between shadow-hair">
-                      <View className="flex-row items-center flex-1 pr-4">
-                        <Feather name="file-text" size={18} color={C.brand[500]} />
-                        <Text className="text-ink text-label ml-3 font-display uppercase" numberOfLines={1}>
-                          {offerLetter ? offerLetter.name : (existingOfferLetter ? 'Offer Letter Synced' : 'Select PDF Manifest')}
-                        </Text>
-                      </View>
-                      <Feather name="upload" size={16} color={C.brand[500]} />
-                   </Pressable>
-                 </View>
-               ) : (
-                 <View>
-                   <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-                     <Text className="text-accent-text text-label uppercase font-display">Upload Completion Proof (PDF)</Text>
-                     <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                   </View>
-                   <Pressable onPress={() => pickDocument('cert')} 
-                     className="bg-card border border-line p-5 rounded-card flex-row items-center justify-between shadow-hair">
-                      <View className="flex-row items-center flex-1 pr-4">
-                        <Feather name="award" size={18} color={C.brand[500]} />
-                        <Text className="text-ink text-label ml-3 font-display uppercase" numberOfLines={1}>
-                          {completionCertificate ? completionCertificate.name : (existingCertificate ? 'Proof Synced' : 'Select PDF Manifest')}
-                        </Text>
-                      </View>
-                      <Feather name="upload" size={16} color={C.brand[500]} />
-                   </Pressable>
-                 </View>
-               )}
-            </View>
-            <View className="h-10" />
-          </ScrollView>
-
-          {/* Footer Action */}
-          <View className="p-card-pad border-t border-line bg-paper" style={{ paddingBottom: bottomInset }}>
-            <Pressable onPress={save} disabled={saving}
-              className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
-              {saving ? <ActivityIndicator size="small" color={C.brand[500]} />
-                : (
-                  <>
-                    <Feather name={isEdit ? 'save' : 'plus'} size={16} color={C.paper} className="mr-2" />
-                    <Text className="text-paper font-display uppercase text-xs ml-2">
-                      {isEdit ? 'Update Record' : 'Commit Experience'}
-                    </Text>
-                  </>
-                )}
-            </Pressable>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
+      <FieldLabel>{current ? 'Offer letter (PDF) *' : 'Completion certificate (PDF) *'}</FieldLabel>
+      <Pressable
+        onPress={() => pickDocument(current ? 'offer' : 'cert')}
+        accessibilityRole="button"
+        accessibilityLabel={current ? 'Upload offer letter' : 'Upload completion certificate'}
+        className="bg-paper-2 border border-line px-4 rounded-2xl flex-row items-center active:opacity-70"
+        style={{ minHeight: 56, gap: 12 }}
+      >
+        <Feather name={current ? 'file-text' : 'award'} size={18} color={C.ink2} />
+        <Text className="text-ink text-sm font-sans flex-1" numberOfLines={1}>
+          {picked ? picked.name : existing ? (current ? 'Offer letter uploaded' : 'Certificate uploaded') : 'Choose a PDF'}
+        </Text>
+        <Feather name="upload" size={16} color={C.ink3} />
+      </Pressable>
+      <Text className="text-ink-3 text-xs font-sans mt-2">
+        {current ? 'Required for a current role.' : 'Required for a past role.'}
+      </Text>
+    </Sheet>
   );
 }

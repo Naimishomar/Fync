@@ -1,12 +1,7 @@
 import React, { useState, useRef } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, TextInput} from 'react-native'
-// SafeAreaView from 'react-native' is iOS-only — on Android it renders as a
-// plain View and applies no insets, so content collides with the status bar
-// and the gesture bar. The safe-area-context version works on both.
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { AppBar } from '../ui/kit';
+import { View } from 'react-native';
+import { Button, Card, FormField } from '../ui/kit';
+import { ToolScreen, OptionCard } from './pdf/PdfToolShell';
 import QRCode from 'react-native-qrcode-svg';
 import * as Sharing from 'expo-sharing';
 // expo-file-system 19 moved documentDirectory / EncodingType /
@@ -14,10 +9,8 @@ import * as Sharing from 'expo-sharing';
 // package root leaves them undefined at runtime.
 import * as FileSystem from 'expo-file-system/legacy';
 import { Alert } from '../ui/AlertModal';
-import { C } from '../../constants/colors';
 
 export default function QRCodeToolScreen() {
-  const navigation = useNavigation();
   const [inputText, setInputText] = useState('');
   const [qrValue, setQrValue] = useState('');
   const qrRef = useRef<any>(null);
@@ -54,53 +47,30 @@ export default function QRCodeToolScreen() {
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: C.paper }}>
-      <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
-        <AppBar title="QR Generator" onBack={() => navigation.goBack()} />
+    <ToolScreen title="QR Generator">
+      <OptionCard>
+        <FormField
+          label="Content or URL" value={inputText} onChangeText={setInputText}
+          placeholder="https://fync.app or any text..." multiline numberOfLines={3}
+        />
+        <Button variant="primary" block title="Generate QR code" onPress={generateQR} />
+      </OptionCard>
 
-        <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
-        <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-6">
-          <Text className="text-sm font-semibold text-ink mb-2">Content or URL</Text>
-          <TextInput
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="https://fync.app or any text..."
-            placeholderTextColor={C.ink3}
-            className="bg-card p-4 text-ink border-[1.5px] border-ink mb-4 rounded-md"
-            multiline
-            numberOfLines={3}
-            textAlignVertical="top"
-          />
-          <TouchableOpacity
-            onPress={generateQR}
-            className="w-full py-4 rounded-xl items-center justify-center bg-fam-study shadow-hair"
-          >
-            <Text className="text-white font-semibold text-base">Generate QR Code</Text>
-          </TouchableOpacity>
-        </View>
-
-        {qrValue !== '' && (
-          <View className="items-center bg-card rounded-card p-card-pad border border-line shadow-hair mb-10">
-            <View className="bg-white p-4 shadow-hair border border-line rounded-card mb-6">
-              <QRCode
-                value={qrValue}
-                size={200}
-                color="black"
-                backgroundColor="white"
-                getRef={(c) => (qrRef.current = c)}
-              />
-            </View>
-            <TouchableOpacity
-              onPress={shareQR}
-              className="w-full py-4 items-center justify-center flex-row bg-ink border-2 border-ink rounded-md"
-            >
-              <Ionicons name="share-outline" size={20} color={C.paper} className="mr-2" />
-              <Text className="text-paper font-semibold text-base ml-2">Save / Share QR</Text>
-            </TouchableOpacity>
+      {qrValue !== '' && (
+        <Card padded style={{ alignItems: 'center', gap: 20 }}>
+          {/* QR stays black on white in both themes so every scanner reads it. */}
+          <View className="p-4 rounded-2xl" style={{ backgroundColor: '#FFFFFF' }}>
+            <QRCode
+              value={qrValue}
+              size={200}
+              color="black"
+              backgroundColor="white"
+              getRef={(c) => (qrRef.current = c)}
+            />
           </View>
-        )}
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+          <Button variant="solid" block icon="share-outline" title="Save / share QR" onPress={shareQR} />
+        </Card>
+      )}
+    </ToolScreen>
   );
 }

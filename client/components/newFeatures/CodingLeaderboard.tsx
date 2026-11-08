@@ -1,23 +1,60 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {View, Text, FlatList, TextInput, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, ScrollView, Linking, Animated, StatusBar} from 'react-native'
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl, ScrollView, Linking, Animated, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import { BlurView } from 'expo-blur';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 
-import { AppBar, StampCard } from '../ui/kit';
+import {
+    AppBar, Button, Card, Display, Empty, FormField, H1, IconTile, Label, ListRow, Num,
+    SearchField, SectionHeader, SegmentedTabs, Sheet, Tag, TagRow,
+} from '../ui/kit';
 import { C } from '../../constants/colors';
 // Mirrors LEETCODE_COOLDOWN_SECONDS on the server.
 const COOLDOWN_MS = 15 * 60 * 1000;
 
 const LC_LOGO = "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png";
 const UTC_DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+const DIFFICULTY = [
+    { key: 'easySolved', label: 'Easy', color: () => C.success },
+    { key: 'mediumSolved', label: 'Medium', color: () => C.warning },
+    { key: 'hardSolved', label: 'Hard', color: () => C.danger },
+];
+
+const RankRow = memo(function RankRow({ item, index, weekly, onOpen }: { item: any; index: number; weekly: boolean; onOpen: (u: any) => void }) {
+    const score = weekly ? (item.weeklyStats?.questionsThisWeek || 0) : (item.codingStats?.totalSolved || 0);
+    return (
+        <ListRow
+            onPress={() => onOpen(item)}
+            style={{ marginHorizontal: 20, marginBottom: 12, paddingHorizontal: 16, backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.line }}
+            accessibilityLabel={`Rank ${index + 1}, ${item.name || item.username}, ${score} ${weekly ? 'this week' : 'solved'}`}
+            leading={
+                <View className="flex-row items-center" style={{ gap: 12 }}>
+                    <View className="w-8 items-center">
+                        {index < 3 ? (
+                            <MaterialCommunityIcons name="crown" size={20} color={index === 1 ? C.ink3 : C.warning} />
+                        ) : (
+                            <Text className="text-ink-3 font-semibold text-base">#{index + 1}</Text>
+                        )}
+                    </View>
+                    <Image source={{ uri: item.avatar }} recyclingKey={item._id} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
+                </View>
+            }
+            title={item.name || item.username}
+            subtitle={item.college || 'Global'}
+            right={
+                <View className="items-center">
+                    <Num style={{ fontSize: 18, lineHeight: 22 }}>{score}</Num>
+                    <Text className="text-ink-3 text-xs font-semibold">{weekly ? '7 days' : 'Solved'}</Text>
+                </View>
+            }
+        />
+    );
+});
 
 // Outside the screen so a parent re-render doesn't remount it and restart the pulse.
 const LeaderboardSkeleton = () => {
@@ -37,7 +74,7 @@ const LeaderboardSkeleton = () => {
     return (
         <Animated.View
             style={{ opacity: pulseAnim }}
-            className="flex-row items-center bg-card p-5 mb-4 mx-5 rounded-card border border-line"
+            className="flex-row items-center bg-card p-4 mb-3 mx-gutter rounded-2xl border border-line"
         >
             <View className="w-10 items-center justify-center mr-3">
                 <View className="w-8 h-8 bg-paper-2 rounded-full" />
@@ -251,32 +288,7 @@ export default function CodingLeaderboard() {
     }, [hasLinkedProfile, user?.codingStats?.lastUpdated, nextRefreshAt]);
 
     const renderItem = useCallback(({ item, index }: { item: any, index: number }) => (
-        <TouchableOpacity onPress={() => openUserProfile(item)} className="flex-row items-center bg-card p-5 mb-4 mx-5 rounded-card border border-line shadow-hair">
-            <View className="w-10 items-center justify-center mr-3">
-                {index < 3 ? (
-                    <View className={`w-8 h-8 rounded-full items-center justify-center ${index === 0 ? 'bg-warning/10' : index === 1 ? 'bg-paper-2' : 'bg-brand-50'}`}>
-                        <MaterialCommunityIcons name="crown" size={18} color={index === 0 ? C.warning : index === 1 ? C.ink3 : C.warning} />
-                    </View>
-                ) : (
-                    <Text className="text-ink-4 font-display text-lg">#{index + 1}</Text>
-                )}
-            </View>
-            <View className="p-0.5 rounded-full border border-line bg-card">
-                <Image source={{ uri: item.avatar }} recyclingKey={item._id} style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
-            </View>
-            <View className="flex-1 ml-4">
-                <Text className="text-ink font-display text-sm uppercase" numberOfLines={1}>{item.name || item.username}</Text>
-                <View className="flex-row items-center mt-1">
-                    <Text className="text-ink-3 text-label font-display uppercase flex-1" numberOfLines={1}>{item.college || "Global Arena"}</Text>
-                </View>
-            </View>
-            <View className="items-center bg-paper-2 px-3 py-1.5 rounded-card border border-line">
-                <Text className="text-ink font-display text-lg">
-                    {timeFilter === 'weekly' ? (item.weeklyStats?.questionsThisWeek || 0) : (item.codingStats?.totalSolved || 0)}
-                </Text>
-                <Text className="text-ink-3 text-label font-display uppercase">{timeFilter === 'weekly' ? '7 Days' : 'Solved'}</Text>
-            </View>
-        </TouchableOpacity>
+        <RankRow item={item} index={index} weekly={timeFilter === 'weekly'} onOpen={openUserProfile} />
     ), [openUserProfile, timeFilter]);
 
     if (!hasLinkedProfile) {
@@ -285,62 +297,42 @@ export default function CodingLeaderboard() {
                 <StatusBar barStyle={C.barStyle} />
 
                 <SafeAreaView className="flex-1" edges={['bottom']}>
-                    {/* Header with Back Button */}
                     <AppBar title="Coding Rank" onBack={() => navigation.goBack()} />
 
-                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingBottom: 50 }}>
-                        <View className="items-center mb-10">
-                            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-8">
-                                <MaterialCommunityIcons name="shield-lock" size={48} color={C.brand[500]} />
-                            </View>
-
-                            <Text className="text-ink text-4xl font-display uppercase text-center">Join The<Text className="text-accent-text"> Arena</Text></Text>
-                            <Text className="font-sans text-sm text-ink-3 text-center mt-4 px-6">
+                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 20, paddingBottom: 48 }}>
+                        <View className="items-center mb-8">
+                            <IconTile icon="code-slash-outline" size={72} iconSize={32} color={C.accentText} style={{ marginBottom: 20 }} />
+                            <Display style={{ textAlign: 'center' }}>Join the arena</Display>
+                            <Text className="font-sans text-sm text-ink-3 text-center mt-3 px-6">
                                 Connect your LeetCode profile to unlock the leaderboard and climb the global ranks.
                             </Text>
                         </View>
 
-                        <StampCard radius={26} style={{ width: '100%' }}>
-                        <View className="w-full p-card-pad">
-                            <View className="flex-row items-center mb-6 px-2">
-                                <View className="w-10 h-10 rounded-card bg-card items-center justify-center mr-4 shadow-hair">
+                        <Card padded style={{ width: '100%', gap: 16 }}>
+                            <View className="flex-row items-center" style={{ gap: 12 }}>
+                                <View className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center">
                                     <Image source={{ uri: LC_LOGO }} style={{ width: 20, height: 20 }} contentFit="contain" />
                                 </View>
                                 <View>
-                                    <Text className="font-semibold text-base text-ink">LeetCode Identity</Text>
-                                    <Text className="text-ink-3 text-label font-display uppercase mt-0.5">Verification Required</Text>
+                                    <Text className="font-semibold text-base text-ink">LeetCode username</Text>
+                                    <Text className="text-ink-3 text-xs font-sans mt-0.5">We read your public stats only</Text>
                                 </View>
                             </View>
 
-                            <TextInput
-                                placeholder="USERNAME (E.G. NAIMISHOMAR)"
-                                placeholderTextColor={C.ink3}
+                            <FormField
+                                placeholder="e.g. naimishomar"
+                                accessibilityLabel="LeetCode username"
                                 value={lcUsername}
                                 onChangeText={setLcUsername}
                                 autoCapitalize="none"
-                                className="bg-card px-6 py-5 text-ink font-display text-sm border-[1.5px] border-ink rounded-md"
+                                autoCorrect={false}
                             />
 
-                            <TouchableOpacity
-                                onPress={handleLinkProfile}
-                                disabled={connecting}
-                                activeOpacity={0.8}
-                                className="bg-ink mt-6 py-5 items-center border-2 border-ink rounded-md"
-                            >
-                                {connecting ? (
-                                    <ActivityIndicator size="small" color={C.paper} />
-                                ) : (
-                                    <View className="flex-row items-center">
-                                        <Text className="text-paper font-display uppercase text-label mr-2">Link Profile & Enter</Text>
-                                        <Ionicons name="rocket-outline" size={16} color={C.paper} />
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                        </View>
-                        </StampCard>
+                            <Button title="Link profile" icon="rocket-outline" variant="primary" block loading={connecting} onPress={handleLinkProfile} />
+                        </Card>
 
-                        <Text className="font-sans text-sm text-ink-3 mt-12 text-center px-gutter">
-                            Your coding stats will be fetched directly from LeetCode and displayed in the Fync Arena.
+                        <Text className="font-sans text-sm text-ink-3 mt-8 text-center px-gutter">
+                            Your coding stats are fetched directly from LeetCode and shown in the Fync arena.
                         </Text>
                     </ScrollView>
                 </SafeAreaView>
@@ -358,52 +350,33 @@ export default function CodingLeaderboard() {
                     onBack={() => navigation.goBack()}
                     right={
                     canRefresh ? (
-                        <TouchableOpacity 
-                            onPress={handleManualRefresh}
-                            disabled={refreshingStats}
-                            style={{ marginRight: 11 }}
-                            className={`px-4 py-2.5 rounded-xl items-center shadow-hair ${refreshingStats ? 'bg-brand-200' : 'bg-brand-500 '}`}
-                        >
-                            {refreshingStats ? (
-                                <ActivityIndicator size="small" color={C.ink} />
-                            ) : (
-                                <View className="flex-row items-center">
-                                    <Ionicons name="reload" size={12} color={C.ink} />
-                                    <Text className="text-ink font-display text-label uppercase ml-1.5">Load Fresh</Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
+                        <Button small title="Sync" icon="reload" variant="primary" loading={refreshingStats} onPress={handleManualRefresh} accessibilityLabel="Sync LeetCode stats" />
                     ) : (
-                        <View className="bg-card border border-line items-center justify-center px-2.5 py-1 rounded-full" style={{ marginRight: 11 }}>
-                            <Text className="font-display text-label text-ink-3 uppercase mb-0.5">Next Sync</Text>
-                            <Text className="text-ink font-display text-sm">{syncCountdown}</Text>
+                        <View className="bg-paper-2 items-center justify-center px-3 py-1 rounded-full" accessibilityLabel={`Next sync in ${syncCountdown}`}>
+                            <Text className="text-ink-3 text-xs font-semibold">Next sync</Text>
+                            <Text className="text-ink font-semibold text-sm">{syncCountdown}</Text>
                         </View>
                     )
                     }
                 />
 
-                <View className="px-gutter mt-2 mb-6">
-                    <View className="flex-row items-center bg-card px-4 py-1 border-2 border-ink shadow-hair mb-6 rounded-md">
-                        <Ionicons name="search" size={20} color={C.ink4} />
-                        <TextInput placeholder="Search hunters..." placeholderTextColor={C.ink4} value={search} onChangeText={setSearch} className="flex-1 text-ink font-display uppercase text-sm" />
-                    </View>
-
-                    <View className="flex-row justify-between gap-4">
-                        <View className="flex-1 flex-row bg-card rounded-xl p-1.5 border border-line shadow-hair">
-                            {['college', 'global'].map(scope => (
-                                <TouchableOpacity key={scope} onPress={() => setActiveScope(scope as any)} className={`flex-1 items-center py-3 rounded-md ${activeScope === scope ? 'bg-ink' : 'bg-transparent'}`}>
-                                    <Text className={`font-display text-label uppercase ${activeScope === scope ? 'text-paper' : 'text-ink-3'}`}>{scope === 'college' ? 'Campus' : 'Global'}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                        <View className="flex-1 flex-row bg-card rounded-xl p-1.5 border border-line shadow-hair">
-                            <TouchableOpacity onPress={() => setTimeFilter('allTime')} className={`flex-1 items-center py-3 rounded-md ${timeFilter === 'allTime' ? 'bg-brand-500' : 'bg-transparent'}`}>
-                                <Text className={`font-display text-label uppercase ${timeFilter === 'allTime' ? 'text-on-brand' : 'text-ink-3'}`}>All</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setTimeFilter('weekly')} className={`flex-1 items-center py-3 rounded-md ${timeFilter === 'weekly' ? 'bg-success' : 'bg-transparent'}`}>
-                                <Text className={`font-display text-label uppercase ${timeFilter === 'weekly' ? 'text-white' : 'text-ink-3'}`}>7 Days</Text>
-                            </TouchableOpacity>
-                        </View>
+                <View className="px-gutter mt-2 mb-4" style={{ gap: 12 }}>
+                    <SearchField placeholder="Search coders" value={search} onChangeText={setSearch} />
+                    <View className="flex-row" style={{ gap: 12 }}>
+                        <SegmentedTabs
+                            style={{ flex: 1 }}
+                            items={['college', 'global'] as const}
+                            labels={{ college: 'Campus', global: 'Global' }}
+                            value={activeScope}
+                            onChange={setActiveScope}
+                        />
+                        <SegmentedTabs
+                            style={{ flex: 1 }}
+                            items={['allTime', 'weekly'] as const}
+                            labels={{ allTime: 'All time', weekly: '7 days' }}
+                            value={timeFilter}
+                            onChange={setTimeFilter}
+                        />
                     </View>
                 </View>
 
@@ -417,192 +390,128 @@ export default function CodingLeaderboard() {
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
-                        ListEmptyComponent={
-                            <View className="items-center mt-20 px-gutter">
-                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <FontAwesome5 name="code" size={32} color={C.ink4} />
-                                </View>
-                                <Text className="text-ink font-display text-xl text-center uppercase">No Hunters Found</Text>
-                                <Text className="font-sans text-sm text-ink-3 text-center mt-2">The arena is currently quiet.</Text>
-                            </View>
-                        }
+                        ListEmptyComponent={<Empty icon="code-slash-outline" title="No coders yet" hint="The arena is quiet right now." />}
                     />
                 )}
 
-                {/* --- ULTRA DETAILED MODAL --- */}
-                <Modal visible={modalVisible} transparent={true} statusBarTranslucent animationType="slide" onRequestClose={() => setModalVisible(false)}>
-                    <BlurView intensity={20} tint={C.scheme === 'dark' ? 'dark' : 'light'} className="flex-1 justify-end">
-                        <TouchableOpacity className="absolute inset-0" onPress={() => setModalVisible(false)} />
-                        <View className="bg-paper h-[85%] rounded-t-sheet border-t border-line p-card-pad shadow-hair">
-                            <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mb-8" />
+                <Sheet
+                    visible={modalVisible}
+                    onClose={() => setModalVisible(false)}
+                    height="85%"
+                    title={dbUser?.name || 'Coder'}
+                    subtitle={dbUser?.codingProfiles?.leetcode ? `@${dbUser.codingProfiles.leetcode}` : undefined}
+                >
+                    {profileLoading ? (
+                        <ActivityIndicator size="large" color={C.brand[500]} style={{ marginTop: 80 }} />
+                    ) : !lcData ? (
+                        <Text className="text-ink-3 text-center mt-20">{"Couldn't load this profile. Try again."}</Text>
+                    ) : (
+                        <>
+                            <View className="items-center mb-6">
+                                <Image source={{ uri: lcData?.profile?.avatar }} style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
+                                <H1 style={{ marginTop: 12, textAlign: 'center' }}>{lcData.profile?.name || dbUser?.name}</H1>
 
-                            {profileLoading ? (
-                                <ActivityIndicator size="large" color={C.brand[500]} className="mt-20" />
-                            ) : !lcData ? (
-                                <Text className="text-ink-3 text-center mt-20">{"Couldn't load this profile. Try again."}</Text>
+                                <View className="flex-row mt-4" style={{ gap: 8 }}>
+                                    <Button title="Profile" icon="person-outline" variant="primary" onPress={navigateToAppProfile} />
+                                    <Button title="LeetCode" icon="open-outline" onPress={openLeetCodeExternal} />
+                                </View>
+
+                                <TagRow style={{ marginTop: 16, justifyContent: 'center' }}>
+                                    <Tag icon="trophy-outline" label={`Global rank #${lcData.profile?.ranking || 'N/A'}`} />
+                                    <Tag icon="earth-outline" label={lcData.profile?.country || 'Earth'} />
+                                </TagRow>
+                            </View>
+
+                            <View className="flex-row mb-6" style={{ gap: 12 }}>
+                                <Card padded style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                    <Num style={{ fontSize: 34, lineHeight: 38 }}>{lcData.solved?.solvedProblem || 0}</Num>
+                                    <Label style={{ marginTop: 4 }}>Total solved</Label>
+                                </Card>
+                                <View className="flex-1" style={{ gap: 8 }}>
+                                    {DIFFICULTY.map(d => (
+                                        <View key={d.key} className="flex-row justify-between items-center bg-paper-2 px-4 py-3 rounded-2xl">
+                                            <View className="flex-row items-center" style={{ gap: 8 }}>
+                                                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: d.color() }} />
+                                                <Text className="text-ink-2 text-sm font-semibold">{d.label}</Text>
+                                            </View>
+                                            <Text className="text-ink text-sm font-semibold">{lcData.solved?.[d.key] || 0}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+
+                            <Card padded style={{ marginBottom: 24 }}>
+                                <SectionHeader title="Last 7 days" style={{ marginBottom: 16 }} />
+                                <View className="flex-row justify-between items-end px-2">
+                                    {getActivityData(lcData.submissionCalendar).map((day: any, i: number) => (
+                                        <View key={i} className="items-center" style={{ gap: 8 }}>
+                                            {day.count > 0 ? (
+                                                <View className="items-center">
+                                                    <Text className="text-success text-xs font-semibold mb-1">{day.count}</Text>
+                                                    <View className="w-4 bg-success rounded-full" style={{ height: Math.min(day.count * 10, 40) }} />
+                                                </View>
+                                            ) : (
+                                                <View className="w-4 h-4 bg-paper-2 rounded-full border border-line" />
+                                            )}
+                                            <Text className="text-ink-3 text-xs font-semibold">{day.dayName}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </Card>
+
+                            {lcData.badges && lcData.badges.length > 0 ? (
+                                <View className="mb-6">
+                                    <SectionHeader title="Badges" count={lcData.badges.length} style={{ marginBottom: 12 }} />
+                                    <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                                        {lcData.badges.map((badge: any, i: number) => (
+                                            <Card key={i} padded style={{ width: 104, alignItems: 'center' }}>
+                                                <Image
+                                                    source={{ uri: String(badge.icon || '').startsWith("http") ? badge.icon : `https://leetcode.com${badge.icon || ''}` }}
+                                                    style={{ width: 56, height: 56, marginBottom: 8 }}
+                                                    contentFit="contain"
+                                                    cachePolicy="memory-disk"
+                                                />
+                                                <Text className="text-ink text-xs font-semibold text-center" numberOfLines={2}>{badge.displayName}</Text>
+                                            </Card>
+                                        ))}
+                                    </ScrollView>
+                                </View>
+                            ) : null}
+
+                            {lcData.contest ? (
+                                <Card padded style={{ marginBottom: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <View>
+                                        <Text className="text-ink font-semibold text-base">Contest rating</Text>
+                                        <Text className="text-ink-3 text-xs font-sans mt-0.5">Top {lcData.contest.contestTopPercentage || 0}% globally</Text>
+                                    </View>
+                                    <Num style={{ fontSize: 28, lineHeight: 32, color: C.accentText }}>{Math.round(lcData.contest.contestRating || 0)}</Num>
+                                </Card>
+                            ) : null}
+
+                            <SectionHeader title="Recently solved" style={{ marginBottom: 12 }} />
+                            {lcData.recentSubmissions && lcData.recentSubmissions.length > 0 ? (
+                                <View style={{ gap: 8 }}>
+                                    {lcData.recentSubmissions.slice(0, 5).map((sub: any, i: number) => (
+                                        <ListRow
+                                            key={i}
+                                            title={sub.title}
+                                            subtitle={new Date(parseInt(sub.timestamp) * 1000).toLocaleDateString()}
+                                            right={
+                                                <Tag
+                                                    icon={sub.statusDisplay === 'Accepted' ? 'checkmark-circle-outline' : 'close-circle-outline'}
+                                                    label={sub.statusDisplay}
+                                                    tone={{ fg: sub.statusDisplay === 'Accepted' ? C.success : C.danger }}
+                                                />
+                                            }
+                                        />
+                                    ))}
+                                </View>
                             ) : (
-                                <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-
-                                    {/* 1. Header Profile */}
-                                    <View className="items-center mb-10">
-                                        <View className="p-1.5 rounded-full border-2 border-brand-500 bg-card shadow-hair">
-                                            <Image source={{ uri: lcData?.profile?.avatar }} style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
-                                        </View>
-                                        <Text className="text-ink text-3xl font-display uppercase mt-3">{lcData.profile?.name || dbUser?.name}</Text>
-                                        <Text className="text-ink-3 font-display text-label">@{dbUser?.codingProfiles?.leetcode}</Text>
-
-                                        {/* Buttons Row */}
-                                        <View className="flex-row mt-8 gap-4">
-                                            <TouchableOpacity
-                                                onPress={navigateToAppProfile}
-                                                className="flex-row items-center bg-ink px-6 py-3.5 border-2 border-ink rounded-md"
-                                            >
-                                                <Ionicons name="person" size={14} color={C.paper} />
-                                                <Text className="text-paper font-display text-label uppercase ml-2">Profile</Text>
-                                            </TouchableOpacity>
-
-                                            <TouchableOpacity
-                                                onPress={openLeetCodeExternal}
-                                                className="flex-row items-center bg-card px-6 py-3.5 rounded-card border border-line shadow-hair"
-                                            >
-                                                <Image source={{ uri: LC_LOGO }} style={{ width: 14, height: 14 }} contentFit="contain" />
-                                                <Text className="text-ink font-display text-label uppercase ml-2">LeetCode</Text>
-                                            </TouchableOpacity>
-                                        </View>
-
-                                        {/* Ranking Chips */}
-                                        <View className="flex-row mt-6 gap-3">
-                                            <View className="bg-warning/10 border border-warning/15 px-2.5 py-1 rounded-full">
-                                                <Text className="text-warning font-display text-label uppercase">Global Rank #{lcData.profile?.ranking || "N/A"}</Text>
-                                            </View>
-                                            <View className="bg-recruiter/10 border border-recruiter/15 px-2.5 py-1 rounded-full">
-                                                <Text className="text-recruiter font-display text-label uppercase">{lcData.profile?.country || "Earth"}</Text>
-                                            </View>
-                                        </View>
-                                    </View>
-
-                                    {/* 2. Solved Stats */}
-                                    <View className="flex-row gap-4 mb-8">
-                                        <View className="flex-1 bg-ink p-6 rounded-sheet items-center justify-center shadow-hair">
-                                            <Text className="text-4xl font-display text-paper">{lcData.solved?.solvedProblem || 0}</Text>
-                                            <View className="mt-1 bg-card/10 px-2 py-0.5 rounded-full">
-                                                <Text className="text-paper text-label font-display uppercase">Total</Text>
-                                            </View>
-                                        </View>
-                                        <View className="flex-1 gap-2">
-                                            <View className="flex-row justify-between bg-success/10 px-4 py-3 rounded-card border border-success/15">
-                                                <Text className="text-success text-label font-display uppercase">Easy</Text>
-                                                <Text className="text-ink text-xs font-display">{lcData.solved?.easySolved || 0}</Text>
-                                            </View>
-                                            <View className="flex-row justify-between bg-warning/10 px-4 py-3 rounded-card border border-warning/15">
-                                                <Text className="text-warning text-label font-display uppercase">Med</Text>
-                                                <Text className="text-ink text-xs font-display">{lcData.solved?.mediumSolved || 0}</Text>
-                                            </View>
-                                            <View className="flex-row justify-between bg-danger/10 px-4 py-3 rounded-card border border-danger/15">
-                                                <Text className="text-danger text-label font-display uppercase">Hard</Text>
-                                                <Text className="text-ink text-xs font-display">{lcData.solved?.hardSolved || 0}</Text>
-                                            </View>
-                                        </View>
-                                    </View>
-
-                                    {/* 3. Activity Heatmap */}
-                                    <View className="mb-8 bg-card p-6 rounded-sheet border border-line shadow-hair">
-                                        <View className="flex-row items-center mt-6 mb-6" style={{ gap: 12 }}>
-                                          <Text className="text-ink-3 font-display text-label uppercase">Activity Snapshot</Text>
-                                          <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                        </View>
-                                        <View className="flex-row justify-between items-end px-2">
-                                            {getActivityData(lcData.submissionCalendar).map((day: any, i: number) => (
-                                                <View key={i} className="items-center gap-3">
-                                                    {day.count > 0 ? (
-                                                        <View className="items-center">
-                                                            <View className="bg-success/10 px-1 rounded mb-1 border border-success/15">
-                                                                <Text className="text-success text-label font-display">{day.count}</Text>
-                                                            </View>
-                                                            <View
-                                                                className="w-4 bg-success rounded-full"
-                                                                style={{ height: Math.min(day.count * 10, 40) }}
-                                                            />
-                                                        </View>
-                                                    ) : (
-                                                        <View className="w-4 h-4 bg-paper-2 rounded-full border border-line" />
-                                                    )}
-                                                    <Text className="text-ink-3 text-label font-display uppercase">{day.dayName}</Text>
-                                                </View>
-                                            ))}
-                                        </View>
-                                    </View>
-
-                                    {/* 4. Badges (Horizontal Scroll) */}
-                                    {lcData.badges && lcData.badges.length > 0 && (
-                                        <View className="mb-8">
-                                            <Text className="text-ink-3 font-display text-label uppercase mb-4 ml-1">Elite Badges ({lcData.badges.length})</Text>
-                                            <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="px-1">
-                                                {lcData.badges.map((badge: any, i: number) => (
-                                                    <View key={i} className="mr-6 items-center w-24 bg-card p-4 rounded-card border border-line shadow-hair">
-                                                        <Image
-                                                            source={{ uri: String(badge.icon || '').startsWith("http") ? badge.icon : `https://leetcode.com${badge.icon || ''}` }}
-                                                            style={{ width: 56, height: 56, marginBottom: 12 }}
-                                                            contentFit="contain"
-                                                        />
-                                                        <Text className="text-ink font-display text-label text-center uppercase" numberOfLines={2}>{badge.displayName}</Text>
-                                                    </View>
-                                                ))}
-                                            </ScrollView>
-                                        </View>
-                                    )}
-
-                                    {/* 5. Contest Rating */}
-                                    {lcData.contest && (
-                                        <View className="bg-paper-2 p-6 rounded-sheet border border-line mb-8 flex-row justify-between items-center">
-                                            <View>
-                                                <Text className="text-ink font-display text-lg uppercase">Contest Rating</Text>
-                                                <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Top {lcData.contest.contestTopPercentage || 0}% Global</Text>
-                                            </View>
-                                            <View className="items-end bg-card px-5 py-2 rounded-card border border-line shadow-hair">
-                                                <Text className="text-3xl font-display text-accent-text">{Math.round(lcData.contest.contestRating || 0)}</Text>
-                                            </View>
-                                        </View>
-                                    )}
-
-                                    {/* 8. Recent Questions */}
-                                    <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-                                      <Text className="text-ink-3 font-display text-label uppercase">Recently Mastered</Text>
-                                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                                    </View>
-                                    {lcData.recentSubmissions && lcData.recentSubmissions.length > 0 ? (
-                                        <View className="gap-2 mb-8">
-                                            {lcData.recentSubmissions.slice(0, 5).map((sub: any, i: number) => (
-                                                <View key={i} className="flex-row justify-between items-center bg-card p-4 rounded-card border border-line shadow-hair">
-                                                    <View className="flex-1 mr-4">
-                                                        <Text className="text-ink font-display text-sm uppercase" numberOfLines={1}>{sub.title}</Text>
-                                                        <Text className="text-ink-3 text-label font-semibold uppercase mt-1">
-                                                            {new Date(parseInt(sub.timestamp) * 1000).toLocaleDateString()}
-                                                        </Text>
-                                                    </View>
-                                                    <View className={`px-3 py-1 rounded-full ${sub.statusDisplay === 'Accepted' ? 'bg-success/10' : 'bg-danger/10'}`}>
-                                                        <Text className={`text-label font-display uppercase ${sub.statusDisplay === 'Accepted' ? 'text-success' : 'text-danger'}`}>
-                                                            {sub.statusDisplay}
-                                                        </Text>
-                                                    </View>
-                                                </View>
-                                            ))}
-                                        </View>
-                                    ) : (
-                                        <Text className="text-ink-3 mb-8">No recent activity detected.</Text>
-                                    )}
-
-                                    <TouchableOpacity
-                                        onPress={() => setModalVisible(false)}
-                                        className="bg-ink py-5 rounded-card items-center mb-10 shadow-hair"
-                                    >
-                                        <Text className="text-paper font-display uppercase text-xs">Close Profile</Text>
-                                    </TouchableOpacity>
-                                </ScrollView>
+                                <Text className="text-ink-3 font-sans text-sm">No recent activity.</Text>
                             )}
-                        </View>
-                    </BlurView>
-                </Modal>
+                        </>
+                    )}
+                </Sheet>
             </SafeAreaView>
         </View>
     );

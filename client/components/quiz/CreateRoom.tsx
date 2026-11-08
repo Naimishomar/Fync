@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {View, Text, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, Platform, KeyboardAvoidingView} from 'react-native'
+import { View, Text, TextInput, ScrollView, Pressable, StatusBar, Platform, KeyboardAvoidingView } from 'react-native';
 import * as Clipboard from "expo-clipboard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from "@react-native-community/datetimepicker";
@@ -10,7 +10,7 @@ import { RootStackParamList, Question } from "../../App";
 import axios from "../../context/axiosConfig";
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Button, Card, FilterChips, FormField, IconBtn, Label, SectionHeader } from '../ui/kit';
 
 const DOMAINS = ["DSA", "Frontend", "Backend", "Full Stack", "AI", "ML", "DBMS", "OS", "Custom"];
 
@@ -134,81 +134,54 @@ const CreateRoom = () => {
 
       <SafeAreaView className="flex-1" edges={['bottom']}>
 
-        <AppBar title="Room Builder" onBack={() => navigation.goBack()} />
+        <AppBar title="Create room" onBack={() => navigation.goBack()} />
 
         <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView className="px-gutter pb-12" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView className="px-gutter" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-          {/* DOMAIN SELECTION */}
-          <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
-            <Text className="text-ink-3 font-display text-label uppercase">Select Specialization</Text>
-            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-          </View>
-          <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mb-8 p-1">
-            {DOMAINS.map((d) => (
-              <TouchableOpacity
-                key={d}
-                activeOpacity={0.9}
-                onPress={() => setDomain(d)}
-                className={`px-6 py-3 mr-4 rounded-card border transition-all ${domain === d ? "bg-card border-brand-500 shadow-hair " : "bg-card border-line shadow-hair" }`}
-              >
-                <Text className={`font-display uppercase text-sm ${domain === d ? "text-accent-text" : "text-ink-3"}`}>
-                  {d}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {/* Domain */}
+          <SectionHeader title="Domain" style={{ marginTop: 8 }} />
+          <FilterChips items={DOMAINS} value={domain} onChange={setDomain} style={{ marginHorizontal: -20 }} />
 
-          {/* SETTINGS CARD */}
-          <View className="bg-card rounded-sheet p-card-pad border border-line mb-10 shadow-hair">
-            <Text className="text-ink-3 font-display text-label mb-6 uppercase">Global Configuration</Text>
+          {/* Settings */}
+          <SectionHeader title="Settings" />
+          <Card padded style={{ gap: 16 }}>
+            <FormField
+              label="Capacity (members)"
+              value={maxMembers}
+              onChangeText={setMaxMembers}
+              keyboardType="numeric"
+            />
+            <FormField
+              label="Duration (minutes)"
+              value={duration}
+              onChangeText={setDuration}
+              keyboardType="numeric"
+            />
 
-            <View className="mb-6">
-              <Text className="font-semibold text-base text-ink mb-3">Capacity (Members)</Text>
-              <TextInput
-                value={maxMembers}
-                onChangeText={setMaxMembers}
-                keyboardType="numeric"
-                placeholderTextColor={C.ink3}
-                className="border-[1.5px] border-ink p-5 bg-card text-ink font-display rounded-md"
-              />
-            </View>
-
-            <View className="mb-6">
-              <Text className="font-semibold text-base text-ink mb-3">Duration (Minutes)</Text>
-              <TextInput
-                value={duration}
-                onChangeText={setDuration}
-                keyboardType="numeric"
-                placeholderTextColor={C.ink3}
-                className="border-[1.5px] border-ink p-5 bg-card text-ink font-display rounded-md"
-              />
-            </View>
-
-            {/* DATE PICKER BUTTON */}
-            <View>
-              <Text className="font-semibold text-base text-ink mb-3">Execution Time</Text>
-              <TouchableOpacity
+            <View style={{ gap: 6 }}>
+              <Text className="font-semibold text-sm text-ink-2">Start time</Text>
+              <Pressable
                 onPress={handleDatePress}
-                activeOpacity={0.9}
-                className="bg-paper-2 p-5 rounded-card border border-line flex-row items-center justify-between"
+                className="bg-card px-4 rounded-2xl border border-line flex-row items-center justify-between active:opacity-70"
+                style={{ minHeight: 48 }}
+                accessibilityRole="button"
+                accessibilityLabel="Change start time"
               >
-                <Text className="text-ink font-display text-base">
+                <Text className="text-ink font-sans text-base">
                   {startTime.toLocaleString([], {
                     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                   })}
                 </Text>
-                <Ionicons name="stopwatch" size={20} color={C.brand[500]} />
-              </TouchableOpacity>
+                <Ionicons name="time-outline" size={20} color={C.ink2} />
+              </Pressable>
             </View>
 
-            {/* iOS ONLY PICKER */}
+            {/* iOS only picker */}
             {Platform.OS === 'ios' && showIOSPicker && (
-              <View className="bg-card rounded-card mt-4 p-4 border border-line shadow-hair">
-                <View className="flex-row justify-end border-b border-line pb-3 mb-3">
-                  <TouchableOpacity onPress={() => setShowIOSPicker(false)}>
-                    <Text className="text-accent-text font-display text-base px-4 uppercase">Sync</Text>
-                  </TouchableOpacity>
+              <View className="bg-paper-2 rounded-2xl p-4">
+                <View className="flex-row justify-end mb-2">
+                  <Button title="Done" small onPress={() => setShowIOSPicker(false)} />
                 </View>
                 <DateTimePicker
                   value={startTime}
@@ -221,84 +194,67 @@ const CreateRoom = () => {
                 />
               </View>
             )}
-          </View>
+          </Card>
 
-          {/* QUESTIONS EDITOR */}
-          <View className="flex-row justify-between items-center mb-6 px-1">
-            <Text className="text-ink-3 font-display text-label uppercase">Core Dataset ({questions.length})</Text>
-            <TouchableOpacity onPress={addQuestion} className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-              <Text className="text-accent-text font-display text-label uppercase">+ Add Question</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Questions */}
+          <SectionHeader title="Questions" count={questions.length} right={<Button title="Add question" icon="add" small onPress={addQuestion} />} />
 
           {questions.map((q, qIndex) => (
-            <View key={qIndex} className="bg-card border border-line rounded-sheet p-card-pad mb-8 shadow-hair">
-              <View className="flex-row justify-between items-center mb-6">
-                <View className="bg-paper-2 border border-line px-2.5 py-1 rounded-full">
-                  <Text className="font-display text-ink text-label uppercase">Question {qIndex + 1}</Text>
-                </View>
+            <Card key={qIndex} padded style={{ marginBottom: 12 }}>
+              <View className="flex-row justify-between items-center mb-3">
+                <Text className="font-semibold text-ink text-sm">Question {qIndex + 1}</Text>
                 {questions.length > 1 && (
-                  <TouchableOpacity
+                  <IconBtn
+                    name="trash-outline"
+                    size={18}
+                    color={C.danger}
+                    boxed
                     onPress={() => setQuestions((prev) => prev.filter((_, i) => i !== qIndex))}
-                    hitSlop={4}
-                    className="w-10 h-10 bg-paper-2 rounded-xl items-center justify-center border border-line"
-                  >
-                    <Ionicons name="trash-outline" size={18} color={C.danger} />
-                  </TouchableOpacity>
+                    accessibilityLabel={`Delete question ${qIndex + 1}`}
+                  />
                 )}
               </View>
 
-              <TextInput
-                placeholder="Initialize primary prompt..."
-                placeholderTextColor={C.ink3}
+              <FormField
+                placeholder="Type the question"
                 value={q.question}
                 onChangeText={(t) => updateQuestion(qIndex, "question", t)}
-                className="border border-line p-6 rounded-card mb-6 bg-paper-2 text-ink font-display text-base min-h-[100px]"
+                accessibilityLabel={`Question ${qIndex + 1}`}
                 multiline
-                textAlignVertical="top"
+                containerStyle={{ marginBottom: 16 }}
               />
 
-              {q.options.map((opt, i) => (
-                <TouchableOpacity
-                  key={i}
-                  onPress={() => updateQuestion(qIndex, "correctAnswer", i)}
-                  activeOpacity={0.9}
-                  className="flex-row items-center mb-4"
-                >
-                  <View
-                    className={`w-6 h-6 mr-4 rounded-full border-2 items-center justify-center transition-all ${q.correctAnswer === i ? "bg-brand-500 border-brand-500 shadow-hair " : "border-line bg-card" }`}
-                  >
-                    {q.correctAnswer === i && <Ionicons name="checkmark" size={14} color={C.onBrand} />}
+              <Label style={{ marginBottom: 8 }}>Options — tap the circle to mark the correct answer</Label>
+              {q.options.map((opt, i) => {
+                const correct = q.correctAnswer === i;
+                return (
+                  <View key={i} className="flex-row items-center mb-3">
+                    <Pressable
+                      onPress={() => updateQuestion(qIndex, "correctAnswer", i)}
+                      hitSlop={10}
+                      className={`w-6 h-6 mr-3 rounded-full border items-center justify-center active:opacity-70 ${correct ? "bg-brand-500 border-brand-500" : "border-line bg-card"}`}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: correct }}
+                      accessibilityLabel={`Mark option ${i + 1} correct`}
+                    >
+                      {correct && <Ionicons name="checkmark" size={14} color={C.onBrand} />}
+                    </Pressable>
+                    <TextInput
+                      value={opt}
+                      placeholder={`Option ${i + 1}`}
+                      placeholderTextColor={C.ink3}
+                      onChangeText={(text) => updateOption(qIndex, i, text)}
+                      accessibilityLabel={`Option ${i + 1}${correct ? ', correct answer' : ''}`}
+                      className={`border px-4 rounded-2xl flex-1 font-sans text-base text-ink bg-card ${correct ? "border-brand-500" : "border-line"}`}
+                      style={{ minHeight: 48 }}
+                    />
                   </View>
-
-                  <TextInput
-                    value={opt}
-                    placeholder={`Buffer Option ${i + 1}`}
-                    placeholderTextColor={C.ink3}
-                    onChangeText={(text) => updateOption(qIndex, i, text)}
-                    className={`border p-5 rounded-card flex-1 font-display uppercase text-sm ${q.correctAnswer === i ? "bg-card border-brand-500 text-ink shadow-hair " : "bg-card border-line text-ink-3" }`}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
+                );
+              })}
+            </Card>
           ))}
 
-          {/* SUBMIT BUTTON */}
-          <TouchableOpacity
-            onPress={submitRoom}
-            disabled={loading}
-            activeOpacity={0.9}
-            className={`py-6 rounded-sheet mb-16 shadow-hair flex-row justify-center items-center ${loading ? 'bg-brand-400' : 'bg-brand-500 ' }`}
-          >
-            {loading ? (
-              <ActivityIndicator color={C.onBrand} />
-            ) : (
-              <>
-                <Text className="font-display text-on-brand uppercase mr-2" style={{ fontSize: 14, letterSpacing: 0.3 }}>Finalize Node</Text>
-                <Ionicons name="rocket" size={20} color={C.onBrand} />
-              </>
-            )}
-          </TouchableOpacity>
+          <Button title="Create room" icon="checkmark" variant="primary" block loading={loading} onPress={submitRoom} style={{ marginTop: 12, marginBottom: 32 }} />
 
         </ScrollView>
         </KeyboardAvoidingView>

@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {Text, View, Pressable, FlatList, Dimensions, RefreshControl, Linking, ActivityIndicator, ScrollView, Modal, TextInput, Switch, KeyboardAvoidingView, Platform, DeviceEventEmitter} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text, View, Pressable, RefreshControl, Linking, ActivityIndicator, DeviceEventEmitter } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Video, ResizeMode } from 'expo-av';
 import { useAuth } from '../context/auth.context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { readCache, writeCache, userKey } from '../utils/screenCache';
@@ -11,22 +8,18 @@ import { batchGet, bodyOf } from '../utils/batchRequest';
 import { prefetchPostImages } from '../utils/imageWarm';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
-import Avatar from './Avatar';
-import AvatarZoom from './ui/AvatarZoom';
 import { Image as ExpoImage } from 'expo-image';
 import { FlashList } from '@shopify/flash-list';
-import { LinearGradient } from 'expo-linear-gradient';
-import { getFullUrl, getThumbUrl } from '../utils/imageUtils';
 import { StatusBar } from 'expo-status-bar';
 import EducationCard, { EducationEntry } from './profile/EducationCard';
 import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 
-import { StampCard, StampNumber } from './ui/kit';
+import { Button, Card, Empty, FormField, IconBtn, IconTile, ListRow, Sheet, Tag, TagRow } from './ui/kit';
+import { ProfileHero, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab } from './profile-shared/ProfileHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
-const { width } = Dimensions.get('window');
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type UserType = {
@@ -42,19 +35,6 @@ type UserType = {
   education?: EducationEntry[];
   githubUsername?: string; githubStats?: any;
 };
-
-
-// ─── SECTION HEADER ──────────────────────────────────────────────────────────
-const SH = ({ title, icon, accent = C.brand[500] }: { title: string; icon: string; accent?: string }) => (
-  <View className="flex-row items-center mb-3 mt-6" style={{ gap: 12 }}>
-
-    <View className="hidden">
-      <Ionicons name={icon as any} size={18} color={accent} />
-    </View>
-    <Text className="font-display text-label text-ink uppercase" style={{ letterSpacing: 1.4 }}>{title}</Text>
-    <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-  </View>
-);
 
 // ─── PROFILE STRENGTH ────────────────────────────────────────────────────────
 // Only fields /user/profile already returns; projects live behind another API,
@@ -92,7 +72,8 @@ function ProfileStrength({ user }: { user: UserType }) {
           <Pressable
             key={i.label}
             onPress={() => navigation.navigate(i.route)}
-            className="flex-row items-center bg-brand-50 border border-line px-3 rounded-full"
+            className="flex-row items-center bg-brand-50 border border-line px-3 rounded-full active:opacity-70"
+            hitSlop={6}
             style={{ minHeight: 32 }}
             accessibilityRole="button"
           >
@@ -105,13 +86,6 @@ function ProfileStrength({ user }: { user: UserType }) {
   );
 }
 
-// ─── SKILL CHIP ───────────────────────────────────────────────────────────────
-const SkillChip = ({ label }: { label: string }) => (
-  <View className="bg-card border border-line px-3 rounded-full mb-2 mr-2 justify-center" style={{ minHeight: 28 }}>
-    <Text className="font-medium text-label text-ink-2">{label}</Text>
-  </View>
-);
-
 // ─── FYNC SCORE MINI BADGE ────────────────────────────────────────────────────
 // Ionicons names, not emoji — rendered through <Ionicons>, never as text.
 const BADGE_ICON: Record<string, any> = {
@@ -119,33 +93,45 @@ const BADGE_ICON: Record<string, any> = {
 };
 
 // ─── CODING STAT CARD ─────────────────────────────────────────────────────────
-const CodingPlatformCard = ({ icon, name, color, bg, username, solved, rating, profileUrl }: any) => {
+const CodingPlatformCard = ({ icon, name, color, username, solved, rating, profileUrl }: any) => {
   if (!username && !solved) return null;
   return (
     <Pressable
       onPress={() => username && Linking.openURL(profileUrl).catch(() => {})}
-      className="flex-1 rounded-card border p-4 items-center bg-card shadow-hair"
-      style={{ borderColor: color + '20' }}
+      disabled={!username}
+      className="flex-1 rounded-2xl border border-line p-3 items-center bg-paper active:opacity-70"
+      accessibilityRole={username ? 'link' : 'text'}
+      accessibilityLabel={`${name}: ${solved || 0} solved${rating ? `, rating ${rating}` : ''}`}
     >
-      <View className="w-12 h-12 rounded-xl items-center justify-center mb-3" style={{ backgroundColor: color + '1A' }}>
+      <View className="w-11 h-11 rounded-full items-center justify-center mb-2 bg-paper-2">
         {typeof icon === 'string' && icon.startsWith('http')
-          ? <ExpoImage source={{ uri: icon }} style={{ width: 28, height: 28 }} contentFit="contain" cachePolicy="memory-disk" />
-          : <Ionicons name={icon} size={26} color={color} />}
+          ? <ExpoImage source={{ uri: icon }} style={{ width: 24, height: 24 }} contentFit="contain" cachePolicy="memory-disk" />
+          : <Ionicons name={icon} size={22} color={color} />}
       </View>
       <Text className="font-display text-xl text-ink leading-tight">{solved || 0}</Text>
-      <Text className="font-display text-label text-ink-3 uppercase mb-2" style={{ letterSpacing: 1.4 }}>Solved</Text>
+      <Text className="font-medium text-xs text-ink-3">Solved</Text>
       {rating ? (
-        <View className="bg-paper-2 border border-line mt-1 px-2.5 py-1 rounded-full">
-          <Text className="font-display text-label" style={{ color }}>{rating}</Text>
+        <View className="bg-paper-2 mt-2 px-2.5 py-1 rounded-full">
+          <Text className="font-semibold text-xs text-ink-2">{rating}</Text>
         </View>
       ) : null}
-      <Text className="font-semibold text-label text-ink mt-3 text-center">{name}</Text>
+      <Text className="font-semibold text-xs text-ink mt-2 text-center">{name}</Text>
     </Pressable>
   );
 };
 
 
-// ─── CODING STATS MODAL ───────────────────────────────────────────────────────
+// ─── CODING STATS SHEET ───────────────────────────────────────────────────────
+const CODING_FIELDS = [
+  { label: 'LeetCode problems solved', key: 'leetcodeSolved', ph: '250' },
+  { label: 'LeetCode rating', key: 'leetcodeRating', ph: '1650' },
+  { label: 'GFG problems solved', key: 'gfgSolved', ph: '300' },
+  { label: 'GFG rating (score)', key: 'gfgRating', ph: '2100' },
+  { label: 'CodeChef username', key: 'codechef', ph: 'my_handle', numeric: false },
+  { label: 'CodeChef problems solved', key: 'codechefSolved', ph: '150' },
+  { label: 'CodeChef rating', key: 'codechefRating', ph: '1400' },
+];
+
 function CodingStatsModal({ visible, user, onClose, onSuccess }: {
   visible: boolean; user: any; onClose: () => void; onSuccess: () => void;
 }) {
@@ -174,53 +160,34 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
     finally { setSaving(false); }
   };
 
-  const fields = [
-    { label: 'LeetCode Problems Solved', key: 'leetcodeSolved', ph: '250' },
-    { label: 'LeetCode Rating', key: 'leetcodeRating', ph: '1650' },
-    { label: 'GFG Problems Solved', key: 'gfgSolved', ph: '300' },
-    { label: 'GFG Rating (Score)', key: 'gfgRating', ph: '2100' },
-    { label: 'CodeChef Username', key: 'codechef', ph: 'my_handle', numeric: false },
-    { label: 'CodeChef Problems Solved', key: 'codechefSolved', ph: '150' },
-    { label: 'CodeChef Rating', key: 'codechefRating', ph: '1400' },
-  ];
-
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView className="flex-1 bg-paper" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        {/* Android draws the "pageSheet" modal full-screen, so the header sat under
-            the status bar. The native SafeAreaView measures its real window, so on
-            an iOS sheet (already below the bar) this resolves to 0. */}
-        <SafeAreaView edges={['top']}>
-        <View className="flex-row items-center justify-between px-4 py-4 border-b border-line">
-          <Pressable onPress={onClose} hitSlop={10}><Ionicons name="close" size={24} color={C.ink2} /></Pressable>
-          <Text className="font-display text-h2 text-ink">Update Coding Stats</Text>
-          <Pressable onPress={save} disabled={saving} className="bg-brand-500 px-4 py-2 rounded-xl">
-            {saving ? <ActivityIndicator size="small" color={C.onBrand} /> : <Text className="text-on-brand font-semibold">Save</Text>}
-          </Pressable>
-        </View>
-        </SafeAreaView>
-        <ScrollView className="flex-1 px-4 pt-2" keyboardShouldPersistTaps="handled">
-          <View className="bg-paper-2 border border-line px-4 py-3 rounded-xl my-3">
-            <Text className="font-sans text-sm text-brand-700">These are self-reported. Enter your current stats from each platform.</Text>
-          </View>
-          {fields.map(f => (
-            <View key={f.key} className="mb-4">
-              <Text className="font-display text-label text-ink-3 uppercase mb-2" style={{ letterSpacing: 1.4 }}>{f.label}</Text>
-              <TextInput className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink text-sm rounded-md"
-                placeholder={f.ph} placeholderTextColor={C.ink4}
-                keyboardType={f.numeric === false ? 'default' : 'numeric'}
-                value={form[f.key] || ''}
-                onChangeText={v => setForm((p: any) => ({ ...p, [f.key]: v }))} />
-            </View>
-          ))}
-          <View className="h-6" />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Modal>
+    <Sheet
+      visible={visible}
+      onClose={onClose}
+      title="Update coding stats"
+      subtitle="Self-reported. Enter your current stats from each platform."
+      footer={<Button variant="primary" block title="Save" loading={saving} onPress={save} />}
+    >
+      <View style={{ gap: 16 }}>
+        {CODING_FIELDS.map(f => (
+          <FormField
+            key={f.key}
+            label={f.label}
+            placeholder={f.ph}
+            keyboardType={f.numeric === false ? 'default' : 'numeric'}
+            autoCapitalize="none"
+            value={form[f.key] || ''}
+            onChangeText={v => setForm((p: any) => ({ ...p, [f.key]: v }))}
+          />
+        ))}
+      </View>
+    </Sheet>
   );
 }
 
-// ─── ABOUT TAB FULL REBUILD ───────────────────────────────────────────────────
+// ─── ABOUT TAB ────────────────────────────────────────────────────────────────
+const asList = (v?: string | string[]) => (Array.isArray(v) ? v : [v]).filter(Boolean) as string[];
+
 function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: boolean; onRefresh: () => void }) {
   const navigation = useNavigation<any>();
   const [showCodingModal, setShowCodingModal] = useState(false);
@@ -229,211 +196,140 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
   const skills = user?.skills || [];
   const cs = user?.codingStats || {};
   const cp = user?.codingProfiles || {};
-
+  const interests = asList(user?.interest);
+  const hobbies = asList(user?.hobbies);
 
   const hasCoding = cp.leetcode || cp.gfg || cp.codechef || cs.leetcodeSolved || cs.gfgSolved;
+  const score = user?.fyncScore ?? 0;
 
   return (
     // A row of the profile FlashList, which already scrolls and clears the tab bar.
-    <View className="bg-paper">
+    <View className="bg-paper pb-6">
 
-      {/* ── Fync Score Banner ──────────────────────────────────────────── */}
-      {/* The one stamped card on this screen. The score is what Profile is for,
-          and a stamped white card reads as a printed receipt rather than as the
-          fifth orange gradient in the app. */}
+      {/* ── Fync Score ─────────────────────────────────────────────────── */}
       {user?.fyncScore !== undefined && (
-        <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')} className="mx-gutter mt-6 mb-2">
-          <StampCard>
-            <View className="p-card-pad">
-              <View className="flex-row items-start">
-                <View className="flex-1">
-                  <Text className="font-display text-label text-ink-3 uppercase">Score</Text>
-                  <Text className="font-display text-ink" style={{ fontSize: 40, lineHeight: 42, letterSpacing: -1.2 }}>
-                    {user.fyncScore}
-                  </Text>
-                  <Text className="font-sans text-sm text-ink-2 mt-2">
-                    Score Portfolio · Level {user.fyncBadge || 'Newcomer'}
-                  </Text>
-                </View>
-                <StampNumber value={user.fyncScore} caption="score" />
-              </View>
+        <Pressable
+          onPress={() => navigation.navigate('FyncProfileBuilder')}
+          className="mx-gutter mt-5 active:opacity-80"
+          accessibilityRole="button"
+          accessibilityLabel={`Fync score ${score}, level ${user.fyncBadge || 'Newcomer'}. Boost score`}
+        >
+          <Card padded>
+            <Text className="font-semibold text-sm text-ink-3">Fync score</Text>
+            <Text className="font-display text-ink" style={{ fontSize: 40, lineHeight: 44, letterSpacing: -1.2 }}>
+              {score}
+            </Text>
+            <Text className="font-sans text-sm text-ink-2 mt-1">Level {user.fyncBadge || 'Newcomer'}</Text>
 
-              <View className="h-2 bg-paper-2 rounded-full overflow-hidden mt-5">
-                <View className="h-full bg-brand-500 rounded-full" style={{ width: `${Math.min(100, Math.max(0, (user.fyncScore / 1000) * 100))}%` }} />
-              </View>
-              <View className="flex-row items-center justify-between mt-3">
-                <Text className="font-display text-label text-ink-3 uppercase">Next: 1000</Text>
-                <Text className="font-display text-label text-accent-text uppercase">
-                  +{Math.max(0, 1000 - user.fyncScore)} to go
-                </Text>
-              </View>
-
-              <View className="mt-4 border-2 border-ink bg-brand-500 items-center justify-center flex-row rounded-md" style={{ minHeight: 48 }}>
-                <Ionicons name={BADGE_ICON[user.fyncBadge || 'Newcomer']} size={16} color={C.onBrand} style={{ marginRight: 8 }} />
-                <Text className="font-display text-on-brand uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Boost Score</Text>
-              </View>
+            <View className="h-2 bg-paper-2 rounded-full overflow-hidden mt-4">
+              <View className="h-full bg-brand-500 rounded-full" style={{ width: `${Math.min(100, Math.max(0, (score / 1000) * 100))}%` }} />
             </View>
-          </StampCard>
+            <View className="flex-row items-center justify-between mt-2">
+              <Text className="font-medium text-xs text-ink-3">Next: 1000</Text>
+              <Text className="font-semibold text-xs text-accent-text">+{Math.max(0, 1000 - score)} to go</Text>
+            </View>
+
+            {/* Looks like a primary button; the whole card is the tap target. */}
+            <View className="mt-4 bg-brand-500 rounded-full items-center justify-center flex-row" style={{ minHeight: 48, gap: 8 }}>
+              <Ionicons name={BADGE_ICON[user.fyncBadge || 'Newcomer']} size={16} color={C.onBrand} />
+              <Text className="font-semibold text-on-brand" style={{ fontSize: 15 }}>Boost score</Text>
+            </View>
+          </Card>
         </Pressable>
       )}
 
       {/* ── About ──────────────────────────────────────────────────────── */}
       {!!user?.about && (
-        <View className="mx-4 mt-4 bg-card rounded-sheet p-6 border border-line shadow-hair">
-          <SH title="About Me" icon="person-outline" />
-          <Text className="text-ink-2 text-sm leading-[24px] font-medium">{user.about}</Text>
-        </View>
+        <ProfileSection title="About me">
+          <Text className="text-ink-2 text-sm leading-[22px]">{user.about}</Text>
+        </ProfileSection>
       )}
 
-      {/* ── Skills ──────────────────────────────────────────────────────── */}
+      {/* ── Skills ─────────────────────────────────────────────────────── */}
       {skills.length > 0 && (
-        <View className="mx-4 mt-4 bg-card rounded-sheet p-6 border border-line shadow-hair">
-          <SH title="Skills & Stack" icon="code-slash-outline" accent={C.fam.study} />
-          <View className="flex-row flex-wrap gap-2">
-            {skills.map((s, i) => <SkillChip key={i} label={s} />)}
-          </View>
-        </View>
+        <ProfileSection title="Skills and stack">
+          <TagRow>{skills.map((s, i) => <Tag key={i} label={s} />)}</TagRow>
+        </ProfileSection>
       )}
 
-      {/* ── Interests & Hobbies ─────────────────────────────────────────── */}
-      {!!(user?.interest || user?.hobbies) && (
-        <View className="mx-4 mt-4 bg-card rounded-sheet p-6 border border-line shadow-hair">
-          <SH title="Vibe & Interests" icon="heart-outline" accent={C.fam.fun} />
-          <View className="flex-row flex-wrap gap-3">
-            {(Array.isArray(user.interest) ? user.interest : [user.interest]).filter(Boolean).map((t, i) => (
-              <View key={`i${i}`} className="flex-row items-center bg-paper-2 px-4 py-2 rounded-card border border-line">
-                <Text className="text-accent-text text-xs font-display uppercase mr-1.5"></Text>
-                <Text className="text-brand-700 text-xs font-semibold">{t}</Text>
-              </View>
-            ))}
-            {(Array.isArray(user.hobbies) ? user.hobbies : [user.hobbies]).filter(Boolean).map((h, i) => (
-              <View key={`h${i}`} className="flex-row items-center bg-success/10 px-4 py-2 rounded-card border border-success/15">
-                <Text className="text-success text-xs font-display uppercase mr-1.5"></Text>
-                <Text className="text-success text-xs font-semibold">{h}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
+      {/* ── Interests & Hobbies ────────────────────────────────────────── */}
+      {(interests.length > 0 || hobbies.length > 0) && (
+        <ProfileSection title="Interests">
+          <TagRow>
+            {interests.map((t, i) => <Tag key={`i${i}`} label={t} icon="sparkles-outline" />)}
+            {hobbies.map((h, i) => <Tag key={`h${i}`} label={h} icon="heart-outline" />)}
+          </TagRow>
+        </ProfileSection>
       )}
 
-      {/* ── Education ───────────────────────────────────────────────────── */}
-      <View className="mx-4 mt-6">
-        <View className="flex-row items-center justify-between mb-4 px-1">
-          <View className="flex-row items-center gap-3">
-            <View className="w-1.5 h-6 rounded-full bg-brand-500" />
-            <View className="bg-paper-2 p-1.5 rounded-lg border border-line">
-              <Ionicons name="school-outline" size={18} color={C.brand[500]} />
-            </View>
-            <Text className="font-semibold text-ink text-xs uppercase">Education</Text>
-          </View>
-        </View>
+      {/* ── Education ──────────────────────────────────────────────────── */}
+      <View className="mx-gutter mt-6">
+        <Text className="font-semibold text-base text-ink mb-3" accessibilityRole="header">Education</Text>
         {education.length === 0 ? (
-          <View className="bg-card rounded-sheet border border-line p-card-pad items-center shadow-hair">
-            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
-              <Ionicons name="school-outline" size={32} color={C.ink4} />
-            </View>
-            <Text className="text-ink font-semibold text-sm">No education yet</Text>
-            <Text className="text-ink-3 text-xs mt-1 text-center">Highlight your academic journey here</Text>
-          </View>
+          <Card>
+            <Empty icon="school-outline" title="No education yet" hint="Highlight your academic journey here" />
+          </Card>
         ) : education.map(e => (
           <EducationCard key={e._id} item={e} isOwner={false} />
         ))}
       </View>
 
-      {/* ── Coding Platforms ─────────────────────────────────────────────── */}
+      {/* ── Coding Platforms ───────────────────────────────────────────── */}
       {!!(hasCoding || isOwner) && (
-        <View className="mx-4 mt-4 bg-paper-2 rounded-sheet p-1">
-          <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
-            <View className="flex-row items-center justify-between mb-5">
-              <SH title="Coding Stats" icon="code-slash-outline" accent={C.fam.social} />
-              {isOwner && (
-                <Pressable onPress={() => setShowCodingModal(true)}
-                  className="bg-fam-career/10 px-3 py-1.5 rounded-xl border border-fam-career/15">
-                  <Ionicons name="pencil-outline" size={14} color={C.fam.social} />
-                </Pressable>
-              )}
-            </View>
-
-            {/* Total solved banner */}
-            {cs.totalSolved ? (
-              <View className="bg-ink rounded-card px-6 py-5 mb-5 flex-row items-center justify-between shadow-hair">
-                <View>
-                  <View className="flex-row items-center mt-6 mb-1" style={{ gap: 12 }}>
-                    <Text className="text-ink-3 font-display text-label uppercase">Total Solved</Text>
-                    <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                  </View>
-                  <Text className="text-paper font-display text-2xl">{cs.totalSolved}</Text>
-                </View>
-                <View className="w-12 h-12 bg-card/10 rounded-card items-center justify-center">
-                  <Ionicons name="trophy" size={24} color="#F89F1B" />
-                </View>
+        <ProfileSection
+          title="Coding stats"
+          right={isOwner ? (
+            <IconBtn name="pencil-outline" size={18} boxed onPress={() => setShowCodingModal(true)} accessibilityLabel="Edit coding stats" />
+          ) : undefined}
+        >
+          {cs.totalSolved ? (
+            <View className="bg-paper-2 rounded-2xl px-4 py-3 mb-3 flex-row items-center justify-between">
+              <View>
+                <Text className="text-ink-3 font-medium text-xs">Total solved</Text>
+                <Text className="text-ink font-display text-2xl">{cs.totalSolved}</Text>
               </View>
-            ) : null}
-
-            <View className="flex-row gap-3">
-              <CodingPlatformCard
-                icon="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0"
-                name="LeetCode" color="#F89F1B" bg={C.paper2}
-                username={cp.leetcode} solved={cs.leetcodeSolved} rating={cs.leetcodeRating}
-                profileUrl={`https://leetcode.com/${cp.leetcode}`}
-              />
-              <CodingPlatformCard
-                icon="https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png"
-                name="GFG" color={C.success} bg={C.paper2}
-                username={cp.gfg} solved={cs.gfgSolved} rating={cs.gfgRating}
-                profileUrl={`https://www.geeksforgeeks.org/user/${cp.gfg}`}
-              />
-              <CodingPlatformCard
-                icon="https://cdn.codechef.com/images/cc-logo.svg"
-                name="CodeChef" color="#6F4E37" bg={C.paper2}
-                username={cp.codechef} solved={cs.codechefSolved} rating={cs.codechefRating}
-                profileUrl={`https://www.codechef.com/users/${cp.codechef}`}
-              />
+              <IconTile icon="trophy-outline" bg={C.card} />
             </View>
+          ) : null}
+
+          <View className="flex-row" style={{ gap: 8 }}>
+            <CodingPlatformCard
+              icon="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/leetcode-xp0gbbxtpmnkjk8uhdrmhg.png/leetcode-jj5yfhjdsmrt5j9xb3sec.png?_a=DATAiZiuZAA0"
+              name="LeetCode" color="#F89F1B"
+              username={cp.leetcode} solved={cs.leetcodeSolved} rating={cs.leetcodeRating}
+              profileUrl={`https://leetcode.com/${cp.leetcode}`}
+            />
+            <CodingPlatformCard
+              icon="https://upload.wikimedia.org/wikipedia/commons/e/eb/GeeksForGeeks_logo.png"
+              name="GFG" color={C.success}
+              username={cp.gfg} solved={cs.gfgSolved} rating={cs.gfgRating}
+              profileUrl={`https://www.geeksforgeeks.org/user/${cp.gfg}`}
+            />
+            <CodingPlatformCard
+              icon="https://cdn.codechef.com/images/cc-logo.svg"
+              name="CodeChef" color="#6F4E37"
+              username={cp.codechef} solved={cs.codechefSolved} rating={cs.codechefRating}
+              profileUrl={`https://www.codechef.com/users/${cp.codechef}`}
+            />
           </View>
-        </View>
+        </ProfileSection>
       )}
 
-      {/* ── Social Links ─────────────────────────────────────────────────── */}
-      {!!(user?.github_id || user?.linkedIn_id || user?.githubUsername) && (
-        <View className="mx-4 mt-6 bg-card rounded-sheet p-6 border border-line shadow-hair">
-          <SH title="Connected Accounts" icon="share-outline" accent={C.ink2} />
-          <View className="gap-3">
-            {!!user?.github_id && (
-              <Pressable onPress={() => Linking.openURL(user.github_id!).catch(() => {})}
-                className="flex-row items-center bg-paper-2 px-5 py-4 rounded-card border border-line">
-                <Ionicons name="logo-github" size={24} color={C.ink2} />
-                <View className="ml-4 flex-1">
-                  <Text className="text-label text-ink-3 font-display uppercase">Developer</Text>
-                  <Text className="text-ink font-semibold text-sm">GitHub</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={C.ink4} />
-              </Pressable>
-            )}
-            {!!user?.linkedIn_id && (
-              <Pressable onPress={() => Linking.openURL(user.linkedIn_id!).catch(() => {})}
-                className="flex-row items-center bg-paper-2 px-5 py-4 rounded-card border border-line">
-                <Ionicons name="logo-linkedin" size={24} color="#0077B5" />
-                <View className="ml-4 flex-1">
-                  <Text className="text-label text-ink-3 font-display uppercase">Professional</Text>
-                  <Text className="text-ink font-semibold text-sm">LinkedIn</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={C.ink4} />
-              </Pressable>
-            )}
-            {isFeatureOn('creatorTips') && !!user?.upiId && (
-              <View className="flex-row items-center bg-success/10 px-5 py-4 rounded-card border border-success/15">
-                <View className="w-10 h-10 bg-success rounded-card items-center justify-center">
-                  <Ionicons name="wallet" size={20} color="white" />
-                </View>
-                <View className="ml-4 flex-1">
-                  <Text className="text-success text-label font-display uppercase">Payments</Text>
-                  <Text className="text-success font-semibold text-sm">{user.upiId}</Text>
-                </View>
-              </View>
-            )}
-          </View>
-        </View>
+      {/* ── Social Links ───────────────────────────────────────────────── */}
+      {!!(user?.github_id || user?.linkedIn_id || (isFeatureOn('creatorTips') && user?.upiId)) && (
+        <ProfileSection title="Connected accounts">
+          {!!user?.github_id && (
+            <ListRow icon="logo-github" title="GitHub" subtitle="Developer"
+              onPress={() => Linking.openURL(user.github_id!).catch(() => {})} />
+          )}
+          {!!user?.linkedIn_id && (
+            <ListRow leading={<IconTile icon="logo-linkedin" color="#0077B5" />} title="LinkedIn" subtitle="Professional"
+              onPress={() => Linking.openURL(user.linkedIn_id!).catch(() => {})} />
+          )}
+          {isFeatureOn('creatorTips') && !!user?.upiId && (
+            <ListRow leading={<IconTile icon="wallet-outline" color={C.success} />} title={user.upiId} subtitle="Payments" />
+          )}
+        </ProfileSection>
       )}
 
       <CodingStatsModal
@@ -446,22 +342,12 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
   );
 }
 
-// ─── GRID IMAGE ───────────────────────────────────────────────────────────────
-// Module scope: declared inside Profile it was a new component type on every
-// render, so every cell in the grid unmounted and reloaded its image.
-/** Small variant first, full file only if the twin is missing. */
-const GridImage = ({ path }: { path: string }) => {
-  const [src, setSrc] = useState(getThumbUrl(path) || '');
-  return (
-    <ExpoImage
-      source={{ uri: src }}
-      style={{ width: '100%', height: '100%' }}
-      contentFit="cover"
-      cachePolicy="disk"
-      onError={() => { const full = getFullUrl(path); if (full && src !== full) setSrc(full); }}
-    />
-  );
-};
+const PROFILE_TABS: ProfileTab<'posts' | 'shorts' | 'reposts' | 'about'>[] = [
+  { key: 'posts', icon: 'grid-outline', activeIcon: 'grid', label: 'Posts' },
+  { key: 'shorts', icon: 'play-circle-outline', activeIcon: 'play-circle', label: 'Shorts' },
+  { key: 'reposts', icon: 'repeat-outline', activeIcon: 'repeat', label: 'Reposts' },
+  { key: 'about', icon: 'person-outline', activeIcon: 'person', label: 'About' },
+];
 
 // ─── MAIN PROFILE COMPONENT ───────────────────────────────────────────────────
 function Profile() {
@@ -697,200 +583,84 @@ function Profile() {
 
   // ── Profile Header ─────────────────────────────────────────────────────
   const renderProfileInfo = () => (
-    <View className="bg-card">
-      <View className="h-64 w-full relative">
-        <ExpoImage
-          source={{ uri: getFullUrl(user?.banner) || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000' }}
-          style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="disk" />
-        <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
-        
+    <ProfileHero user={user} banner={user?.banner} bio={user?.about} college={user?.college}>
+      <StatsCard items={[
+        { label: 'Posts', value: postCount ?? posts.length },
+        { label: 'Followers', value: user?.followers?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'followers' }) },
+        { label: 'Following', value: user?.following?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'following' }) },
+      ]} />
+
+      {/* Subscription Status Bar */}
+      {subscription?.status === 'active' && (
+        <View className="w-full mt-3 bg-card border border-line px-4 py-3 flex-row items-center rounded-2xl" style={{ gap: 12 }}>
+          <View className="w-9 h-9 bg-brand-500 rounded-full items-center justify-center">
+            <Ionicons name="flash" size={16} color={C.onBrand} />
+          </View>
+          <View className="flex-1 min-w-0">
+            <Text className="text-ink font-semibold text-sm">
+              {subscription.isLifetime ? 'Lifetime access' : 'Premium member'}
+            </Text>
+            <Text className="text-ink-3 text-xs mt-0.5" numberOfLines={1}>
+              {subscription.isLifetime ? 'Fync Pro, active forever' : `${subscription.daysRemaining} days remaining`}
+            </Text>
+          </View>
+          {!subscription.isLifetime && isFeatureOn('fyncProPaid') && (
+            <Button small variant="tertiary" title="Extend" onPress={() => navigation.navigate('SubscriptionScreen')} />
+          )}
+        </View>
+      )}
+
+      {subscription?.status === 'expired' && isFeatureOn('fyncProPaid') && (
+        <Pressable
+          onPress={() => navigation.navigate('SubscriptionScreen')}
+          className="w-full mt-3 bg-card border border-line px-4 py-3 flex-row items-center rounded-2xl active:opacity-70"
+          style={{ gap: 12 }}
+          accessibilityRole="button"
+          accessibilityLabel="Plan expired. Renew to unlock all features"
+        >
+          <View className="w-9 h-9 bg-brand-500 rounded-full items-center justify-center">
+            <Ionicons name="alert-circle" size={18} color={C.onBrand} />
+          </View>
+          <View className="flex-1 min-w-0">
+            <Text className="text-ink font-semibold text-sm">Plan expired</Text>
+            <Text className="text-ink-3 text-xs mt-0.5">Renew to unlock all features</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={C.ink3} />
+        </Pressable>
+      )}
+
+      {/* Action buttons: same height, shape and type, so they read as a pair. */}
+      <View className="flex-row mt-3 w-full" style={{ gap: 12 }}>
+        <Button title="Edit profile" icon="create-outline" style={{ flex: 1 }} onPress={() => navigation.navigate('EditProfile')} />
+        <Button title="Portfolio" icon="briefcase-outline" variant="primary" style={{ flex: 1 }} onPress={() => navigation.navigate('FyncProfileBuilder')} />
       </View>
 
-      <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
-        <AvatarZoom avatar={user?.avatar} className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
-          <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
-            <Avatar user={user as any} size={110} />
-          </View>
-        </AvatarZoom>
-
-        {/* Name, handle, bio, college: one centred block, tight rhythm. */}
-        <Text className="font-display text-ink text-h1 text-center mt-4" numberOfLines={2}>{user?.name || user?.username}</Text>
-        <Text className="text-accent-text font-semibold text-sm mt-1">@{user?.username}</Text>
-
-        {!!user?.about?.trim() && (
-          <Text className="text-ink-2 text-center mt-3 px-6 text-sm leading-[21px]" numberOfLines={3}>
-            {user.about}
-          </Text>
-        )}
-
-        {!!user?.college && (
-          <View className="flex-row items-center mt-3 px-3 py-1.5 bg-paper-2 rounded-full" style={{ gap: 6, maxWidth: '100%' }}>
-            <Ionicons name="school-outline" size={14} color={C.ink2} />
-            <Text className="font-medium text-sm text-ink-2 flex-shrink" numberOfLines={1}>{user.college}</Text>
-          </View>
-        )}
-
-        {/* Stats: a light card like every other card on the page, not a black slab. */}
-        <View className="flex-row w-full bg-card border border-line rounded-2xl mt-5 py-4">
-          {[
-            { label: 'Posts', value: postCount ?? posts.length },
-            { label: 'Followers', value: user?.followers?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'followers' }) },
-            { label: 'Following', value: user?.following?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'following' }) },
-          ].map((s, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && <View className="w-px self-stretch bg-line my-1" />}
-              <Pressable className="items-center flex-1 active:opacity-60" onPress={s.onPress} disabled={!s.onPress}>
-                <Text className="text-xl font-display text-ink">{s.value}</Text>
-                <Text className="text-ink-3 text-xs font-medium mt-0.5">{s.label}</Text>
-              </Pressable>
-            </React.Fragment>
-          ))}
-        </View>
-
-        {/* Subscription Status Bar */}
-        {subscription?.status === 'active' && (
-          <View className="w-full mt-3 bg-card border border-line px-4 py-3 flex-row items-center rounded-2xl" style={{ gap: 12 }}>
-            <View className="w-9 h-9 bg-brand-500 rounded-full items-center justify-center">
-              <Ionicons name="flash" size={16} color={C.onBrand} />
-            </View>
-            <View className="flex-1 min-w-0">
-              <Text className="text-ink font-semibold text-sm">
-                {subscription.isLifetime ? 'Lifetime access' : 'Premium member'}
-              </Text>
-              <Text className="text-ink-3 text-xs mt-0.5" numberOfLines={1}>
-                {subscription.isLifetime ? 'Fync Pro, active forever' : `${subscription.daysRemaining} days remaining`}
-              </Text>
-            </View>
-            {!subscription.isLifetime && isFeatureOn('fyncProPaid') && (
-              <Pressable
-                onPress={() => navigation.navigate('SubscriptionScreen')}
-                className="bg-brand-50 px-3 py-1.5 rounded-full active:opacity-70"
-              >
-                <Text className="text-accent-text font-semibold text-xs">Extend</Text>
-              </Pressable>
-            )}
-          </View>
-        )}
-
-        {subscription?.status === 'expired' && isFeatureOn('fyncProPaid') && (
-          <Pressable 
-            onPress={() => navigation.navigate('SubscriptionScreen')}
-            className="w-full mt-4 bg-paper-2 border border-line px-5 py-3 flex-row items-center justify-between rounded-md"
-          >
-             <View className="flex-row items-center">
-              <View className="w-8 h-8 bg-brand-500 rounded-xl items-center justify-center mr-3">
-                <Ionicons name="alert-circle" size={18} color={C.onBrand} />
-              </View>
-              <View>
-                <Text className="text-brand-900 font-display text-label uppercase">Plan Expired</Text>
-                <Text className="text-accent-text font-semibold text-label mt-0.5">Renew to unlock all features</Text>
-              </View>
-            </View>
-            <Ionicons name="arrow-forward" size={16} color={C.brand[500]} />
-          </Pressable>
-        )}
-
-        {/* Action buttons: same height, shape and type, so they read as a pair. */}
-        <View className="flex-row mt-3 w-full" style={{ gap: 12 }}>
-          <Pressable onPress={() => navigation.navigate('EditProfile')}
-            className="flex-1 h-12 bg-card border border-line rounded-full flex-row items-center justify-center active:opacity-70"
-            style={{ gap: 6 }}>
-            <Ionicons name="create-outline" size={18} color={C.ink} />
-            <Text className="font-semibold text-sm text-ink" style={{ includeFontPadding: false }}>Edit profile</Text>
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')}
-            className="flex-1 h-12 bg-brand-500 rounded-full flex-row items-center justify-center active:opacity-80"
-            style={{ gap: 6 }}>
-            <Ionicons name="briefcase-outline" size={18} color={C.onBrand} />
-            <Text className="font-semibold text-sm text-on-brand" style={{ includeFontPadding: false }}>Portfolio</Text>
-          </Pressable>
-        </View>
-
-        <ProfileStrength user={user} />
-      </View>
-    </View>
-  );
-
-  // ── Tab Bar ────────────────────────────────────────────────────────────
-  const renderTabBar = () => (
-    <View className="flex-row bg-card border-t border-line py-2 px-4 shadow-hair">
-      {[
-        { key: 'posts', icon: 'grid-outline', activeIcon: 'grid' },
-        { key: 'shorts', icon: 'play-circle-outline', activeIcon: 'play-circle' },
-        { key: 'reposts', icon: 'repeat-outline', activeIcon: 'repeat' },
-        { key: 'about', icon: 'person-outline', activeIcon: 'person' },
-      ].map((t, i) => {
-        const isActive = activeTab === t.key;
-        return (
-          <Pressable key={t.key} onPress={() => setActiveTab(t.key as any)} className="flex-1 items-center py-2 relative">
-            <View className={`w-14 h-10 rounded-card items-center justify-center ${isActive ? 'bg-paper-2' : 'bg-transparent'}`}>
-              <Ionicons name={(isActive ? t.activeIcon : t.icon) as any} size={24}
-                color={isActive ? C.brand[500] : C.ink4} />
-            </View>
-            {isActive && <View className="absolute bottom-[-4px] w-1 h-1 bg-brand-500 rounded-full" />}
-          </Pressable>
-        );
-      })}
-    </View>
+      <ProfileStrength user={user} />
+    </ProfileHero>
   );
 
   // ── Grid item ─────────────────────────────────────────────────────────
-  // Read through a ref so renderGridItem stays stable; the delete handlers are
-  // recreated every render (they close over the list for rollback).
+  // Read through a ref so the cell callbacks stay stable; the delete handlers
+  // are recreated every render (they close over the list for rollback).
   const deleteRef = useRef({ deletePost, deleteShort });
   deleteRef.current = { deletePost, deleteShort };
 
-  const renderGridItem = useCallback(({ item, isShort, canDelete = true }: { item: any; isShort?: boolean; canDelete?: boolean }) => (
-    <Pressable
-      onPress={() => navigation.navigate('IndividualPostOrShort', isShort ? { shortId: item._id } : { postId: item._id })}
-      onLongPress={canDelete ? () => Alert.alert(
-        isShort ? 'Delete Short' : 'Delete Post', 'Are you sure?',
-        [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => isShort ? deleteRef.current.deleteShort(item._id) : deleteRef.current.deletePost(item._id) }]
-      ) : undefined}
-      className="m-[1px] rounded-lg overflow-hidden bg-paper-2"
-      style={{ width: (width / 3) - 2, height: isShort ? (width / 1.8) : (width / 3) }}>
-      {isShort ? (
-        <View className="w-full h-full bg-paper-2 overflow-hidden">
-          {/* A still, not a decoder. Mounting <Video> per cell meant a dozen
-              hardware decoders on one screen. Shorts uploaded before the
-              thumbnail field existed still fall back to the video. */}
-          {item.thumbnail ? (
-            <ExpoImage source={{ uri: getFullUrl(item.thumbnail) || '' }} style={{ width: '100%', height: '100%' }}
-              contentFit="cover" cachePolicy="disk" transition={120} />
-          ) : (
-            <Video source={{ uri: getFullUrl(item.video) || '' }} style={{ width: '100%', height: '100%' }}
-              resizeMode={ResizeMode.COVER} shouldPlay={false} positionMillis={100} />
-          )}
-          <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)']} className="absolute inset-0" />
-          <View className="absolute bottom-2 left-2 flex-row items-center gap-1.5">
-            <Ionicons name="play" size={12} color="white" />
-            <Text className="text-white text-label font-display">{item.views || 0}</Text>
-          </View>
-        </View>
-      ) : item.image?.length > 0 ? (
-        <GridImage path={item.image[0]} />
-      ) : (
-        <View className="w-full h-full bg-paper-2 items-center justify-center p-3">
-          <Text className="text-accent-text text-label font-semibold text-center" numberOfLines={4}>{item.title || item.description}</Text>
-        </View>
-      )}
-      {!isShort && item.image?.length > 1 && (
-        <View className="absolute top-2 right-2 bg-black/40 px-1.5 py-1 rounded-lg backdrop-blur-md">
-          <Ionicons name="layers" size={10} color="white" />
-        </View>
-      )}
-    </Pressable>
-  ), [navigation]);
+  const openItem = useCallback((item: any, isShort: boolean) => {
+    navigation.navigate('IndividualPostOrShort', isShort ? { shortId: item._id } : { postId: item._id });
+  }, [navigation]);
+
+  const confirmDelete = useCallback((item: any, isShort: boolean) => Alert.alert(
+    isShort ? 'Delete Short' : 'Delete Post', 'Are you sure?',
+    [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => isShort ? deleteRef.current.deleteShort(item._id) : deleteRef.current.deletePost(item._id) }]
+  ), []);
 
   /** Inline, this was rebuilt on every parent render and took the whole grid
    *  with it. */
   const renderTabItem = useCallback(({ item }: { item: any }) => {
     if (activeTab === 'about') return <AboutSection user={user} isOwner onRefresh={onRefresh} />;
-    if (activeTab === 'posts') return renderGridItem({ item, isShort: false });
-    if (activeTab === 'shorts') return renderGridItem({ item, isShort: true });
-    if (activeTab === 'reposts') return renderGridItem({ item, isShort: false, canDelete: false });
-    return null;
-  }, [activeTab, user, renderGridItem]);
+    if (activeTab === 'reposts') return <GridCell item={item} onOpen={openItem} />;
+    return <GridCell item={item} isShort={activeTab === 'shorts'} onOpen={openItem} onLongPress={confirmDelete} />;
+  }, [activeTab, user, openItem, confirmDelete]);
 
   const insets = useSafeAreaInsets();
   return (
@@ -908,21 +678,18 @@ function Profile() {
         data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : activeTab === 'reposts' ? reposts : (['ABOUT'] as any)}
         keyExtractor={(item, i) => (typeof item === 'string' ? item : item._id ?? String(i))}
         numColumns={activeTab === 'about' ? 1 : 3}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.recruiter} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
-        ListHeaderComponent={<>{renderProfileInfo()}{renderTabBar()}</>}
+        ListHeaderComponent={<>{renderProfileInfo()}<ProfileTabs items={PROFILE_TABS} value={activeTab} onChange={setActiveTab} /></>}
         renderItem={renderTabItem}
-        ListFooterComponent={isLoadingMore ? <View className="py-4"><ActivityIndicator size="small" color={C.recruiter} /></View> : null}
+        ListFooterComponent={isLoadingMore ? <View className="py-4"><ActivityIndicator size="small" color={C.ink3} /></View> : null}
         ListEmptyComponent={!loaded ? (
           <View className="items-center justify-center py-20">
             <ActivityIndicator size="small" color={C.ink3} />
           </View>
         ) : (
-          <View className="items-center justify-center py-20">
-            <Ionicons name="images-outline" size={48} color={C.ink4} />
-            <Text className="text-ink-3 mt-4 font-medium">No content here yet</Text>
-          </View>
+          <Empty icon="images-outline" title="No content here yet" />
         )}
         contentContainerStyle={{ paddingBottom: tabBarClearance }}
       />

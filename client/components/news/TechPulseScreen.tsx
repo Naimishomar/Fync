@@ -5,14 +5,14 @@
  */
 import React, { memo, useCallback, useRef, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, ActivityIndicator,
+  View, Text, FlatList, Pressable, ActivityIndicator,
   RefreshControl, Linking, StatusBar,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import { Alert } from '../ui/AlertModal';
-import { AppBar } from '../ui/kit';
+import { AppBar, Empty, Label, Num, SectionHeader, SegmentedTabs, Tag } from '../ui/kit';
 import { C } from '../../constants/colors';
 
 type Feed = 'global' | 'india' | 'placement';
@@ -41,68 +41,52 @@ const open = (url: string) =>
   Linking.openURL(url).catch(() => Alert.alert('Could not open', 'That link would not open.'));
 
 const StoryRow = memo(({ item, index, ranked, onRead }: { item: Story; index: number; ranked: boolean; onRead: (s: Story) => void }) => (
-  <View style={{ position: 'relative', marginBottom: index === 0 ? 20 : 12 }}>
-    {index === 0 && (
+  <Pressable
+    onPress={() => onRead(item)}
+    accessibilityRole="button"
+    accessibilityLabel={`${item.title}. ${item.points} points on ${item.source}`}
+    className="bg-card rounded-2xl p-4 mb-3 border border-line active:opacity-70"
+  >
+    <View className="flex-row">
+      {/* Only Hacker News carries a score; on the Google News feeds the disc
+          shows the position instead of a number that would always read 0. */}
       <View
-        pointerEvents="none"
-        style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: C.ink, borderRadius: 20 }}
-      />
-    )}
-    <TouchableOpacity
-      onPress={() => onRead(item)}
-      activeOpacity={0.9}
-      accessibilityRole="button"
-      accessibilityLabel={`${item.title}. ${item.points} points on ${item.source}`}
-      className={`bg-card rounded-card p-card-pad ${index === 0 ? 'border-2 border-ink' : 'border border-line'}`}
-    >
-      <View className="flex-row">
-        <View className="items-center mr-4" style={{ width: 52 }}>
-          {/* Only Hacker News carries a score; on the Google News feeds the stamp
-              shows the position instead of a number that would always read 0. */}
-          <View
-            className="items-center justify-center"
-            style={{ width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderStyle: 'dashed', borderColor: C.ink, backgroundColor: C.brand[100] }}
-          >
-            <Text className="font-display text-ink" style={{ fontSize: ranked ? 15 : 17, fontVariant: ['tabular-nums'], letterSpacing: -0.5 }}>
-              {ranked ? item.points : index + 1}
-            </Text>
-            <Text className="font-display text-ink-3" style={{ fontSize: 8, letterSpacing: 0.8 }}>
-              {ranked ? 'PTS' : 'RANK'}
-            </Text>
-          </View>
-        </View>
-
-        <View className="flex-1">
-          <Text
-            className="text-ink font-bold"
-            style={{ fontSize: index === 0 ? 17 : 15, lineHeight: index === 0 ? 22 : 20 }}
-            numberOfLines={3}
-          >
-            {item.title}
-          </Text>
-          <View className="flex-row items-center flex-wrap mt-2" style={{ gap: 8 }}>
-            <View className="bg-paper-2 px-2.5 py-1 rounded-full">
-              <Text className="text-ink-2 text-label font-display uppercase" numberOfLines={1}>{item.source}</Text>
-            </View>
-            <Text className="text-ink-3 text-sm">{ago(item.createdAt)}</Text>
-          </View>
-          {ranked && (
-            <TouchableOpacity
-              onPress={() => open(item.discussionUrl)}
-              className="flex-row items-center mt-3"
-              accessibilityRole="button"
-              accessibilityLabel={`Read ${item.comments} comments`}
-            >
-              <Ionicons name="chatbubble-outline" size={14} color={C.ink2} />
-              <Text className="text-ink-2 text-label font-display uppercase ml-1.5">
-                {item.comments} comments
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        className="items-center justify-center mr-4"
+        style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: C.brand[100] }}
+      >
+        <Num style={{ fontSize: ranked ? 15 : 17 }}>{ranked ? item.points : index + 1}</Num>
+        <Text className="font-medium text-ink-3" style={{ fontSize: 10 }}>{ranked ? 'pts' : 'rank'}</Text>
       </View>
-    </TouchableOpacity>
-  </View>
+
+      <View className="flex-1" style={{ minWidth: 0 }}>
+        <Text
+          className="text-ink font-semibold"
+          style={{ fontSize: index === 0 ? 17 : 15, lineHeight: index === 0 ? 22 : 20 }}
+          numberOfLines={3}
+        >
+          {item.title}
+        </Text>
+        <View className="flex-row items-center flex-wrap mt-2" style={{ gap: 8 }}>
+          <Tag label={item.source} />
+          <Text className="text-ink-3 text-sm">{ago(item.createdAt)}</Text>
+        </View>
+        {ranked && (
+          <Pressable
+            onPress={() => open(item.discussionUrl)}
+            hitSlop={12}
+            className="flex-row items-center mt-3 self-start active:opacity-60"
+            accessibilityRole="button"
+            accessibilityLabel={`Read ${item.comments} comments`}
+          >
+            <Ionicons name="chatbubble-outline" size={14} color={C.ink2} />
+            <Text className="text-ink-2 text-xs font-medium ml-1.5">
+              {item.comments} comments
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    </View>
+  </Pressable>
 ));
 
 export default function TechPulseScreen() {
@@ -151,32 +135,20 @@ export default function TechPulseScreen() {
       <View className="flex-1">
         <AppBar title="Tech Pulse" onBack={() => navigation.goBack()} />
         <View className="px-gutter">
-          <Text className="font-display text-label text-ink-3 uppercase" style={{ letterSpacing: 1.4 }}>
-            {FEEDS.find((f) => f.id === feed)?.blurb}
-          </Text>
+          <Label>{FEEDS.find((f) => f.id === feed)?.blurb}</Label>
 
-          <View className="flex-row mt-5" style={{ gap: 8 }}>
-            {FEEDS.map((f) => (
-              <TouchableOpacity
-                key={f.id}
-                onPress={() => { if (f.id !== feed) { setLoading(true); setFeed(f.id); } }}
-                className={`flex-1 items-center justify-center rounded-md border-2 ${feed === f.id ? 'bg-brand-500 border-ink' : 'bg-card border-line'}`}
-                style={{ minHeight: 44 }}
-                accessibilityRole="button"
-                accessibilityLabel={`${f.label} news`}
-              >
-                <Text className={`font-display uppercase text-label ${feed === f.id ? 'text-on-brand' : 'text-ink-2'}`}>{f.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <SegmentedTabs
+            style={{ marginTop: 16 }}
+            items={FEEDS.map((f) => f.id)}
+            value={feed}
+            onChange={(id) => { if (id !== feed) { setLoading(true); setFeed(id); } }}
+            labels={Object.fromEntries(FEEDS.map((f) => [f.id, f.label]))}
+          />
 
-          <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
-            <Text className="text-ink text-label font-display uppercase">
-              {feed === 'placement' ? 'This week' : feed === 'india' ? 'Last 48 hours' : 'Last 24 hours'}
-            </Text>
-            <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-            <Text className="text-ink-3 font-mono text-label">{stories.length}</Text>
-          </View>
+          <SectionHeader
+            title={feed === 'placement' ? 'This week' : feed === 'india' ? 'Last 48 hours' : 'Last 24 hours'}
+            count={stories.length}
+          />
         </View>
 
         {loading ? (
@@ -196,18 +168,14 @@ export default function TechPulseScreen() {
               />
             }
             ListEmptyComponent={
-              <View className="items-center mt-16">
-                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-4">
-                  <Ionicons name={failed ? 'cloud-offline-outline' : 'newspaper-outline'} size={32} color={C.ink2} />
-                </View>
-                <Text className="text-ink font-display uppercase text-h2 text-center">
-                  {failed ? 'Could not load' : 'Nothing yet'}
-                </Text>
-                <Text className="text-ink-2 text-sm text-center mt-2 px-8">
-                  {failed
+              <View className="mt-12">
+                <Empty
+                  icon={failed ? 'cloud-offline-outline' : 'newspaper-outline'}
+                  title={failed ? 'Could not load' : 'Nothing yet'}
+                  hint={failed
                     ? 'The news source could not be reached. Pull down to try again.'
                     : 'No stories in the last 24 hours. Pull down to refresh.'}
-                </Text>
+                />
               </View>
             }
           />

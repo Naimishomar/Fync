@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -17,11 +17,12 @@ interface MovieCardProps {
 
 const MovieCard: React.FC<MovieCardProps> = ({ item, onPress, width = 140, height = 210, marginRight = 12 }) => {
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <Pressable
       onPress={onPress}
       style={{ width, height, marginRight }}
-      className="rounded-xl overflow-hidden bg-night shadow-hair"
+      className="rounded-2xl overflow-hidden bg-night active:opacity-80"
+      accessibilityRole="button"
+      accessibilityLabel={`${item.title}, rated ${Number(item.vote_average ?? 0).toFixed(1)}`}
     >
       <Image
         source={{ uri: getImageUrl(item.poster_path, 'w342') || '' }}
@@ -49,7 +50,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ item, onPress, width = 140, heigh
           </View>
         </View>
       </LinearGradient>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

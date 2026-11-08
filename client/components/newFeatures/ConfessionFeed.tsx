@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Dimensions, ScrollView, StatusBar, KeyboardAvoidingView} from 'react-native'
+import { View, Text, FlatList, Pressable, ActivityIndicator, StatusBar } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
@@ -9,11 +9,9 @@ import { useNavigation } from '@react-navigation/native';
 import { ConfessionSkeleton } from '../Skeleton';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn, Meta, Empty, Button } from '../ui/kit';
+import { AppBar, IconBtn, Meta, Empty, Button, Card, IconTile, ListRow, Sheet, FormField } from '../ui/kit';
 import CommentsSheet, { CommentsApi, CommentModel } from '../ui/CommentsSheet';
 import { report } from '../../utils/safety';
-
-const { width } = Dimensions.get('window');
 
 const CONFESSION_COMMENTS: CommentsApi = {
     list: (id) => `/confessions/comments/${id}`,
@@ -30,29 +28,28 @@ let globalConfessionsCache: any[] = [];
 let globalCurrentPage = 1;
 let globalHasMore = true;
 
-const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete, onReport, navigation, stamped }: any) => {
+const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete, onReport, navigation }: any) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const MAX_LIMIT = 200;
     const isLongText = (item.content?.length || 0) > MAX_LIMIT;
+    const liked = item.liked_by?.includes(user?._id || user?.id);
 
     return (
-        <View
-            className={`bg-card p-card-pad rounded-card mb-5 ${stamped ? 'border-2 border-ink' : 'border border-line'}`}
-            style={stamped ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
-        >
-            <View className="flex-row items-center justify-between mb-5">
-                <View className="flex-row items-center">
-                    <View className="w-11 h-11 rounded-full bg-paper-2 items-center justify-center border border-line">
-                        <Ionicons name="person" size={20} color={C.ink3} />
-                    </View>
-                    <View className="ml-2">
-                        <Text className="text-ink font-display text-base uppercase">Anonymous</Text>
-                        <Text className="text-ink-3 text-label uppercase font-display">Anonymous Confession</Text>
+        <Card padded style={{ marginBottom: 12 }}>
+            <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center" style={{ gap: 12 }}>
+                    <IconTile icon="person-outline" size={40} color={C.ink3} />
+                    <View>
+                        <Text className="text-ink font-semibold text-base">Anonymous</Text>
+                        <Text className="text-ink-3 text-xs font-sans">{new Date(item.createdAt).toLocaleDateString()}</Text>
                     </View>
                 </View>
 
                 {/* Owner gets edit/delete; everyone else can report. */}
-                <TouchableOpacity
+                <IconBtn
+                    name="ellipsis-horizontal"
+                    color={C.ink2}
+                    accessibilityLabel="Confession options"
                     onPress={() => {
                         Alert.alert(
                             "Confession",
@@ -69,57 +66,62 @@ const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete,
                                 ]
                         );
                     }}
-                    className="p-3 bg-paper-2 rounded-card border border-line"
-                    accessibilityLabel="Confession options"
-                >
-                    <Ionicons name="ellipsis-horizontal" size={20} color={C.ink} />
-                </TouchableOpacity>
+                />
             </View>
 
-            <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} activeOpacity={0.9}>
-                <Text className="text-ink text-base font-semibold leading-7 mb-4">
+            <Pressable
+                onPress={() => setIsExpanded(!isExpanded)}
+                disabled={!isLongText}
+                accessibilityRole={isLongText ? 'button' : undefined}
+                accessibilityHint={isLongText ? (isExpanded ? 'Show less' : 'Read more') : undefined}
+                className="active:opacity-80"
+            >
+                <Text className="text-ink text-base font-sans leading-6 mb-3">
                     {isExpanded || !isLongText
                         ? item.content
                         : `${item.content.substring(0, MAX_LIMIT)}...`}
-                    {isLongText && !isExpanded && (
-                        <Text className="text-accent-text font-display text-xs uppercase"> Read More</Text>
-                    )}
-                    {isLongText && isExpanded && (
-                        <Text className="text-accent-text font-display text-xs uppercase"> Show Less</Text>
-                    )}
+                    {isLongText ? (
+                        <Text className="text-accent-text font-semibold text-sm">{isExpanded ? ' Show less' : ' Read more'}</Text>
+                    ) : null}
                 </Text>
-            </TouchableOpacity>
+            </Pressable>
 
-            {item.taggedUser && (
-                <TouchableOpacity
-                    onPress={() => {
-                        navigation.navigate('PublicProfile', { userId: item.taggedUser?._id });
-                    }}
-                    className="flex-row items-center bg-paper-2 py-2.5 px-5 rounded-full self-start mb-5 border border-line"
+            {item.taggedUser ? (
+                <Pressable
+                    onPress={() => navigation.navigate('PublicProfile', { userId: item.taggedUser?._id })}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Tagged @${item.taggedUser?.username}`}
+                    className="flex-row items-center bg-paper-2 py-2 px-3 rounded-full self-start mb-3 active:opacity-70"
                 >
-                    <Ionicons name="at" size={14} color={C.brand[500]} />
-                    <Text className="text-accent-text font-display text-label ml-1">{item.taggedUser?.username}</Text>
-                </TouchableOpacity>
-            )}
+                    <Ionicons name="at" size={14} color={C.accentText} />
+                    <Text className="text-accent-text font-semibold text-sm ml-1">{item.taggedUser?.username}</Text>
+                </Pressable>
+            ) : null}
 
-            <View className="flex-row items-center justify-between border-t border-line pt-5">
-                <Text className="text-ink-3 text-label uppercase font-display">{new Date(item.createdAt).toLocaleDateString()}</Text>
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => onLike(item._id)} className="flex-row items-center mr-6">
-                        <Ionicons
-                            name={item.liked_by?.includes(user?._id || user?.id) ? "heart" : "heart-outline"}
-                            size={20}
-                            color={item.liked_by?.includes(user?._id || user?.id) ? C.danger : C.ink3}
-                        />
-                        <Text className="text-ink-2 ml-2 text-xs font-display">{item.likes || 0}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => onComments(item._id)} className="flex-row items-center">
-                        <Ionicons name="chatbubbles-outline" size={20} color={C.ink3} />
-                        <Text className="text-ink-2 ml-2 text-xs font-display">{item.comments?.length || 0}</Text>
-                    </TouchableOpacity>
-                </View>
+            <View className="flex-row items-center border-t border-line pt-2" style={{ gap: 16 }}>
+                <Pressable
+                    onPress={() => onLike(item._id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={liked ? 'Unlike' : 'Like'}
+                    accessibilityState={{ selected: !!liked }}
+                    hitSlop={8}
+                    className="flex-row items-center py-2 active:opacity-70"
+                >
+                    <Ionicons name={liked ? "heart" : "heart-outline"} size={20} color={liked ? C.danger : C.ink3} />
+                    <Text className="text-ink-2 ml-2 text-sm font-semibold">{item.likes || 0}</Text>
+                </Pressable>
+                <Pressable
+                    onPress={() => onComments(item._id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Comments, ${item.comments?.length || 0}`}
+                    hitSlop={8}
+                    className="flex-row items-center py-2 active:opacity-70"
+                >
+                    <Ionicons name="chatbubbles-outline" size={20} color={C.ink3} />
+                    <Text className="text-ink-2 ml-2 text-sm font-semibold">{item.comments?.length || 0}</Text>
+                </Pressable>
             </View>
-        </View>
+        </Card>
     );
 });
 
@@ -336,10 +338,9 @@ const ConfessionFeed = () => {
         report({ targetType: 'confession', targetId: id }, () => setConfessions(prev => prev.filter((c: any) => c._id !== id)));
     }, []);
 
-    const renderConfession = useCallback(({ item, index }: any) => (
+    const renderConfession = useCallback(({ item }: any) => (
         <ConfessionItem
             item={item}
-            stamped={index === 0}
             user={user}
             onLike={handleLike}
             onComments={setActiveConfessionId}
@@ -374,7 +375,7 @@ const ConfessionFeed = () => {
                 <AppBar
                     onBack={() => navigation.goBack()}
                     title="Confessions Feed"
-                    right={<IconBtn name="megaphone" color={C.brand[500]} boxed onPress={() => setIsPostModalOpen(true)} />}
+                    right={<IconBtn name="add" boxed accessibilityLabel="Post a confession" onPress={() => setIsPostModalOpen(true)} />}
                 />
 
                 <FlatList keyboardShouldPersistTaps="handled"
@@ -382,12 +383,12 @@ const ConfessionFeed = () => {
                     keyExtractor={(item: any) => item._id}
                     renderItem={renderConfession}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100, paddingTop: 10 }}
+                    contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100, paddingTop: 8 }}
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
-                    ListHeaderComponent={<Meta style={{ marginBottom: 10 }}>{user?.college || 'Campus'}</Meta>}
+                    ListHeaderComponent={<Meta style={{ marginBottom: 12 }}>{user?.college || 'Campus'}</Meta>}
                     ListFooterComponent={() => (
                         loadingMore ? <ActivityIndicator color={C.brand[500]} className="my-8" /> : <View className="h-20" />
                     )}
@@ -400,105 +401,62 @@ const ConfessionFeed = () => {
                             />
                         </View>
                     ) : (
-                        <View className="mt-20 items-center px-gutter">
-                            <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                <Ionicons name="lock-closed" size={40} color={C.ink4} />
-                            </View>
-                            <Text className="text-ink font-display uppercase text-xl text-center">Protocol Locked</Text>
-                            <Text className="font-sans text-sm text-ink-3 mt-2 text-center">No signals detected. Be the first to broadcast anonymously.</Text>
+                        <View className="mt-20">
+                            <Empty icon="lock-closed-outline" title="No confessions yet" hint="Be the first to post anonymously." />
                         </View>
                     )}
                 />
 
-                {/* Post/Edit Modal */}
-                <Modal visible={isPostModalOpen} animationType="slide" transparent={true} statusBarTranslucent onRequestClose={closePostModal}>
-                    <KeyboardAvoidingView behavior="padding" className="flex-1 bg-black/60 justify-end">
-                        <View className="bg-paper rounded-t-sheet p-card-pad pb-12 border-t border-line shadow-hair">
-                            <View className="flex-row justify-between items-center mb-10">
-                                <View>
-                                    <Text className="text-ink font-display uppercase text-h1">
-                                        {editingConfession ? 'Update' : 'Post'} <Text className="text-accent-text">Confession</Text>
-                                    </Text>
-                                    <Text className="text-ink-3 text-label font-display uppercase mt-1">Anonymous Protocol Active</Text>
-                                </View>
-                                <TouchableOpacity onPress={closePostModal} className="w-10 h-10 bg-paper-2 rounded-card items-center justify-center border border-line" hitSlop={2}>
-                                    <Ionicons name="close" size={20} color={C.ink} />
-                                </TouchableOpacity>
-                            </View>
-
-                            <View className="bg-card p-card-pad rounded-sheet mb-8 shadow-hair border border-line">
-                                {taggedUser && !editingConfession && (
-                                    <View className="flex-row items-center bg-paper-2 border border-line p-2 px-4 rounded-full self-start mb-5">
-                                        {taggedUser.avatar ? (
-                                            <ExpoImage source={{ uri: taggedUser.avatar }} style={{ width: 20, height: 20, borderRadius: 10 }} />
-                                        ) : (
-                                            <View className="w-5 h-5 rounded-full bg-paper-2 items-center justify-center">
-                                                <Ionicons name="person" size={10} color={C.ink3} />
-                                            </View>
-                                        )}
-                                        <Text className="text-accent-text font-display ml-2 text-label uppercase">Tagged: {taggedUser.name}</Text>
-                                        <TouchableOpacity onPress={() => setTaggedUser(null)} hitSlop={12} className="ml-3 bg-brand-100 rounded-full w-4 h-4 items-center justify-center">
-                                            <Ionicons name="close" size={12} color={C.brand[500]} />
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-
-                                <TextInput
-                                    placeholder={editingConfession ? "Update your secret..." : "Type your secret (use @ to tag someone)"}
-                                    placeholderTextColor={C.ink3}
-                                    multiline
-                                    value={newConfession}
-                                    onChangeText={handleTextChange}
-                                    className="text-ink text-xl font-display min-h-[160px]"
-                                    maxLength={500}
-                                    textAlignVertical="top"
-                                />
-                            </View>
-
-                            {showSuggestions && (
-                                <View className="absolute top-[120px] left-8 right-8 bg-card rounded-card shadow-hair z-50 border border-line max-h-[250px] overflow-hidden">
-                                    <ScrollView keyboardShouldPersistTaps="always">
-                                        {userSuggestions.map((u: any) => (
-                                            <TouchableOpacity
-                                                key={u._id}
-                                                onPress={() => selectUserToTag(u)}
-                                                className="flex-row items-center p-5 border-b border-line"
-                                            >
-                                                {u.avatar ? (
-                                                    <ExpoImage source={{ uri: u.avatar }} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2 }} />
-                                                ) : (
-                                                    <View className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center border border-line">
-                                                        <Ionicons name="person" size={18} color={C.ink3} />
-                                                    </View>
-                                                )}
-                                                <View className="ml-4 flex-1">
-                                                    <Text className="text-ink font-display text-sm uppercase" numberOfLines={1}>{u.name}</Text>
-                                                    <Text className="text-ink-3 text-label font-semibold uppercase" numberOfLines={1}>@{u.username}</Text>
-                                                </View>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </ScrollView>
-                                </View>
+                <Sheet
+                    visible={isPostModalOpen}
+                    onClose={closePostModal}
+                    title={editingConfession ? 'Edit confession' : 'Post a confession'}
+                    subtitle="Posted anonymously"
+                    footer={<Button title={editingConfession ? 'Save changes' : 'Post anonymously'} variant="primary" block loading={submitting} onPress={handlePostConfession} />}
+                >
+                    {taggedUser && !editingConfession ? (
+                        <View className="flex-row items-center bg-paper-2 py-1 pl-3 rounded-full self-start mb-3">
+                            {taggedUser.avatar ? (
+                                <ExpoImage source={{ uri: taggedUser.avatar }} style={{ width: 20, height: 20, borderRadius: 10 }} cachePolicy="memory-disk" />
+                            ) : (
+                                <Ionicons name="person-outline" size={14} color={C.ink3} />
                             )}
-
-                            {/* Color picker removed as per requirement */}
-
-                            <TouchableOpacity
-                                onPress={handlePostConfession}
-                                disabled={submitting}
-                                className={`h-16 rounded-card items-center justify-center shadow-hair ${submitting ? 'bg-paper-2' : 'bg-brand-500 '}`}
-                            >
-                                {submitting ? (
-                                    <ActivityIndicator color={C.ink} />
-                                ) : (
-                                    <Text className="text-on-brand font-display uppercase text-sm">
-                                        {editingConfession ? 'Execute Update' : 'Secure Broadcast'}
-                                    </Text>
-                                )}
-                            </TouchableOpacity>
+                            <Text className="text-ink-2 font-semibold ml-2 text-sm">Tagged {taggedUser.name}</Text>
+                            <IconBtn name="close" size={16} color={C.ink3} accessibilityLabel="Remove tag" onPress={() => setTaggedUser(null)} />
                         </View>
-                    </KeyboardAvoidingView>
-                </Modal>
+                    ) : null}
+
+                    <FormField
+                        accessibilityLabel="Confession"
+                        placeholder={editingConfession ? "Update your secret..." : "Type your secret (use @ to tag someone)"}
+                        multiline
+                        value={newConfession}
+                        onChangeText={handleTextChange}
+                        maxLength={500}
+                        hint={`${newConfession.length}/500`}
+                        style={{ minHeight: 160 }}
+                    />
+
+                    {showSuggestions ? (
+                        <Card style={{ marginTop: 8, overflow: 'hidden' }}>
+                            {userSuggestions.map((u: any) => (
+                                <ListRow
+                                    key={u._id}
+                                    onPress={() => selectUserToTag(u)}
+                                    chevron={false}
+                                    style={{ paddingHorizontal: 16 }}
+                                    leading={u.avatar ? (
+                                        <ExpoImage source={{ uri: u.avatar }} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
+                                    ) : (
+                                        <IconTile icon="person-outline" size={40} color={C.ink3} />
+                                    )}
+                                    title={u.name}
+                                    subtitle={`@${u.username}`}
+                                />
+                            ))}
+                        </Card>
+                    ) : null}
+                </Sheet>
 
                 <CommentsSheet
                     visible={!!activeConfessionId}

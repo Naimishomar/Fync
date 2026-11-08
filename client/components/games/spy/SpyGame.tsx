@@ -9,7 +9,7 @@ import { useAuth } from '../../../context/auth.context';
 import socket from '../../../utils/socket';
 import { C } from '../../../constants/colors';
 import { tapHaptic, selectHaptic } from '../../../utils/haptics';
-import { AppBar, Button, IconBtn, Screen } from '../../ui/kit';
+import { AppBar, Button, IconBtn, Label, Screen } from '../../ui/kit';
 import { Alert } from '../../ui/AlertModal';
 import Avatar from '../../Avatar';
 
@@ -143,7 +143,7 @@ const SpyGame = () => {
           { text: 'Stay', style: 'cancel' },
           { text: 'Leave', style: 'destructive', onPress: () => { leave(); navigation.goBack(); } },
         ]) : navigation.goBack())}
-        right={<IconBtn name="trophy-outline" onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'Spy', title: "Who's the Spy" })} />}
+        right={<IconBtn name="trophy-outline" accessibilityLabel="Leaderboard" onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'Spy', title: "Who's the Spy" })} />}
       />
       {!room ? (
         <Home searching={searching} joinCode={joinCode} setJoinCode={setJoinCode} onCreate={create} onFind={find} onJoin={join}
@@ -176,7 +176,7 @@ const Home = ({ searching, joinCode, setJoinCode, onCreate, onFind, onJoin, onCa
     {searching ? <Button title="Cancel" variant="ghost" small style={{ marginTop: 6, alignSelf: 'center' }} onPress={onCancel} /> : null}
     <Button title="Create lobby for friends" icon="people-outline" block style={{ marginTop: 12 }} onPress={onCreate} />
 
-    <Text className="font-display text-ink-2 uppercase mt-8 mb-2" style={{ letterSpacing: 1.2, fontSize: 12 }}>Have a code?</Text>
+    <Label style={{ marginTop: 32, marginBottom: 8 }}>Have a code?</Label>
     <View className="flex-row items-center" style={{ gap: 10 }}>
       <TextInput
         value={joinCode}
@@ -186,7 +186,7 @@ const Home = ({ searching, joinCode, setJoinCode, onCreate, onFind, onJoin, onCa
         autoCapitalize="characters"
         autoCorrect={false}
         onSubmitEditing={onJoin}
-        className="flex-1 rounded-xl border border-line bg-card px-4 font-display text-ink"
+        className="flex-1 rounded-2xl border border-line bg-card px-4 font-display text-ink"
         style={{ height: 48, fontSize: 18, letterSpacing: 4 }}
       />
       <Button title="Join" variant="solid" onPress={onJoin} disabled={joinCode.length !== 6} />
@@ -223,13 +223,13 @@ const Lobby = ({ room, myId, secsLeft, onPlayer, onStart, onLeave }: {
         </View>
       )}
 
-      <Text className="font-display text-ink-2 uppercase mb-3" style={{ letterSpacing: 1.2, fontSize: 12 }}>Players · {n}/8</Text>
+      <Label style={{ marginBottom: 12 }}>Players · {n}/8</Label>
       <View className="flex-row flex-wrap" style={{ gap: 12 }}>
         {room.players.map((p) => (
           <Pressable key={p.userId} onPress={() => onPlayer(p)} className="items-center" style={{ width: 72 }} accessibilityRole="button" accessibilityLabel={first(p)}>
             <Avatar user={p} size={56} showBadge={false} />
             <Text className="font-sans text-ink text-xs mt-1" numberOfLines={1}>{p.userId === myId ? 'You' : first(p)}</Text>
-            {p.userId === room.host ? <Text style={{ fontSize: 10, color: VIOLET }} className="font-display">HOST</Text> : null}
+            {p.userId === room.host ? <Text style={{ fontSize: 11, color: VIOLET }} className="font-semibold">Host</Text> : null}
           </Pressable>
         ))}
         {Array.from({ length: Math.max(0, 4 - n) }).map((_, i) => (
@@ -342,7 +342,7 @@ const Game = ({ room, myId, word, secsLeft, onPlayer }: {
       <Pressable onPress={() => { tapHaptic(); setPeek((v) => !v); }} accessibilityRole="button" accessibilityLabel="Tap to peek at your secret word">
         <LinearGradient colors={['#312e81', VIOLET]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 20, padding: 18, alignItems: 'center' }}>
           <Text className="font-sans" style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12 }}>
-            ROUND {room.round} · {alive ? 'YOUR SECRET WORD' : 'YOU ARE OUT'}
+            Round {room.round} · {alive ? 'Your secret word' : 'You are out'}
           </Text>
           <Text className="font-display" style={{ color: '#fff', fontSize: 30, marginTop: 6, letterSpacing: peek ? 0 : 4 }}>
             {peek ? word ?? '…' : '• • • •'}
@@ -370,8 +370,8 @@ const Game = ({ room, myId, word, secsLeft, onPlayer }: {
             autoFocus
             autoCorrect={false}
             onSubmitEditing={sendClue}
-            className="flex-1 rounded-xl border-2 bg-card px-4 font-display text-ink"
-            style={{ height: 50, fontSize: 18, borderColor: VIOLET }}
+            className="flex-1 rounded-2xl border bg-card px-4 font-display text-ink"
+            style={{ height: 48, fontSize: 18, borderColor: VIOLET }}
           />
           <Button title="Send" variant="primary" onPress={sendClue} disabled={!text} />
         </View>
@@ -387,8 +387,8 @@ const Game = ({ room, myId, word, secsLeft, onPlayer }: {
             autoFocus
             autoCorrect={false}
             onSubmitEditing={guess}
-            className="flex-1 rounded-xl border-2 bg-card px-4 font-display text-ink"
-            style={{ height: 50, fontSize: 18, borderColor: SPY }}
+            className="flex-1 rounded-2xl border bg-card px-4 font-display text-ink"
+            style={{ height: 48, fontSize: 18, borderColor: SPY }}
           />
           <Button title="Guess" variant="primary" onPress={guess} disabled={!text.trim()} />
         </View>
@@ -401,13 +401,13 @@ const Game = ({ room, myId, word, secsLeft, onPlayer }: {
             const canVote = alive && !myVote && p.alive && p.userId !== myId;
             return (
               <Pressable key={p.userId} onPress={() => vote(p.userId)} onLongPress={() => onPlayer(p)} disabled={!canVote && !mine}
-                accessibilityRole="button" accessibilityLabel={`Vote ${first(p)}`}
-                className="items-center rounded-2xl border-2 bg-card py-3"
+                accessibilityRole="button" accessibilityLabel={`Vote ${first(p)}`} accessibilityState={{ selected: mine }}
+                className="items-center rounded-2xl border bg-card py-3 active:opacity-70"
                 style={{ width: '30%', flexGrow: 1, borderColor: mine ? SPY : C.line, opacity: p.alive ? 1 : 0.35 }}>
                 <Avatar user={p} size={48} showBadge={false} />
                 <Text className="font-sans text-ink text-xs mt-1" numberOfLines={1}>{p.userId === myId ? 'You' : first(p)}</Text>
                 <Text className="text-xs mt-0.5" style={{ color: room.voted.includes(p.userId) ? CIV : C.ink3 }}>
-                  {!p.alive ? 'out' : room.voted.includes(p.userId) ? 'voted ✓' : '…'}
+                  {mine ? 'Your vote' : !p.alive ? 'out' : room.voted.includes(p.userId) ? 'voted ✓' : '…'}
                 </Text>
               </Pressable>
             );
@@ -415,7 +415,7 @@ const Game = ({ room, myId, word, secsLeft, onPlayer }: {
         </View>
       ) : null}
 
-      <Text className="font-display text-ink-2 uppercase mt-2 mb-2" style={{ letterSpacing: 1.2, fontSize: 12 }}>Clues</Text>
+      <Label style={{ marginTop: 8, marginBottom: 8 }}>Clues</Label>
       {room.clues.length === 0 ? <Text className="font-sans text-ink-3">No clues yet.</Text> : null}
       {room.clues.map((c, i) => {
         const p = byId(c.userId);
@@ -423,7 +423,7 @@ const Game = ({ room, myId, word, secsLeft, onPlayer }: {
         return (
           <View key={i}>
             {newRound ? <Text className="font-sans text-ink-3 text-xs mt-2 mb-1">Round {c.round}</Text> : null}
-            <Pressable onPress={() => p && onPlayer(p)} className="flex-row items-center rounded-xl bg-card border border-line px-3 py-2 mb-2" style={{ gap: 10 }}>
+            <Pressable onPress={() => p && onPlayer(p)} className="flex-row items-center rounded-2xl bg-card border border-line px-3 py-2 mb-2 active:opacity-70" style={{ gap: 10 }}>
               <Avatar user={p ?? { username: '?' }} size={28} showBadge={false} />
               <Text className="font-sans text-ink-2 flex-1" numberOfLines={1}>{c.userId === myId ? 'You' : first(p)}</Text>
               <Text className="font-display" style={{ fontSize: 16, color: c.text ? C.ink : C.ink3 }}>{c.text ?? 'skipped ⏳'}</Text>
@@ -463,7 +463,7 @@ const Reveal = ({ room, myId }: { room: Room; myId: string }) => {
           <>
             <Avatar user={out ?? { username: '?' }} size={64} showBadge={false} />
             <Text className="font-display" style={{ color: '#fff', fontSize: 22, marginTop: 8, textAlign: 'center' }}>
-              {r.out === myId ? 'You were' : `${first(out)} was`} {r.wasSpy ? 'THE SPY! 🕵️' : 'innocent 😇'}
+              {r.out === myId ? 'You were' : `${first(out)} was`} {r.wasSpy ? 'the spy! 🕵️' : 'innocent 😇'}
             </Text>
           </>
         ) : (

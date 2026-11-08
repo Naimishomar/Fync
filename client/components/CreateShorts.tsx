@@ -16,7 +16,7 @@ import { useAuth } from "../context/auth.context";
 import { compressVideo } from "../utils/mediaUpload";
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
-import { AppBar, IconBtn } from './ui/kit';
+import { AppBar, IconBtn, Button, Empty, H2, Sheet, FormField } from './ui/kit';
 import { useBottomInset } from '../constants/layout';
 
 const { width, height } = Dimensions.get("window");
@@ -51,10 +51,13 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
   return (
     <Pressable
       onPress={() => onSelect(item)}
-      className="p-[1px]"
+      className="p-[2px] active:opacity-80"
       style={{ width: ITEM_SIZE, height: ITEM_SIZE * 1.3 }}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isSelected }}
+      accessibilityLabel={`Video, ${Math.round(item.duration)} seconds`}
     >
-      <View className={`flex-1 rounded-card overflow-hidden border-2 ${isSelected ? 'border-brand-500' : 'border-transparent'}`}>
+      <View className={`flex-1 rounded-xl overflow-hidden border-2 ${isSelected ? 'border-brand-500' : 'border-transparent'}`}>
         {thumbnail ? (
           <Image
             source={{ uri: thumbnail }}
@@ -70,8 +73,8 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
              )}
           </View>
         )}
-        <View className="absolute bottom-2 right-2 bg-black/60 px-2 py-0.5 rounded-lg">
-          <Text className="text-white text-label font-display">
+        <View className="absolute bottom-2 right-2 bg-black/60 px-2 py-0.5 rounded-full">
+          <Text className="text-white text-xs font-semibold">
             {Math.floor(Math.round(item.duration) / 60)}:{(Math.round(item.duration) % 60).toString().padStart(2, '0')}
           </Text>
         </View>
@@ -251,13 +254,14 @@ const CreateShorts = () => {
       <StatusBar barStyle={C.barStyle} />
       
       <SafeAreaView className="flex-1" edges={['bottom']}>
-      <AppBar title="Create Short" onBack={() => navigation.goBack()}
+      <AppBar title="Create short" onBack={() => navigation.goBack()}
         right={<IconBtn boxed name="arrow-forward" color={selectedAsset ? C.ink : C.ink4}
+          accessibilityLabel="Next: add details" disabled={!selectedAsset}
           onPress={() => selectedAsset && setShowDetailsModal(true)} />} />
 
       {/* Main Preview Container */}
-      <View className="px-6 py-4" style={{ height: height * 0.35 }}>
-         <View className="flex-1 bg-paper rounded-sheet overflow-hidden border border-line shadow-hair">
+      <View className="px-gutter py-3" style={{ height: height * 0.35 }}>
+         <View className="flex-1 bg-paper-2 rounded-2xl overflow-hidden border border-line">
             {selectedAsset ? (
               <View className="flex-1">
                 <Video
@@ -268,27 +272,25 @@ const CreateShorts = () => {
                   isLooping
                   isMuted={isMuted}
                 />
-                <TouchableOpacity 
+                <IconBtn
+                  overlay
+                  size={18}
+                  name={isMuted ? "volume-mute" : "volume-high"}
                   onPress={() => setIsMuted(!isMuted)}
-                  className="absolute right-4 bg-black/40 w-10 h-10 rounded-full items-center justify-center border border-white/20" style={{ bottom: 16 }}
-                >
-                  <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={18} color="white" />
-                </TouchableOpacity>
+                  accessibilityLabel={isMuted ? "Unmute" : "Mute"}
+                  style={{ position: 'absolute', right: 8, bottom: 8 }}
+                />
               </View>
             ) : (
               <View className="flex-1 items-center justify-center">
                  {fetching ? (
                    <ActivityIndicator color={C.brand[500]} size="large" />
                  ) : (
-                   <View className="items-center px-gutter">
-                      <Ionicons name="videocam-off-outline" size={40} color={C.ink4} />
-                      <Text className="font-sans text-sm text-ink-3 mt-2 text-center">
-                          {permissionError ? "Permission Denied" : "No Content Found"}
-                      </Text>
-                      <TouchableOpacity onPress={pickFromSystem} className="mt-4 bg-brand-500 px-6 py-3 rounded-card">
-                          <Text className="text-on-brand font-display uppercase text-label">Browse Vault</Text>
-                      </TouchableOpacity>
-                   </View>
+                   <Empty
+                     icon="videocam-off-outline"
+                     title={permissionError ? "No access to your videos" : "No videos found"}
+                     action={<Button small title="Browse files" onPress={pickFromSystem} />}
+                   />
                  )}
               </View>
             )}
@@ -297,20 +299,18 @@ const CreateShorts = () => {
 
       {/* Gallery List */}
       <View className="flex-1 px-4">
-        <View className="flex-row justify-between items-center px-2 mb-4">
+        <View className="flex-row justify-between items-center px-1 mb-3">
            <View>
-              <Text className="text-2xl font-display text-ink">GALLERY</Text>
-              <Text className="text-label text-ink-3 font-display uppercase">{assets.length} Videos Available</Text>
+              <H2>Gallery</H2>
+              <Text className="text-xs text-ink-3 mt-0.5">{assets.length} {assets.length === 1 ? 'video' : 'videos'}</Text>
            </View>
-           <TouchableOpacity onPress={pickFromSystem} className="bg-paper-2 p-3 rounded-xl border border-line">
-              <Ionicons name="search-outline" size={20} color={C.brand[500]} />
-           </TouchableOpacity>
+           <IconBtn boxed name="folder-open-outline" onPress={pickFromSystem} accessibilityLabel="Browse files" />
         </View>
 
         {fetching ? (
           <View className="flex-1 items-center justify-center pb-20">
               <ActivityIndicator color={C.brand[500]} />
-              <Text className="text-ink-3 mt-4 font-display uppercase text-label">Indexing Assets...</Text>
+              <Text className="text-ink-3 mt-3 text-sm">Loading your videos…</Text>
           </View>
         ) : (
           <FlatList keyboardShouldPersistTaps="handled"
@@ -320,15 +320,14 @@ const CreateShorts = () => {
               keyExtractor={(item) => item.id}
               contentContainerStyle={{ paddingBottom: 100 }}
               ListEmptyComponent={
-                  <View className="flex-1 items-center justify-center pt-10">
-                      <Text className="text-ink-3 font-semibold text-center text-xs px-gutter leading-5">
-                          Unable to access gallery. Please use the system browser to select a video.
-                      </Text>
-                      <TouchableOpacity onPress={pickFromSystem} className="mt-6 bg-ink px-gutter py-3 rounded-card shadow-hair">
-                          <Text className="text-paper font-display uppercase text-label">Open Browser</Text>
-                      </TouchableOpacity>
-                  </View>
+                  <Empty
+                    icon="images-outline"
+                    title="Can't read your gallery"
+                    hint="Pick a video from your files instead."
+                    action={<Button small title="Browse files" onPress={pickFromSystem} />}
+                  />
               }
+              extraData={selectedAsset?.id}
               renderItem={({ item }) => (
                 <VideoItem 
                     item={item} 
@@ -340,113 +339,45 @@ const CreateShorts = () => {
         )}
       </View>
 
-      {/* DETAILS MODAL - Step 2 (Bottom Sheet Style) */}
-      <Modal
+      {/* DETAILS - Step 2 */}
+      <Sheet
         visible={showDetailsModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowDetailsModal(false)}
+        onClose={() => setShowDetailsModal(false)}
+        dismissable={!loading}
+        title="Add details"
+        footer={
+          <>
+            <Button
+              variant="primary"
+              block
+              icon="rocket-outline"
+              title={loading && compressProgress > 0 && compressProgress < 1 ? `Optimising ${Math.round(compressProgress * 100)}%` : 'Post to Fync'}
+              loading={loading && !(compressProgress > 0 && compressProgress < 1)}
+              disabled={loading}
+              onPress={handleUpload}
+            />
+            <Text className="font-sans text-xs text-ink-3 text-center">
+              By posting, you agree to Fync's community guidelines.
+            </Text>
+          </>
+        }
       >
-        <View className="flex-1 justify-end bg-black/40">
-          <Pressable 
-            className="absolute inset-0" 
-            onPress={() => setShowDetailsModal(false)} 
+        <View className="gap-4">
+          <FormField
+            label="Title"
+            placeholder="What's this short about?"
+            value={title}
+            onChangeText={setTitle}
           />
-          <View 
-            // Content-sized up to 90%: a fixed half-height clipped the Post button on small phones.
-            style={{ maxHeight: height * 0.9 }}
-            className="bg-paper rounded-t-sheet shadow-hair overflow-hidden"
-          >
-            <KeyboardAvoidingView 
-              behavior="padding" 
-              style={{ flexShrink: 1 }}
-            >
-              {/* Grab Handle */}
-              <View className="items-center pt-4 pb-2">
-                <View className="w-12 h-1.5 bg-ink-4 rounded-full" />
-              </View>
-
-              {/* Modal Header */}
-              <View className="flex-row items-center justify-between px-gutter py-4">
-                <View className="w-10" />
-                <View className="items-center">
-                  <Text className="text-ink font-display uppercase text-h1">Finalize</Text>
-                  <Text className="text-brand-500 text-label font-display uppercase">Details</Text>
-                </View>
-                <TouchableOpacity onPress={() => setShowDetailsModal(false)} className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center">
-                  <Ionicons name="close" size={20} color={C.ink} />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView
-                keyboardShouldPersistTaps="handled"
-                className="px-gutter"
-                contentContainerStyle={{ paddingTop: 24, paddingBottom: bottomInset }}
-              >
-                <View className="mb-8">
-                  <Text className="text-ink-3 font-display text-label mb-1 ml-1 uppercase">Title</Text>
-                  <View className="bg-paper-2 rounded-xl border border-line px-3 justify-center shadow-hair">
-                    <TextInput
-                      placeholder="WHAT'S THIS SHORT ABOUT?"
-                      placeholderTextColor={C.ink3}
-                      value={title}
-                      onChangeText={setTitle}
-                      className="text-ink font-display text-base"
-                    />
-                  </View>
-                </View>
-
-                <View className="mb-10">
-                  <Text className="text-ink-3 font-display text-label uppercase mb-1 ml-1">Description <Text className="text-ink-4">(Optional)</Text></Text>
-                  <View className="bg-paper-2 rounded-xl border border-line px-3 py-1 min-h-[160px] shadow-hair">
-                    <TextInput
-                      placeholder="ADD A STORY OR TAGS TO YOUR SHORT..."
-                      placeholderTextColor={C.ink3}
-                      value={description}
-                      onChangeText={setDescription}
-                      multiline
-                      style={{ textAlignVertical: 'top' }}
-                      className="text-ink font-semibold text-sm leading-6"
-                    />
-                  </View>
-                </View>
-
-                <TouchableOpacity 
-                  onPress={handleUpload} 
-                  disabled={loading}
-                  activeOpacity={0.9}
-                  className="shadow-hair rounded-full"
-                >
-                  <View
-                    className="h-16 rounded-full items-center justify-center flex-row"
-                   style={{ backgroundColor: C.brand[500] }}>
-                    {loading ? (
-                      <>
-                        <ActivityIndicator color={C.onBrand} size="small" />
-                        {compressProgress > 0 && compressProgress < 1 && (
-                          <Text className="text-on-brand font-display uppercase ml-3 text-xs">
-                            Optimising {Math.round(compressProgress * 100)}%
-                          </Text>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        {/* on-brand, not ink: ink turns light in dark mode and vanished on the orange. */}
-                        <Text className="text-on-brand font-display uppercase mr-3 text-base">Post to Fync</Text>
-                        <Ionicons name="rocket-outline" size={20} color={C.onBrand} />
-                      </>
-                    )}
-                  </View>
-                </TouchableOpacity>
-                
-                <Text className="font-sans text-sm text-ink-4 text-center mt-2 px-gutter">
-                  By posting, you agree to Fync's community guidelines and protocol standards.
-                </Text>
-              </ScrollView>
-            </KeyboardAvoidingView>
-          </View>
+          <FormField
+            label="Description (optional)"
+            placeholder="Add a story or tags to your short…"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
         </View>
-      </Modal>
+      </Sheet>
 
       <StreakModal visible={showStreakModal} streakCount={currentStreakCount} onClose={() => setShowStreakModal(false)} />
     </SafeAreaView>

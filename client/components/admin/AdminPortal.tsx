@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {View, Text, FlatList, TouchableOpacity, Modal, TextInput, ActivityIndicator, Image, ScrollView, Switch, Platform, KeyboardAvoidingView, Linking, BackHandler, StatusBar} from 'react-native'
+import { View, Text, FlatList, Pressable, ActivityIndicator, Image, ScrollView, Switch, Platform, BackHandler, StatusBar } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
@@ -11,7 +11,7 @@ import { AdItem, RedemptionItem, MarketPlaceItem, ReportItem, ContactMessageItem
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { isFeatureOn } from '../../constants/features';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Button, Card, Chip, Divider, Empty, FormField, IconTile, Label, ListRow, Num, SearchField, SectionHeader, Sheet } from '../ui/kit';
 import GiftAdmin from '../gifts/GiftAdmin';
 
 const TAB_TITLES: Record<string, string> = {
@@ -21,27 +21,25 @@ const TAB_TITLES: Record<string, string> = {
     gifts: 'Gift Shop',
 };
 
-// Using a stable key for navigation to ensure it survives re-renders
-const HubButton = ({ title, tab, icon, color, description, onOpen }: { title: string, tab: any, icon: any, color: string, description: string, onOpen: (tab: any) => void }) => (
-    <TouchableOpacity
-        onPress={() => onOpen(tab)}
-        className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
-        activeOpacity={0.9}
-    >
-        <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: `${color}10` }}>
-            <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: `${color}20` }}>
-                <Ionicons name={icon} size={24} color={color} />
-            </View>
-            <View className="flex-1">
-                <Text className="text-sm font-display text-ink uppercase mb-1">{title}</Text>
-                <Text className="text-label text-ink-3 leading-[14px] font-medium">{description}</Text>
-            </View>
-            <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
-                <Ionicons name="chevron-forward" size={16} color={C.ink3} />
-            </View>
-        </View>
-    </TouchableOpacity>
-);
+// Hub entries. `screen` pushes a route; `tab` opens a feature view in place.
+type HubEntry = { title: string; icon: any; description: string; tab?: string; screen?: string; flag?: 'contests' | 'storeAdmin' };
+const HUB: HubEntry[] = [
+    { title: 'Problem Bank', screen: 'ArenaAdminScreen', flag: 'contests', icon: 'code-slash-outline', description: 'Import coding problems and their test cases for contests and battles.' },
+    { title: 'Fync Store', screen: 'AffiliateAdminScreen', flag: 'storeAdmin', icon: 'pricetags-outline', description: 'List affiliate products and track the commission each one earns.' },
+    { title: 'Banner ads', tab: 'ads', icon: 'megaphone-outline', description: 'Manage campus-wide banner advertisements and promotion campaigns.' },
+    { title: 'User management', tab: 'users', icon: 'people-outline', description: 'Oversee student profiles, moderation status, and account access.' },
+    { title: 'Fync Media', tab: 'media', icon: 'play-circle-outline', description: 'Manage educational content, campus videos, and digital media.' },
+    { title: 'Reported content', tab: 'reports', icon: 'flag-outline', description: 'Review flagged posts and enforce community safety protocols.' },
+    { title: 'Reward items', tab: 'marketplace', icon: 'cart-outline', description: 'Update the Fync store inventory and redemption items.' },
+    { title: 'Redemptions', tab: 'rewards', icon: 'gift-outline', description: 'Process student reward claims and inventory payouts.' },
+    { title: 'Contact messages', tab: 'messages', icon: 'mail-outline', description: 'Review and respond to official support and inquiry messages.' },
+    { title: 'Global broadcast', tab: 'broadcast', icon: 'notifications-outline', description: 'Send an instant push notification to all users.' },
+    { title: 'Payments', tab: 'payments', icon: 'card-outline', description: 'Every transaction with its reference id, payer and outcome — for answering student queries.' },
+    { title: 'Gift Shop', tab: 'gifts', icon: 'gift-outline', description: 'Fync Gifts: edit products and prices, ship paid orders and update tracking.' },
+    { title: 'Subscription pricing', tab: 'subscription', icon: 'pricetag-outline', description: "Dynamically adjust the platform's premium subscription fee." },
+];
+
+const HUB_ROW = { paddingHorizontal: 16, paddingVertical: 12 };
 
 const PUBLIC_PROFILE_SCREEN = 'PublicProfile';
 
@@ -796,148 +794,46 @@ const AdminPortal = ({ navigation }: any) => {
 
     const HubView = () => (
         <ScrollView keyboardShouldPersistTaps="handled" 
-            className="flex-1 px-gutter pt-4"
+            className="flex-1 px-gutter"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100 }}
         >
-            <View className="flex-row items-center mt-6 mb-6" style={{ gap: 12 }}>
-              <Text className="text-ink-3 text-label font-display uppercase">Management Systems</Text>
-              <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-            </View>
-            
-            {isFeatureOn('contests') && (
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('ArenaAdminScreen')}
-                    className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
-                    activeOpacity={0.9}
-                >
-                    <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: C.fam.events + '10' }}>
-                        <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: C.fam.events + '20' }}>
-                            <Ionicons name="code-slash" size={24} color={C.brand[600]} />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="text-sm font-display text-ink uppercase mb-1">Problem Bank</Text>
-                            <Text className="text-label text-ink-3 leading-[14px] font-medium">Import coding problems and their test cases for contests and battles.</Text>
-                        </View>
-                        <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
-                            <Ionicons name="chevron-forward" size={16} color={C.ink2} />
-                        </View>
-                    </View>
-                </TouchableOpacity>
-            )}
-            {isFeatureOn('storeAdmin') && (
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('AffiliateAdminScreen')}
-                    className="mb-4 rounded-sheet overflow-hidden border border-line shadow-hair bg-card"
-                    activeOpacity={0.9}
-                >
-                    <View className="flex-1 flex-row items-center p-6" style={{ backgroundColor: C.fam.events + '10' }}>
-                        <View className="w-14 h-14 rounded-card items-center justify-center mr-4" style={{ backgroundColor: C.fam.events + '20' }}>
-                            <Ionicons name="pricetags" size={24} color={C.brand[600]} />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="text-sm font-display text-ink uppercase mb-1">Fync Store</Text>
-                            <Text className="text-label text-ink-3 leading-[14px] font-medium">List affiliate products and track the commission each one earns.</Text>
-                        </View>
-                        <View className="w-8 h-8 rounded-xl bg-paper justify-center items-center ml-2 border border-line">
-                            <Ionicons name="chevron-forward" size={16} color={C.ink2} />
-                        </View>
-                    </View>
-                </TouchableOpacity>
-            )}
-            <HubButton 
-                title="Banner Ads" 
-                tab="ads" 
-                icon="megaphone" 
-                color={C.brand[500]} 
-                description="Manage campus-wide banner advertisements and promotion campaigns." onOpen={openHub} />
-            <HubButton 
-                title="User Management" 
-                tab="users"  
-                icon="people" 
-                color={C.success} 
-                description="Oversee student profiles, moderation status, and account access." onOpen={openHub} />
-            <HubButton 
-                title="Fync Media" 
-                tab="media" 
-                icon="play-circle" 
-                color={C.fam.social} 
-                description="Manage educational content, campus videos, and digital media." onOpen={openHub} />
-            <HubButton 
-                title="Reported Content" 
-                tab="reports" 
-                icon="flag" 
-                color={C.danger} 
-                description="Review flagged posts and enforce community safety protocols." onOpen={openHub} />
-            <HubButton 
-                title="Reward Items" 
-                tab="marketplace" 
-                icon="cart" 
-                color={C.recruiter} 
-                description="Update the Fync store inventory and redemption items." onOpen={openHub} />
-            <HubButton 
-                title="Redemptions" 
-                tab="rewards" 
-                icon="gift" 
-                color={C.fam.study} 
-                description="Process student reward claims and inventory payouts." onOpen={openHub} />
-            <HubButton 
-                title="Contact Messages" 
-                tab="messages" 
-                icon="mail" 
-                color={C.ink3} 
-                description="Review and respond to official support and inquiry messages." onOpen={openHub} />
-            <HubButton 
-                title="Global Broadcast" 
-                tab="broadcast" 
-                icon="notifications" 
-                color={C.fam.social} 
-                description="Send an instant push notification to all users." onOpen={openHub} />
-            <HubButton 
-                title="Payments" 
-                tab="payments" 
-                icon="card" 
-                color={C.success} 
-                description="Every transaction with its reference id, payer and outcome — for answering student queries." onOpen={openHub} />
-            <HubButton 
-                title="Gift Shop" 
-                tab="gifts" 
-                icon="gift-outline" 
-                color={C.danger} 
-                description="Fync Gifts: edit products and prices, ship paid orders and update tracking." onOpen={openHub} />
-            <HubButton 
-                title="Subscription Pricing" 
-                tab="subscription" 
-                icon="pricetag" 
-                color={C.warning} 
-                description="Dynamically adjust the platform's premium subscription fee." onOpen={openHub} />
+            <SectionHeader title="Management" style={{ marginTop: 8 }} />
+            <Card>
+                {HUB.filter((h) => !h.flag || isFeatureOn(h.flag)).map((h, i) => (
+                    <React.Fragment key={h.title}>
+                        {i > 0 ? <Divider style={{ marginLeft: 72 }} /> : null}
+                        <ListRow
+                            icon={h.icon}
+                            title={h.title}
+                            subtitle={h.description}
+                            subtitleLines={2}
+                            onPress={() => (h.screen ? navigation.navigate(h.screen) : openHub(h.tab))}
+                            style={HUB_ROW}
+                        />
+                    </React.Fragment>
+                ))}
+            </Card>
 
-            <View className="mt-8 p-6 bg-ink rounded-sheet shadow-hair">
-                <View className="flex-row items-center mb-4">
-                    <Ionicons name="stats-chart" size={18} color={C.brand[500]} />
-                    <Text className="text-paper font-display text-label uppercase ml-3">System Health</Text>
-                </View>
+            <SectionHeader title="System health" />
+            <Card padded>
                 <View className="flex-row justify-between">
                     <View>
-                        <Text className="text-ink-3 text-label font-display uppercase">Total Users</Text>
-                        <Text className="text-paper text-2xl font-display mt-1">
+                        <Label>Total users</Label>
+                        <Num style={{ fontSize: 24, marginTop: 4 }}>
                             {userStats ? (userStats.total ?? 0).toLocaleString('en-IN') : '—'}
-                        </Text>
+                        </Num>
                         {userStats ? (
-                            <Text className="text-ink-3 text-label font-semibold mt-0.5">
-                                +{userStats.newThisWeek} this week
-                            </Text>
+                            <Text className="text-ink-3 text-xs mt-0.5">+{userStats.newThisWeek} this week</Text>
                         ) : null}
                     </View>
                     <View className="items-end">
-                        <Text className="text-ink-3 text-label font-display uppercase">Collected</Text>
-                        <Text className="text-paper text-2xl font-display mt-1">
+                        <Label>Collected</Label>
+                        <Num style={{ fontSize: 24, marginTop: 4 }}>
                             {paymentStats ? `₹${Math.round((paymentStats.grossCollected ?? 0) / 100).toLocaleString('en-IN')}` : '—'}
-                        </Text>
+                        </Num>
                         {paymentStats ? (
-                            <Text className="text-ink-3 text-label font-semibold mt-0.5">
-                                {paymentStats.successful} payments
-                            </Text>
+                            <Text className="text-ink-3 text-xs mt-0.5">{paymentStats.successful} payments</Text>
                         ) : null}
                     </View>
                 </View>
@@ -945,7 +841,7 @@ const AdminPortal = ({ navigation }: any) => {
                 {/* The breakdown an admin actually asks for: who is on the app,
                     and what is still unresolved. */}
                 {userStats ? (
-                    <View className="flex-row flex-wrap mt-5 pt-5 border-t border-paper/10" style={{ gap: 10 }}>
+                    <View className="flex-row flex-wrap mt-4 pt-4 border-t border-line" style={{ gap: 8 }}>
                         {[
                             ['Students', userStats.students],
                             ['Alumni', userStats.alumni],
@@ -953,14 +849,14 @@ const AdminPortal = ({ navigation }: any) => {
                             ['Pending payments', paymentStats?.pending ?? 0],
                             ['Reports', reports.length],
                         ].map(([label, value]: any) => (
-                            <View key={label} className="bg-paper/5 rounded-card px-3 py-2">
-                                <Text className="text-ink-3 text-label font-display uppercase">{label}</Text>
-                                <Text className="text-paper text-sm font-display mt-0.5">{value}</Text>
+                            <View key={label} className="bg-paper-2 rounded-2xl px-3 py-2">
+                                <Label>{label}</Label>
+                                <Num style={{ fontSize: 15, marginTop: 2 }}>{value}</Num>
                             </View>
                         ))}
                     </View>
                 ) : null}
-            </View>
+            </Card>
         </ScrollView>
     );
 
@@ -971,54 +867,25 @@ const AdminPortal = ({ navigation }: any) => {
                 
                 <AppBar title="Admin Access" onBack={() => navigation.goBack()} />
                 <SafeAreaView className="flex-1 justify-center px-gutter" edges={['bottom']}>
-                    <View className="bg-card p-card-pad rounded-sheet border border-line shadow-hair">
-                        <View className="w-16 h-16 bg-paper-2 rounded-card items-center justify-center mb-6 border border-line">
-                            <Ionicons name="shield-checkmark" size={32} color={C.brand[500]} />
-                        </View>
-                        
-                        <View className="mb-8">
-                            <Text className="text-ink-3 text-label font-display uppercase mt-1 leading-4">
-                                Admin protocol password required to access operational core.
-                            </Text>
-                        </View>
-                        
-                        <TextInput
+                    <Card padded>
+                        <IconTile icon="shield-checkmark-outline" size={56} style={{ marginBottom: 16 }} />
+                        <Text className="text-ink-2 text-sm mb-6">
+                            Enter the admin password to open the admin portal.
+                        </Text>
+
+                        <FormField
+                            label="Admin password"
                             value={adminPassword}
                             onChangeText={setAdminPassword}
                             placeholder="Enter admin password"
-                            placeholderTextColor={C.ink3}
                             secureTextEntry
-                            className="bg-card border-2 border-ink rounded-card px-5 text-ink font-sans text-base mb-6"
-                            style={{
-                              minHeight: 50,
-                              shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
-                              shadowOffset: { width: 4, height: 4 }, elevation: 0,
-                            }}
                             onSubmitEditing={handleVerifyPassword}
+                            containerStyle={{ marginBottom: 16 }}
                         />
-                        
-                        <TouchableOpacity 
-                            onPress={handleVerifyPassword}
-                            disabled={verifyingPassword}
-                            className="bg-ink h-14 items-center justify-center flex-row border-2 border-ink rounded-md"
-                        >
-                            {verifyingPassword ? (
-                                <ActivityIndicator color={C.paper} />
-                            ) : (
-                                <>
-                                    <Ionicons name="key" size={16} color={C.paper} />
-                                    <Text className="text-paper font-display text-label uppercase ml-3">Authorize Access</Text>
-                                </>
-                            )}
-                        </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl mt-6"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
-                            <Text className="text-ink-3 font-display text-label uppercase">Cancel Initialization</Text>
-                        </TouchableOpacity>
-                    </View>
+                        <Button title="Unlock" icon="key-outline" variant="solid" block loading={verifyingPassword} onPress={handleVerifyPassword} />
+                        <Button title="Cancel" variant="tertiary" block onPress={() => navigation.goBack()} style={{ marginTop: 12 }} />
+                    </Card>
                 </SafeAreaView>
             </View>
         );
@@ -1034,100 +901,72 @@ const AdminPortal = ({ navigation }: any) => {
                     title={view === 'hub' ? 'Admin Portal' : TAB_TITLES[activeTab]}
                     onBack={() => (view === 'feature' ? setView('hub') : navigation.goBack())}
                     right={view === 'feature' && activeTab !== 'rewards' && activeTab !== 'messages' && activeTab !== 'reports' && activeTab !== 'users' && activeTab !== 'subscription' && activeTab !== 'payments' && activeTab !== 'gifts' ? (
-                        <IconBtn name="add" boxed onPress={() => { resetForm(); setModalVisible(true); }} />
+                        <IconBtn name="add" boxed accessibilityLabel="Add new" onPress={() => { resetForm(); setModalVisible(true); }} />
                     ) : undefined}
                 />
                 <View className="px-gutter">
                     {view === 'feature' && activeTab === 'users' && (
-                        <View className="flex-row items-center bg-card p-1.5 mt-2 mb-8 border-2 border-ink shadow-hair rounded-md">
-                            <View className="flex-row items-center flex-1 px-4 py-2.5">
-                                <Ionicons name="search" size={18} color={C.ink3} />
-                                <TextInput 
-                                    className="flex-1 ml-3 text-xs font-display text-ink uppercase"
-                                    placeholder="Search student signals..."
-                                    placeholderTextColor={C.ink4}
-                                    value={userSearch}
-                                    onChangeText={setUserSearch}
-                                    onSubmitEditing={() => {
-                                        if (userSearch.trim()) fetchAdminUsers(userSearch);
-                                        else setUsers([]);
-                                    }}
-                                    returnKeyType="search"
-                                />
-                                {userSearch ? (
-                                    <TouchableOpacity onPress={() => { setUserSearch(''); setUsers([]); }}>
-                                        <Ionicons name="close-circle" size={18} color={C.ink3} />
-                                    </TouchableOpacity>
-                                ) : null}
-                            </View>
-                            <TouchableOpacity 
+                        <View className="flex-row items-center mt-2 mb-2" style={{ gap: 8 }}>
+                            <SearchField
+                                containerStyle={{ flex: 1 }}
+                                placeholder="Search users"
+                                value={userSearch}
+                                onChangeText={setUserSearch}
+                                onClear={() => setUsers([])}
+                                onSubmitEditing={() => {
+                                    if (userSearch.trim()) fetchAdminUsers(userSearch);
+                                    else setUsers([]);
+                                }}
+                            />
+                            <Button
+                                title="Search"
+                                small
+                                variant="solid"
                                 onPress={() => {
                                     if (userSearch.trim()) fetchAdminUsers(userSearch);
                                     else setUsers([]);
                                 }}
-                                className="bg-ink ml-2 px-2.5 py-1 rounded-full"
-                            >
-                                <Text className="text-paper font-display text-label uppercase">Search</Text>
-                            </TouchableOpacity>
+                            />
                         </View>
                     )}
                 </View>
 
                 {activeTab === 'subscription' && view === 'feature' && (
-                    <View className="bg-card p-6 rounded-card mx-gutter border border-line shadow-hair mt-4">
-                        <View className="flex-row items-center mb-6">
-                            <View className="w-12 h-12 bg-warning/15 rounded-card items-center justify-center mr-4">
-                                <Ionicons name="pricetag" size={24} color={C.warning} />
-                            </View>
-                            <View>
-                                <Text className="text-ink text-lg font-display uppercase">Global Price Engine</Text>
-                                <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Live Active Rate: ₹{currentSubscriptionPrice}/mo</Text>
-                                <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Status: {currentIsSubscriptionEnabled ? 'Enabled' : 'Disabled'}</Text>
+                    <Card padded style={{ marginHorizontal: 20, marginTop: 16 }}>
+                        <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
+                            <IconTile icon="pricetag-outline" size={44} />
+                            <View className="flex-1">
+                                <Text className="text-ink font-semibold text-base">Subscription price</Text>
+                                <Text className="text-ink-3 text-xs mt-0.5">Live rate ₹{currentSubscriptionPrice}/mo · {currentIsSubscriptionEnabled ? 'Enabled' : 'Disabled'}</Text>
                             </View>
                         </View>
-                        
-                        <View className="flex-row justify-between items-center bg-paper-2 p-4 rounded-card border border-line mb-4">
-                            <View className="flex-1">
-                                <Text className="text-ink font-semibold text-sm">Enable Subscriptions</Text>
-                                <Text className="text-ink-3 text-label mt-1">If disabled, the app is free and all users instantly bypass the paywall.</Text>
+
+                        <View className="flex-row justify-between items-center bg-paper-2 p-4 rounded-2xl mb-4">
+                            <View className="flex-1 mr-3">
+                                <Text className="text-ink font-semibold text-sm">Enable subscriptions</Text>
+                                <Text className="text-ink-3 text-xs mt-1">If disabled, the app is free and all users instantly bypass the paywall.</Text>
                             </View>
                             <Switch
                                 value={isSubscriptionEnabled}
                                 onValueChange={setIsSubscriptionEnabled}
                                 trackColor={{ false: C.line, true: C.paper2 }}
                                 thumbColor={isSubscriptionEnabled ? C.brand[500] : C.ink3}
+                                accessibilityLabel="Enable subscriptions"
                             />
                         </View>
-                        
-                        <View className="bg-paper-2 p-4 rounded-card border border-line mb-6">
-                            <Text className="text-ink-3 text-label font-display uppercase mb-2">Configure New Rate (INR)</Text>
-                            <View className="flex-row items-center">
-                                <Text className="text-ink text-2xl font-display mr-2">₹</Text>
-                                <TextInput placeholderTextColor={C.ink4} 
-                                    className="flex-1 text-3xl font-display text-ink"
-                                    value={subscriptionPrice}
-                                    onChangeText={setSubscriptionPrice}
-                                    keyboardType="numeric"
-                                    placeholder="39"
-                                />
-                            </View>
-                        </View>
 
-                        <TouchableOpacity 
-                            onPress={handleUpdateSubscription}
-                            disabled={submitting}
-                            className="bg-ink h-14 items-center justify-center flex-row border-2 border-ink rounded-md"
-                        >
-                            {submitting ? (
-                                <ActivityIndicator color={C.paper} />
-                            ) : (
-                                <>
-                                    <Ionicons name="save" size={18} color={C.paper} />
-                                    <Text className="text-paper font-display text-xs uppercase ml-2">Deploy New Pricing</Text>
-                                </>
-                            )}
-                        </TouchableOpacity>
-                    </View>
+                        <FormField
+                            label="New monthly rate (INR)"
+                            value={subscriptionPrice}
+                            onChangeText={setSubscriptionPrice}
+                            keyboardType="numeric"
+                            placeholder="39"
+                            right={<Text className="text-ink-3 text-sm">/mo</Text>}
+                            containerStyle={{ marginBottom: 16 }}
+                        />
+
+                        <Button title="Save pricing" icon="save-outline" variant="solid" block loading={submitting} onPress={handleUpdateSubscription} />
+                    </Card>
                 )}
 
             {view === 'hub' ? (
@@ -1143,20 +982,18 @@ const AdminPortal = ({ navigation }: any) => {
                 // Taller than a phone once the preview shows; without a scroller the
                 // Send button sat off-screen / under the keyboard.
                 <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                <View className="bg-card p-6 rounded-card mx-gutter border border-line shadow-hair mt-4">
-                    <View className="flex-row items-center mb-6">
-                        <View className="w-12 h-12 bg-fam-social/15 rounded-card items-center justify-center mr-4">
-                            <Ionicons name="notifications" size={24} color={C.fam.social} />
-                        </View>
-                        <View>
-                            <Text className="text-ink text-lg font-display uppercase">Global Broadcast</Text>
-                            <Text className="text-ink-3 text-label font-semibold uppercase mt-0.5">Send alert to all users</Text>
+                <Card padded style={{ marginHorizontal: 20, marginTop: 16 }}>
+                    <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
+                        <IconTile icon="notifications-outline" size={44} />
+                        <View className="flex-1">
+                            <Text className="text-ink font-semibold text-base">Global broadcast</Text>
+                            <Text className="text-ink-3 text-xs mt-0.5">Send an alert to all users</Text>
                         </View>
                     </View>
 
                     {/* Zero devices is the usual reason a broadcast appears to do
                         nothing, and it is invisible without this. */}
-                    <View className={`flex-row items-center p-4 rounded-card border mb-4 ${reach && reach.devices === 0 ? 'bg-danger/10 border-danger/30' : 'bg-paper-2 border-line'}`}>
+                    <View className={`flex-row items-center p-4 rounded-2xl border mb-4 ${reach && reach.devices === 0 ? 'bg-danger/10 border-danger/30' : 'bg-paper-2 border-line'}`}>
                         <Ionicons
                             name={reach && reach.devices === 0 ? 'warning-outline' : 'phone-portrait-outline'}
                             size={18}
@@ -1171,32 +1008,23 @@ const AdminPortal = ({ navigation }: any) => {
                         </Text>
                     </View>
 
-                    <View className="bg-paper-2 p-4 rounded-card border border-line mb-4">
-                        <Text className="text-ink-3 text-label font-display uppercase mb-2">Notification Title</Text>
-                        <TextInput placeholderTextColor={C.ink4} 
-                            className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink font-semibold rounded-md"
+                    <View style={{ gap: 16 }}>
+                        <FormField
+                            label="Notification title"
                             value={broadcastTitle}
                             onChangeText={setBroadcastTitle}
-                            placeholder="e.g., Server Maintenance"
+                            placeholder="e.g., Server maintenance"
                         />
-                    </View>
-
-                    <View className="bg-paper-2 p-4 rounded-card border border-line mb-6">
-                        <Text className="text-ink-3 text-label font-display uppercase mb-2">Message Body</Text>
-                        <TextInput placeholderTextColor={C.ink4} 
-                            className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink min-h-[100px] rounded-md"
+                        <FormField
+                            label="Message"
                             value={broadcastBody}
                             onChangeText={setBroadcastBody}
                             placeholder="Enter the broadcast message here..."
                             multiline
-                            textAlignVertical="top"
                         />
-                    </View>
-
-                    <View className="bg-paper-2 p-4 rounded-card border border-line mb-6">
-                        <Text className="text-ink-3 text-label font-display uppercase mb-2">Image URL (optional)</Text>
-                        <TextInput placeholderTextColor={C.ink4}
-                            className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink font-semibold rounded-md"
+                        <FormField
+                            label="Image URL (optional)"
+                            hint="Shown as the expandable picture in the phone notification."
                             value={broadcastImage}
                             onChangeText={setBroadcastImage}
                             placeholder="https://..."
@@ -1204,24 +1032,20 @@ const AdminPortal = ({ navigation }: any) => {
                             autoCorrect={false}
                             keyboardType="url"
                         />
-                        <Text className="text-ink-3 text-label font-semibold mt-2">Shown as the expandable picture in the phone notification.</Text>
                     </View>
 
                     {/* What the notification will actually look like on a phone. */}
-                    <View className="flex-row items-center mt-6 mb-2" style={{ gap: 12 }}>
-                      <Text className="text-ink-3 text-label font-display uppercase">Preview</Text>
-                      <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                    </View>
-                    <View className="bg-card rounded-card border border-line p-3 mb-6 shadow-hair">
+                    <Label style={{ marginTop: 24, marginBottom: 8 }}>Preview</Label>
+                    <View className="bg-paper-2 rounded-2xl p-3 mb-6">
                         <View className="flex-row items-center mb-2">
                             <Image source={require('../../assets/Fync.png')} className="w-5 h-5 rounded" />
-                            <Text className="text-ink-3 text-label font-display uppercase ml-2">Fync</Text>
-                            <Text className="text-ink-4 text-label font-semibold ml-2">now</Text>
+                            <Text className="text-ink-3 text-xs font-semibold ml-2">Fync</Text>
+                            <Text className="text-ink-3 text-xs ml-2">now</Text>
                         </View>
-                        <Text className="text-ink font-display text-sm" numberOfLines={1}>
+                        <Text className="text-ink font-semibold text-sm" numberOfLines={1}>
                             {broadcastTitle.trim() || 'Notification title'}
                         </Text>
-                        <Text className="text-ink-2 text-xs font-semibold mt-0.5" numberOfLines={3}>
+                        <Text className="text-ink-2 text-xs mt-0.5" numberOfLines={3}>
                             {broadcastBody.trim() || 'Your message will appear here.'}
                         </Text>
                         {!!broadcastImage.trim() && (
@@ -1233,21 +1057,8 @@ const AdminPortal = ({ navigation }: any) => {
                         )}
                     </View>
 
-                    <TouchableOpacity 
-                        onPress={handleBroadcast}
-                        disabled={sendingBroadcast}
-                        className="bg-ink h-14 items-center justify-center flex-row border-2 border-ink rounded-md"
-                    >
-                        {sendingBroadcast ? (
-                            <ActivityIndicator color={C.paper} />
-                        ) : (
-                            <>
-                                <Ionicons name="send" size={18} color={C.paper} />
-                                <Text className="text-paper font-display text-xs uppercase ml-2">Send Broadcast</Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
-                </View>
+                    <Button title="Send broadcast" icon="send-outline" variant="solid" block loading={sendingBroadcast} onPress={handleBroadcast} />
+                </Card>
                 </ScrollView>
             ) : (
                 loading ? (
@@ -1296,19 +1107,19 @@ const AdminPortal = ({ navigation }: any) => {
                                     {paymentStats ? (
                                         <View className="flex-row mb-3" style={{ gap: 8 }}>
                                             {[
-                                                ['Successful', paymentStats.successful, 'text-success'],
-                                                ['Pending', paymentStats.pending, 'text-warning'],
-                                                ['Failed', paymentStats.failed, 'text-danger'],
+                                                ['Successful', paymentStats.successful, C.success],
+                                                ['Pending', paymentStats.pending, C.warning],
+                                                ['Failed', paymentStats.failed, C.danger],
                                             ].map(([label, value, tone]: any) => (
-                                                <View key={label} className="flex-1 bg-card border border-line rounded-card p-3">
-                                                    <Text className="text-ink-3 text-label font-display uppercase">{label}</Text>
-                                                    <Text className={`text-lg font-display mt-0.5 ${tone}`}>{value}</Text>
+                                                <View key={label} className="flex-1 bg-card border border-line rounded-2xl p-3">
+                                                    <Label>{label}</Label>
+                                                    <Num style={{ fontSize: 19, marginTop: 2, color: tone }}>{value}</Num>
                                                 </View>
                                             ))}
                                         </View>
                                     ) : null}
 
-                                    <View className="flex-row" style={{ gap: 8 }}>
+                                    <View className="flex-row flex-wrap" style={{ gap: 8 }}>
                                         {[
                                             { label: 'All', value: '' },
                                             { label: 'Successful', value: 'paid' },
@@ -1317,20 +1128,17 @@ const AdminPortal = ({ navigation }: any) => {
                                         ].map((f) => {
                                             const on = paymentFilter === f.value;
                                             return (
-                                                <TouchableOpacity
+                                                <Chip
                                                     key={f.value || 'all'}
+                                                    label={f.label}
+                                                    active={on}
                                                     onPress={() => {
                                                         setPaymentFilter(f.value as any);
                                                         setPaymentCursor(null);
                                                         setPayments([]);
                                                         fetchPayments({ reset: true, status: f.value });
                                                     }}
-                                                    className={`px-3 py-2 rounded-md border ${on ? 'bg-ink border-ink' : 'bg-card border-line'}`}
-                                                    accessibilityRole="button"
-                                                    accessibilityState={{ selected: on }}
-                                                >
-                                                    <Text className={`text-label font-semibold ${on ? 'text-paper' : 'text-ink-2'}`}>{f.label}</Text>
-                                                </TouchableOpacity>
+                                                />
                                             );
                                         })}
                                     </View>
@@ -1345,214 +1153,181 @@ const AdminPortal = ({ navigation }: any) => {
                                     </View>
                                 ) : payments.length && !paymentCursor ? (
                                     <View className="py-6 items-center">
-                                        <Text className="text-ink-3 text-label font-semibold">That is every payment</Text>
+                                        <Text className="text-ink-3 text-xs">That is every payment</Text>
                                     </View>
                                 ) : null
                             ) : null
                         }
                         ListEmptyComponent={
-                            <View className="flex-1 items-center justify-center py-20">
-                                <Text className="text-ink-3 font-semibold text-sm">
-                                    {activeTab === 'ads' ? 'No ads found' :
-                                        activeTab === 'marketplace' ? 'No reward items found' :
-                                            activeTab === 'rewards' ? 'No reward applications found' :
-                                                activeTab === 'reports' ? 'No reported posts' :
-                                                    activeTab === 'users' ? 'No users found' :
-                                                        activeTab === 'payments' ? 'No payments yet' :
-                                                            activeTab === 'media' ? 'No media found' :
-                                                            'No messages found'}
-                                </Text>
-                            </View>
+                            <Empty
+                                icon="file-tray-outline"
+                                title={activeTab === 'ads' ? 'No ads found' :
+                                    activeTab === 'marketplace' ? 'No reward items found' :
+                                        activeTab === 'rewards' ? 'No reward applications found' :
+                                            activeTab === 'reports' ? 'No reported posts' :
+                                                activeTab === 'users' ? 'No users found' :
+                                                    activeTab === 'payments' ? 'No payments yet' :
+                                                        activeTab === 'media' ? 'No media found' :
+                                                        'No messages found'}
+                            />
                         }
                     />
                 )
             )}
 
-            <Modal visible={modalVisible} animationType="slide" transparent statusBarTranslucent onRequestClose={() => { setModalVisible(false); resetForm(); }}>
-                <View className="flex-1 bg-black/50 justify-end">
-                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ maxHeight: '92%' }}>
-                        <View className="bg-paper rounded-t-sheet p-6 pb-10 border-t border-line" style={{ flexShrink: 1 }}>
-                            <View className="flex-row justify-between items-center mb-6">
-                                <Text className="text-ink font-display text-h1">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New Reward Item'}</Text>
-                                <TouchableOpacity onPress={() => { setModalVisible(false); resetForm(); }} hitSlop={8} className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
-                                    <Ionicons name="close" size={18} color={C.ink} />
-                                </TouchableOpacity>
+            <Sheet
+                visible={modalVisible}
+                onClose={() => { setModalVisible(false); resetForm(); }}
+                title={editingAd || editingProduct ? 'Edit item' : activeTab === 'ads' ? 'New ad banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New reward item'}
+                footer={
+                    <Button
+                        title={editingAd || editingProduct ? 'Save changes' : activeTab === 'ads' ? 'Publish ad' : activeTab === 'media' ? 'Publish media' : 'Add to store'}
+                        variant="primary"
+                        block
+                        loading={submitting}
+                        onPress={handleSubmit}
+                    />
+                }
+            >
+                <Pressable
+                    onPress={pickImage}
+                    className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-paper-2 rounded-2xl border border-dashed border-line items-center justify-center mb-4 overflow-hidden active:opacity-70`}
+                    style={activeTab === 'marketplace' || activeTab === 'media' ? { aspectRatio: 16 / 9 } : undefined}
+                    accessibilityRole="button"
+                    accessibilityLabel="Pick image"
+                >
+                    {imageUri ? <Image source={{ uri: imageUri }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : imageUrl ? <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : (
+                        <View className="items-center">
+                            <Ionicons name="image-outline" size={36} color={C.ink3} />
+                            <Text className="text-ink-3 font-medium text-sm mt-2">Pick {activeTab === 'marketplace' ? 'item' : activeTab === 'media' ? 'thumbnail' : 'banner'} image</Text>
+                        </View>
+                    )}
+                </Pressable>
+
+                {activeTab === 'media' && (
+                    <Pressable
+                        onPress={pickVideo}
+                        className="w-full aspect-video bg-paper-2 border border-dashed border-line items-center justify-center mb-4 overflow-hidden rounded-2xl active:opacity-70"
+                        accessibilityRole="button"
+                        accessibilityLabel={videoUri ? 'Video ready. Pick a different video' : 'Pick video file'}
+                    >
+                        {videoUri ? (
+                            <View className="items-center">
+                                <Ionicons name="videocam" size={36} color={C.recruiter} />
+                                <Text className="text-recruiter font-semibold text-sm mt-2">Video ready</Text>
                             </View>
+                        ) : (
+                            <View className="items-center">
+                                <Ionicons name="videocam-outline" size={36} color={C.ink3} />
+                                <Text className="text-ink-3 font-medium text-sm mt-2">Pick video file</Text>
+                            </View>
+                        )}
+                    </Pressable>
+                )}
 
-                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-                                <TouchableOpacity
-                                    onPress={pickImage}
-                                    className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-paper-2 rounded-card border-2 border-dashed border-line items-center justify-center mb-4 overflow-hidden`}
-                                    style={activeTab === 'marketplace' || activeTab === 'media' ? { aspectRatio: 16 / 9 } : {}}
-                                >
-                                    {imageUri ? <Image source={{ uri: imageUri }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : imageUrl ? <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode={activeTab === 'marketplace' ? "contain" : "cover"} /> : (
-                                        <View className="items-center">
-                                            <Ionicons name="image-outline" size={36} color={C.ink4} />
-                                            <Text className="text-ink-3 font-medium text-sm mt-2">Pick {activeTab === 'marketplace' ? 'item' : activeTab === 'media' ? 'thumbnail' : 'banner'} image</Text>
-                                        </View>
-                                    )}
-                                </TouchableOpacity>
+                <View style={{ gap: 12 }}>
+                    <FormField
+                        value={imageUrl}
+                        onChangeText={t => { setImageUrl(t); setImageUri(null); }}
+                        placeholder="Or paste image URL"
+                        accessibilityLabel="Image URL"
+                        autoCapitalize="none"
+                    />
+                    <FormField
+                        value={title}
+                        onChangeText={setTitle}
+                        placeholder={activeTab === 'ads' ? "Ad title" : activeTab === 'media' ? "Video title" : "Product name"}
+                        accessibilityLabel="Title"
+                    />
 
-                                {activeTab === 'media' && (
-                                    <TouchableOpacity
-                                        onPress={pickVideo}
-                                        className="w-full aspect-video bg-paper-2 border-2 border-dashed border-line items-center justify-center mb-4 overflow-hidden rounded-md"
-                                    >
-                                        {videoUri ? (
-                                            <View className="items-center">
-                                                <Ionicons name="videocam" size={36} color={C.recruiter} />
-                                                <Text className="text-recruiter font-display text-xs mt-2 uppercase">Video Ready</Text>
-                                            </View>
-                                        ) : (
-                                            <View className="items-center">
-                                                <Ionicons name="videocam-outline" size={36} color={C.ink4} />
-                                                <Text className="text-ink-3 font-medium text-sm mt-2">Pick Video File</Text>
-                                            </View>
-                                        )}
-                                    </TouchableOpacity>
-                                )}
+                    {activeTab === 'marketplace' && (
+                        <>
+                            <FormField
+                                value={description}
+                                onChangeText={setDescription}
+                                placeholder="Product description"
+                                accessibilityLabel="Product description"
+                                multiline
+                            />
+                            <FormField
+                                value={coins}
+                                onChangeText={setCoins}
+                                placeholder="Coins required"
+                                accessibilityLabel="Coins required"
+                                keyboardType="numeric"
+                            />
+                        </>
+                    )}
 
-                                <TextInput placeholderTextColor={C.ink4}
-                                    value={imageUrl}
-                                    onChangeText={t => { setImageUrl(t); setImageUri(null); }}
-                                    placeholder="Or paste image URL"
-                                    className="bg-paper-2 border border-line rounded-xl px-4 py-3 mb-4"
-                                />
-                                <TextInput placeholderTextColor={C.ink4}
-                                    value={title}
-                                    onChangeText={setTitle}
-                                    placeholder={activeTab === 'ads' ? "Ad Title" : activeTab === 'media' ? "Video Title" : "Product Name"}
-                                    className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 rounded-md"
-                                />
+                    {activeTab === 'media' && (
+                        <>
+                            <FormField
+                                value={description}
+                                onChangeText={setDescription}
+                                placeholder="Video description"
+                                accessibilityLabel="Video description"
+                                multiline
+                            />
+                            <FormField
+                                value={tags}
+                                onChangeText={setTags}
+                                placeholder="Tags (comma separated)"
+                                accessibilityLabel="Tags"
+                            />
+                        </>
+                    )}
 
-                                {activeTab === 'marketplace' && (
-                                    <>
-                                        <TextInput placeholderTextColor={C.ink4}
-                                            value={description}
-                                            onChangeText={setDescription}
-                                            placeholder="Product Description"
-                                            multiline
-                                            className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 min-h-[100px] rounded-md"
-                                            textAlignVertical="top"
-                                        />
-                                        <TextInput placeholderTextColor={C.ink4}
-                                            value={coins}
-                                            onChangeText={setCoins}
-                                            placeholder="Coins Required"
-                                            keyboardType="numeric"
-                                            className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 rounded-md"
-                                        />
-                                    </>
-                                )}
-
-                                {activeTab === 'media' && (
-                                    <>
-                                        <TextInput placeholderTextColor={C.ink4}
-                                            value={description}
-                                            onChangeText={setDescription}
-                                            placeholder="Video Description"
-                                            multiline
-                                            className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 min-h-[100px] rounded-md"
-                                            textAlignVertical="top"
-                                        />
-                                        <TextInput placeholderTextColor={C.ink4}
-                                            value={tags}
-                                            onChangeText={setTags}
-                                            placeholder="Tags (comma separated)"
-                                            className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 rounded-md"
-                                        />
-                                    </>
-                                )}
-
-                                {activeTab === 'ads' && (
-                                    <TextInput placeholderTextColor={C.ink4}
-                                        value={linkUrl}
-                                        onChangeText={setLinkUrl}
-                                        placeholder="Link URL"
-                                        className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 rounded-md"
-                                    />
-                                )}
-
-                                {activeTab !== 'media' && (
-                                    <View className="flex-row justify-between items-center bg-paper-2 p-4 rounded-xl mb-6">
-                                        <View>
-                                            <Text className="text-ink font-semibold text-sm">{activeTab === 'ads' ? 'Ad Visible' : 'Item Available'}</Text>
-                                            <Text className="text-ink-3 text-label">Toggling this will hide/show the item</Text>
-                                        </View>
-                                        <Switch
-                                            value={isActive}
-                                            onValueChange={setIsActive}
-                                            trackColor={{ false: C.line, true: C.paper2 }}
-                                            thumbColor={isActive ? C.brand[500] : C.ink3}
-                                        />
-                                    </View>
-                                )}
-
-                                <TouchableOpacity
-                                    onPress={handleSubmit}
-                                    disabled={submitting}
-                                    className={`py-4 rounded-xl items-center flex-row justify-center ${submitting ? 'bg-brand-300' : 'bg-brand-500'}`}
-                                >
-                                    {submitting ? <ActivityIndicator color={C.onBrand} /> : <Text className="text-on-brand font-display uppercase text-sm">{editingAd || editingProduct ? 'Save Changes' : activeTab === 'ads' ? 'Publish Ad' : 'Add to Store'}</Text>}
-                                </TouchableOpacity>
-                            </ScrollView>
-                        </View>
-                    </KeyboardAvoidingView>
-                </View>
-            </Modal>
-            </View>
-            {/* Subscription Confirmation Modal */}
-            <Modal visible={subConfirmModalVisible} animationType="fade" transparent statusBarTranslucent onRequestClose={() => !submittingPrice && setSubConfirmModalVisible(false)}>
-                <View className="flex-1 bg-ink/80 justify-center px-6">
-                    <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => !submittingPrice && setSubConfirmModalVisible(false)} />
-                    <View className="bg-card rounded-sheet p-card-pad shadow-hair overflow-hidden border border-line">
-                        <View className="w-16 h-16 bg-danger/10 rounded-card items-center justify-center mb-6 border border-danger/15">
-                            <Ionicons name="warning" size={32} color={C.danger} />
-                        </View>
-                        
-                        <View className="mb-8">
-                            <Text className="text-ink text-2xl font-display uppercase leading-tight">
-                                CONFIRM <Text className="text-danger">CHANGE</Text>
-                            </Text>
-                            <Text className="text-ink-3 text-label font-display uppercase mt-2 leading-4">
-                                You are about to change the global subscription price to ₹{subscriptionPrice}. Please re-authenticate.
-                            </Text>
-                        </View>
-
-                        <TextInput
-                            value={subConfirmPassword}
-                            onChangeText={setSubConfirmPassword}
-                            placeholder="ENTER MASTER PASSWORD"
-                            placeholderTextColor={C.ink3}
-                            secureTextEntry
-                            className="bg-card border-[1.5px] border-ink px-6 py-5 text-ink font-display text-label shadow-hair mb-6 rounded-md"
-                            onSubmitEditing={confirmAndDeploySubscriptionPrice}
+                    {activeTab === 'ads' && (
+                        <FormField
+                            value={linkUrl}
+                            onChangeText={setLinkUrl}
+                            placeholder="Link URL"
+                            accessibilityLabel="Link URL"
+                            autoCapitalize="none"
                         />
+                    )}
 
-                        <View className="flex-row gap-3">
-                            <TouchableOpacity 
-                                onPress={() => setSubConfirmModalVisible(false)}
-                                disabled={submittingPrice}
-                                className="flex-1 bg-paper-2 h-14 items-center justify-center border border-line rounded-md"
-                            >
-                                <Text className="text-ink-3 font-display text-label uppercase">Cancel</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity 
-                                onPress={confirmAndDeploySubscriptionPrice}
-                                disabled={submittingPrice}
-                                className="flex-1 bg-danger h-14 rounded-card items-center justify-center shadow-hair"
-                            >
-                                {submittingPrice ? (
-                                    <ActivityIndicator color="white" />
-                                ) : (
-                                    <Text className="text-white font-display text-label uppercase">Deploy Price</Text>
-                                )}
-                            </TouchableOpacity>
+                    {activeTab !== 'media' && (
+                        <View className="flex-row justify-between items-center bg-paper-2 p-4 rounded-2xl">
+                            <View className="flex-1 mr-3">
+                                <Text className="text-ink font-semibold text-sm">{activeTab === 'ads' ? 'Ad visible' : 'Item available'}</Text>
+                                <Text className="text-ink-3 text-xs">Toggling this will hide/show the item</Text>
+                            </View>
+                            <Switch
+                                value={isActive}
+                                onValueChange={setIsActive}
+                                trackColor={{ false: C.line, true: C.paper2 }}
+                                thumbColor={isActive ? C.brand[500] : C.ink3}
+                                accessibilityLabel={activeTab === 'ads' ? 'Ad visible' : 'Item available'}
+                            />
                         </View>
-                    </View>
+                    )}
                 </View>
-            </Modal>
+            </Sheet>
+            </View>
+            {/* Subscription confirmation */}
+            <Sheet
+                visible={subConfirmModalVisible}
+                onClose={() => setSubConfirmModalVisible(false)}
+                dismissable={!submittingPrice}
+                title="Confirm price change"
+                subtitle={`You are about to change the global subscription price to ₹${subscriptionPrice}. Re-enter the admin password to confirm.`}
+                footer={
+                    <View className="flex-row" style={{ gap: 12 }}>
+                        <Button title="Cancel" variant="tertiary" disabled={submittingPrice} onPress={() => setSubConfirmModalVisible(false)} style={{ flex: 1 }} />
+                        <Button title="Update price" variant="danger" loading={submittingPrice} onPress={confirmAndDeploySubscriptionPrice} style={{ flex: 1 }} />
+                    </View>
+                }
+            >
+                <FormField
+                    label="Admin password"
+                    value={subConfirmPassword}
+                    onChangeText={setSubConfirmPassword}
+                    placeholder="Enter admin password"
+                    secureTextEntry
+                    onSubmitEditing={confirmAndDeploySubscriptionPrice}
+                />
+            </Sheet>
         </View>
     );
 };

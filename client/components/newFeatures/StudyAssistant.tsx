@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import {View, Text, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, KeyboardAvoidingView, Dimensions, StatusBar} from 'react-native'
+import { View, Text, Pressable, ScrollView, ActivityIndicator, KeyboardAvoidingView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -9,9 +9,9 @@ import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 
 import { useNavigation } from '@react-navigation/native';
-import { AppBar, StampCard } from '../ui/kit';
+import { AppBar, Button, Card, Chip, ChipRow, Empty, FormField, IconBtn } from '../ui/kit';
 import { C } from '../../constants/colors';
-const { width } = Dimensions.get('window');
+const QUICK = ['Summarize', 'Key formulas', 'Practice quiz', 'Simplify'];
 
 export default function StudyAssistant() {
     const [pdfContent, setPdfContent] = useState('');
@@ -102,134 +102,101 @@ export default function StudyAssistant() {
             <StatusBar barStyle={C.barStyle} />
 
             <SafeAreaView className="flex-1" edges={['bottom']}>
-                <AppBar title="Study AI" onBack={() => navigation.goBack()} />
-                <KeyboardAvoidingView
-                    behavior="padding"
-                    className="flex-1 px-gutter"
-                >
-                    {/* --- SOURCE STATUS --- */}
-                    <View className="flex-row items-center justify-between pb-6">
-                        <View>
-                            <View className="flex-row items-center">
-                                <View className={`w-2 h-2 rounded-full mr-2 ${pdfContent ? 'bg-success' : 'bg-paper-2'}`} />
-                                <Text className="text-ink-3 text-label font-display uppercase">
-                                    {pdfContent ? 'Intelligence Active' : 'Waiting for Source'}
-                                </Text>
-                            </View>
-                        </View>
-                        {pdfContent && (
-                            <TouchableOpacity
-                                onPress={() => { setPdfContent(''); setChat([]); setHistory([]); }}
-                                className="bg-card p-3 rounded-card border border-line shadow-hair"
-                            >
-                                <Ionicons name="trash-outline" size={20} color={C.danger} />
-                            </TouchableOpacity>
-                        )}
+                <AppBar
+                    title="Study AI"
+                    onBack={() => navigation.goBack()}
+                    right={pdfContent ? (
+                        <IconBtn
+                            name="trash-outline"
+                            color={C.danger}
+                            accessibilityLabel="Remove PDF"
+                            onPress={() => { setPdfContent(''); setChat([]); setHistory([]); }}
+                        />
+                    ) : undefined}
+                />
+                <KeyboardAvoidingView behavior="padding" className="flex-1 px-gutter">
+                    <View className="flex-row items-center pb-4">
+                        <View className={`w-2 h-2 rounded-full mr-2 ${pdfContent ? 'bg-success' : 'bg-ink-4'}`} />
+                        <Text className="text-ink-3 text-xs font-semibold">
+                            {pdfContent ? 'Notes loaded' : 'No notes yet'}
+                        </Text>
                     </View>
 
-                    {/* --- CONTENT AREA --- */}
                     {!pdfContent ? (
-                        <View className="flex-1 justify-center items-center">
-                            <TouchableOpacity
-                                onPress={handleUpload}
-                                activeOpacity={0.9}
-                                className="w-full"
-                            >
-                                <StampCard radius={26}>
-                                <View className="p-card-pad items-center" style={{ paddingVertical: 32 }}>
-                                    <View className="bg-paper-2 p-card-pad rounded-sheet mb-8 border border-line">
-                                        <Ionicons name="cloud-upload" size={48} color={C.brand[500]} />
-                                    </View>
-                                    <Text className="text-ink text-2xl font-display uppercase text-center leading-tight">Sync <Text className="text-accent-text">Source</Text></Text>
-                                    <Text className="font-sans text-sm text-ink-2 text-center mt-4 px-6">
-                                        Upload your lecture PDF to activate institutional AI analysis.
-                                    </Text>
-                                    <View className="mt-10 bg-ink px-gutter py-3.5 rounded-card shadow-hair">
-                                        <Text className="font-display text-paper uppercase" style={{ fontSize: 14, letterSpacing: 0.3 }}>Initialize Ledger</Text>
-                                    </View>
-                                </View>
-                                </StampCard>
-                            </TouchableOpacity>
+                        <View className="flex-1 justify-center">
+                            <Card padded style={{ paddingVertical: 32 }}>
+                                <Empty
+                                    icon="cloud-upload-outline"
+                                    title="Upload your notes"
+                                    hint="Upload a lecture PDF and ask for summaries, formulas or a practice quiz."
+                                    action={<Button title="Upload PDF" icon="document-attach-outline" variant="primary" loading={loading} onPress={handleUpload} />}
+                                />
+                            </Card>
                         </View>
                     ) : (
                         <View className="flex-1">
-                            {/* Quick Action Pills */}
-                            <View>
-                                <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="flex-row py-4">
-                                    {['Summarize', 'Key Formulas', 'Practice Quiz', 'Simplify'].map((item) => (
-                                        <TouchableOpacity
-                                            key={item}
-                                            onPress={() => runAiTask('CHAT', item)}
-                                            className="bg-card border border-line mr-3 px-2.5 py-1 rounded-full"
-                                        >
-                                            <Text className="text-ink font-display text-label uppercase">{item}</Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </ScrollView>
+                            <ChipRow style={{ marginHorizontal: -20 }}>
+                                {QUICK.map((item) => (
+                                    <Chip key={item} label={item} onPress={() => runAiTask('CHAT', item)} />
+                                ))}
+                            </ChipRow>
 
-                                <TouchableOpacity
-                                    onPress={() => runAiTask('QUESTIONS')}
-                                    activeOpacity={0.8}
-                                    className="mt-2 overflow-hidden rounded-card shadow-hair"
-                                >
-                                    <View
-                                        className="p-6 flex-row items-center justify-between"
-                                     style={{ backgroundColor: C.brand[500] }}>
-                                        <View className="flex-row items-center">
-                                            <Ionicons name="flash" size={18} color={C.onBrand} />
-                                            <Text className="text-on-brand font-display ml-4 text-label uppercase">Generate Protocol Guide</Text>
-                                        </View>
-                                        <Ionicons name="arrow-forward" size={18} color={C.onBrand} />
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
+                            <Button
+                                title="Generate exam prep guide"
+                                icon="flash"
+                                variant="primary"
+                                block
+                                style={{ marginTop: 12 }}
+                                onPress={() => runAiTask('QUESTIONS')}
+                            />
 
-                            {/* Chat Interface */}
                             <ScrollView keyboardShouldPersistTaps="handled"
                                 ref={scrollViewRef}
-                                className="flex-1 mt-8"
+                                className="flex-1 mt-4"
                                 showsVerticalScrollIndicator={false}
-                                contentContainerStyle={{ paddingBottom: 40 }}
+                                contentContainerStyle={{ paddingBottom: 24 }}
                             >
                                 {chat.map((msg, i) => (
                                     <View
                                         key={i}
-                                        className={`p-6 rounded-sheet mb-5 max-w-[90%] shadow-hair ${msg.role === 'user' ? 'bg-ink self-end rounded-tr-none ' : 'bg-card self-start border border-line rounded-tl-none ' }`}
+                                        className={`px-4 py-3 rounded-2xl mb-3 max-w-[90%] ${msg.role === 'user' ? 'bg-ink self-end rounded-tr-sm' : 'bg-card self-start border border-line rounded-tl-sm'}`}
                                     >
-                                        <Text className={`text-sm leading-6 ${msg.role === 'user' ? 'text-paper font-display uppercase ' : 'text-ink-2 font-medium '}`}>
-                                            {msg.role === 'bot' ? `"${msg.text}"` : msg.text}
+                                        <Text className={`text-base leading-6 font-sans ${msg.role === 'user' ? 'text-paper' : 'text-ink-2'}`}>
+                                            {msg.text}
                                         </Text>
                                     </View>
                                 ))}
-                                {loading && (
-                                    <View className="flex-row items-center p-5 bg-card rounded-card border border-line self-start shadow-hair">
+                                {loading ? (
+                                    <View className="flex-row items-center px-4 py-3 bg-card rounded-2xl border border-line self-start">
                                         <ActivityIndicator color={C.brand[500]} size="small" />
-                                        <Text className="text-ink-3 text-label font-display uppercase ml-4">Analyzing Intel...</Text>
+                                        <Text className="text-ink-3 text-sm font-sans ml-3">Thinking...</Text>
                                     </View>
-                                )}
+                                ) : null}
                             </ScrollView>
                         </View>
                     )}
 
-                    {/* --- INPUT DOCK --- */}
-                    {pdfContent && (
-                        <View className="flex-row items-center bg-card p-2.5 border-2 border-ink mb-10 shadow-hair rounded-md">
-                            <TextInput
-                                placeholder="Query the intelligence..."
-                                placeholderTextColor={C.ink4}
+                    {pdfContent ? (
+                        <View className="flex-row items-center mb-4" style={{ gap: 8 }}>
+                            <FormField
+                                containerStyle={{ flex: 1 }}
+                                accessibilityLabel="Ask about your notes"
+                                placeholder="Ask about your notes"
                                 value={inputText}
                                 onChangeText={setInputText}
-                                className="font-semibold text-base text-ink flex-1 px-6"
-                                multiline={false}
+                                returnKeyType="send"
+                                onSubmitEditing={() => runAiTask('CHAT')}
                             />
-                            <TouchableOpacity
+                            <Pressable
                                 onPress={() => runAiTask('CHAT')}
-                                className="bg-ink w-14 h-14 rounded-card items-center justify-center shadow-hair"
+                                accessibilityRole="button"
+                                accessibilityLabel="Send"
+                                className="bg-brand-500 w-12 h-12 rounded-full items-center justify-center active:opacity-70"
                             >
-                                <Ionicons name="send" size={18} color={C.paper} />
-                            </TouchableOpacity>
+                                <Ionicons name="send" size={18} color={C.onBrand} />
+                            </Pressable>
                         </View>
-                    )}
+                    ) : null}
                 </KeyboardAvoidingView>
             </SafeAreaView>
         </View>

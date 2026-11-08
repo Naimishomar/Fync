@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import PdfToolShell from './PdfToolShell';
+import PdfToolShell, { OptionCard, Choices } from './PdfToolShell';
 import { loadDoc, writeDoc, rgb, StandardFonts } from './pdfKit';
 
 const SPOTS = [
@@ -16,18 +15,9 @@ export default function PageNumbersScreen() {
       title="Page Numbers" icon="list-outline" runLabel="Add page numbers"
       blurb="Number every page — most assignment and thesis rules ask for it."
       options={() => (
-        <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-5">
-          <Text className="text-ink-3 font-display uppercase text-label mb-3">Position</Text>
-          {SPOTS.map((s) => (
-            <TouchableOpacity
-              key={s.id} onPress={() => setSpot(s.id)}
-              className={`flex-row items-center rounded-md border-2 px-4 mb-2 ${spot === s.id ? 'bg-brand-500 border-ink' : 'bg-card border-line'}`}
-              style={{ minHeight: 48 }} accessibilityRole="button"
-            >
-              <Text className={`font-display uppercase text-label ${spot === s.id ? 'text-on-brand' : 'text-ink-2'}`}>{s.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <OptionCard label="Position">
+          <Choices items={SPOTS} value={spot} onChange={setSpot} />
+        </OptionCard>
       )}
       run={async (files) => {
         const doc = await loadDoc(files[0].uri);

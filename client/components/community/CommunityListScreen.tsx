@@ -1,16 +1,14 @@
 import React, { useState, useCallback, useRef } from 'react';
-import {View, Text, TouchableOpacity, FlatList, TextInput, RefreshControl, StatusBar, Animated} from 'react-native'
+import { View, Text, Pressable, FlatList, RefreshControl, StatusBar, Animated } from 'react-native';
 import { Image } from 'expo-image';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar, IconBtn } from '../ui/kit';
+import { AppBar, IconBtn, Button, Tag, Empty, SegmentedTabs, SearchField } from '../ui/kit';
+import { FALLBACK_BANNER } from './shared';
 import { useBottomInset } from '../../constants/layout';
 
 // Defined at module level: declared inside the screen it was a new component type
@@ -29,91 +27,67 @@ const CommunitySkeleton = () => {
     }, [pulseAnim]);
 
     return (
-        <Animated.View style={{ opacity: pulseAnim }} className="mx-gutter mb-6 bg-card rounded-sheet border border-line h-80 shadow-hair" />
+        <Animated.View style={{ opacity: pulseAnim }} className="mx-gutter mb-3 bg-card rounded-2xl border border-line h-72" />
     );
 };
 
-const CommunityItem = React.memo(({ item, userId, handleJoin, navigation, stamped }: any) => {
+const CommunityItem = React.memo(({ item, userId, handleJoin, onOpen }: any) => {
     const isMember = item.members?.includes(userId);
     const isCreator = item.creator?._id === userId;
     const isSuspended = item.subscription?.status === 'suspended';
 
     return (
-        <TouchableOpacity 
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('CommunityHub', { communityId: item._id })}
-            className={`mx-gutter mb-6 bg-card rounded-card overflow-hidden ${stamped ? 'border-2 border-ink' : 'border border-line'} ${isSuspended ? 'opacity-50' : ''}`}
-            style={stamped ? { shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 }, elevation: 0 } : undefined}
+        <Pressable
+            onPress={() => onOpen(item._id)}
+            accessibilityRole="button"
+            accessibilityLabel={item.name}
+            className={`mx-gutter mb-3 bg-card rounded-2xl overflow-hidden border border-line active:opacity-70 ${isSuspended ? 'opacity-50' : ''}`}
         >
-            {/* Cinematic Expansion Banner */}
-            <View className="h-44 w-full relative">
-                <Image 
-                    source={{ uri: item.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} 
+            <View className="h-40 w-full">
+                <Image
+                    source={{ uri: item.banner || FALLBACK_BANNER }}
                     style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }}
                     contentFit="cover"
                     cachePolicy="memory-disk"
                 />
-                <LinearGradient 
-                    colors={['transparent', 'rgba(0,0,0,0.7)']} 
-                    className="absolute inset-0"
-                />
-                
+                <LinearGradient colors={['transparent', 'rgba(0,0,0,0.7)']} className="absolute inset-0" />
                 {isSuspended && (
-                    <View className="absolute top-4 right-4 bg-danger px-3 py-1 rounded-full border border-danger">
-                        <Text className="text-white font-display uppercase text-label">Suspended</Text>
+                    <View className="absolute top-3 right-3 bg-danger px-3 py-1 rounded-full">
+                        <Text className="text-white font-semibold" style={{ fontSize: 12 }}>Suspended</Text>
                     </View>
                 )}
-
-                <View className="absolute bottom-4 left-6 flex-row items-center gap-4">
-                    <View className="w-12 h-12 rounded-card border-2 border-white overflow-hidden bg-ink shadow-hair">
-                        <Image 
-                            source={{ uri: item.logo }} 
-                            style={{ width: '100%', height: '100%' }}
-                            cachePolicy="memory-disk"
-                        />
+                <View className="absolute bottom-3 left-4 right-4 flex-row items-center" style={{ gap: 12 }}>
+                    <View className="w-12 h-12 rounded-xl overflow-hidden bg-paper-2" style={{ borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' }}>
+                        <Image source={{ uri: item.logo }} style={{ width: '100%', height: '100%' }} cachePolicy="memory-disk" />
                     </View>
-                    <View className="flex-1">
-                        <Text className="text-white text-lg font-display uppercase leading-tight" numberOfLines={1}>{item.name}</Text>
-                        <Text className="text-white/60 text-label uppercase font-display" numberOfLines={1}>By {item.creator?.username || item.creator?.name}</Text>
+                    <View className="flex-1" style={{ minWidth: 0 }}>
+                        <Text className="text-white font-semibold" style={{ fontSize: 17, lineHeight: 22 }} numberOfLines={1}>{item.name}</Text>
+                        <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }} numberOfLines={1}>By {item.creator?.username || item.creator?.name}</Text>
                     </View>
                 </View>
             </View>
 
-            {/* Content Area */}
-            <View className="p-6">
-                <Text className="text-ink-3 text-label font-medium leading-4 mb-4" numberOfLines={2}>
-                    {item.description || "The ultimate creator ecosystem built for high-velocity growth and achievement."}
+            <View className="p-4">
+                <Text className="text-ink-2 mb-3" style={{ fontSize: 13, lineHeight: 18 }} numberOfLines={2}>
+                    {item.description || 'No description yet.'}
                 </Text>
-
-                <View className="flex-row justify-between items-center pt-4 border-t border-line">
-                    <View className="flex-row items-center gap-1.5 px-3 py-1.5 bg-paper-2 rounded-card border border-line">
-                        <Ionicons name="people" size={12} color={C.ink3} />
-                        <Text className="text-ink-3 font-display text-label uppercase">{item.members?.length || 0} Sparks</Text>
-                    </View>
-
+                <View className="flex-row justify-between items-center">
+                    <Tag icon="people-outline" label={`${item.members?.length || 0} members`} />
                     {isCreator ? (
-                        <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-ink rounded-xl">
-                            <Feather name="shield" size={10} color={C.paper} />
-                            <Text className="text-paper font-display uppercase text-label">Guardian</Text>
-                        </View>
+                        <Tag icon="shield-checkmark-outline" label="Owner" />
                     ) : isMember ? (
-                        <View className="flex-row items-center gap-1.5 py-1.5 px-3 bg-paper-2 rounded-xl border border-line">
-                            <Feather name="check" size={10} color={C.brand[500]} />
-                            <Text className="text-accent-text font-display uppercase text-label">Subscribed</Text>
-                        </View>
+                        <Tag icon="checkmark" label="Joined" />
                     ) : (
-                        <TouchableOpacity 
-                            onPress={() => handleJoin(item._id)}
-                            className="bg-brand-500 px-2.5 py-1 rounded-full"
-                        >
-                            <Text className="text-on-brand font-display uppercase text-label">Subscribe</Text>
-                        </TouchableOpacity>
+                        <Button small variant="primary" title="Join" onPress={() => handleJoin(item._id)} />
                     )}
                 </View>
             </View>
-        </TouchableOpacity>
+        </Pressable>
     );
 });
+
+const FILTERS = ['all', 'joined', 'created'] as const;
+const FILTER_LABELS = { all: 'All', joined: 'Joined', created: 'Created' };
 
 const CommunityListScreen = () => {
     const navigation = useNavigation<any>();
@@ -180,85 +154,41 @@ const CommunityListScreen = () => {
         return matchesSearch && matchesFilter;
     });
 
+    const openHub = useCallback((id: string) => navigation.navigate('CommunityHub', { communityId: id }), [navigation]);
+    const renderItem = ({ item }: any) => (
+        <CommunityItem item={item} userId={user?._id} handleJoin={handleJoin} onOpen={openHub} />
+    );
+
     return (
         <View className="flex-1 bg-paper">
             <StatusBar barStyle={C.barStyle} />
-            
-
-            <View className="flex-1">
-                <AppBar
-                    title="Community Hub"
-                    onBack={() => navigation.goBack()}
-                    right={<IconBtn name="add" boxed onPress={() => navigation.navigate('CreateCommunity')} />}
-                />
-                {/* Tabs & Search */}
-                <View className="px-gutter mt-6">
-                    <View className="flex-row bg-card p-1.5 rounded-card mb-6 border border-line shadow-hair">
-                        <TouchableOpacity
-                            onPress={() => setFilter('all')}
-                            className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'all' ? 'bg-ink' : 'bg-transparent'}`}
-                        >
-                            <Text className={`font-display text-label uppercase ${filter === 'all' ? 'text-paper' : 'text-ink-3'}`}>All</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => setFilter('joined')}
-                            className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'joined' ? 'bg-brand-500' : 'bg-transparent'}`}
-                        >
-                            <Text className={`font-display text-label uppercase ${filter === 'joined' ? 'text-on-brand' : 'text-ink-3'}`}>Joined</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => setFilter('created')}
-                            className={`flex-1 py-3.5 items-center rounded-xl ${filter === 'created' ? 'bg-ink' : 'bg-transparent'}`}
-                        >
-                            <Text className={`font-display text-label uppercase ${filter === 'created' ? 'text-paper' : 'text-ink-3'}`}>Created</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View className="bg-card px-5 h-12 flex-row items-center border-2 border-ink shadow-hair mb-6 rounded-md">
-                        <Feather name="search" size={16} color={C.ink3} />
-                        <TextInput 
-                            placeholder="Find a specialized hub..." 
-                            placeholderTextColor={C.ink3}
-                            className="flex-1 ml-4 font-display uppercase text-label text-ink"
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
-                    </View>
-                </View>
-
-                {loading && !refreshing ? (
-                    <View>{[1, 2, 3].map(i => <CommunitySkeleton key={i} />)}</View>
-                ) : (
-                    <FlatList keyboardShouldPersistTaps="handled" 
-                        data={filtered}
-                        keyExtractor={(item) => item._id}
-                        renderItem={({ item, index }) => (
-                            <CommunityItem 
-                                item={item} 
-                                stamped={index === 0}
-                                
-                                userId={user?._id} 
-                                handleJoin={handleJoin}
-                                navigation={navigation}
-                            />
-                        )}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: bottomInset }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
-                        ListEmptyComponent={
-                            <View className="items-center mt-20 px-gutter">
-                                <View className="w-20 h-20 bg-paper-2 rounded-card items-center justify-center mb-6">
-                                    <Feather name="compass" size={48} color={C.ink4} />
-                                </View>
-                                <Text className="font-semibold text-base text-ink text-center">No Active Signals</Text>
-                                <Text className="font-sans text-sm text-ink-4 mt-2 text-center">
-                                    Scanning the ecosystem...{"\n"}No communities found in this sector.
-                                </Text>
-                            </View>
-                        }
-                    />
-                )}
+            <AppBar
+                title="Communities"
+                onBack={() => navigation.goBack()}
+                right={<IconBtn name="add" boxed onPress={() => navigation.navigate('CreateCommunity')} accessibilityLabel="Create community" />}
+            />
+            <View className="px-gutter pt-2 pb-4" style={{ gap: 12 }}>
+                <SegmentedTabs items={FILTERS} value={filter} onChange={setFilter} labels={FILTER_LABELS} />
+                <SearchField placeholder="Search communities" value={searchQuery} onChangeText={setSearchQuery} />
             </View>
+
+            {loading && !refreshing ? (
+                <View>{[1, 2, 3].map(i => <CommunitySkeleton key={i} />)}</View>
+            ) : (
+                <FlatList keyboardShouldPersistTaps="handled"
+                    data={filtered}
+                    keyExtractor={(item) => item._id}
+                    renderItem={renderItem}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: bottomInset }}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
+                    ListEmptyComponent={
+                        <View className="mt-16">
+                            <Empty icon="compass-outline" title="No communities found" hint="Try another search or filter." />
+                        </View>
+                    }
+                />
+            )}
         </View>
     );
 };

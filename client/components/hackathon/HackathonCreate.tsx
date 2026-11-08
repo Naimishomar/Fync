@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, Image, Keyboard} from 'react-native'
+import { View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform, Image, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -13,7 +13,32 @@ import MultiSelectSheet from '../ui/MultiSelectSheet';
 import { collegesInIndia } from '../../data/college';
 import { PASSOUT_YEARS, BRANCHES } from '../../data/academics';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Button, Card, Chip, FormField, IconBtn, IconTile, Label, SegmentedTabs, Tag, TagRow } from '../ui/kit';
+
+const MODES = ['Online', 'Offline', 'Hybrid'] as const;
+const APPLY_LABELS = ['Register', 'Apply now', 'Register on Devfolio', 'Fill the form'];
+const SPONSOR_LEVELS = ['Title', 'Platinum', 'Gold'];
+
+const SectionTitle = ({ title, icon }: { title: string; icon: React.ComponentProps<typeof Ionicons>['name'] }) => (
+  <View className="flex-row items-center mt-6 mb-3" style={{ gap: 12 }}>
+    <IconTile icon={icon} size={40} />
+    <Text className="text-ink text-base font-semibold" accessibilityRole="header">{title}</Text>
+  </View>
+);
+
+/** Tappable label/value row that opens a picker. */
+const PickRow = ({ label, value, onPress }: { label: string; value: string; onPress: () => void }) => (
+  <Pressable
+    onPress={onPress}
+    accessibilityRole="button"
+    accessibilityLabel={`${label}: ${value}`}
+    className="flex-row items-center justify-between bg-paper-2 rounded-2xl px-4 border border-line active:opacity-70"
+    style={{ minHeight: 48, gap: 12 }}
+  >
+    <Text className="text-ink-2 text-sm font-semibold flex-shrink">{label}</Text>
+    <Text className="text-ink text-sm">{value}</Text>
+  </Pressable>
+);
 
 const ELIGIBILITY_META = {
   colleges: {
@@ -383,124 +408,76 @@ const HackathonCreate = () => {
     }
   };
 
-  const renderSectionHeader = (title: string, icon: string) => (
-    <View className="flex-row items-center mt-8 mb-4">
-      <View className="w-10 h-10 rounded-card bg-paper-2 border border-line items-center justify-center mr-3 shadow-hair">
-        <Ionicons name={icon as any} size={18} color={C.brand[500]} />
-      </View>
-      <Text className="text-ink font-display text-xl">{title}</Text>
-    </View>
-  );
+  const set = (patch: Partial<typeof form>) => setForm((prev) => ({ ...prev, ...patch }));
 
   return (
     <View className="flex-1 bg-paper">
       <StatusBar style={C.scheme === 'dark' ? 'light' : 'dark'} />
       <SafeAreaView className="flex-1" edges={["bottom"]}>
 
-        {/* Header */}
-        <AppBar title="Host Mission" onBack={() => navigation.goBack()} />
+        <AppBar title={isEdit ? 'Edit hackathon' : 'Host a hackathon'} onBack={() => navigation.goBack()} />
 
         <KeyboardAvoidingView behavior="padding" className="flex-1">
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 150 }}>
 
-            {/* Visual Assets */}
-            <View className="flex-row gap-4 mt-8">
-              <TouchableOpacity onPress={() => pickImage('logo')} className="w-28 h-28 rounded-sheet bg-paper-2 border-2 border-dashed border-line items-center justify-center overflow-hidden shadow-hair">
-                {logo ? <Image source={{ uri: logo }} className="w-full h-full" /> : <View className="items-center"><Ionicons name="flash-outline" size={28} color={C.ink3} /><Text className="text-label font-semibold text-ink-3 mt-1">Logo</Text></View>}
-              </TouchableOpacity>
+            {/* Visual assets */}
+            <View className="flex-row mt-6" style={{ gap: 12 }}>
+              <Pressable onPress={() => pickImage('logo')} accessibilityRole="button" accessibilityLabel="Pick logo" className="w-28 h-28 rounded-2xl bg-paper-2 border border-dashed border-line items-center justify-center overflow-hidden active:opacity-70">
+                {logo ? <Image source={{ uri: logo }} className="w-full h-full" /> : <View className="items-center"><Ionicons name="flash-outline" size={28} color={C.ink3} /><Text className="text-xs font-semibold text-ink-3 mt-1">Logo</Text></View>}
+              </Pressable>
 
-              <TouchableOpacity onPress={() => pickImage('banner')} className="flex-1 h-28 rounded-sheet bg-paper-2 border-2 border-dashed border-line items-center justify-center overflow-hidden shadow-hair">
-                {bannerImage ? <Image source={{ uri: bannerImage }} className="w-full h-full" resizeMode="cover" /> : <View className="items-center"><Ionicons name="images-outline" size={28} color={C.ink3} /><Text className="text-label font-semibold text-ink-3 mt-1">Banner</Text></View>}
-              </TouchableOpacity>
+              <Pressable onPress={() => pickImage('banner')} accessibilityRole="button" accessibilityLabel="Pick banner" className="flex-1 h-28 rounded-2xl bg-paper-2 border border-dashed border-line items-center justify-center overflow-hidden active:opacity-70">
+                {bannerImage ? <Image source={{ uri: bannerImage }} className="w-full h-full" resizeMode="cover" /> : <View className="items-center"><Ionicons name="images-outline" size={28} color={C.ink3} /><Text className="text-xs font-semibold text-ink-3 mt-1">Banner</Text></View>}
+              </Pressable>
             </View>
 
-            {/* Basic Info */}
-            {renderSectionHeader('Protocol Essentials', 'rocket')}
-            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
-              <TextInput value={form.title} onChangeText={(t) => setForm({ ...form, title: t })} placeholder="Hackathon title" placeholderTextColor={C.ink3} className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line" />
-              <TextInput value={form.description} onChangeText={(t) => setForm({ ...form, description: t })} placeholder="What is this hackathon about?" multiline numberOfLines={4} placeholderTextColor={C.ink3} className="bg-paper-2 rounded-sheet px-6 py-4 mb-4 text-ink font-semibold text-xs border border-line h-32" />
-              <TextInput value={form.tags} onChangeText={(t) => setForm({ ...form, tags: t })} placeholder="Tags (ai, blockchain…)" placeholderTextColor={C.ink3} className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line" />
-              <View className="flex-row gap-4">
-                <TextInput value={form.prizepool} onChangeText={(t) => setForm({ ...form, prizepool: t })} placeholder="Prize pool" placeholderTextColor={C.ink3} className="flex-[2] bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
-                <TextInput value={form.teamSize} onChangeText={(t) => setForm({ ...form, teamSize: t })} placeholder="Team size" placeholderTextColor={C.ink3} className="flex-1 bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
+            <SectionTitle title="Basics" icon="rocket-outline" />
+            <Card padded style={{ gap: 12 }}>
+              <FormField label="Title" value={form.title} onChangeText={(t) => set({ title: t })} placeholder="Hackathon title" />
+              <FormField label="Description" value={form.description} onChangeText={(t) => set({ description: t })} placeholder="What is this hackathon about?" multiline numberOfLines={4} />
+              <FormField label="Tags" value={form.tags} onChangeText={(t) => set({ tags: t })} placeholder="ai, blockchain…" hint="Comma separated" />
+              <View className="flex-row" style={{ gap: 12 }}>
+                <FormField label="Prize pool" value={form.prizepool} onChangeText={(t) => set({ prizepool: t })} placeholder="₹1,00,000" containerStyle={{ flex: 2 }} />
+                <FormField label="Team size" value={form.teamSize} onChangeText={(t) => set({ teamSize: t })} placeholder="1-4" containerStyle={{ flex: 1 }} />
               </View>
 
-              {/* Mode + venue */}
-              <Text className="text-ink-3 font-semibold text-label mt-4 mb-2">How is it run?</Text>
-              <View className="flex-row gap-2 mb-4">
-                {['Online', 'Offline', 'Hybrid'].map((m) => {
-                  const on = form.mode === m;
-                  return (
-                    <TouchableOpacity
-                      key={m}
-                      onPress={() => setForm({ ...form, mode: m })}
-                      className={`flex-1 items-center py-3 rounded-card border-2 ${on ? 'bg-ink border-ink' : 'bg-paper-2 border-line'}`}
-                      activeOpacity={0.85}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
-                    >
-                      <Text className={`font-semibold text-label ${on ? 'text-paper' : 'text-ink-2'}`}>{m}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+              <Label>How is it run?</Label>
+              <SegmentedTabs items={MODES} value={form.mode as (typeof MODES)[number]} onChange={(m) => set({ mode: m })} />
               {form.mode !== 'Online' ? (
-                <TextInput value={form.location} onChangeText={(t) => setForm({ ...form, location: t })} placeholder="Venue or city" placeholderTextColor={C.ink3} className="bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line" />
+                <FormField label="Venue" value={form.location} onChangeText={(t) => set({ location: t })} placeholder="Venue or city" />
               ) : null}
-            </View>
+            </Card>
 
             {/* The hand-off. Fync lists the hackathon; the host runs it. */}
-            {renderSectionHeader('Where students register', 'open-outline')}
-            <View className="bg-card rounded-sheet p-6 border-2 border-ink shadow-hair">
-              <Text className="text-ink-2 text-label leading-4 mb-4">
+            <SectionTitle title="Where students register" icon="open-outline" />
+            <Card padded style={{ gap: 12 }}>
+              <Text className="text-ink-2 text-sm leading-5">
                 Fync lists your hackathon and sends students straight to you. Registration,
                 teams, submissions and judging all stay on your own platform.
               </Text>
 
-              <Text className="text-ink-3 font-semibold text-label mb-2">Registration link *</Text>
-              <TextInput
+              <FormField
+                label="Registration link *"
                 value={form.applyLink}
-                onChangeText={(t) => setForm({ ...form, applyLink: t })}
+                onChangeText={(t) => set({ applyLink: t })}
                 placeholder="unstop.com/… , forms.gle/… , your site"
-                placeholderTextColor={C.ink3}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="url"
-                className="bg-paper-2 rounded-card px-6 py-4 mb-4 text-ink font-semibold text-sm border border-line"
               />
 
-              <Text className="text-ink-3 font-semibold text-label mb-2">Button text</Text>
-              <View className="flex-row flex-wrap gap-2 mb-3">
-                {['Register', 'Apply now', 'Register on Devfolio', 'Fill the form'].map((label) => {
-                  const on = form.applyLabel === label;
-                  return (
-                    <TouchableOpacity
-                      key={label}
-                      onPress={() => setForm({ ...form, applyLabel: label })}
-                      className={`px-3.5 py-2 rounded-card border ${on ? 'bg-brand-500 border-ink' : 'bg-paper-2 border-line'}`}
-                      activeOpacity={0.85}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
-                    >
-                      <Text className={`font-semibold text-label ${on ? 'text-on-brand' : 'text-ink-2'}`}>{label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <TextInput
-                value={form.applyLabel}
-                onChangeText={(t) => setForm({ ...form, applyLabel: t })}
-                placeholder="Or write your own"
-                placeholderTextColor={C.ink3}
-                maxLength={28}
-                className="bg-paper-2 rounded-card px-6 py-4 text-ink font-semibold text-sm border border-line"
-              />
-            </View>
+              <Label>Button text</Label>
+              <TagRow>
+                {APPLY_LABELS.map((label) => (
+                  <Chip key={label} label={label} active={form.applyLabel === label} onPress={() => set({ applyLabel: label })} />
+                ))}
+              </TagRow>
+              <FormField value={form.applyLabel} onChangeText={(t) => set({ applyLabel: t })} placeholder="Or write your own" maxLength={28} accessibilityLabel="Custom button text" />
+            </Card>
 
-            {/* Targeting / Eligibility */}
-            {renderSectionHeader('Who can apply', 'school')}
-            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
-              <Text className="text-ink-2 text-label leading-4 mb-4">
+            <SectionTitle title="Who can apply" icon="school-outline" />
+            <Card padded>
+              <Text className="text-ink-2 text-sm leading-5 mb-3">
                 Open to everyone unless you narrow it. This is what students read before
                 tapping through — your own form still decides who actually gets in.
               </Text>
@@ -509,229 +486,159 @@ const HackathonCreate = () => {
                 const chosen = eligibility[key];
                 const isAll = chosen.length === 0;
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={key}
                     onPress={() => setEligibilitySheet(key)}
-                    className="bg-paper-2 rounded-card border border-line px-5 py-4 mb-3"
-                    activeOpacity={0.85}
+                    className="bg-paper-2 rounded-2xl border border-line px-4 py-3 mb-3 active:opacity-70"
+                    style={{ minHeight: 48 }}
                     accessibilityRole="button"
                     accessibilityLabel={`${label}: ${isAll ? allLabel : chosen.join(', ')}`}
                   >
                     <View className="flex-row items-center">
-                      <Ionicons name={icon as any} size={15} color={C.ink3} />
-                      <Text className="text-ink-3 font-semibold text-label ml-2 flex-1">{label}</Text>
-                      <Text className="text-ink-3 font-semibold text-label mr-1">
+                      <Ionicons name={icon as any} size={16} color={C.ink3} />
+                      <Text className="text-ink text-sm font-semibold ml-2 flex-1">{label}</Text>
+                      <Text className="text-ink-3 text-sm mr-1">
                         {isAll ? allLabel : `${chosen.length} selected`}
                       </Text>
-                      <Ionicons name="chevron-down" size={15} color={C.ink3} />
+                      <Ionicons name="chevron-down" size={16} color={C.ink3} />
                     </View>
 
                     {/* Show what was picked, not just a count — a host should be
                         able to check the list without reopening the sheet. */}
                     {!isAll ? (
-                      <View className="flex-row flex-wrap mt-3" style={{ gap: 6 }}>
-                        {chosen.slice(0, 4).map((v) => (
-                          <View key={v} className="bg-card border border-line px-2.5 py-1 rounded-md">
-                            <Text className="text-ink-2 text-label font-semibold">{v}</Text>
-                          </View>
-                        ))}
-                        {chosen.length > 4 ? (
-                          <View className="px-2 py-1">
-                            <Text className="text-ink-3 text-label font-semibold">+{chosen.length - 4} more</Text>
-                          </View>
-                        ) : null}
-                      </View>
+                      <TagRow style={{ marginTop: 12 }}>
+                        {chosen.slice(0, 4).map((v) => <Tag key={v} label={v} />)}
+                        {chosen.length > 4 ? <Tag label={`+${chosen.length - 4} more`} /> : null}
+                      </TagRow>
                     ) : null}
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
-            </View>
+            </Card>
 
-            {/* Rules */}
-            {renderSectionHeader('Rules', 'list')}
-            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
+            <SectionTitle title="Rules" icon="list-outline" />
+            <Card padded>
               {rules.map((rule, i) => (
-                <View key={i} className="flex-row items-center gap-3 mb-3">
-                  <TextInput value={rule} onChangeText={(t) => setRules(rules.map((r, idx) => idx === i ? t : r))} placeholder={`Rule ${i + 1}`} placeholderTextColor={C.ink3} className="flex-1 bg-paper rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
-                  <TouchableOpacity onPress={() => removeRule(i)} className="bg-paper-2 p-3 rounded-xl border border-line"><Ionicons name="trash" size={16} color={C.danger} /></TouchableOpacity>
+                <View key={i} className="flex-row items-center mb-3" style={{ gap: 8 }}>
+                  <FormField value={rule} onChangeText={(t) => setRules(rules.map((r, idx) => idx === i ? t : r))} placeholder={`Rule ${i + 1}`} accessibilityLabel={`Rule ${i + 1}`} containerStyle={{ flex: 1 }} />
+                  <IconBtn name="trash-outline" color={C.danger} size={18} onPress={() => removeRule(i)} accessibilityLabel={`Remove rule ${i + 1}`} />
                 </View>
               ))}
-              <TouchableOpacity onPress={addRule} className="flex-row items-center justify-center p-4 border-2 border-dashed border-line rounded-card mt-2">
-                <Ionicons name="add" size={20} color={C.brand[500]} />
-                <Text className="text-brand-600 font-semibold ml-2 text-label">Add rule</Text>
-              </TouchableOpacity>
-            </View>
+              <Button small variant="tertiary" icon="add" title="Add rule" onPress={addRule} style={{ alignSelf: 'flex-start' }} />
+            </Card>
 
-            {/* Timeline */}
-            {renderSectionHeader('Event Roadmap / Timeline', 'time')}
-            <View className="mb-8">
-              <Text className="text-ink-3 text-label font-semibold mb-4 px-2">Construct the journey for your participants (e.g. Kickoff, Workshops, Submission, Results)</Text>
-              {timeline.map((item, i) => (
-                <View key={i} className="bg-paper-2 rounded-card p-5 mb-4 border border-line shadow-hair /[0.02]">
-                  <TextInput value={item.label} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, label: t } : x))} placeholder="Stage name (e.g. semi-finals)" placeholderTextColor={C.ink3} className="text-ink font-semibold text-xs mb-3" />
-                  <TouchableOpacity onPress={() => triggerPicker(i)} className="bg-card rounded-xl px-4 py-3 mb-3 border border-line flex-row justify-between items-center">
-                    <Text className="text-ink-3 font-semibold text-label">Date & Time</Text>
-                    <Text className="text-ink font-semibold text-label">{item.date.toLocaleDateString()} {item.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                  </TouchableOpacity>
-                  <TextInput value={item.description} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, description: t } : x))} placeholder="What happens in this stage?" placeholderTextColor={C.ink3} multiline className="text-ink-3 text-xs leading-4" />
-                  <TouchableOpacity onPress={() => setTimeline(timeline.filter((_, idx) => idx !== i))} className="mt-4 self-end">
-                    <Ionicons name="trash" size={16} color={C.danger} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-              <TouchableOpacity onPress={() => setTimeline([...timeline, { label: '', date: new Date(), description: '' }])} className="border-2 border-dashed border-line rounded-card p-5 items-center">
-                <Text className="text-ink-3 font-semibold text-label">Add milestone +</Text>
-              </TouchableOpacity>
-            </View>
+            <SectionTitle title="Timeline" icon="time-outline" />
+            <Text className="text-ink-3 text-sm mb-3">Kickoff, workshops, submission, results — the journey for your participants.</Text>
+            {timeline.map((item, i) => (
+              <Card key={i} padded style={{ marginBottom: 12, gap: 12 }}>
+                <FormField label="Stage" value={item.label} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, label: t } : x))} placeholder="Stage name (e.g. semi-finals)" />
+                <PickRow
+                  label="Date & time"
+                  value={`${item.date.toLocaleDateString()} ${item.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                  onPress={() => triggerPicker(i)}
+                />
+                <FormField label="Details" value={item.description} onChangeText={(t) => setTimeline(timeline.map((x, idx) => idx === i ? { ...x, description: t } : x))} placeholder="What happens in this stage?" multiline />
+                <Button small variant="tertiary" icon="trash-outline" title="Remove stage" onPress={() => removeTimelineItem(i)} style={{ alignSelf: 'flex-end' }} />
+              </Card>
+            ))}
+            <Button small variant="tertiary" icon="add" title="Add milestone" onPress={addTimelineItem} style={{ alignSelf: 'flex-start' }} />
 
-            {/* Dates */}
-            {renderSectionHeader('Dates', 'calendar')}
-            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair mb-8">
-              {[
-                ['hackathonstarts', 'Starts'],
-                ['hackathonends', 'Ends'],
-              ].map(([field, label]) => (
-                <TouchableOpacity
-                  key={field}
-                  onPress={() => triggerPicker(field)}
-                  className="flex-row items-center justify-between bg-paper-2 rounded-card px-6 py-4 mb-3 border border-line"
-                  accessibilityRole="button"
-                >
-                  <Text className="text-ink-3 font-semibold text-label">{label}</Text>
-                  <Text className="text-ink font-semibold text-xs">{(form as any)[field].toLocaleDateString()}</Text>
-                </TouchableOpacity>
-              ))}
-
+            <SectionTitle title="Dates" icon="calendar-outline" />
+            <Card padded style={{ gap: 12 }}>
+              <PickRow label="Starts" value={form.hackathonstarts.toLocaleDateString()} onPress={() => triggerPicker('hackathonstarts')} />
+              <PickRow label="Ends" value={form.hackathonends.toLocaleDateString()} onPress={() => triggerPicker('hackathonends')} />
               {/* Optional: your own form decides when registration really
                   closes — this only tells students whether to hurry. */}
-              <TouchableOpacity
+              <PickRow
+                label="Registration closes (optional)"
+                value={form.registrationends ? form.registrationends.toLocaleDateString() : 'Not set'}
                 onPress={() => triggerPicker('registrationends')}
-                className="flex-row items-center justify-between bg-paper-2 rounded-card px-6 py-4 border border-line"
-                accessibilityRole="button"
-              >
-                <Text className="text-ink-3 font-semibold text-label">Registration closes (optional)</Text>
-                <Text className="text-ink font-semibold text-xs">
-                  {form.registrationends ? form.registrationends.toLocaleDateString() : 'Not set'}
-                </Text>
-              </TouchableOpacity>
+              />
               {form.registrationends ? (
-                <TouchableOpacity onPress={() => setForm({ ...form, registrationends: null })} className="self-end mt-2 py-2" accessibilityRole="button">
-                  <Text className="text-ink-3 font-semibold text-label">Clear deadline</Text>
-                </TouchableOpacity>
+                <Button small variant="tertiary" title="Clear deadline" onPress={() => set({ registrationends: null })} style={{ alignSelf: 'flex-end' }} />
               ) : null}
-            </View>
+            </Card>
 
-            {/* Contact Portal */}
-            {renderSectionHeader('Contact & Portal Signals', 'mail')}
-            <View className="bg-paper-2 rounded-sheet p-card-pad mb-8 border border-line">
-              <View className="mb-6">
-                <Text className="text-ink-3 font-semibold text-label mb-3 px-2">Official Contact Email</Text>
-                <TextInput value={form.contactEmail} onChangeText={t => setForm({ ...form, contactEmail: t })} placeholder="support@yourhackathon.com" placeholderTextColor={C.ink3} className="bg-card rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
-              </View>
-              <View className="mb-6">
-                <Text className="text-ink-3 font-semibold text-label mb-3 px-2">Discord server</Text>
-                <TextInput value={form.discordLink} onChangeText={t => setForm({ ...form, discordLink: t })} placeholder="discord.gg/invite" placeholderTextColor={C.ink3} className="bg-card rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
-              </View>
-              <View>
-                <Text className="text-ink-3 font-semibold text-label mb-3 px-2">Website</Text>
-                <TextInput value={form.websiteLink} onChangeText={t => setForm({ ...form, websiteLink: t })} placeholder="https://yourhackathon.com" placeholderTextColor={C.ink3} className="bg-card rounded-card px-6 py-4 text-ink font-semibold text-xs border border-line" />
-              </View>
-            </View>
+            <SectionTitle title="Contact & links" icon="mail-outline" />
+            <Card padded style={{ gap: 12 }}>
+              <FormField label="Contact email" value={form.contactEmail} onChangeText={(t) => set({ contactEmail: t })} placeholder="support@yourhackathon.com" autoCapitalize="none" keyboardType="email-address" />
+              <FormField label="Discord server" value={form.discordLink} onChangeText={(t) => set({ discordLink: t })} placeholder="discord.gg/invite" autoCapitalize="none" />
+              <FormField label="Website" value={form.websiteLink} onChangeText={(t) => set({ websiteLink: t })} placeholder="https://yourhackathon.com" autoCapitalize="none" keyboardType="url" />
+            </Card>
 
-            {/* Sponsors */}
-            {renderSectionHeader('Sponsors / Partners', 'business')}
-            <View className="mb-8">
-              {sponsors.map((s, i) => (
-                <View key={i} className="bg-paper-2 rounded-card p-6 mb-4 border border-line">
-                  <View className="flex-row items-center mb-4">
-                    <TouchableOpacity onPress={() => pickSponsorLogo(i)} className="w-16 h-16 rounded-card bg-card border border-line items-center justify-center mr-4 shadow-hair">
-                      {s.logo ? <Image source={{ uri: s.logo }} className="w-full h-full rounded-card" /> : <Ionicons name="image" size={24} color={C.ink4} />}
-                    </TouchableOpacity>
-                    <View className="flex-1">
-                      <TextInput value={s.name} onChangeText={(t) => updateSponsor(i, 'name', t)} placeholder="Sponsor name" placeholderTextColor={C.ink3} className="text-ink font-semibold text-xs mb-2" />
-                      <View className="flex-row">
-                        {['Title', 'Platinum', 'Gold', 'Silver', 'Bronze', 'Partner'].slice(0, 3).map(lvl => (
-                          <TouchableOpacity key={lvl} onPress={() => updateSponsor(i, 'level', lvl)} className={`px-3 py-1 rounded-lg border mr-2 ${s.level === lvl ? 'bg-ink border-ink' : 'bg-card border-line'}`}>
-                            <Text className={`text-label font-semibold ${s.level === lvl ? 'text-paper' : 'text-ink-3'}`}>{lvl}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                    <TouchableOpacity onPress={() => removeSponsor(i)} className="ml-2">
-                      <Ionicons name="trash-outline" size={18} color={C.danger} />
-                    </TouchableOpacity>
-                  </View>
+            <SectionTitle title="Sponsors" icon="business-outline" />
+            {sponsors.map((s, i) => (
+              <Card key={i} padded style={{ marginBottom: 12 }}>
+                <View className="flex-row items-center" style={{ gap: 12 }}>
+                  <Pressable onPress={() => pickSponsorLogo(i)} accessibilityRole="button" accessibilityLabel="Pick sponsor logo" className="w-16 h-16 rounded-2xl bg-paper-2 border border-line items-center justify-center overflow-hidden active:opacity-70">
+                    {s.logo ? <Image source={{ uri: s.logo }} className="w-full h-full" /> : <Ionicons name="image-outline" size={24} color={C.ink3} />}
+                  </Pressable>
+                  <FormField value={s.name} onChangeText={(t) => updateSponsor(i, 'name', t)} placeholder="Sponsor name" accessibilityLabel="Sponsor name" containerStyle={{ flex: 1 }} />
+                  <IconBtn name="trash-outline" color={C.danger} size={18} onPress={() => removeSponsor(i)} accessibilityLabel="Remove sponsor" />
                 </View>
-              ))}
-              <TouchableOpacity onPress={addSponsor} className="border-2 border-dashed border-line rounded-card p-5 items-center">
-                <Text className="text-ink-3 font-semibold text-label">Onboard Sponsor +</Text>
-              </TouchableOpacity>
-            </View>
+                <TagRow style={{ marginTop: 12 }}>
+                  {SPONSOR_LEVELS.map((lvl) => (
+                    <Chip key={lvl} label={lvl} active={s.level === lvl} onPress={() => updateSponsor(i, 'level', lvl)} />
+                  ))}
+                </TagRow>
+              </Card>
+            ))}
+            <Button small variant="tertiary" icon="add" title="Add sponsor" onPress={addSponsor} style={{ alignSelf: 'flex-start' }} />
 
-            {/* Tracks */}
-            {renderSectionHeader('Strategic Tracks', 'layers')}
-            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
+            <SectionTitle title="Tracks" icon="layers-outline" />
+            <Card padded>
               {tracks.map((t, i) => (
-                <View key={i} className="bg-paper-2 rounded-card p-5 mb-4 border border-line">
-                  <TextInput value={t.title} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, title: val } : x))} placeholder="Track title" placeholderTextColor={C.ink3} className="text-ink font-semibold text-xs mb-3" />
-                  <TextInput value={t.description} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, description: val } : x))} placeholder="Track description" multiline placeholderTextColor={C.ink3} className="bg-card rounded-xl px-4 py-3 text-ink font-semibold text-label border border-line mb-3 h-20" />
-                  <TextInput value={t.prizes} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, prizes: val } : x))} placeholder="Track prize (e.g. ₹50,000)" placeholderTextColor={C.ink3} className="bg-card rounded-xl px-4 py-3 text-success font-semibold text-label border border-success/10" />
-                  <TouchableOpacity onPress={() => removeTrack(i)} className="absolute -top-2 -right-2 bg-card w-8 h-8 rounded-full items-center justify-center border border-line shadow-hair"><Ionicons name="close" size={16} color={C.danger} /></TouchableOpacity>
+                <View key={i} className="bg-paper-2 rounded-2xl p-4 mb-3 border border-line" style={{ gap: 12 }}>
+                  <View className="flex-row items-center" style={{ gap: 8 }}>
+                    <FormField value={t.title} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, title: val } : x))} placeholder="Track title" accessibilityLabel="Track title" containerStyle={{ flex: 1 }} />
+                    <IconBtn name="close" color={C.danger} size={18} onPress={() => removeTrack(i)} accessibilityLabel="Remove track" />
+                  </View>
+                  <FormField value={t.description} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, description: val } : x))} placeholder="Track description" accessibilityLabel="Track description" multiline />
+                  <FormField value={t.prizes} onChangeText={(val) => setTracks(tracks.map((x, idx) => idx === i ? { ...x, prizes: val } : x))} placeholder="Track prize (e.g. ₹50,000)" accessibilityLabel="Track prize" />
                 </View>
               ))}
-              <TouchableOpacity onPress={addTrack} className="flex-row items-center justify-center p-4 border-2 border-dashed border-line rounded-card">
-                <Ionicons name="add" size={20} color={C.brand[500]} />
-                <Text className="text-brand-600 font-semibold ml-2 text-label">Add track</Text>
-              </TouchableOpacity>
-            </View>
+              <Button small variant="tertiary" icon="add" title="Add track" onPress={addTrack} style={{ alignSelf: 'flex-start' }} />
+            </Card>
 
-            {/* FAQs */}
-            {renderSectionHeader('Knowledge Base', 'help-circle')}
-            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
+            <SectionTitle title="FAQs" icon="help-circle-outline" />
+            <Card padded>
               {faqs.map((f, i) => (
-                <View key={i} className="bg-paper-2 rounded-card p-5 mb-4 border border-line">
-                  <TextInput value={f.question} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, question: val } : x))} placeholder="Question" placeholderTextColor={C.ink3} className="text-ink font-semibold text-xs mb-3" />
-                  <TextInput value={f.answer} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, answer: val } : x))} placeholder="Answer" multiline placeholderTextColor={C.ink3} className="bg-card rounded-xl px-4 py-3 text-ink-3 font-semibold text-label border border-line h-20" />
-                  <TouchableOpacity onPress={() => removeFaq(i)} className="absolute -top-2 -right-2 bg-card w-8 h-8 rounded-full items-center justify-center border border-line shadow-hair"><Ionicons name="close" size={16} color={C.danger} /></TouchableOpacity>
+                <View key={i} className="bg-paper-2 rounded-2xl p-4 mb-3 border border-line" style={{ gap: 12 }}>
+                  <View className="flex-row items-center" style={{ gap: 8 }}>
+                    <FormField value={f.question} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, question: val } : x))} placeholder="Question" accessibilityLabel="Question" containerStyle={{ flex: 1 }} />
+                    <IconBtn name="close" color={C.danger} size={18} onPress={() => removeFaq(i)} accessibilityLabel="Remove question" />
+                  </View>
+                  <FormField value={f.answer} onChangeText={(val) => setFaqs(faqs.map((x, idx) => idx === i ? { ...x, answer: val } : x))} placeholder="Answer" accessibilityLabel="Answer" multiline />
                 </View>
               ))}
-              <TouchableOpacity onPress={addFaq} className="flex-row items-center justify-center p-4 border-2 border-dashed border-line rounded-card">
-                <Ionicons name="add" size={20} color={C.brand[500]} />
-                <Text className="text-brand-600 font-semibold ml-2 text-label">Add question</Text>
-              </TouchableOpacity>
-            </View>
+              <Button small variant="tertiary" icon="add" title="Add question" onPress={addFaq} style={{ alignSelf: 'flex-start' }} />
+            </Card>
 
-            {/* Rewards */}
-            {renderSectionHeader('Bounty Tiers', 'medal')}
-            <View className="bg-card rounded-sheet p-6 border border-line shadow-hair">
+            <SectionTitle title="Prizes" icon="medal-outline" />
+            <Card padded>
               {prizes.map((p, i) => (
-                <View key={i} className="flex-row items-center gap-3 mb-4">
-                  <View className="w-10 h-10 rounded-xl bg-ink items-center justify-center border border-ink shadow-hair"><Text className="font-semibold text-paper text-label">#{p.rank}</Text></View>
-                  <TextInput value={p.title} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, title: t } : x))} placeholder="Prize title" placeholderTextColor={C.ink3} className="flex-1 bg-paper rounded-card px-5 py-3 font-semibold text-xs text-ink border border-line" />
-                  <TextInput value={p.amount} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, amount: t } : x))} placeholder="Amount" placeholderTextColor={C.ink3} className="flex-1 bg-paper rounded-card px-5 py-3 font-semibold text-xs text-ink border border-line" />
+                <View key={i} className="flex-row items-center mb-3" style={{ gap: 8 }}>
+                  <View className="w-11 h-11 rounded-full bg-paper-2 items-center justify-center"><Text className="font-semibold text-ink text-sm">#{p.rank}</Text></View>
+                  <FormField value={p.title} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, title: t } : x))} placeholder="Prize title" accessibilityLabel={`Prize ${p.rank} title`} containerStyle={{ flex: 1 }} />
+                  <FormField value={p.amount} onChangeText={(t) => setPrizes(prizes.map((x, idx) => idx === i ? { ...x, amount: t } : x))} placeholder="Amount" accessibilityLabel={`Prize ${p.rank} amount`} containerStyle={{ flex: 1 }} />
                 </View>
               ))}
-              <TouchableOpacity onPress={addPrize} className="flex-row items-center justify-center p-4 border-2 border-dashed border-line rounded-card mt-2">
-                <Ionicons name="add" size={20} color={C.brand[500]} />
-                <Text className="text-brand-600 font-semibold ml-2 text-label">Add prize</Text>
-              </TouchableOpacity>
-            </View>
+              <Button small variant="tertiary" icon="add" title="Add prize" onPress={addPrize} style={{ alignSelf: 'flex-start' }} />
+            </Card>
 
-            <TouchableOpacity onPress={handleSubmit} disabled={loading} className="mt-12 overflow-hidden rounded-sheet shadow-hair">
-              <View className="py-6 items-center justify-center flex-row" style={{ backgroundColor: C.brand[500] }}>
-                {loading ? <ActivityIndicator size="small" color={C.onBrand} /> : (
-                  <>
-                    <Text className="text-on-brand font-display mr-3 text-lg">{isEdit ? 'Save changes' : 'Create hackathon'}</Text>
-                    <Ionicons name="rocket" size={24} color={C.onBrand} />
-                  </>
-                )}
-              </View>
-            </TouchableOpacity>
+            <Button
+              variant="primary"
+              block
+              icon="rocket-outline"
+              title={isEdit ? 'Save changes' : 'Create hackathon'}
+              onPress={handleSubmit}
+              loading={loading}
+              style={{ marginTop: 32 }}
+            />
 
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-
       {eligibilitySheet ? (
         <MultiSelectSheet
           visible

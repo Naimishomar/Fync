@@ -16,7 +16,7 @@ import { getFullUrl } from '../utils/imageUtils';
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import CommentsSheet from './ui/CommentsSheet';
-import { AppBar, IconBtn, Empty, Button } from './ui/kit';
+import { AppBar, IconBtn, Empty, Button, ListRow, IconTile, Sheet, FormField } from './ui/kit';
 import RepostModal from './ui/RepostModal';
 import { C } from '../constants/colors';
 
@@ -68,7 +68,7 @@ const CommentItem = memo(({
                     <TextInput
                         value={editingText}
                         onChangeText={setEditingText}
-                        className="text-ink border-b border-[1.5px] border-ink pb-1 mt-1 text-xs"
+                        className="text-ink border-b border-line pb-1 mt-1 text-xs"
                         autoFocus
                     />
                 ) : (
@@ -82,7 +82,7 @@ const CommentItem = memo(({
                 <View className="flex-row mt-2 gap-4">
                     {!isReply && (
                         <Pressable onPress={() => onReply(comment)}>
-                            <Text className="text-ink-3 text-label font-semibold uppercase">Reply</Text>
+                            <Text className="text-ink-3 text-xs font-semibold">Reply</Text>
                         </Pressable>
                     )}
                     
@@ -90,15 +90,15 @@ const CommentItem = memo(({
                         <>
                             {editingId === comment._id ? (
                                 <Pressable onPress={() => handleUpdate(comment._id)}>
-                                    {actionLoadingId === comment._id ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-fam-career text-label font-semibold uppercase">Save</Text>}
+                                    {actionLoadingId === comment._id ? <ActivityIndicator size="small" color={C.ink} /> : <Text className="text-accent-text text-xs font-semibold">Save</Text>}
                                 </Pressable>
                             ) : (
                                 <Pressable onPress={() => onEdit(comment)}>
-                                    <Text className="text-ink-3 text-label font-semibold uppercase">Edit</Text>
+                                    <Text className="text-ink-3 text-xs font-semibold">Edit</Text>
                                 </Pressable>
                             )}
                             <Pressable onPress={() => onDelete(comment._id)}>
-                                {actionLoadingId === comment._id ? <ActivityIndicator size="small" color={C.danger} /> : <Text className="text-danger/80 text-label font-semibold uppercase">Delete</Text>}
+                                {actionLoadingId === comment._id ? <ActivityIndicator size="small" color={C.danger} /> : <Text className="text-danger text-xs font-semibold">Delete</Text>}
                             </Pressable>
                         </>
                     )}
@@ -130,41 +130,22 @@ const CommentItem = memo(({
 
 // --- 2. MAIN COMPONENT ---
 /**
- * One row in the options sheet.
- *
- * A hint under each label because "Make private" alone does not say what
- * happens — the destructive and irreversible actions sit next to each other
- * here, and the difference should not depend on the reader guessing.
+ * One row in the options sheet. A hint under each label because "Make private"
+ * alone does not say what happens, and the destructive actions sit next to it.
  */
 const SheetAction = ({
   icon, label, hint, onPress, destructive = false,
 }: {
   icon: any; label: string; hint?: string; onPress: () => void; destructive?: boolean;
 }) => (
-  <TouchableOpacity
+  <ListRow
+    leading={<IconTile icon={icon} color={destructive ? C.danger : C.ink} bg={destructive ? C.danger + '1A' : undefined} />}
+    title={label}
+    subtitle={hint}
+    subtitleLines={2}
     onPress={onPress}
-    className="flex-row items-center bg-card border-2 border-ink rounded-card px-4 py-3 mb-3"
-    style={{ minHeight: 60 }}
-    accessibilityRole="button"
-    accessibilityLabel={label}
-    accessibilityHint={hint}
-  >
-    <View
-      className="items-center justify-center rounded-xl border-2 border-ink"
-      style={{ width: 40, height: 40, backgroundColor: destructive ? C.danger + '1A' : C.brand[100] }}
-    >
-      <Ionicons name={icon} size={20} color={destructive ? C.danger : C.accentText} />
-    </View>
-    <View className="ml-3 flex-1">
-      <Text className={`font-display ${destructive ? 'text-danger' : 'text-ink'}`} style={{ fontSize: 15 }}>
-        {label}
-      </Text>
-      {!!hint && (
-        <Text className="font-sans text-ink-3 mt-[2px]" style={{ fontSize: 11 }}>{hint}</Text>
-      )}
-    </View>
-    <Ionicons name="chevron-forward" size={18} color={C.ink3} />
-  </TouchableOpacity>
+    accessibilityLabel={hint ? `${label}. ${hint}` : label}
+  />
 );
 
 const IndividualPostOrShort = ({ route, navigation }: any) => {
@@ -432,6 +413,45 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         }
     };
 
+    const saveEdit = async () => {
+            setIsUpdating(true);
+            try {
+                const formData = new FormData();
+                if (isShort) {
+                    formData.append('title', editDescription);
+                    if (newVideo) {
+                        const uri = Platform.OS === 'ios' ? newVideo.uri.replace('file://', '') : newVideo.uri;
+                        const name = uri.split('/').pop();
+                        const type = `video/${name?.split('.').pop()}`;
+                        formData.append('video', { uri, name, type } as any);
+                    }
+                } else {
+                    formData.append('description', editDescription);
+                    newImages.forEach((img, i) => {
+                        const uri = Platform.OS === 'ios' ? img.uri.replace('file://', '') : img.uri;
+                        const name = uri.split('/').pop() || `image_${i}.jpg`;
+                        const type = `image/${name.split('.').pop()}`;
+                        formData.append('image', { uri, name, type } as any);
+                    });
+                }
+
+                const res = await axios.post(
+                    isShort ? `/shorts/update/${id}` : `/post/${id}`, 
+                    formData,
+                    { headers: { 'Content-Type': 'multipart/form-data' } }
+                );
+
+                if (res.data.success) {
+                    const updated = isShort ? res.data.short : res.data.post;
+                    setData(updated);
+                    setIsEditing(false);
+                    setNewVideo(null);
+                    setNewImages([]);
+                    if (!isShort && updated.image) setCurrentImageIndex(0);
+                }
+            } catch (err) { Alert.alert("Error", "Update failed."); } finally { setIsUpdating(false); }
+    };
+
     if (loading) {
         // Posts render on paper; a black flash before them reads as a glitch.
         return (
@@ -519,28 +539,28 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 {(title.length > 50 || description.length > 50) && (
                                     <Pressable onPress={() => setShowFullText(!showFullText)} className="mt-1">
                                         <Text className="text-accent-text font-semibold text-label">
-                                            {showFullText ? "SHOW LESS" : "SHOW MORE"}
+                                            {showFullText ? "Show less" : "Show more"}
                                         </Text>
                                     </Pressable>
                                 )}
                             </View>
-                            <Text className="text-white/60 text-label mt-2 uppercase font-semibold">{formatTime(data.createdAt)}</Text>
+                            <Text className="text-white/60 text-xs mt-2 font-semibold">{formatTime(data.createdAt)}</Text>
                         </View>
 
                         <View className="items-center gap-4">
-                            <TouchableOpacity onPress={handleLike} className="items-center">
+                            <TouchableOpacity onPress={handleLike} className="items-center" accessibilityRole="button" accessibilityState={{ selected: isLiked }} accessibilityLabel={isLiked ? "Unlike" : "Like"}>
                                 <Ionicons name={isLiked ? "heart" : "heart-outline"} size={34} color={isLiked ? "red" : "white"} />
                                 <Text className="text-white text-xs font-semibold">{likeCount}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="items-center">
+                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="items-center" accessibilityRole="button" accessibilityLabel={`${commentCount} comments`}>
                                 <Ionicons name="chatbubble-outline" size={32} color="white" />
                                 <Text className="text-white text-xs font-semibold">{commentCount}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity className="items-center">
+                            <View className="items-center" accessibilityLabel={`${data.views || 0} views`}>
                                 <Ionicons name="eye-outline" size={32} color="white" />
                                 <Text className="text-white text-xs font-semibold">{data.views || 0}</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={handleShare}>
+                            </View>
+                            <TouchableOpacity onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share">
                                 <Ionicons name="paper-plane-outline" size={32} color="white" />
                             </TouchableOpacity>
                         </View>
@@ -551,7 +571,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                         <AppBar
                             overlay
                             onBack={() => navigation.goBack()}
-                            right={<IconBtn overlay name="ellipsis-horizontal" onPress={() => setMenuVisible(true)} />}
+                            right={<IconBtn overlay name="ellipsis-horizontal" accessibilityLabel="Short options" onPress={() => setMenuVisible(true)} />}
                         />
                     </View>
                 </View>
@@ -560,7 +580,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 <SafeAreaView className="bg-paper flex-1" edges={['bottom']}>
                     <AppBar
                         onBack={() => navigation.goBack()}
-                        right={<IconBtn name="ellipsis-horizontal" size={20} color={C.ink3} onPress={() => {
+                        right={<IconBtn name="ellipsis-horizontal" size={20} color={C.ink3} accessibilityLabel="Post options" onPress={() => {
                             const isOwner = data.user?._id === currentUser?._id;
                             if (isOwner) {
                                 setMenuVisible(true);
@@ -588,11 +608,11 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             }
                         }} />}
                     >
-                            <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data?.user })} className="flex-row items-center">
+                            <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data?.user })} className="flex-row items-center active:opacity-70" accessibilityRole="button">
                                 <Avatar user={data.user as any} size={36} />
                                 <View className="ml-3 flex-1 min-w-0">
                                     <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{data.user?.username}</Text>
-                                    {!!data.college && <Text className="text-ink-3 text-label uppercase" numberOfLines={1}>{data.college}</Text>}
+                                    {!!data.college && <Text className="text-ink-3 text-xs" numberOfLines={1}>{data.college}</Text>}
                                 </View>
                             </Pressable>
                     </AppBar>
@@ -627,39 +647,39 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             )}
                         </View>
 
-                        <View className="px-3 pt-3 flex-row items-center gap-3">
-                            <TouchableOpacity onPress={handleLike} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
+                        <View className="px-gutter pt-3 flex-row items-center gap-2">
+                            <TouchableOpacity onPress={handleLike} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-70" style={{ minHeight: 40 }} hitSlop={2}>
                                 <Ionicons name={isLiked ? "thumbs-up" : "thumbs-up-outline"} size={20} color={isLiked ? C.brand[500] : C.ink2} />
                                 <Text className={`font-semibold text-xs ml-1.5 ${isLiked ? 'text-accent-text' : 'text-ink-3'}`}>{likeCount}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
+                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-70" style={{ minHeight: 40 }} hitSlop={2}>
                                 <Ionicons name="chatbubble-outline" size={20} color={C.ink2} />
                                 <Text className="text-ink-3 font-semibold text-xs ml-1.5">{commentCount}</Text>
                             </TouchableOpacity>
                             {/* Hidden on your own post: the endpoint refuses it,
                                 so the control could only produce an error. */}
                             {data.user?._id !== currentUser?._id && (
-                                <TouchableOpacity onPress={() => (reposted ? handleRepost() : setRepostModalOpen(true))} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
+                                <TouchableOpacity onPress={() => (reposted ? handleRepost() : setRepostModalOpen(true))} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-70" style={{ minHeight: 40 }} hitSlop={2}>
                                     <Ionicons name={reposted ? "repeat" : "repeat-outline"} size={20} color={reposted ? C.brand[600] : C.ink2} />
                                     {repostCount > 0 && (
                                         <Text className={`font-semibold text-xs ml-1.5 ${reposted ? 'text-accent-text' : 'text-ink-3'}`}>{repostCount}</Text>
                                     )}
                                 </TouchableOpacity>
                             )}
-                            <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-paper-2 rounded-full px-3 py-2">
+                            <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-70" style={{ minHeight: 40 }} hitSlop={2}>
                                 <Ionicons name="paper-plane-outline" size={20} color={C.ink2} />
                                 <Text className="text-ink-3 font-semibold text-xs ml-1.5">Share</Text>
                             </TouchableOpacity>
                         </View>
 
-                        <View className="px-3 pt-2 pb-10">
+                        <View className="px-gutter pt-2 pb-10">
                             <Text className="text-ink text-sm leading-5 mt-2">
                                 <Text className="text-ink-3 font-semibold">{data.user?.username} </Text>{data.description}
                             </Text>
-                            <Text className="text-ink-3 text-label mt-1 uppercase font-semibold mb-4">{formatTime(data.createdAt)}</Text>
+                            <Text className="text-ink-3 text-xs mt-1 mb-4">{formatTime(data.createdAt)}</Text>
                             
                             {/* INLINE COMMENTS FOR POSTS */}
-                            <View className="border-t-2 border-ink pt-4 mt-2">
+                            <View className="border-t border-line pt-4 mt-2">
                                 <Text className="text-ink font-semibold text-sm mb-4">Comments ({commentCount})</Text>
                                 {inlineCommentsLoading && inlineComments.length === 0 ? (
                                     <ActivityIndicator size="small" color={C.ink} />
@@ -680,15 +700,15 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     <Text className="text-ink-3 text-sm">No comments yet. Be the first!</Text>
                                 )}
                                 
-                                <Pressable onPress={() => setCommentModalVisible(true)} className="mt-4 bg-card py-3 rounded-xl items-center border-2 border-ink" style={{ minHeight: 46 }}>
-                                    <Text className="text-ink-2 font-semibold text-sm">Add a comment...</Text>
+                                <Pressable onPress={() => setCommentModalVisible(true)} className="mt-4 bg-paper-2 px-4 rounded-full justify-center border border-line active:opacity-70" style={{ minHeight: 48 }} accessibilityRole="button">
+                                    <Text className="text-ink-3 text-sm">Add a comment…</Text>
                                 </Pressable>
                             </View>
 
                             {/* Keep scrolling and you are still with this person:
                                 their other posts and shorts, newest first. */}
                             {moreFromUser.length > 0 && (
-                                <View className="border-t-2 border-ink pt-4 mt-6">
+                                <View className="border-t border-line pt-4 mt-6">
                                     <Text className="text-ink font-semibold text-sm mb-4">
                                         More from {data.user?.username || data.user?.name || 'this student'}
                                     </Text>
@@ -698,9 +718,9 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                             // push, not navigate: the screen is already mounted for
                                             // another item, and replacing it would lose the way back.
                                             onPress={() => navigation.push('IndividualPostOrShort', item.isShort ? { shortId: item._id } : { postId: item._id })}
-                                            className="flex-row mb-4"
+                                            className="flex-row mb-3 active:opacity-70"
                                         >
-                                            <View className="w-24 h-24 rounded-card overflow-hidden bg-paper-2">
+                                            <View className="w-24 h-24 rounded-2xl overflow-hidden bg-paper-2">
                                                 {item.isShort ? (
                                                     item.thumbnail ? (
                                                         <ExpoImage source={{ uri: getFullUrl(item.thumbnail) || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
@@ -713,7 +733,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                                     <ExpoImage source={{ uri: getFullUrl(item.image[0]) || '' }} style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
                                                 ) : (
                                                     <View className="flex-1 items-center justify-center p-2">
-                                                        <Text className="text-ink-3 text-label text-center" numberOfLines={4}>{item.title || item.description}</Text>
+                                                        <Text className="text-ink-3 text-xs text-center" numberOfLines={4}>{item.title || item.description}</Text>
                                                     </View>
                                                 )}
                                                 {item.isShort && (
@@ -726,7 +746,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                                 <Text className="text-ink text-sm" numberOfLines={3}>
                                                     {item.description || item.title || (item.isShort ? 'Short' : 'Post')}
                                                 </Text>
-                                                <Text className="text-ink-3 text-label uppercase font-semibold mt-2">
+                                                <Text className="text-ink-3 text-xs mt-2">
                                                     {formatTime(item.createdAt)}
                                                 </Text>
                                             </View>
@@ -740,20 +760,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             )}
 
             {/* --- MODALS --- */}
-            <Modal visible={menuVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setMenuVisible(false)}>
-                <View className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
-                    <Pressable className="flex-1" onPress={() => setMenuVisible(false)} />
-
-                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: bottomInset + 8 }}>
-                        <View className="items-center mb-4">
-                            <View className="h-1 w-10 bg-ink-3 rounded-full" />
-                        </View>
-
-                        <Text className="font-display text-xl text-ink mb-1">
-                            {isShort ? 'Short' : 'Post'} options
-                        </Text>
-                        <View className="h-[2px] bg-ink mb-4" style={{ width: 44 }} />
-
+            <Sheet visible={menuVisible} onClose={() => setMenuVisible(false)} title={`${isShort ? 'Short' : 'Post'} options`} closeLabel="Close options">
                         {currentUser?._id === data.user?._id ? (
                             <>
                                 <SheetAction
@@ -845,54 +852,22 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             />
                         )}
 
-                        <TouchableOpacity
-                            onPress={() => setMenuVisible(false)}
-                            className="mt-3 bg-card border-2 border-ink rounded-xl items-center justify-center"
-                            style={{ height: 52 }}
-                            accessibilityRole="button"
-                            accessibilityLabel="Close options"
-                        >
-                            <Text className="font-display text-ink">CANCEL</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
+            </Sheet>
 
-            <Modal
+            <Sheet
                 visible={isEditing}
-                transparent
-                statusBarTranslucent
-                animationType="slide"
-                onRequestClose={() => { if (!isUpdating) { setIsEditing(false); setNewVideo(null); setNewImages([]); } }}
+                onClose={() => { setIsEditing(false); setNewVideo(null); setNewImages([]); }}
+                dismissable={!isUpdating}
+                title={`Edit ${isShort ? 'short' : 'post'}`}
+                closeLabel="Close editor"
+                footer={<Button variant="primary" block title="Save changes" loading={isUpdating} onPress={saveEdit} />}
             >
-                <KeyboardAvoidingView behavior="padding" className="flex-1" style={{ backgroundColor: C.scrim }}>
-                    <View className="flex-1" />
-                    {/* Capped + scrollable: preview + textarea + keyboard pushed the header off-screen on small phones. */}
-                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: bottomInset + 8, maxHeight: '92%' }}>
-                        <ScrollView keyboardShouldPersistTaps="handled" bounces={false} showsVerticalScrollIndicator={false}>
-                            <View className="items-center mb-3">
-                                <View className="h-1 w-10 bg-ink-3 rounded-full" />
-                            </View>
-                            <View className="flex-row justify-between items-center mb-5">
-                                <View>
-                                    <Text className="font-display text-xl text-ink">Edit {isShort ? 'short' : 'post'}</Text>
-                                    <View className="h-[2px] bg-ink mt-1" style={{ width: 44 }} />
-                                </View>
-                                <TouchableOpacity
-                                    onPress={() => { setIsEditing(false); setNewVideo(null); setNewImages([]); }}
-                                    className="w-11 h-11 items-center justify-center rounded-xl"
-                                    style={{ marginRight: -11 }}
-                                    accessibilityRole="button"
-                                    accessibilityLabel="Close editor"
-                                >
-                                    <Ionicons name="close" size={26} color={C.ink} />
-                                </TouchableOpacity>
-                            </View>
-
                             {/* Media Preview / Picker */}
                             <Pressable 
                                 onPress={pickMedia}
-                                className="mb-4 aspect-video w-full bg-card overflow-hidden border-2 border-dashed border-ink justify-center items-center rounded-card"
+                                className="mb-4 aspect-video w-full bg-paper-2 overflow-hidden border border-dashed border-line justify-center items-center rounded-2xl active:opacity-70"
+                                accessibilityRole="button"
+                                accessibilityLabel={isShort ? "Change video" : "Replace photos"}
                             >
                                 {isShort ? (
                                     newVideo ? (
@@ -900,74 +875,27 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     ) : (
                                         <View className="items-center">
                                             <Ionicons name="videocam-outline" size={40} color={C.ink3} />
-                                            <Text className="text-ink-3 font-semibold mt-2">Change Video</Text>
+                                            <Text className="text-ink-3 font-semibold mt-2">Change video</Text>
                                         </View>
                                     )
                                 ) : (
                                     newImages.length > 0 ? (
                                         <ScrollView keyboardShouldPersistTaps="handled" horizontal className="w-full">
                                             {newImages.map((img, i) => (
-                                                <RNImage key={i} source={{ uri: img.uri }} className="w-40 h-40 rounded-xl m-2" />
+                                                <ExpoImage key={i} source={{ uri: img.uri }} style={{ width: 160, height: 160, borderRadius: 12, margin: 8 }} />
                                             ))}
                                         </ScrollView>
                                     ) : (
                                         <View className="items-center">
                                             <Ionicons name="images-outline" size={40} color={C.ink3} />
-                                            <Text className="text-ink-3 font-semibold mt-2">Replace Photos</Text>
+                                            <Text className="text-ink-3 font-semibold mt-2">Replace photos</Text>
                                         </View>
                                     )
                                 )}
                             </Pressable>
 
-                            <TextInput multiline value={editDescription} onChangeText={setEditDescription} placeholder="Write something..." placeholderTextColor={C.ink4} className="bg-paper-2 rounded-card p-4 text-ink text-base min-h-[120px]" autoFocus />
-                            <Pressable 
-                                onPress={async () => {
-                                    setIsUpdating(true);
-                                    try {
-                                        const formData = new FormData();
-                                        if (isShort) {
-                                            formData.append('title', editDescription);
-                                            if (newVideo) {
-                                                const uri = Platform.OS === 'ios' ? newVideo.uri.replace('file://', '') : newVideo.uri;
-                                                const name = uri.split('/').pop();
-                                                const type = `video/${name?.split('.').pop()}`;
-                                                formData.append('video', { uri, name, type } as any);
-                                            }
-                                        } else {
-                                            formData.append('description', editDescription);
-                                            newImages.forEach((img, i) => {
-                                                const uri = Platform.OS === 'ios' ? img.uri.replace('file://', '') : img.uri;
-                                                const name = uri.split('/').pop() || `image_${i}.jpg`;
-                                                const type = `image/${name.split('.').pop()}`;
-                                                formData.append('image', { uri, name, type } as any);
-                                            });
-                                        }
-
-                                        const res = await axios.post(
-                                            isShort ? `/shorts/update/${id}` : `/post/${id}`, 
-                                            formData,
-                                            { headers: { 'Content-Type': 'multipart/form-data' } }
-                                        );
-
-                                        if (res.data.success) {
-                                            const updated = isShort ? res.data.short : res.data.post;
-                                            setData(updated);
-                                            setIsEditing(false);
-                                            setNewVideo(null);
-                                            setNewImages([]);
-                                            if (!isShort && updated.image) setCurrentImageIndex(0);
-                                        }
-                                    } catch (err) { Alert.alert("Error", "Update failed."); } finally { setIsUpdating(false); }
-                                }}
-                                disabled={isUpdating}
-                                className="bg-brand-500 border-2 border-ink py-4 rounded-card mt-6 items-center"
-                            >
-                                {isUpdating ? <ActivityIndicator color={C.onBrand} /> : <Text className="text-on-brand font-display text-lg">Save changes</Text>}
-                            </Pressable>
-                        </ScrollView>
-                    </View>
-                </KeyboardAvoidingView>
-            </Modal>
+                            <FormField multiline value={editDescription} onChangeText={setEditDescription} placeholder="Write something…" accessibilityLabel={isShort ? "Title" : "Caption"} autoFocus />
+            </Sheet>
 
             <CommentsSheet
                 visible={isCommentModalVisible}

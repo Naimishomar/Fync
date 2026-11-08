@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../../constants/colors';
+import { Button, IconBtn } from '../ui/kit';
 
 // Decode HTML entities from OpenTDB
 const decodeHTMLEntities = (text: string) => {
@@ -144,38 +145,28 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
     if (loading) {
         return (
-            <View className="grow bg-night justify-center items-center rounded-sheet">
+            <View className="grow bg-night justify-center items-center rounded-3xl">
                 <ActivityIndicator size="large" color={C.danger} />
-                <Text className="text-white mt-4 font-display uppercase">Loading Trivia...</Text>
+                <Text className="text-white mt-4 font-semibold">Loading trivia...</Text>
             </View>
         );
     }
 
     if (status === 'gameover') {
         return (
-            <View className="grow bg-night justify-center items-center rounded-sheet p-6 border-2 border-danger/30">
+            <View className="grow bg-night justify-center items-center rounded-3xl p-6" style={{ gap: 12 }}>
                 <Ionicons name={loadFailed ? "cloud-offline" : "skull"} size={80} color={C.danger} />
-                <Text className="text-white text-3xl font-display uppercase mt-4 text-center">{loadFailed ? "No Signal" : "You Died"}</Text>
+                <Text className="text-white text-3xl font-display mt-4 text-center" accessibilityRole="header">{loadFailed ? "No signal" : "You died"}</Text>
                 {loadFailed ? (
-                    <Text className="text-night-3 text-sm mt-2 text-center">Couldn't load questions. Check your connection.</Text>
+                    <Text className="text-night-3 text-sm text-center">Couldn't load questions. Check your connection.</Text>
                 ) : (
-                    <View className="bg-danger/20 px-6 py-3 rounded-full mt-6 border border-danger">
-                        <Text className="text-danger font-display text-xl">SURVIVED: {score} Qs</Text>
+                    <View className="bg-white/10 px-6 py-3 rounded-full mt-2">
+                        <Text className="text-white font-display text-xl">Survived {score} {score === 1 ? 'question' : 'questions'}</Text>
                     </View>
                 )}
 
-                <TouchableOpacity 
-                    onPress={restartGame}
-                    className="mt-10 bg-card px-gutter py-4 rounded-full w-full items-center shadow-hair"
-                >
-                    <Text className="text-ink font-display uppercase">{loadFailed ? "Try Again" : "Respawn"}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                    onPress={onClose}
-                    className="mt-4 bg-night px-gutter py-4 rounded-full w-full items-center border border-white/20"
-                >
-                    <Text className="text-white font-display uppercase">Exit</Text>
-                </TouchableOpacity>
+                <Button variant="primary" block icon="refresh" title={loadFailed ? "Try again" : "Respawn"} onPress={restartGame} style={{ marginTop: 24 }} />
+                <Button variant="tertiary" block title="Exit" onPress={onClose} />
             </View>
         );
     }
@@ -185,19 +176,17 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
     const healthColor = health > 50 ? C.success : health > 20 ? C.warning : C.danger;
 
     return (
-        <View className="grow w-full rounded-sheet overflow-hidden bg-night border border-night">
+        <View className="grow w-full rounded-3xl overflow-hidden bg-night">
             {/* Top Bar - Health & Score */}
             <View className="flex-row items-center justify-between p-6 bg-night">
-                <TouchableOpacity onPress={onClose} hitSlop={8} className="bg-white/10 p-2 rounded-full">
-                    <Ionicons name="close" size={24} color="#fff" />
-                </TouchableOpacity>
+                <IconBtn name="close" overlay color="#fff" onPress={onClose} accessibilityLabel="Exit trivia" />
                 <View className="flex-1 mx-4 h-6 bg-white/10 rounded-full overflow-hidden border border-white/10 relative">
                     <View 
                         style={{ width: `${health}%`, backgroundColor: healthColor }} 
                         className="h-full rounded-full"
                     />
-                    <Text className="absolute w-full text-center text-label font-display text-white uppercase leading-6">
-                        Time Left: {(health / 10).toFixed(1)}s
+                    <Text className="absolute w-full text-center text-xs font-semibold text-white leading-6">
+                        Time left: {(health / 10).toFixed(1)}s
                     </Text>
                 </View>
                 <View className="bg-white/10 px-4 py-2 rounded-full border border-white/10">
@@ -207,7 +196,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
 
             {/* Question */}
             <View className="h-[200px] p-6 justify-center">
-                <Text className="text-accent-text font-display text-label uppercase mb-4 text-center">
+                <Text className="text-accent-text font-semibold text-xs mb-4 text-center">
                     {q?.category} • {q?.difficulty}
                 </Text>
                 <Text 
@@ -222,19 +211,20 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
             {/* Options */}
             <View className="p-6 gap-y-3 pb-8">
                 {q?.options?.map((opt: string, i: number) => (
-                    <TouchableOpacity 
+                    <Pressable
                         key={i}
                         onPress={() => handleAnswer(opt)}
-                        className="bg-white/10 px-6 h-[64px] justify-center rounded-card border border-white/10"
+                        accessibilityRole="button"
+                        className="bg-white/10 px-6 h-[64px] justify-center rounded-2xl border border-white/10 active:opacity-70"
                     >
                         <Text 
-                            className="text-white text-sm font-display text-center"
+                            className="text-white text-sm font-semibold text-center"
                             numberOfLines={2}
                             adjustsFontSizeToFit
                         >
                             {decodeHTMLEntities(opt)}
                         </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 ))}
             </View>
         </View>

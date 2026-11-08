@@ -1,25 +1,21 @@
 /**
- * Campus Press UI kit.
+ * Fync UI kit — the soft style (bg-card, 1px hairlines, radius 16, pill
+ * buttons, sentence-case Inter labels; Space Grotesk only for titles and
+ * numerals). Screens are assembled from these rather than raw <View>s.
  *
- * Every one of these has a named equivalent in `mockups/css/ui.css`, and a screen
- * is expected to be assembled from them rather than from raw <View>s. That is the
- * whole point: the mockups only stay true if there is one implementation of a
- * card, a section header and a sticker, not sixty.
- *
- * Non-negotiables baked in here so no screen has to remember them:
- *   - 20px gutter, and an edge icon button overhangs by 11px so the GLYPH meets
+ * Baked in so no screen has to remember them:
+ *   - 20px gutter; an edge icon button overhangs by 11px so the GLYPH meets
  *     the gutter rather than its 44px touch box.
- *   - 44x44 minimum tap target on everything interactive. `Tag` is the read-only
- *     variant at 28px, where the floor does not apply.
- *   - One `stamp` card per screen. Buttons inside a card never carry the stamp.
- *   - Uppercase is a label treatment only; body copy is sentence case at 15px.
+ *   - 44px minimum touch target (hitSlop where the visual is smaller).
+ *   - No stamps, no 2px ink borders, no uppercase labels. `stamp` props are
+ *     accepted for old callers and render the soft card.
  *   - Role colour is never the only signal: `Avatar` rings, and callers pair it
- *     with a <Sticker> carrying the word.
+ *     with a <RoleSticker> carrying the word.
  */
-import React from 'react';
+import React, { memo } from 'react';
 import {
-  View, Text, Pressable, ScrollView, StyleSheet, Platform,
-  type ViewProps, type TextProps, type PressableProps,
+  View, Text, Pressable, ScrollView, StyleSheet, ActivityIndicator,
+  type ViewProps, type TextProps,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -56,9 +52,10 @@ export const C: KitC = new Proxy({} as KitC, {
 
 export const GUTTER = 20;
 
-/** The one stamp per screen. Android has no offset-shadow primitive, so it is
- *  drawn as a second layer by <Card stamp> rather than faked with elevation. */
-export const STAMP_OFFSET = 4;
+/** Kept for compatibility; the stamp is gone, nothing is offset any more. */
+export const STAMP_OFFSET = 0;
+
+type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
 /* -------------------------------------------------------------- typography */
 type TP = TextProps & { children?: React.ReactNode };
@@ -71,11 +68,11 @@ export const H2 = ({ style, ...p }: TP) => <Text {...p} style={[s.h2, style]} />
 export const Body = ({ style, ...p }: TP) => <Text {...p} style={[s.body, style]} />;
 export const Sm = ({ style, ...p }: TP) => <Text {...p} style={[s.sm, style]} />;
 export const Meta = ({ style, ...p }: TP) => <Text {...p} style={[s.meta, style]} />;
-/** Uppercase, tracked, 11px. Labels only — never body copy. */
+/** Small sentence-case semibold eyebrow (13px, ink-3). No uppercase, no tracking. */
 export const Label = ({ style, ...p }: TP) => <Text {...p} style={[s.label, style]} />;
 /** Tabular numerals in the display face. Streaks, scores, ranks, money, timers. */
 export const Num = ({ style, ...p }: TP) => <Text {...p} style={[s.num, style]} />;
-/** Bold Inter — the standard row title. */
+/** Semibold Inter — the standard row title. */
 export const Strong = ({ style, ...p }: TP) => <Text {...p} style={[s.strong, style]} />;
 
 /* ------------------------------------------------------------------ screen */
@@ -93,23 +90,17 @@ export const Pad = ({ style, ...p }: ViewProps) => (
 export const APPBAR_HEIGHT = 56;
 
 /**
- * The one screen header. It owns everything that made headers drift:
- *   - the status-bar inset (screens must NOT add their own top SafeArea/padding),
- *   - a fixed 56px row,
- *   - a single-line title. There is no subtitle on purpose: a second line on
- *     some screens and not others is exactly the inconsistency this removes.
- *     Context that used to live there belongs in the screen's content.
- *
- * `inset={false}` only where the bar sits inside something already below the
- * status bar (a bottom sheet, a non-fullscreen modal).
+ * The one screen header: owns the status-bar inset (screens must NOT add their
+ * own top SafeArea/padding), a fixed 56px row and a single-line title.
+ * `inset={false}` only where the bar already sits below the status bar.
  */
 export function AppBar({
   title, onBack, right, night, overlay, children, inset = true,
 }: {
   title?: string; onBack?: () => void;
   right?: React.ReactNode; night?: boolean;
-  /** Floating over a photo/poster: light glyphs on dark discs so they read on any
-   *  image. Pass `overlay` to the `right` IconBtns too. */
+  /** Floating over a photo/poster: light glyphs on dark discs. Pass `overlay`
+   *  to the `right` IconBtns too. */
   overlay?: boolean;
   /** Replaces the title when it needs more than text (chat: avatar + presence). */
   children?: React.ReactNode;
@@ -125,11 +116,10 @@ export function AppBar({
       <View style={s.appbar} pointerEvents="box-none">
         {onBack ? (
           // -11px so the chevron's own edge lands on the 20px gutter, not the box's.
-          // A disc already reads as the button, so it sits on the gutter itself.
-          <IconBtn name="chevron-back" onPress={onBack} overlay={overlay} color={fg} style={overlay ? undefined : { marginLeft: -11 }} />
+          <IconBtn name="chevron-back" onPress={onBack} overlay={overlay} color={fg} accessibilityLabel="Go back" style={overlay ? undefined : { marginLeft: -11 }} />
         ) : null}
         <View style={{ flex: 1, minWidth: 0 }}>
-          {children ?? (title ? <H2 style={{ color: fg }} numberOfLines={1}>{title}</H2> : null)}
+          {children ?? (title ? <H2 style={{ color: fg }} numberOfLines={1} accessibilityRole="header">{title}</H2> : null)}
         </View>
         {right ? <View style={s.appbarActions}>{right}</View> : null}
       </View>
@@ -138,28 +128,32 @@ export function AppBar({
 }
 
 /* -------------------------------------------------------------- icon button */
+/** "notifications-outline" -> "notifications". A fallback only: pass a real label. */
+const labelFromIcon = (n: string) => n.replace(/-(outline|sharp)$/, '').replace(/-/g, ' ');
+
+/** 44x44 round icon button. `boxed` gives it a paper-2 disc. */
 export function IconBtn({
-  name, onPress, color, size = 22, boxed, overlay, badge, style,
+  name, onPress, color, size = 22, boxed, overlay, badge, style, accessibilityLabel, disabled,
 }: {
-  name: React.ComponentProps<typeof Ionicons>['name'];
+  name: IconName;
   onPress?: () => void; color?: string; size?: number; boxed?: boolean; overlay?: boolean;
   badge?: number | string; style?: any;
+  accessibilityLabel?: string; disabled?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
-      hitSlop={6}
-      // Static style, pressed state in children: NativeWind's Pressable wrapper
-      // can drop a style *function*, which left this box 22px instead of 44px.
-      style={[s.iconbtn, boxed && s.iconbtnBoxed, overlay && s.iconbtnOverlay, style]}
+      accessibilityLabel={accessibilityLabel ?? labelFromIcon(String(name))}
+      accessibilityState={disabled ? { disabled } : undefined}
+      hitSlop={4}
+      className="active:opacity-60"
+      // Static style: NativeWind's Pressable wrapper can drop a style *function*.
+      style={[s.iconbtn, boxed && s.iconbtnBoxed, overlay && s.iconbtnOverlay, disabled && s.disabled, style]}
     >
-      {({ pressed }) => (
-        <>
-          <Ionicons name={name} size={size} color={color ?? (overlay ? C.nightInk : C.ink)} style={pressed && { opacity: 0.6 }} />
-          {badge != null && badge !== 0 ? <Badge value={badge} /> : null}
-        </>
-      )}
+      <Ionicons name={name} size={size} color={color ?? (overlay ? C.nightInk : C.ink)} />
+      {badge != null && badge !== 0 ? <Badge value={badge} /> : null}
     </Pressable>
   );
 }
@@ -170,239 +164,217 @@ export const Badge = ({ value, tone = C.danger }: { value: number | string; tone
   </View>
 );
 
-/* -------------------------------------------------------------------- card */
-export function Card({
-  stamp, padded, style, children, ...p
-}: ViewProps & { stamp?: boolean; padded?: boolean }) {
-  const body = (
-    <View
-      {...p}
-      style={[
-        s.card,
-        stamp && s.cardStamp,
-        padded && { padding: 16 },
-        style,
-      ]}
-    >
-      {children}
+/* --------------------------------------------------------------- icon tile */
+/** Round paper-2 disc with an ink line icon. Feature grids, list rows, empty states. */
+export const IconTile = memo(function IconTile({
+  icon, size = 40, iconSize, color, bg, style,
+}: { icon: IconName; size?: number; iconSize?: number; color?: string; bg?: string; style?: any }) {
+  return (
+    <View style={[s.iconTile, { width: size, height: size, borderRadius: size / 2 }, bg ? { backgroundColor: bg } : null, style]}>
+      <Ionicons name={icon} size={iconSize ?? Math.round(size * 0.47)} color={color ?? C.ink} />
     </View>
   );
-  if (!stamp) return body;
-  // The offset stamp is drawn, not shadowed: RN cannot express a hard 4px offset
-  // with zero blur on Android, and elevation would round the corners differently
-  // on each platform.
+});
+
+/* -------------------------------------------------------------------- card */
+/** Soft card: bg-card, 1px line, radius 16. `stamp` is accepted and ignored. */
+export function Card({
+  stamp: _stamp, padded, style, children, ...p
+}: ViewProps & { stamp?: boolean; padded?: boolean }) {
   return (
-    <View style={{ position: 'relative' }}>
-      <View pointerEvents="none" style={s.stampLayer} />
-      {body}
+    <View {...p} style={[s.card, padded && s.cardPad, style]}>
+      {children}
     </View>
   );
 }
 
-/* ------------------------------------------------------------- stamp card */
 /**
- * The one stamped card per screen — the thing the screen exists for.
- *
- * A drop-in wrapper rather than a prop on `Card`, because most screens already
- * style their hero with classNames and only need the offset layer added behind
- * it. The stamp is PAINTED, not shadowed: RN cannot express a hard 4px offset
- * with zero blur on Android, and `elevation` rounds the corners differently on
- * each platform.
- *
- * Exactly one per screen. Two stamps and the device stops meaning anything —
- * hierarchy here comes from scarcity, not from more shadow.
+ * The hero card. Same soft card as `Card` (the old offset stamp is gone);
+ * `radius` still applies, `tone` is accepted and ignored.
  */
 export function StampCard({
-  children, style, radius = 20, tone = C.ink,
+  children, style, radius = 16,
 }: { children: React.ReactNode; style?: any; radius?: number; tone?: string }) {
   return (
-    <View style={[{ position: 'relative' }, style]}>
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: STAMP_OFFSET, top: STAMP_OFFSET,
-          right: -STAMP_OFFSET, bottom: -STAMP_OFFSET,
-          backgroundColor: tone, borderRadius: radius,
-        }}
-      />
-      <View style={{ backgroundColor: C.card, borderWidth: 2, borderColor: C.ink, borderRadius: radius, overflow: 'hidden' }}>
-        {children}
-      </View>
+    <View style={[s.card, { borderRadius: radius }, style]}>
+      {children}
     </View>
   );
 }
 
 /* ---------------------------------------------------------- section header */
-/** Eyebrow, 2px hard rule to the edge, tabular count on the right. Replaces every
- *  ad-hoc "Section title / See all" row in the app. */
+/**
+ * Section title row: semibold 16 title, optional action or count on the right.
+ *   <SectionHeader title="Upcoming" action="See all" onAction={openAll} />
+ */
+export function SectionHeader({
+  title, action, onAction, right, count, style,
+}: {
+  title: string; action?: string; onAction?: () => void;
+  right?: React.ReactNode; count?: string | number; style?: any;
+}) {
+  return (
+    <View style={[s.rule, style]}>
+      <Text style={s.sectionTitle} numberOfLines={1} accessibilityRole="header">{title}</Text>
+      {right ?? (action && onAction ? (
+        <Pressable onPress={onAction} hitSlop={12} className="active:opacity-60" accessibilityRole="button">
+          <Text style={s.sectionAction}>{action}</Text>
+        </Pressable>
+      ) : count != null ? <Text style={s.ruleCount}>{String(count)}</Text> : null)}
+    </View>
+  );
+}
+
+/** Old name for SectionHeader (label -> title). */
 export function SectionRule({
   label, count, right, style,
 }: { label: string; count?: string | number; right?: React.ReactNode; style?: any }) {
-  return (
-    <View style={[s.rule, style]}>
-      <Label style={{ color: C.ink }}>{label}</Label>
-      <View style={s.ruleLine} />
-      {right ?? (count != null ? <Num style={s.ruleCount}>{String(count)}</Num> : null)}
-    </View>
-  );
+  return <SectionHeader title={label} count={count} right={right} style={style} />;
 }
 
 /* ----------------------------------------------------------------- sticker */
 type Tone = 'brand' | 'alt' | 'live' | 'gold' | 'rec' | 'ok' | 'warn';
 // A function, not a module-level object: a frozen object kept the light values
-// in dark mode, putting light ink on a light chip (invisible).
+// in dark mode.
 const stickerBg = (t: Tone) => ({
-  brand: C.brand200, alt: C.card, live: C.danger, gold: C.alumniLit,
+  brand: C.paper2, alt: C.card, live: C.danger, gold: C.alumniLit,
   rec: C.paper2, ok: C.paper2, warn: C.paper2,
 })[t];
 /** Gold is the same bright yellow in both themes, so it always takes dark ink. */
 const stickerFg = (tone: Tone) => (tone === 'live' ? '#FFFFFF' : tone === 'gold' ? P.onBrand : C.ink);
-/** Status and identity only — never navigation. Rotation is decorative and must
- *  not clip text or shrink the tap area, so it is applied to the wrapper. */
+/** Small status pill. Status and identity only — never navigation.
+ *  `tilt` / `flat` are accepted and ignored. */
 export function Sticker({
-  children, tone = 'brand', tilt, flat, icon,
+  children, tone = 'brand', icon,
 }: {
   children: React.ReactNode; tone?: Tone; tilt?: 'l' | 'r'; flat?: boolean;
-  icon?: React.ComponentProps<typeof Ionicons>['name'];
+  icon?: IconName;
 }) {
   const fg = stickerFg(tone);
   return (
-    <View
-      style={[
-        s.sticker,
-        { backgroundColor: stickerBg(tone) },
-        flat && { shadowOpacity: 0, elevation: 0, borderWidth: 1.5 },
-        !flat && { transform: [{ rotate: tilt === 'r' ? '1.8deg' : '-1.6deg' }] },
-      ]}
-    >
-      {icon ? <Ionicons name={icon} size={11} color={fg} style={{ marginRight: 4 }} /> : null}
+    <View style={[s.sticker, { backgroundColor: stickerBg(tone) }, tone === 'alt' && s.stickerAlt]}>
+      {icon ? <Ionicons name={icon} size={12} color={fg} /> : null}
       <Text style={[s.stickerText, { color: fg }]}>{children}</Text>
     </View>
   );
 }
 
 /* ------------------------------------------------------------ role sticker */
-/** The text half of the role signal. `Avatar` draws the ring; this carries the
- *  word. Colour is never the only signal, so wherever a role changes what the
- *  content MEANS — an alumnus giving advice, a recruiter posting a role — the
- *  ring is paired with one of these.
- *
- *  Students are the default audience and get no sticker: labelling every row
- *  "Student" is noise, and the ring already distinguishes the exceptions. */
+/** The text half of the role signal (`Avatar` draws the ring). Students get none. */
 export function RoleSticker({ role, size = 'sm' }: { role?: string; size?: 'sm' | 'md' }) {
   if (role !== 'alumni' && role !== 'recruiter' && role !== 'admin') return null;
   const tone: Tone = role === 'alumni' ? 'gold' : role === 'recruiter' ? 'rec' : 'live';
   const label = role === 'alumni' ? 'Alumni' : role === 'recruiter' ? 'Recruiter' : 'Admin';
   if (size === 'md') return <Sticker tone={tone}>{label}</Sticker>;
   return (
-    <View style={[s.sticker, { backgroundColor: stickerBg(tone), paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1.5, shadowOpacity: 0, elevation: 0 }]}>
-      <Text style={[s.stickerText, { fontSize: 8, color: stickerFg(tone) }]}>{label}</Text>
+    <View style={[s.sticker, s.stickerSm, { backgroundColor: stickerBg(tone) }]}>
+      <Text style={[s.stickerText, { color: stickerFg(tone) }]}>{label}</Text>
     </View>
   );
 }
 
 /* -------------------------------------------------------------- number stamp */
-/** Dashed circular stamp for streaks / score / rank / countdowns. The caption is
- *  capped so long words cannot spill past the ring. */
+/** Round numeral badge for streaks / score / rank / countdowns. */
 export function StampNumber({
-  value, caption, tone = C.brand100, size = 66,
+  value, caption, tone = C.paper2, size = 66,
 }: { value: string | number; caption?: string; tone?: string; size?: number }) {
   return (
     <View style={[s.stampnum, { width: size, height: size, borderRadius: size / 2, backgroundColor: tone }]}>
-      <Num style={{ fontSize: size * 0.32, lineHeight: size * 0.34 }}>{String(value)}</Num>
+      <Num style={{ fontSize: size * 0.32, lineHeight: size * 0.36 }}>{String(value)}</Num>
       {caption ? (
-        <Text numberOfLines={1} style={s.stampnumCaption}>{caption}</Text>
+        <Text numberOfLines={1} style={[s.stampnumCaption, { maxWidth: size - 10 }]}>{caption}</Text>
       ) : null}
     </View>
   );
 }
 
 /* ------------------------------------------------------------------ button */
-type BtnVariant = 'primary' | 'solid' | 'quiet' | 'ghost';
+/**
+ * Pill button, 48px (small 36px with hitSlop to 44).
+ *   primary            brand fill, on-brand text
+ *   secondary / quiet  card + 1px line (default)
+ *   tertiary / ghost   paper-2 fill
+ *   solid              ink fill, paper text
+ *   danger             danger fill, white text
+ */
+type BtnVariant = 'primary' | 'solid' | 'quiet' | 'ghost' | 'secondary' | 'tertiary' | 'danger';
+const SMALL_SLOP = { top: 4, bottom: 4, left: 0, right: 0 };
 export function Button({
-  title, onPress, variant = 'quiet', icon, small, block, disabled, style, inCard,
+  title, onPress, variant = 'quiet', icon, small, block, disabled, style, loading, accessibilityLabel,
 }: {
   title: string; onPress?: () => void; variant?: BtnVariant;
-  icon?: React.ComponentProps<typeof Ionicons>['name'];
+  icon?: IconName;
   small?: boolean; block?: boolean; disabled?: boolean; style?: any;
-  /** Set on buttons that sit inside a Card, so the stamp stays unique per screen. */
+  /** No longer does anything (there is no stamp); kept for old callers. */
   inCard?: boolean;
+  /** Spinner over the (hidden) label, so the button keeps its width. Disables presses. */
+  loading?: boolean;
+  accessibilityLabel?: string;
 }) {
+  const v = variant === 'secondary' ? 'quiet' : variant === 'tertiary' ? 'ghost' : variant;
   const fg =
-    variant === 'primary' ? P.onBrand :
-    variant === 'solid' ? C.paper :
+    v === 'primary' ? P.onBrand :
+    v === 'solid' ? C.paper :
+    v === 'danger' ? '#FFFFFF' :
     C.ink;
-  const bg =
-    variant === 'primary' ? C.brand :
-    variant === 'solid' ? C.ink :
-    variant === 'quiet' ? C.card : 'transparent';
+  const off = disabled || loading;
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled}
+      disabled={off}
       accessibilityRole="button"
-      style={[
-        s.btn,
-        small && s.btnSm,
-        { backgroundColor: bg },
-        variant === 'quiet' && { borderColor: C.line },
-        variant === 'ghost' && { borderColor: 'transparent' },
-        variant === 'primary' && !inCard && s.btnStamp,
-        block && { alignSelf: 'stretch' },
-        disabled && { opacity: 0.45 },
-        style,
-      ]}
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityState={{ disabled: !!off, busy: !!loading }}
+      hitSlop={small ? SMALL_SLOP : undefined}
+      className="active:opacity-70"
+      style={[s.btn, small && s.btnSm, s[`btn_${v}`], block && s.btnBlock, disabled && s.disabled, style]}
     >
-      {({ pressed }) => (
-        <>
-          {icon ? <Ionicons name={icon} size={small ? 15 : 17} color={fg} style={[{ marginRight: 7 }, pressed && { opacity: 0.7 }]} /> : null}
-          <Text style={[s.btnText, small && { fontSize: 12 }, { color: fg }, pressed && { opacity: 0.7 }]}>{title}</Text>
-        </>
-      )}
+      <View style={[s.btnInner, loading && s.hidden]}>
+        {icon ? <Ionicons name={icon} size={small ? 16 : 18} color={fg} /> : null}
+        <Text style={[s.btnText, small && s.btnTextSm, { color: fg }]} numberOfLines={1}>{title}</Text>
+      </View>
+      {loading ? <ActivityIndicator size="small" color={fg} style={s.btnSpinner} /> : null}
     </Pressable>
   );
 }
 
 /* -------------------------------------------------------------------- chip */
-/** Interactive filter / action. Meets the 44px floor. */
-export function Chip({
-  label, active, icon, onPress, style,
+/** Interactive filter pill, 36px visual / 44px touch. Selected = ink fill. */
+export const Chip = memo(function Chip({
+  label, active, icon, onPress, style, accessibilityLabel,
 }: {
   label?: string; active?: boolean; onPress?: () => void; style?: any;
-  icon?: React.ComponentProps<typeof Ionicons>['name'];
+  icon?: IconName; accessibilityLabel?: string;
 }) {
   const fg = active ? C.paper : C.ink2;
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected: !!active }}
-      style={[s.chip, active && { backgroundColor: C.ink, borderColor: C.ink }, style]}
+      hitSlop={SMALL_SLOP}
+      className="active:opacity-70"
+      style={[s.chip, active && s.chipOn, style]}
     >
-      {({ pressed }) => (
-        <>
-          {icon ? <Ionicons name={icon} size={15} color={fg} style={[label ? { marginRight: 6 } : undefined, pressed && { opacity: 0.6 }]} /> : null}
-          {label ? <Text style={[s.chipText, { color: fg }, pressed && { opacity: 0.6 }]}>{label}</Text> : null}
-        </>
-      )}
+      {icon ? <Ionicons name={icon} size={16} color={fg} /> : null}
+      {label ? <Text style={[s.chipText, { color: fg }]} numberOfLines={1}>{label}</Text> : null}
     </Pressable>
   );
-}
+});
 
-/** Read-only metadata. 28px — not a tap target, so the 44px floor does not apply.
- *  Wrap these in a <TagRow>, never in a horizontal scroller inside a card. */
+/** Read-only metadata pill, 28px. Not a tap target. Wrap in <TagRow>. */
 export function Tag({
   label, icon, tone, style,
 }: {
   label: string; tone?: { bg?: string; border?: string; fg?: string }; style?: any;
-  icon?: React.ComponentProps<typeof Ionicons>['name'];
+  icon?: IconName;
 }) {
   const fg = tone?.fg ?? C.ink2;
   return (
     <View style={[s.tag, tone?.bg && { backgroundColor: tone.bg }, tone?.border && { borderColor: tone.border }, style]}>
-      {icon ? <Ionicons name={icon} size={12} color={fg} style={{ marginRight: 5 }} /> : null}
-      <Text style={[s.tagText, { color: fg }]}>{label}</Text>
+      {icon ? <Ionicons name={icon} size={13} color={fg} /> : null}
+      <Text style={[s.tagText, { color: fg }]} numberOfLines={1}>{label}</Text>
     </View>
   );
 }
@@ -411,18 +383,33 @@ export const TagRow = ({ style, ...p }: ViewProps) => (
   <View {...p} style={[{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }, style]} />
 );
 
-/** Horizontal filter scroller. Bleeds to the screen edge so the last chip reads
- *  as scrollable rather than as clipped by a bug. */
+/** Horizontal chip scroller, bleeds to the screen edge. */
 export const ChipRow = ({ children, style }: { children: React.ReactNode; style?: any }) => (
   <ScrollView keyboardShouldPersistTaps="handled"
     horizontal
     showsHorizontalScrollIndicator={false}
-    contentContainerStyle={{ paddingHorizontal: GUTTER, gap: 8 }}
+    contentContainerStyle={s.chipRow}
     style={[{ flexGrow: 0 }, style]}
   >
     {children}
   </ScrollView>
 );
+
+/**
+ * Single-select filter row built from Chips. Use for "All / Open / Closed".
+ *   <FilterChips items={['All', 'Open']} value={f} onChange={setF} />
+ */
+export function FilterChips<T extends string>({
+  items, value, onChange, labels, style,
+}: { items: readonly T[]; value: T; onChange: (v: T) => void; labels?: Partial<Record<T, string>>; style?: any }) {
+  return (
+    <ChipRow style={style}>
+      {items.map((it) => (
+        <Chip key={it} label={labels?.[it] ?? it} active={it === value} onPress={() => onChange(it)} />
+      ))}
+    </ChipRow>
+  );
+}
 
 /* ------------------------------------------------------------------ avatar */
 export type Role = 'student' | 'alumni' | 'recruiter' | undefined;
@@ -438,21 +425,16 @@ export function Avatar({
   return (
     <View
       style={[
-        {
-          width: size, height: size,
-          borderRadius: square ? 12 : size / 2,
-          backgroundColor: C.paper2,
-          alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-        },
+        s.av,
+        { width: size, height: size, borderRadius: square ? 12 : size / 2 },
         ring && { borderWidth: 2, borderColor: ring },
         style,
       ]}
     >
       {uri ? (
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         <ExpoImageLike uri={uri} size={size} />
       ) : (
-        <Text style={[s.avText, { fontSize: size * 0.34 }]}>{initials?.slice(0, 2).toUpperCase()}</Text>
+        <Text style={[s.avText, { fontSize: size * 0.36 }]}>{initials?.slice(0, 2).toUpperCase()}</Text>
       )}
     </View>
   );
@@ -472,16 +454,77 @@ export const Grow = ({ style, ...p }: ViewProps) => (
   <View {...p} style={[{ flex: 1, minWidth: 0 }, style]} />
 );
 export const Divider = ({ style }: { style?: any }) => (
-  <View style={[{ height: 1, backgroundColor: C.line }, style]} />
+  <View style={[{ height: StyleSheet.hairlineWidth, backgroundColor: C.line }, style]} />
 );
 
+/**
+ * Leading (avatar / icon tile) + title + subtitle + trailing (chevron by default
+ * when tappable). Memoized: pass stable props from list renderItem.
+ *   <ListRow icon="settings-outline" title="Settings" subtitle="Privacy, alerts" onPress={open} />
+ *   <ListRow leading={<Avatar user={u} size={44} />} title={u.name} right={<Button small title="Follow" />} />
+ */
+export const ListRow = memo(function ListRow({
+  title, subtitle, meta, leading, icon, right, chevron, onPress, onLongPress, style, titleLines = 1, subtitleLines = 1,
+  accessibilityLabel, disabled,
+}: {
+  title: string;
+  subtitle?: string;
+  /** Tiny trailing text above `right` (time, count). */
+  meta?: string;
+  leading?: React.ReactNode;
+  /** Shorthand for `leading={<IconTile icon=... />}`. */
+  icon?: IconName;
+  right?: React.ReactNode;
+  /** Default: shown when tappable and there is no `right`. */
+  chevron?: boolean;
+  onPress?: () => void;
+  onLongPress?: () => void;
+  style?: any;
+  titleLines?: number;
+  subtitleLines?: number;
+  accessibilityLabel?: string;
+  disabled?: boolean;
+}) {
+  const showChevron = chevron ?? (!!onPress && !right);
+  const body = (
+    <>
+      {leading ?? (icon ? <IconTile icon={icon} /> : null)}
+      <View style={s.listText}>
+        <Text style={s.strong} numberOfLines={titleLines}>{title}</Text>
+        {subtitle ? <Text style={s.meta} numberOfLines={subtitleLines}>{subtitle}</Text> : null}
+      </View>
+      {meta || right ? (
+        <View style={s.listRight}>
+          {meta ? <Text style={s.listMeta}>{meta}</Text> : null}
+          {right}
+        </View>
+      ) : null}
+      {showChevron ? <Ionicons name="chevron-forward" size={18} color={C.ink3} /> : null}
+    </>
+  );
+  if (!onPress && !onLongPress) return <View style={[s.listRow, style]}>{body}</View>;
+  return (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? (subtitle ? `${title}, ${subtitle}` : title)}
+      className="active:opacity-70"
+      style={[s.listRow, disabled && s.disabled, style]}
+    >
+      {body}
+    </Pressable>
+  );
+});
+
 /* -------------------------------------------------------------------- tabs */
-/** Segmented tabs with the 3px brand underline. */
+/** Underline tabs: semibold labels, 2px brand underline on the selected one. */
 export function Tabs({
   items, value, onChange, fill,
 }: { items: string[]; value: string; onChange: (v: string) => void; fill?: boolean }) {
   return (
-    <View style={[s.tabs, fill && { gap: 0 }]}>
+    <View style={[s.tabs, fill && { gap: 0 }]} accessibilityRole="tablist">
       {items.map((t) => {
         const on = t === value;
         return (
@@ -490,9 +533,10 @@ export function Tabs({
             onPress={() => onChange(t)}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
+            className="active:opacity-60"
             style={[s.tab, fill && { flex: 1, alignItems: 'center' }]}
           >
-            <Text style={[s.tabText, on && { color: C.ink }]}>{t}</Text>
+            <Text style={[s.tabText, on && s.tabTextOn]}>{t}</Text>
             {on ? <View style={s.tabUnderline} /> : null}
           </Pressable>
         );
@@ -501,165 +545,213 @@ export function Tabs({
   );
 }
 
-/* ------------------------------------------------------------------- tiles */
-/** 4-up feature grid. The box fills its column so the row lines up with the
- *  section rule above it — a fixed box centred in a wider column never does. */
-export function Tile({
-  label, icon, tint = C.ink2, onPress,
-}: {
-  label: string; icon: React.ComponentProps<typeof Ionicons>['name'];
-  tint?: string; onPress?: () => void;
-}) {
+/**
+ * Segmented control: a paper-2 track with the selected segment on a card pill.
+ * For 2-4 short options that switch a view in place.
+ *   <SegmentedTabs items={['Posts', 'Shorts']} value={tab} onChange={setTab} />
+ */
+export function SegmentedTabs<T extends string>({
+  items, value, onChange, labels, style,
+}: { items: readonly T[]; value: T; onChange: (v: T) => void; labels?: Partial<Record<T, string>>; style?: any }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={s.tile}>
-      {({ pressed }) => (
-        <>
-          <View style={[s.tileBox, pressed && { backgroundColor: C.paper2 }]}>
-            <Ionicons name={icon} size={24} color={tint} />
-          </View>
-          <Text numberOfLines={2} style={s.tileLabel}>{label}</Text>
-        </>
-      )}
-    </Pressable>
-  );
-}
-export const TileGrid = ({ style, ...p }: ViewProps) => (
-  <View {...p} style={[{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }, style]} />
-);
-
-/* --------------------------------------------------------------- bottom bar */
-/** Docked action bar for pushed screens. Pads clear of the home indicator so a
- *  composer is never flush against the glass. */
-export function BottomBar({ children, style }: { children: React.ReactNode; style?: any }) {
-  const inset = useBottomInset(10);
-  return (
-    <View style={[s.bottombar, { paddingBottom: inset + 10 }, style]}>{children}</View>
-  );
-}
-
-/* ------------------------------------------------------------ empty states */
-export function Empty({
-  title, hint, icon, action,
-}: {
-  title: string; hint?: string; action?: React.ReactNode;
-  icon?: React.ComponentProps<typeof Ionicons>['name'];
-}) {
-  return (
-    <View style={s.empty}>
-      {icon ? <Ionicons name={icon} size={28} color={C.ink4} style={{ marginBottom: 12 }} /> : null}
-      <Label>{title}</Label>
-      {hint ? <Meta style={{ marginTop: 8, textAlign: 'center' }}>{hint}</Meta> : null}
-      {action ? <View style={{ marginTop: 16, alignSelf: 'stretch' }}>{action}</View> : null}
+    <View style={[s.seg, style]} accessibilityRole="tablist">
+      {items.map((it) => {
+        const on = it === value;
+        return (
+          <Pressable
+            key={it}
+            onPress={() => onChange(it)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: on }}
+            className="active:opacity-70"
+            style={[s.segItem, on && s.segItemOn]}
+          >
+            <Text style={[s.segText, on && s.segTextOn]} numberOfLines={1}>{labels?.[it] ?? it}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
 
+/* ------------------------------------------------------------------- tiles */
+/**
+ * Feature grid item: round paper-2 icon over a 12px label. Lives in a
+ * <TileGrid>; `columns` sets the cell width (default 4).
+ */
+export const Tile = memo(function Tile({
+  label, icon, tint, onPress, columns = 4, hint,
+}: {
+  label: string; icon: IconName;
+  tint?: string; onPress?: () => void; columns?: number;
+  /** Read by screen readers after the label. */
+  hint?: string;
+}) {
+  return (
+    // Width on a plain View: NativeWind's Pressable can drop style functions.
+    <View style={{ width: `${100 / columns}%`, paddingHorizontal: 4 }}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={hint ? `${label}. ${hint}` : label}
+        className="active:opacity-60"
+        style={s.tile}
+      >
+        <IconTile icon={icon} size={56} iconSize={26} color={tint} />
+        <Text numberOfLines={2} style={s.tileLabel}>{label}</Text>
+      </Pressable>
+    </View>
+  );
+});
+export const TileGrid = ({ style, ...p }: ViewProps) => (
+  <View {...p} style={[{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 20, marginHorizontal: -4 }, style]} />
+);
+
+/* --------------------------------------------------------------- bottom bar */
+/** Docked action bar for pushed screens, padded clear of the home indicator. */
+export function BottomBar({ children, style }: { children: React.ReactNode; style?: any }) {
+  const inset = useBottomInset(16);
+  return (
+    <View style={[s.bottombar, { paddingBottom: inset }, style]}>{children}</View>
+  );
+}
+
+/* ------------------------------------------------------------ empty states */
+/** Round icon, semibold title, ink-3 hint, optional action (a <Button>). */
+export function Empty({
+  title, hint, icon, action,
+}: {
+  title: string; hint?: string; action?: React.ReactNode;
+  icon?: IconName;
+}) {
+  return (
+    <View style={s.empty}>
+      {icon ? <IconTile icon={icon} size={56} iconSize={24} color={C.ink3} style={{ marginBottom: 4 }} /> : null}
+      <Text style={s.emptyTitle} accessibilityRole="header">{title}</Text>
+      {hint ? <Text style={s.emptyHint}>{hint}</Text> : null}
+      {action ? <View style={{ marginTop: 8 }}>{action}</View> : null}
+    </View>
+  );
+}
+
+/* ------------------------------------------------------- shared re-exports */
+export { Sheet, useKeyboardLift } from './Sheet';
+export { SearchField, FormField } from './Field';
+
 /* ------------------------------------------------------------------ styles */
 const s = themed(() => ({
-  display: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 34, lineHeight: 35, letterSpacing: -1.2, color: C.ink, textTransform: 'uppercase' },
-  h1: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 24, lineHeight: 27, letterSpacing: -0.6, color: C.ink },
-  h2: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 19, lineHeight: 23, letterSpacing: -0.4, color: C.ink },
-  body: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 23, color: C.ink2 },
-  sm: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: C.ink2 },
-  meta: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: C.ink3 },
-  strong: { fontFamily: 'Inter_600SemiBold', fontSize: 14, lineHeight: 19, color: C.ink },
-  label: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 11, lineHeight: 14, letterSpacing: 1.4, textTransform: 'uppercase', color: C.ink3 },
+  display: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 34, lineHeight: 38, letterSpacing: -1, color: C.ink },
+  h1: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 24, lineHeight: 29, letterSpacing: -0.5, color: C.ink },
+  h2: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 19, lineHeight: 24, letterSpacing: -0.3, color: C.ink },
+  body: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22, color: C.ink2 },
+  sm: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 18, color: C.ink2 },
+  meta: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 18, color: C.ink3 },
+  strong: { fontFamily: 'Inter_600SemiBold', fontSize: 15, lineHeight: 20, color: C.ink },
+  label: { fontFamily: 'Inter_600SemiBold', fontSize: 13, lineHeight: 18, color: C.ink3 },
   num: { fontFamily: 'SpaceGrotesk_700Bold', letterSpacing: -0.5, color: C.ink, fontVariant: ['tabular-nums'] },
+
+  disabled: { opacity: 0.5 },
+  hidden: { opacity: 0 },
 
   appbar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: GUTTER, height: APPBAR_HEIGHT },
   appbarActions: { flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: -11 },
 
-  iconbtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  iconbtnBoxed: { borderWidth: 1, borderColor: C.line, backgroundColor: C.card },
-  iconbtnOverlay: { borderRadius: 22, backgroundColor: 'rgba(18,16,14,0.45)', marginHorizontal: 4 },
+  iconbtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22 },
+  iconbtnBoxed: { backgroundColor: C.paper2 },
+  iconbtnOverlay: { backgroundColor: 'rgba(18,16,14,0.45)', marginHorizontal: 4 },
 
   badge: {
-    position: 'absolute', top: 4, right: 4, minWidth: 18, minHeight: 18, paddingHorizontal: 4,
+    position: 'absolute', top: 2, right: 2, minWidth: 18, height: 18, paddingHorizontal: 4,
     borderRadius: 9, borderWidth: 2, borderColor: C.paper, alignItems: 'center', justifyContent: 'center',
   },
-  badgeText: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 9, color: '#fff' },
+  badgeText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, lineHeight: 13, color: '#fff' },
+
+  iconTile: { alignItems: 'center', justifyContent: 'center', backgroundColor: C.paper2 },
 
   card: {
-    backgroundColor: C.card, borderWidth: 1, borderColor: C.line, borderRadius: 20, overflow: 'hidden',
-    ...Platform.select({
-      ios: { shadowColor: '#12100E', shadowOpacity: 0.05, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } },
-      android: { elevation: 1 },
-    }),
+    backgroundColor: C.card, borderWidth: 1, borderColor: C.line, borderRadius: 16,
+    borderCurve: 'continuous', overflow: 'hidden',
   },
-  cardStamp: { borderWidth: 2, borderColor: C.ink, shadowOpacity: 0, elevation: 0 },
-  stampLayer: {
-    position: 'absolute', left: STAMP_OFFSET, top: STAMP_OFFSET, right: -STAMP_OFFSET, bottom: -STAMP_OFFSET,
-    backgroundColor: C.ink, borderRadius: 20,
-  },
+  cardPad: { padding: 16 },
 
-  rule: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 24, marginBottom: 12 },
-  ruleLine: { flex: 1, height: 2, backgroundColor: C.ink, opacity: 0.82 },
-  ruleCount: { fontSize: 11, color: C.ink3, letterSpacing: 0 },
+  rule: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 24, marginBottom: 12 },
+  sectionTitle: { flex: 1, minWidth: 0, fontFamily: 'Inter_600SemiBold', fontSize: 16, lineHeight: 22, color: C.ink },
+  sectionAction: { fontFamily: 'Inter_600SemiBold', fontSize: 13, lineHeight: 18, color: P.accentText },
+  ruleCount: { fontFamily: 'Inter_500Medium', fontSize: 13, color: C.ink3, fontVariant: ['tabular-nums'] },
 
   sticker: {
-    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
-    paddingHorizontal: 9, paddingVertical: 5, borderRadius: 4,
-    borderWidth: 2, borderColor: C.ink,
-    ...Platform.select({
-      ios: { shadowColor: C.ink, shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 2, height: 2 } },
-      android: { elevation: 0 },
-    }),
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 4,
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999,
   },
-  stickerText: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 10, letterSpacing: 1, textTransform: 'uppercase' },
+  stickerAlt: { borderWidth: 1, borderColor: C.line },
+  stickerSm: { paddingHorizontal: 8, paddingVertical: 2 },
+  stickerText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, lineHeight: 14 },
 
-  stampnum: { borderWidth: 2, borderColor: C.ink, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
-  stampnumCaption: {
-    fontFamily: 'SpaceGrotesk_700Bold', fontSize: 8, letterSpacing: 0.5,
-    textTransform: 'uppercase', color: C.ink2, marginTop: 2, maxWidth: 56,
-  },
+  stampnum: { alignItems: 'center', justifyContent: 'center' },
+  stampnumCaption: { fontFamily: 'Inter_500Medium', fontSize: 11, lineHeight: 13, color: C.ink3 },
 
   btn: {
-    minHeight: 48, paddingHorizontal: GUTTER, borderRadius: 12, borderWidth: 2, borderColor: C.ink,
+    minHeight: 48, paddingHorizontal: GUTTER, borderRadius: 999, borderWidth: 1, borderColor: 'transparent',
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
   },
-  btnSm: { minHeight: 44, paddingHorizontal: 16, borderWidth: 1.5 },
-  btnStamp: Platform.select({
-    ios: { shadowColor: C.ink, shadowOpacity: 1, shadowRadius: 0, shadowOffset: { width: 4, height: 4 } },
-    android: {},
-  }) as any,
-  btnText: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 14, letterSpacing: 0.3, textTransform: 'uppercase' },
+  btnSm: { minHeight: 36, paddingHorizontal: 14 },
+  btnBlock: { alignSelf: 'stretch' },
+  btn_primary: { backgroundColor: C.brand, borderColor: C.brand },
+  btn_solid: { backgroundColor: C.ink, borderColor: C.ink },
+  btn_quiet: { backgroundColor: C.card, borderColor: C.line },
+  btn_ghost: { backgroundColor: C.paper2, borderColor: C.paper2 },
+  btn_danger: { backgroundColor: C.danger, borderColor: C.danger },
+  btnInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  btnText: { fontFamily: 'Inter_600SemiBold', fontSize: 15, lineHeight: 20 },
+  btnTextSm: { fontSize: 13, lineHeight: 18 },
+  btnSpinner: { position: 'absolute' },
 
   chip: {
-    minHeight: 44, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: C.line,
-    backgroundColor: C.card, flexDirection: 'row', alignItems: 'center',
+    minHeight: 36, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: C.line,
+    backgroundColor: C.card, flexDirection: 'row', alignItems: 'center', gap: 6,
   },
-  chipText: { fontFamily: 'Inter_600SemiBold', fontSize: 13 },
+  chipOn: { backgroundColor: C.ink, borderColor: C.ink },
+  chipText: { fontFamily: 'Inter_500Medium', fontSize: 13, lineHeight: 18 },
+  chipRow: { paddingHorizontal: GUTTER, gap: 8 },
 
   tag: {
-    minHeight: 28, paddingHorizontal: 10, borderRadius: 999, borderWidth: 1, borderColor: C.line,
-    backgroundColor: C.card, flexDirection: 'row', alignItems: 'center',
+    minHeight: 28, paddingHorizontal: 10, borderRadius: 999, borderWidth: 1, borderColor: 'transparent',
+    backgroundColor: C.paper2, flexDirection: 'row', alignItems: 'center', gap: 5,
   },
-  tagText: { fontFamily: 'Inter_500Medium', fontSize: 11 },
+  tagText: { fontFamily: 'Inter_500Medium', fontSize: 12, lineHeight: 16 },
 
-  avText: { fontFamily: 'SpaceGrotesk_700Bold', color: C.ink2 },
+  av: { backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  avText: { fontFamily: 'Inter_600SemiBold', color: C.ink2 },
 
-  tabs: { flexDirection: 'row', gap: 24, paddingHorizontal: GUTTER, borderBottomWidth: 1, borderBottomColor: C.line },
-  tab: { paddingTop: 10, paddingBottom: 12 },
-  tabText: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 14, letterSpacing: -0.2, color: C.ink3 },
-  tabUnderline: { position: 'absolute', left: 0, right: 0, bottom: -1, height: 3, borderRadius: 2, backgroundColor: C.brand },
+  listRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 8 },
+  listText: { flex: 1, minWidth: 0, gap: 2 },
+  listRight: { alignItems: 'flex-end', gap: 4 },
+  listMeta: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 16, color: C.ink3 },
 
-  tile: { width: '25%', paddingHorizontal: 6, paddingBottom: 18, alignItems: 'center', gap: 7 },
-  tileBox: {
-    width: '100%', height: 62, borderRadius: 16, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: C.card, borderWidth: 1.5, borderColor: C.line,
-  },
-  tileLabel: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 10, lineHeight: 12, letterSpacing: -0.1, textAlign: 'center', color: C.ink },
+  tabs: { flexDirection: 'row', gap: 24, paddingHorizontal: GUTTER, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line },
+  tab: { minHeight: 44, justifyContent: 'center', paddingTop: 10, paddingBottom: 12 },
+  tabText: { fontFamily: 'Inter_600SemiBold', fontSize: 14, lineHeight: 20, color: C.ink3 },
+  tabTextOn: { color: C.ink },
+  tabUnderline: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, borderRadius: 1, backgroundColor: C.brand },
+
+  seg: { flexDirection: 'row', padding: 4, gap: 4, borderRadius: 999, backgroundColor: C.paper2 },
+  segItem: { flex: 1, minHeight: 36, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  segItemOn: { backgroundColor: C.card, boxShadow: '0 1px 2px rgba(18,16,14,0.08)' },
+  segText: { fontFamily: 'Inter_500Medium', fontSize: 13, lineHeight: 18, color: C.ink3 },
+  segTextOn: { fontFamily: 'Inter_600SemiBold', color: C.ink },
+
+  tile: { alignItems: 'center', gap: 8 },
+  tileLabel: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 16, textAlign: 'center', color: C.ink },
 
   bottombar: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: GUTTER, paddingTop: 12,
-    backgroundColor: C.paper, borderTopWidth: 1, borderTopColor: C.line,
+    backgroundColor: C.card, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line,
   },
 
-  empty: {
-    alignItems: 'center', paddingVertical: 28, paddingHorizontal: 20,
-    borderWidth: 1, borderStyle: 'dashed', borderColor: C.line, borderRadius: 20,
-  },
+  empty: { alignItems: 'center', gap: 8, paddingVertical: 32, paddingHorizontal: 24 },
+  emptyTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 16, lineHeight: 22, color: C.ink, textAlign: 'center' },
+  emptyHint: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 18, color: C.ink3, textAlign: 'center' },
 }));
 
 export const kitStyles = s;

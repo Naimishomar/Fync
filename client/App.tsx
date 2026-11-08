@@ -1,7 +1,8 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import React from "react";
-import { View, ActivityIndicator, Image, Text, StyleSheet } from "react-native";
+import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import NetInfo from "@react-native-community/netinfo";
 import NoInternetScreen from "./components/NoInternetScreen";
 import { NavigationContainer } from "@react-navigation/native";
@@ -617,43 +618,26 @@ export default function App() {
     );
   }
 
+  // One calm toast shape; the icon (not colour alone) says which kind it is.
+  const toast = (icon: React.ComponentProps<typeof Ionicons>["name"], tint: string) => (props: any) => (
+    <View
+      className="mx-5 my-2 px-4 py-3 bg-card rounded-2xl flex-row items-center border border-line"
+      style={{ gap: 12, minHeight: 56, boxShadow: "0 4px 16px rgba(18,16,14,0.10)" }}
+      accessibilityLiveRegion="polite"
+    >
+      <View className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center">
+        <Ionicons name={icon} size={20} color={tint} />
+      </View>
+      <View className="flex-1 min-w-0">
+        <Text className="text-ink font-semibold" style={{ fontSize: 14, lineHeight: 19 }} numberOfLines={2}>{props.text1}</Text>
+        {!!props.text2 && <Text className="text-ink-3 font-sans mt-0.5" style={{ fontSize: 13, lineHeight: 18 }} numberOfLines={3}>{props.text2}</Text>}
+      </View>
+    </View>
+  );
   const toastConfig = {
-    success: (props: any) => (
-      <View className="mx-5 my-2 p-4 bg-card rounded-3xl flex-row items-center shadow-xl border border-line">
-        <View className="w-10 h-10 bg-paper-2 rounded-2xl items-center justify-center mr-3 border border-line overflow-hidden">
-          <Image source={require('./assets/Fync.png')} className="w-full h-full" resizeMode="cover" />
-        </View>
-        <View className="flex-1">
-          <Text className="text-ink font-bold text-sm tracking-tight">{props.text1}</Text>
-          {!!props.text2 && <Text className="text-ink-3 text-xs mt-0.5">{props.text2}</Text>}
-        </View>
-        <View className="bg-green-500 w-1.5 h-6 rounded-full ml-2" />
-      </View>
-    ),
-    info: (props: any) => (
-      <View className="mx-5 my-2 p-4 bg-zinc-900 rounded-3xl flex-row items-center shadow-2xl">
-        <View className="w-10 h-10 bg-zinc-800 rounded-2xl items-center justify-center mr-3 border border-zinc-700 overflow-hidden">
-          <Image source={require('./assets/Fync.png')} className="w-full h-full" resizeMode="cover" />
-        </View>
-        <View className="flex-1">
-          <Text className="text-white font-bold text-sm tracking-tight">{props.text1}</Text>
-          {!!props.text2 && <Text className="text-zinc-400 text-xs mt-0.5">{props.text2}</Text>}
-        </View>
-        <View className="bg-indigo-500 w-1.5 h-6 rounded-full ml-2" />
-      </View>
-    ),
-    error: (props: any) => (
-      <View className="mx-5 my-2 p-4 bg-card rounded-3xl flex-row items-center shadow-xl border border-danger/10">
-        <View className="w-10 h-10 bg-danger/10 rounded-2xl items-center justify-center mr-3 border border-danger/20 overflow-hidden">
-          <Image source={require('./assets/Fync.png')} className="w-full h-full" resizeMode="cover" />
-        </View>
-        <View className="flex-1">
-          <Text className="text-ink font-bold text-sm tracking-tight">{props.text1}</Text>
-          {!!props.text2 && <Text className="text-danger text-xs mt-0.5">{props.text2}</Text>}
-        </View>
-        <View className="bg-red-500 w-1.5 h-6 rounded-full ml-2" />
-      </View>
-    ),
+    success: toast("checkmark-circle-outline", C.success),
+    info: toast("information-circle-outline", C.ink),
+    error: toast("alert-circle-outline", C.danger),
   };
 
   return (

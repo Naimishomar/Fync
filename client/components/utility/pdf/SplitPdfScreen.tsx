@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput } from 'react-native';
-import PdfToolShell from './PdfToolShell';
+import { FormField } from '../../ui/kit';
+import PdfToolShell, { OptionCard } from './PdfToolShell';
 import { PDFDocument, loadDoc, writeDoc, parsePageRanges } from './pdfKit';
-import { C } from '../../../constants/colors';
 
 export default function SplitPdfScreen() {
   const [spec, setSpec] = useState('');
@@ -11,16 +10,9 @@ export default function SplitPdfScreen() {
       title="Split PDF" icon="cut-outline" runLabel="Extract to new PDF"
       blurb="Pull a page range out of a PDF into its own file. Leave the range blank to keep everything."
       options={() => (
-        <View className="bg-card rounded-card p-5 border border-line shadow-hair mb-5">
-          <Text className="text-ink-3 font-display uppercase text-label mb-2">Pages to keep</Text>
-          <TextInput
-            value={spec} onChangeText={setSpec}
-            placeholder="e.g. 1-3, 5, 9-" placeholderTextColor={C.ink3}
-            className="bg-card p-4 text-ink border-[1.5px] border-ink rounded-md"
-            style={{ minHeight: 50 }} autoCapitalize="none"
-          />
-          <Text className="text-ink-3 text-label mt-2">Use commas for single pages and a dash for a range.</Text>
-        </View>
+        <OptionCard>
+          <FormField label="Pages to keep" value={spec} onChangeText={setSpec} placeholder="e.g. 1-3, 5, 9-" hint="Use commas for single pages and a dash for a range." autoCapitalize="none" />
+        </OptionCard>
       )}
       run={async (files) => {
         const src = await loadDoc(files[0].uri);

@@ -1,13 +1,13 @@
 import React, { useCallback, useState } from 'react';
-import {View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl, StatusBar} from 'react-native'
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Feather from '@expo/vector-icons/Feather';
+import { View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar } from 'react-native';
+import { Image } from 'expo-image';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
-import { AppBar } from '../ui/kit';
+import { AppBar, Button } from '../ui/kit';
+import { VoteControl, ago } from './shared';
 import CommentsSheet, { CommentsApi } from '../ui/CommentsSheet';
 
 // Backend (communityPost.routes): comments come back with the post from
@@ -25,17 +25,6 @@ const COMMUNITY_COMMENTS: CommentsApi = {
     pick: (data) => data?.comments,
     replies: true,
     remove: (id) => ({ method: 'delete', url: `/communities/comments/${id}` }),
-};
-
-const ago = (iso: string) => {
-    const t = new Date(iso).getTime();
-    if (!Number.isFinite(t)) return '';
-    const mins = Math.floor((Date.now() - t) / 60000);
-    if (mins < 1) return 'now';
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
-    return `${Math.floor(hours / 24)}d`;
 };
 
 export default function CommunityPostDetail() {
@@ -101,32 +90,19 @@ export default function CommunityPostDetail() {
                         contentContainerStyle={{ paddingBottom: 24 }}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchPost(); }} tintColor={C.brand[500]} />}
                     >
-                        <View className="bg-card mx-5 p-6 rounded-card border border-line shadow-hair">
-                            <Text className="text-ink-3 font-display text-label uppercase mb-2" numberOfLines={1}>
+                        <View className="bg-card mx-5 p-4 rounded-2xl border border-line">
+                            <Text className="text-ink-3 mb-2" style={{ fontSize: 12 }} numberOfLines={1}>
                                 {post?.author?.username || 'unknown'} · {post ? ago(post.createdAt) : ''}
                             </Text>
-                            <Text className="text-ink text-xl font-display leading-snug">{post?.title}</Text>
-                            {!!post?.body && <Text className="text-ink-2 text-base mt-3 leading-relaxed">{post.body}</Text>}
+                            <Text className="text-ink font-display" style={{ fontSize: 22, lineHeight: 28 }}>{post?.title}</Text>
+                            {!!post?.body && <Text className="text-ink-2 mt-3" style={{ fontSize: 15, lineHeight: 22 }}>{post.body}</Text>}
                             {post?.image?.map((url: string) => (
-                                <Image key={url} source={{ uri: url }} className="w-full h-56 rounded-card mt-4 bg-paper-2" resizeMode="cover" />
+                                <Image key={url} source={{ uri: url }} style={{ width: '100%', height: 224, borderRadius: 12, marginTop: 16, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
                             ))}
 
-                            <View className="flex-row items-center mt-5 gap-5">
-                                <View className="flex-row items-center bg-paper-2 rounded-card px-3 h-11 border border-line">
-                                    <TouchableOpacity onPress={() => vote(1)} hitSlop={8}>
-                                        <Ionicons name={post?.myVote === 1 ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={24} color={post?.myVote === 1 ? C.brand[500] : C.ink3} />
-                                    </TouchableOpacity>
-                                    <Text className="text-ink font-display text-sm mx-3">{post?.score ?? 0}</Text>
-                                    <TouchableOpacity onPress={() => vote(-1)} hitSlop={8}>
-                                        <Ionicons name={post?.myVote === -1 ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={24} color={post?.myVote === -1 ? C.info : C.ink3} />
-                                    </TouchableOpacity>
-                                </View>
-                                <TouchableOpacity onPress={() => setCommentsOpen(true)} hitSlop={8} className="flex-row items-center">
-                                    <Feather name="message-circle" size={15} color={C.ink3} />
-                                    <Text className="text-ink-3 font-display text-label uppercase ml-2">
-                                        {post?.commentCount ?? 0}
-                                    </Text>
-                                </TouchableOpacity>
+                            <View className="flex-row items-center mt-4" style={{ gap: 12 }}>
+                                <VoteControl score={post?.score ?? 0} myVote={post?.myVote} onVote={vote} />
+                                <Button small variant="tertiary" icon="chatbubble-outline" title={`${post?.commentCount ?? 0} comments`} onPress={() => setCommentsOpen(true)} />
                             </View>
                         </View>
                     </ScrollView>

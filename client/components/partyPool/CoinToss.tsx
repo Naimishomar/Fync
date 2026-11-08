@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, Animated, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, Animated } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../../constants/colors';
+import { Button } from '../ui/kit';
 
 
 const CoinToss = () => {
@@ -31,15 +32,15 @@ const CoinToss = () => {
   });
 
   return (
-    <View className="p-card-pad bg-card rounded-sheet border border-line shadow-hair items-center" style={{ alignSelf: 'stretch' }}>
+    <View className="p-5 bg-card rounded-2xl border border-line items-center" style={{ alignSelf: 'stretch' }}>
       {/* Header */}
       <View className="items-center mb-[50px]">
-        <Text className="text-2xl font-display text-ink uppercase">COIN <Text className="text-brand-500">TOSS</Text></Text>
-        <Text className="text-label text-ink-3 font-display uppercase mt-1">Probability Engine v1.4</Text>
+        <Text className="text-2xl font-display text-ink" accessibilityRole="header">Coin toss</Text>
+        <Text className="text-sm text-ink-3 mt-1">Heads or tails, settled fairly</Text>
       </View>
 
       <View className="items-center mb-[50px]">
-        <Animated.View className="w-[180px] h-[180px] rounded-full shadow-hair shadow-[#F97316]" style={{ transform: [{ rotateY: spin }] }}>
+        <Animated.View className="w-[180px] h-[180px] rounded-full" style={{ transform: [{ rotateY: spin }] }}>
           <View
             className="w-full h-full rounded-full justify-center items-center border-[8px] border-white/20"
            style={{ backgroundColor: C.brand[500] }}>
@@ -59,28 +60,16 @@ const CoinToss = () => {
       
       <View className="h-20 justify-center mb-10">
         {result ? (
-          <View className="items-center bg-paper px-6 py-3 rounded-card border border-line">
-            <Text className="text-label font-display text-ink-3 mb-1">OUTCOME DETECTED</Text>
-            <Text className="text-2xl font-display text-brand-500">{result.toUpperCase()}</Text>
+          <View className="items-center bg-paper-2 px-6 py-3 rounded-2xl" accessibilityLiveRegion="polite">
+            <Text className="text-sm font-semibold text-ink-3 mb-1">Result</Text>
+            <Text className="text-2xl font-display text-ink">{result}</Text>
           </View>
         ) : (
-          <Text className="text-sm text-ink-3 font-semibold italic">Awaiting Transmission...</Text>
+          <Text className="text-sm text-ink-3">Tap toss to flip the coin</Text>
         )}
       </View>
 
-      <TouchableOpacity 
-        onPress={tossCoin} 
-        disabled={flipping}
-        activeOpacity={0.8}
-        className="w-full h-16 rounded-card overflow-hidden shadow-hair"
-      >
-        <View
-          style={{ backgroundColor: flipping ? C.ink3 : C.ink }}
-          className="flex-1 justify-center items-center"
-        >
-          <Text className="text-paper text-sm font-display uppercase">{flipping ? 'FLIPPING...' : 'EXECUTE TOSS'}</Text>
-        </View>
-      </TouchableOpacity>
+      <Button variant="primary" block title={flipping ? 'Flipping...' : 'Toss coin'} onPress={tossCoin} disabled={flipping} />
     </View>
   );
 };

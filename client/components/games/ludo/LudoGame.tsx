@@ -12,7 +12,7 @@ import { useAuth } from '../../../context/auth.context';
 import socket from '../../../utils/socket';
 import { C } from '../../../constants/colors';
 import { tapHaptic, selectHaptic } from '../../../utils/haptics';
-import { AppBar, Button, IconBtn, Screen } from '../../ui/kit';
+import { AppBar, Button, IconBtn, Label, ListRow, Screen } from '../../ui/kit';
 import { Alert } from '../../ui/AlertModal';
 import Avatar from '../../Avatar';
 import LudoBoard, { LUDO_COLORS, LUDO_NAMES } from './LudoBoard';
@@ -282,8 +282,8 @@ const LudoGame = () => {
         title="Ludo"
         onBack={back}
         right={
-          phase === 'playing' && random ? <IconBtn name="flag-outline" onPress={safety} />
-            : phase === 'lobby' ? <IconBtn name="trophy-outline" onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'Ludo', title: 'Ludo' })} />
+          phase === 'playing' && random ? <IconBtn name="flag-outline" accessibilityLabel="Report a player" onPress={safety} />
+            : phase === 'lobby' ? <IconBtn name="trophy-outline" accessibilityLabel="Leaderboard" onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'Ludo', title: 'Ludo' })} />
               : undefined
         }
       />
@@ -310,7 +310,7 @@ const LudoGame = () => {
         <View className="flex-1 items-center justify-center p-8">
           <Text style={{ fontSize: 56 }}>🎲</Text>
           <ActivityIndicator color={C.brand[500]} style={{ marginTop: 16 }} />
-          <Text className="font-display text-ink text-lg mt-3 text-center">
+          <Text className="font-semibold text-ink text-lg mt-3 text-center">
             {searchSize === 2 ? 'Finding an opponent…' : 'Finding players…'}
           </Text>
           {searchSize === 4 ? (
@@ -349,12 +349,12 @@ const LudoGame = () => {
               <TextInput
                 value={joinCode}
                 onChangeText={(t) => setJoinCode(t.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6).toUpperCase())}
-                placeholder="ROOM CODE"
+                placeholder="Room code"
                 placeholderTextColor={C.ink4}
                 autoCapitalize="characters"
                 autoCorrect={false}
                 onSubmitEditing={join}
-                className="flex-1 rounded-xl border border-line bg-paper px-4 font-display text-ink"
+                className="flex-1 rounded-2xl border border-line bg-paper px-4 font-display text-ink"
                 style={{ height: 48, fontSize: 18, letterSpacing: 4 }}
               />
               <Button title="Join" variant="solid" onPress={join} disabled={joinCode.length !== 6} />
@@ -376,9 +376,8 @@ const LudoGame = () => {
   );
 };
 
-const Section = ({ title }: { title: string }) => (
-  <Text className="font-display text-label text-ink-2 uppercase mb-2" style={{ letterSpacing: 1.2 }}>{title}</Text>
-);
+const ROW_PAD = { paddingHorizontal: 16 };
+const Section = ({ title }: { title: string }) => <Label style={{ marginBottom: 8 }}>{title}</Label>;
 
 const RoomLobby = ({ lobby, myId, onStart, onLeave }: { lobby: Lobby; myId: string; onStart: () => void; onLeave: () => void }) => {
   const host = lobby.hostId === myId;
@@ -395,16 +394,18 @@ const RoomLobby = ({ lobby, myId, onStart, onLeave }: { lobby: Lobby; myId: stri
           onPress={() => Share.share({ message: `Ludo on Fync 🎲 Open Games → Ludo and join room ${lobby.code}` }).catch(() => {})}
         />
       </View>
-      <Text className="font-display text-label text-ink-2 uppercase mb-2" style={{ letterSpacing: 1.2 }}>
-        Players {lobby.members.length}/4
-      </Text>
-      {lobby.members.map((m, i) => (
-        <View key={m.userId || i} className="flex-row items-center rounded-xl border border-line bg-card p-3 mb-2">
-          <Avatar user={m} size={36} showBadge={false} />
-          <Text className="font-display text-ink ml-3 flex-1" numberOfLines={1}>{m.name || m.username || 'Player'}</Text>
-          {m.userId === lobby.hostId ? <Text className="font-sans text-ink-3 text-xs">Host</Text> : null}
-        </View>
-      ))}
+      <Label style={{ marginBottom: 8 }}>Players {lobby.members.length}/4</Label>
+      <View className="rounded-2xl border border-line bg-card overflow-hidden">
+        {lobby.members.map((m, i) => (
+          <ListRow
+            key={m.userId || i}
+            leading={<Avatar user={m} size={36} showBadge={false} />}
+            title={m.name || m.username || 'Player'}
+            meta={m.userId === lobby.hostId ? 'Host' : undefined}
+            style={ROW_PAD}
+          />
+        ))}
+      </View>
       {host ? (
         <Button
           title={lobby.members.length < 2 ? 'Waiting for friends…' : `Start game (${lobby.members.length} players)`}
@@ -497,7 +498,7 @@ const PlayerChip = ({ p, seat, color, active, me, align }: { p?: Player; seat: n
   if (!p) return <View style={{ flex: 1 }} />;
   return (
     <View
-      className="flex-row items-center rounded-xl bg-card"
+      className="flex-row items-center rounded-2xl bg-card"
       style={{
         flex: 1, padding: 6, gap: 8, borderWidth: 2, borderColor: active ? LUDO_COLORS[color] : 'transparent',
         flexDirection: align === 'right' ? 'row-reverse' : 'row',
@@ -514,7 +515,7 @@ const PlayerChip = ({ p, seat, color, active, me, align }: { p?: Player; seat: n
         )}
       </View>
       <View style={{ flexShrink: 1, alignItems: align === 'right' ? 'flex-end' : 'flex-start' }}>
-        <Text className="font-display text-ink" numberOfLines={1} style={{ fontSize: 13 }}>{me ? 'You' : firstName(p)}</Text>
+        <Text className="font-semibold text-ink" numberOfLines={1} style={{ fontSize: 13 }}>{me ? 'You' : firstName(p)}</Text>
         <Text className="font-sans text-ink-3" style={{ fontSize: 11 }}>
           {p.left ? 'Left · bot' : p.bot && p.userId ? 'Autoplay' : LUDO_NAMES[color]}
         </Text>
@@ -609,7 +610,7 @@ const Playing = ({
       {game.phase !== 'over' ? (
         <View style={{ width: boardSize, marginTop: 16, alignItems: 'center' }}>
           <Dice value={lastRoll?.value ?? null} rollKey={lastRoll?.key ?? 0} color={diceColor} active={rollable} onPress={onRoll} />
-          <Text className="font-display text-ink mt-3 text-center" style={{ fontSize: 15 }}>{status}</Text>
+          <Text className="font-semibold text-ink mt-3 text-center" style={{ fontSize: 15 }}>{status}</Text>
           {online ? (
             <View style={{ alignSelf: 'stretch' }}>
               <TurnBar game={game} color={turnColor} ms={turnMs} show={!turnPlayer?.bot} />

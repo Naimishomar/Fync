@@ -10,7 +10,7 @@ import { useAuth } from '../../../context/auth.context';
 import socket from '../../../utils/socket';
 import { C } from '../../../constants/colors';
 import { tapHaptic } from '../../../utils/haptics';
-import { AppBar, Button, IconBtn, Screen } from '../../ui/kit';
+import { AppBar, Button, IconBtn, IconTile, Screen } from '../../ui/kit';
 import { Alert } from '../../ui/AlertModal';
 import Avatar from '../../Avatar';
 import { Grid, Keyboard, MiniGrid, letterStates, useTileSize, type Row } from './Board';
@@ -269,7 +269,7 @@ const WordDuel = () => {
       <AppBar
         title={title}
         onBack={onBack}
-        right={phase === 'duel' && opponent ? <IconBtn name="flag-outline" onPress={safety} /> : undefined}
+        right={phase === 'duel' && opponent ? <IconBtn name="flag-outline" accessibilityLabel="Report or block opponent" onPress={safety} /> : undefined}
       />
       {phase === 'daily' || phase === 'endless' ? (
         <Solo daily={phase === 'daily'} />
@@ -307,7 +307,7 @@ const WordDuel = () => {
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
           {phase === 'searching' || phase === 'code' ? (
             <View className="rounded-2xl border border-line bg-card p-6 items-center">
-              <Ionicons name="flash" size={44} color={BRAND} />
+              <IconTile icon="flash-outline" size={56} iconSize={26} color={BRAND} />
               {phase === 'searching' ? (
                 <>
                   <ActivityIndicator color={C.brand[500]} style={{ marginTop: 16 }} />
@@ -354,16 +354,14 @@ const ModeCard = ({ icon, tint, title, hint, children }: {
   icon: React.ComponentProps<typeof Ionicons>['name']; tint: string; title: string; hint: string; children: React.ReactNode;
 }) => (
   <View className="rounded-2xl border border-line bg-card mb-3 overflow-hidden">
-    <View className="flex-row items-center p-4" style={{ backgroundColor: `${tint}${C.scheme === 'dark' ? '26' : '14'}` }}>
-      <View className="items-center justify-center rounded-xl" style={{ width: 48, height: 48, backgroundColor: tint }}>
-        <Ionicons name={icon} size={24} color="#FFFFFF" />
-      </View>
+    <View className="flex-row items-center p-4">
+      <IconTile icon={icon} size={48} iconSize={24} color={tint} />
       <View className="flex-1 ml-3">
-        <Text className="font-display text-ink" style={{ fontSize: 16 }}>{title}</Text>
+        <Text className="font-semibold text-ink" style={{ fontSize: 16 }} accessibilityRole="header">{title}</Text>
         <Text className="font-sans text-ink-2 text-sm mt-0.5">{hint}</Text>
       </View>
     </View>
-    <View className="flex-row p-3" style={{ gap: 10 }}>{children}</View>
+    <View className="flex-row px-4 pb-4" style={{ gap: 8 }}>{children}</View>
   </View>
 );
 
@@ -406,7 +404,7 @@ const Lobby = ({ stats, joinCode, setJoinCode, onJoin, onDaily, onEndless, onRan
           autoCapitalize="characters"
           autoCorrect={false}
           onSubmitEditing={onJoin}
-          className="flex-1 rounded-xl border border-line bg-card px-4 font-display text-ink"
+          className="flex-1 rounded-2xl border border-line bg-card px-4 font-display text-ink"
           style={{ height: 48, fontSize: 16, letterSpacing: 3 }}
         />
         <Button title="Join" variant="solid" onPress={onJoin} disabled={joinCode.length !== 6} />

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {View, Text, TouchableOpacity, ActivityIndicator, Dimensions, Image} from 'react-native'
-import Ionicons from '@expo/vector-icons/Ionicons';
+import {View, Text, ActivityIndicator} from 'react-native'
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useAuth } from '../../context/auth.context';
 import socket from '../../utils/socket';
 import ChessGame from './ChessGame';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { Button, ListRow } from '../ui/kit';
 
-const { width } = Dimensions.get('window');
+const ROW = { paddingHorizontal: 16, paddingVertical: 12 };
 
 const ChessHome = () => {
     const { user } = useAuth();
@@ -107,82 +107,46 @@ const ChessHome = () => {
 
     return (
         <View className="flex-1 w-full mt-4">
-            <View 
-                className="rounded-sheet p-card-pad shadow-hair border border-line overflow-hidden"
-             style={{ backgroundColor: C.card }}>
-                {/* Decorative background elements */}
-                <View className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-recruiter/10 rounded-full blur-3xl" />
-                <View className="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-brand-500/10 rounded-full blur-3xl" />
-
-                <View className="items-center mb-10 mt-4">
-                    <View className="w-24 h-24 bg-night rounded-sheet justify-center items-center mb-6 shadow-hair border-2 border-recruiter/20">
-                        <FontAwesome5 name="chess-knight" size={44} color={C.recruiter} />
+            <View className="rounded-2xl p-5 border border-line bg-card">
+                <View className="items-center mb-6 mt-2">
+                    <View className="w-20 h-20 bg-paper-2 rounded-full justify-center items-center mb-4">
+                        <FontAwesome5 name="chess-knight" size={36} color={C.ink} />
                     </View>
-                    <Text className="text-2xl font-display text-ink uppercase text-center leading-8">Fync Chess Arena</Text>
-                    <View className="bg-recruiter/10 mt-3 border border-recruiter/15 px-2.5 py-1 rounded-full">
-                        <Text className="text-label font-display text-recruiter uppercase">Global Multiplayer</Text>
-                    </View>
+                    <Text className="text-2xl font-display text-ink text-center" accessibilityRole="header">Fync Chess Arena</Text>
+                    <Text className="text-sm text-ink-3 mt-1">Global multiplayer</Text>
                 </View>
 
                 {status === 'searching' ? (
-                    <View className="items-center py-10 bg-paper-2/50 rounded-card border border-line">
-                        <ActivityIndicator size="large" color={C.recruiter} />
-                        <Text className="mt-6 font-display text-ink-2 text-xs">SEARCHING FOR OPPONENT...</Text>
-                        <TouchableOpacity 
+                    <View className="items-center py-8 bg-paper-2 rounded-2xl">
+                        <ActivityIndicator size="large" color={C.brand[500]} />
+                        <Text className="mt-4 font-semibold text-ink-2">Searching for an opponent...</Text>
+                        <Button
+                            title="Cancel search"
+                            variant="secondary"
+                            style={{ marginTop: 20 }}
                             onPress={() => {
                                 socket?.emit('leave_chess', { userId: user?._id });
                                 setStatus('lobby');
                             }}
-                            className="mt-8 px-gutter py-4 bg-danger/10 rounded-card border border-danger/15"
-                        >
-                            <Text className="text-danger font-display text-xs">CANCEL SEARCH</Text>
-                        </TouchableOpacity>
+                        />
                     </View>
                 ) : (
-                    <View className="gap-y-4">
-                        <TouchableOpacity 
+                    <View className="rounded-2xl border border-line overflow-hidden">
+                        <ListRow
+                            icon="globe-outline"
+                            title="Play online"
+                            subtitle="1v1 matchmaking"
                             onPress={findMatch}
-                            activeOpacity={0.9}
-                            className="h-20 rounded-card overflow-hidden shadow-hair border border-recruiter/20"
-                        >
-                            <View 
-                                className="flex-1 flex-row items-center justify-between px-6"
-                             style={{ backgroundColor: '#171320' }}>
-                                <View className="flex-row items-center">
-                                    <View className="w-12 h-12 bg-white/10 rounded-full items-center justify-center border border-white/10">
-                                        <Ionicons name="globe" size={24} color={C.recruiter} />
-                                    </View>
-                                    <View className="ml-4">
-                                        <Text className="text-white font-display text-sm uppercase">Play Online</Text>
-                                        <Text className="text-recruiter font-semibold text-label mt-0.5 uppercase">1v1 Matchmaking</Text>
-                                    </View>
-                                </View>
-                                <View className="w-8 h-8 bg-white/10 rounded-full items-center justify-center">
-                                    <Ionicons name="chevron-forward" size={16} color={C.recruiter} />
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity 
+                            style={ROW}
+                        />
+                        <View className="h-px bg-line" />
+                        <ListRow
+                            leading={<View className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center"><FontAwesome5 name="robot" size={16} color={C.ink} /></View>}
+                            title="Play vs AI"
+                            subtitle="Win 5 coins"
                             onPress={playBot}
-                            activeOpacity={0.9}
-                            className="h-20 rounded-card overflow-hidden border border-line"
-                        >
-                            <View className="flex-1 bg-paper flex-row items-center justify-between px-6">
-                                <View className="flex-row items-center">
-                                    <View className="w-12 h-12 bg-paper-2 rounded-full items-center justify-center border border-line">
-                                        <FontAwesome5 name="robot" size={20} color={C.ink3} />
-                                    </View>
-                                    <View className="ml-4">
-                                        <Text className="text-ink font-display text-sm uppercase">Play VS AI</Text>
-                                        <Text className="text-ink-3 font-semibold text-label mt-0.5 uppercase">Win 5 Coins</Text>
-                                    </View>
-                                </View>
-                                <View className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
-                                    <Ionicons name="chevron-forward" size={16} color={C.ink3} />
-                                </View>
-                            </View>
-                        </TouchableOpacity>
+                            style={ROW}
+                        />
                     </View>
                 )}
             </View>

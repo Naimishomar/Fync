@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet, Dimensions, ViewStyle, StyleProp } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Animated, Dimensions, ViewStyle, StyleProp } from 'react-native';
 import { C } from '../constants/colors';
 
 interface SkeletonProps {
@@ -9,65 +8,49 @@ interface SkeletonProps {
   borderRadius?: number;
   style?: StyleProp<ViewStyle>;
   className?: string;
+  /** Paper-2 block for normal screens. Off: the night surface (Shorts). */
   lightMode?: boolean;
 }
 
+/** A soft block that gently pulses. Give it the footprint of the real content. */
 const Skeleton = ({ width, height, borderRadius = 8, style, className, lightMode = false }: SkeletonProps) => {
-  const animatedValue = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const animation = Animated.loop(
       Animated.sequence([
-        Animated.timing(animatedValue, {
-          toValue: 1,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(animatedValue, {
-          toValue: 0,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 900, useNativeDriver: true }),
       ])
     );
     animation.start();
     // Without this every skeleton that ever mounted keeps looping on the
     // native side after the real content replaces it.
     return () => animation.stop();
-  }, [animatedValue]);
+  }, [pulse]);
 
-  const opacity = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
-  });
+  const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 0.55] });
 
   return (
-    <View 
-      style={[{ 
-        width: width as any, 
-        height: height as any, 
-        borderRadius, 
-        overflow: 'hidden', 
-        backgroundColor: lightMode ? C.paper2 : '#171320' 
-      }, style]} 
+    <Animated.View
+      style={[{
+        width: width as any,
+        height: height as any,
+        borderRadius,
+        backgroundColor: lightMode ? C.paper2 : C.night2,
+        opacity,
+      }, style]}
       className={className}
-    >
-      <Animated.View style={{ flex: 1, opacity }}>
-        <LinearGradient
-          colors={lightMode ? [C.line, C.ink4, C.line] : ['#171320', '#0D0B12', '#171320']}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-    </View>
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    />
   );
 };
 
 export const ShortsSkeleton = () => {
     const { height, width } = Dimensions.get('window');
     return (
-        <View style={{ height, width, backgroundColor: '#12100E', padding: 20, justifyContent: 'flex-end' }}>
+        <View style={{ height, width, backgroundColor: C.night, padding: 20, justifyContent: 'flex-end' }}>
             {/* Sidebar widgets */}
             <View className="absolute right-4 bottom-32 items-center">
                 <Skeleton width={45} height={45} borderRadius={22.5} style={{ marginVertical: 8 }} />
@@ -93,7 +76,7 @@ export const ShortsSkeleton = () => {
 };
 
 export const ConfessionSkeleton = () => (
-    <View className="bg-paper-2 p-card-pad rounded-card mb-4 border border-line">
+    <View className="bg-card p-4 rounded-2xl mb-3 border border-line">
         <View className="flex-row items-center mb-4">
             <Skeleton width={40} height={40} borderRadius={20} />
             <View className="ml-3">
@@ -122,8 +105,8 @@ export const ProfileSkeleton = () => (
 
         <Skeleton width="100%" height={256} borderRadius={0} lightMode />
 
-        <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
-            <View className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
+        <View className="items-center pb-6 px-5 bg-paper rounded-t-3xl -mt-12">
+            <View className="-mt-14 p-1.5 bg-card rounded-full">
                 <View className="rounded-full overflow-hidden border-4 border-card">
                     <Skeleton width={110} height={110} borderRadius={55} lightMode />
                 </View>
@@ -134,11 +117,11 @@ export const ProfileSkeleton = () => (
             <Skeleton width="80%" height={14} style={{ marginTop: 16 }} lightMode />
             <Skeleton width="60%" height={14} style={{ marginTop: 8 }} lightMode />
 
-            <View className="flex-row items-center mt-4 px-4 py-2 bg-paper-2 rounded-card border border-line gap-2">
+            <View className="flex-row items-center mt-4 px-4 py-2 bg-paper-2 rounded-full gap-2">
                 <Skeleton width={60} height={14} lightMode />
             </View>
 
-            <View className="flex-row w-full bg-paper-2 rounded-sheet mt-6 p-6 border border-line">
+            <View className="flex-row w-full bg-card rounded-2xl mt-6 p-4 border border-line">
                 <View className="flex-1 items-center">
                     <Skeleton width={30} height={24} lightMode />
                     <Skeleton width={50} height={10} style={{ marginTop: 6 }} lightMode />
@@ -154,12 +137,12 @@ export const ProfileSkeleton = () => (
             </View>
 
             <View className="flex-row gap-3 mt-6 w-full">
-                <Skeleton width="48%" height={50} borderRadius={25} lightMode />
-                <Skeleton width="48%" height={50} borderRadius={25} lightMode />
+                <Skeleton width="48%" height={48} borderRadius={24} lightMode />
+                <Skeleton width="48%" height={48} borderRadius={24} lightMode />
             </View>
         </View>
 
-        <View className="flex-row border-b border-line bg-card pt-2 pb-4">
+        <View className="flex-row border-b border-line bg-paper pt-2 pb-4">
             <View className="flex-1 items-center"><Skeleton width={30} height={30} borderRadius={15} lightMode /></View>
             <View className="flex-1 items-center"><Skeleton width={30} height={30} borderRadius={15} lightMode /></View>
             <View className="flex-1 items-center"><Skeleton width={30} height={30} borderRadius={15} lightMode /></View>
@@ -215,7 +198,7 @@ export const ChatSkeleton = ({ isMe }: { isMe?: boolean }) => (
                         borderTopRightRadius: isMe ? 6 : 16,
                         borderBottomRightRadius: isMe ? 6 : 16,
                     }}
-                    className={`p-4 w-[200px] border border-line ${isMe ? "bg-paper-2" : "bg-card shadow-hair"}`}
+                    className={`p-4 w-[200px] border border-line ${isMe ? "bg-paper-2" : "bg-card"}`}
                 >
                     <Skeleton width="100%" height={12} style={{ marginBottom: 6 }} lightMode />
                     <Skeleton width="70%" height={12} lightMode />
@@ -235,7 +218,7 @@ export const UserListSkeleton = () => (
             <Skeleton width={130} height={16} lightMode />
             <Skeleton width={90} height={10} style={{ marginTop: 6 }} lightMode />
         </View>
-        <Skeleton width={80} height={35} borderRadius={10} lightMode />
+        <Skeleton width={80} height={36} borderRadius={18} lightMode />
     </View>
 );
 
@@ -269,9 +252,9 @@ export const PostSkeleton = () => {
 };
 
 export const TeammateSkeleton = () => (
-    <View className="bg-card rounded-sheet p-6 mb-5 border border-line mx-5">
+    <View className="bg-card rounded-2xl p-4 mb-3 border border-line mx-5">
         <View className="flex-row items-center mb-5">
-            <View className="p-1 rounded-full border border-line shadow-hair bg-card">
+            <View className="p-1 rounded-full border border-line bg-card">
                 <Skeleton width={64} height={64} borderRadius={32} lightMode />
             </View>
             <View className="ml-4 flex-1">
@@ -280,14 +263,14 @@ export const TeammateSkeleton = () => (
                 <Skeleton width={90} height={14} borderRadius={12} lightMode />
             </View>
             <View className="flex-row gap-2">
-                <Skeleton width={36} height={36} borderRadius={12} lightMode />
-                <Skeleton width={36} height={36} borderRadius={12} lightMode />
+                <Skeleton width={36} height={36} borderRadius={18} lightMode />
+                <Skeleton width={36} height={36} borderRadius={18} lightMode />
             </View>
         </View>
         <View className="flex-row flex-wrap gap-2 mb-5">
             {[1, 2, 3].map(i => <Skeleton key={i} width={60} height={24} borderRadius={12} lightMode />)}
         </View>
-        <View className="bg-paper-2 p-4 rounded-card mb-6 border border-line">
+        <View className="bg-paper-2 p-4 rounded-2xl mb-4">
             <Skeleton width="100%" height={12} style={{ marginBottom: 6 }} lightMode />
             <Skeleton width="80%" height={12} lightMode />
         </View>
@@ -295,13 +278,13 @@ export const TeammateSkeleton = () => (
             <View className="flex-row items-center flex-1 ml-1 mr-4">
                 <Skeleton width={100} height={12} lightMode />
             </View>
-            <Skeleton width={100} height={44} borderRadius={16} lightMode />
+            <Skeleton width={100} height={44} borderRadius={22} lightMode />
         </View>
     </View>
 );
 
 export const NotificationSkeleton = () => (
-    <View className="flex-row items-center p-3 mb-2 rounded-xl bg-card border border-line shadow-hair">
+    <View className="flex-row items-center p-3 mb-2 rounded-2xl bg-card border border-line">
         <Skeleton width={40} height={40} borderRadius={20} lightMode />
         <View className="flex-1 ml-3">
             <Skeleton width="80%" height={12} style={{ marginBottom: 6 }} lightMode />
@@ -312,7 +295,7 @@ export const NotificationSkeleton = () => (
 );
 
 export const ProjectSkeleton = () => (
-    <View className="mx-gutter mb-10 rounded-sheet bg-card border border-line shadow-hair p-6">
+    <View className="mx-gutter mb-3 rounded-2xl bg-card border border-line p-4">
         <View className="flex-row items-center mb-6">
             <Skeleton width={48} height={48} borderRadius={24} lightMode />
             <View className="ml-3">
@@ -320,7 +303,7 @@ export const ProjectSkeleton = () => (
                 <Skeleton width={80} height={10} lightMode />
             </View>
         </View>
-        <Skeleton width="100%" height={240} borderRadius={24} style={{ marginBottom: 16 }} lightMode />
+        <Skeleton width="100%" height={240} borderRadius={16} style={{ marginBottom: 16 }} lightMode />
         <Skeleton width="80%" height={24} style={{ marginBottom: 12 }} lightMode />
         <Skeleton width="100%" height={12} style={{ marginBottom: 6 }} lightMode />
         <Skeleton width="90%" height={12} style={{ marginBottom: 20 }} lightMode />
@@ -330,8 +313,8 @@ export const ProjectSkeleton = () => (
                 <Skeleton width={32} height={32} borderRadius={16} lightMode />
             </View>
             <View className="flex-row gap-2">
-                <Skeleton width={40} height={40} borderRadius={12} lightMode />
-                <Skeleton width={40} height={40} borderRadius={12} lightMode />
+                <Skeleton width={40} height={40} borderRadius={20} lightMode />
+                <Skeleton width={40} height={40} borderRadius={20} lightMode />
             </View>
         </View>
     </View>

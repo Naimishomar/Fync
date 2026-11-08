@@ -1,16 +1,7 @@
 import React from 'react';
-import {
-    View,
-    Text,
-    Image,
-    ScrollView,
-    TouchableOpacity,
-    Linking,
-} from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { View, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { C } from '../constants/colors';
-import { AppBar } from './ui/kit';
+import { AppBar, Avatar, Card, IconBtn, ListRow, SectionHeader } from './ui/kit';
 
 const TEAM_MEMBERS = [
     {
@@ -64,31 +55,10 @@ const TEAM_MEMBERS = [
     }
 ];
 
-// mockup .av.ring-student is box-shadow 0 0 0 2px card, 0 0 0 4px student.
-// RN has no spread shadow, so the pair becomes a 2px card pad inside a 2px
-// brand border.
-const Avatar = ({ uri, size }: { uri: string; size: number }) => (
-    <View className="rounded-full border-2 border-brand-500 bg-card" style={{ padding: 2 }}>
-        <Image source={{ uri }} style={{ width: size, height: size, borderRadius: 999, backgroundColor: C.paper2 }} resizeMode="cover" />
-    </View>
-);
-
 const Socials = ({ member, openLink }: { member: typeof TEAM_MEMBERS[number]; openLink: (u: string) => void }) => (
-    <View className="flex-row" style={{ gap: 8 }}>
-        <TouchableOpacity
-            onPress={() => openLink(member.linkedin)}
-            className="w-11 h-11 items-center justify-center rounded-xl border border-line bg-card"
-            accessibilityRole="button" accessibilityLabel={`${member.name} on LinkedIn`}
-        >
-            <Ionicons name="logo-linkedin" size={18} color="#0077B5" />
-        </TouchableOpacity>
-        <TouchableOpacity
-            onPress={() => openLink(member.instagram)}
-            className="w-11 h-11 items-center justify-center rounded-xl border border-line bg-card"
-            accessibilityRole="button" accessibilityLabel={`${member.name} on Instagram`}
-        >
-            <Ionicons name="logo-instagram" size={18} color="#E4405F" />
-        </TouchableOpacity>
+    <View className="flex-row">
+        <IconBtn name="logo-linkedin" color="#0077B5" size={20} onPress={() => openLink(member.linkedin)} accessibilityLabel={`${member.name} on LinkedIn`} />
+        <IconBtn name="logo-instagram" color="#E4405F" size={20} onPress={() => openLink(member.instagram)} accessibilityLabel={`${member.name} on Instagram`} />
     </View>
 );
 
@@ -103,60 +73,34 @@ const MeetOurTeam = () => {
 
     return (
         <View className="flex-1 bg-paper">
-        <View className="flex-1">
-            {/* App bar */}
-            <AppBar title="Meet the Team" onBack={() => navigation.goBack()} />
+            <AppBar title="Meet the team" onBack={() => navigation.goBack()} />
 
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} className="flex-1 px-gutter">
-                <View className="flex-row items-center mt-2 mb-3" style={{ gap: 12 }}>
-                    <Text className="text-ink text-label font-display uppercase">Core</Text>
-                    <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                    <Text className="text-ink-3 font-mono text-label">{TEAM_MEMBERS.length}</Text>
-                </View>
+                <SectionHeader title="Core" count={TEAM_MEMBERS.length} style={{ marginTop: 8 }} />
+                <Card padded={false} style={{ paddingHorizontal: 16 }}>
+                    {TEAM_MEMBERS.map((member, index) => (
+                        <ListRow
+                            key={member.id}
+                            leading={<Avatar uri={member.image} initials={member.name} size={index === 0 ? 52 : 44} />}
+                            title={member.name}
+                            subtitle={member.role}
+                            right={<Socials member={member} openLink={openLink} />}
+                        />
+                    ))}
+                </Card>
 
-                {TEAM_MEMBERS.map((member, index) => (
-                    // the first row is this screen's one stamped card; the offset is
-                    // painted as a layer because Android ignores a zero-blur shadow
-                    <View key={member.id} style={{ position: 'relative', marginBottom: index === 0 ? 20 : 12 }}>
-                        {index === 0 && (
-                            <View
-                                pointerEvents="none"
-                                style={{ position: 'absolute', left: 4, top: 4, right: -4, bottom: -4, backgroundColor: C.ink, borderRadius: 20 }}
-                            />
-                        )}
-                        <View className={`bg-card rounded-card p-card-pad flex-row items-center ${index === 0 ? 'border-2 border-ink' : 'border border-line'}`}>
-                            <Avatar uri={member.image} size={index === 0 ? 52 : 40} />
-                            <View className="flex-1 mx-3">
-                                <Text className="text-ink font-bold" style={{ fontSize: index === 0 ? 16 : 15 }} numberOfLines={1}>
-                                    {member.name}
-                                </Text>
-                                <Text className="text-sm text-ink-3 mt-0.5" numberOfLines={1}>{member.role}</Text>
-                            </View>
-                            <Socials member={member} openLink={openLink} />
-                        </View>
-                    </View>
-                ))}
-
-                <View className="flex-row items-center mt-8 mb-3" style={{ gap: 12 }}>
-                    <Text className="text-ink text-label font-display uppercase">Team HQ</Text>
-                    <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
-                </View>
-
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('ContactUs')}
-                    className="bg-card rounded-card p-card-pad flex-row items-center border border-line mb-10"
-                    accessibilityRole="button" accessibilityLabel="Contact us"
-                >
-                    <Ionicons name="location-outline" size={24} color={C.ink2} />
-                    <View className="flex-1 mx-3">
-                        <Text className="text-ink font-bold" style={{ fontSize: 14 }}>KIET Deemed University, UP</Text>
-                        <Text className="text-sm text-ink-3 mt-0.5">Contact us any time</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={C.ink4} />
-                </TouchableOpacity>
+                <SectionHeader title="Team HQ" />
+                <Card padded={false} style={{ paddingHorizontal: 16 }}>
+                    <ListRow
+                        icon="location-outline"
+                        title="KIET Deemed University, UP"
+                        subtitle="Contact us any time"
+                        onPress={() => navigation.navigate('ContactUs')}
+                        accessibilityLabel="Contact us"
+                    />
+                </Card>
                 <View style={{ height: 40 }} />
             </ScrollView>
-        </View>
         </View>
     );
 };
