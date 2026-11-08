@@ -597,11 +597,11 @@ const PostCard = memo(function PostCard({ item, stats, onOpen, onToggle, onEdit,
 
             <View className="flex-row mb-3" style={{ gap: 12 }}>
                 <View className="flex-1 bg-paper-2 rounded-xl p-3 items-center">
-                    <Num style={{ fontSize: 20, lineHeight: 24 }}>{appliedCount}</Num>
+                    <Num style={{ fontSize: 19, lineHeight: 24 }}>{appliedCount}</Num>
                     <Text className="text-ink-3 text-xs font-semibold mt-0.5">Applied</Text>
                 </View>
                 <View className="flex-1 bg-success/10 rounded-xl p-3 items-center">
-                    <Num style={{ fontSize: 20, lineHeight: 24, color: C.success }}>{shortlistCount}</Num>
+                    <Num style={{ fontSize: 19, lineHeight: 24, color: C.success }}>{shortlistCount}</Num>
                     <Text className="text-success text-xs font-semibold mt-0.5">Shortlisted</Text>
                 </View>
             </View>

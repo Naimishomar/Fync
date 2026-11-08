@@ -17,7 +17,7 @@ export default function AuthHeader({ title, sub, inset = true }: { title: string
         resizeMode="cover"
         accessibilityLabel="Fync"
       />
-      <Text className="font-display text-ink mt-6" style={{ fontSize: 30, lineHeight: 36 }} accessibilityRole="header">
+      <Text className="font-display text-ink mt-6" style={{ fontSize: 34, lineHeight: 40, letterSpacing: -1 }} accessibilityRole="header">
         {title}
       </Text>
       {!!sub && <Text className="font-sans text-ink-2 mt-2" style={{ fontSize: 15, lineHeight: 22 }}>{sub}</Text>}

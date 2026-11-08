@@ -606,7 +606,7 @@ const toast = (icon: React.ComponentProps<typeof Ionicons>["name"], tint: "succe
           <Ionicons name={icon} size={20} color={color} />
         </View>
         <View className="flex-1 min-w-0">
-          <Text className="text-ink font-semibold" style={{ fontSize: 14, lineHeight: 19 }} numberOfLines={2}>{props.text1}</Text>
+          <Text className="text-ink font-semibold" style={{ fontSize: 13, lineHeight: 18 }} numberOfLines={2}>{props.text1}</Text>
           {!!props.text2 && <Text className="text-ink-3 font-sans" style={{ fontSize: 13, lineHeight: 18 }} numberOfLines={2}>{props.text2}</Text>}
         </View>
       </View>

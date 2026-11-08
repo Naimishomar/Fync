@@ -126,7 +126,7 @@ const RecruiterProfile = () => {
                         { n: stats.totalPosts, l: 'Total posts' },
                     ].map((x, i) => (
                         <View key={x.l} className={`flex-1 items-center ${i < 2 ? 'border-r border-line' : ''}`}>
-                            <Num style={{ fontSize: 20 }}>{x.n}</Num>
+                            <Num style={{ fontSize: 19, lineHeight: 24 }}>{x.n}</Num>
                             <Label style={{ marginTop: 2 }}>{x.l}</Label>
                         </View>
                     ))}

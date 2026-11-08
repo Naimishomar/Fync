@@ -108,7 +108,7 @@ const CoupleRow = memo(function CoupleRow({ item, index, unit }: { item: Row; in
         </Text>
       </View>
       <View className="items-end">
-        <Text className="font-display text-ink" style={{ fontSize: 17 }}>🔥 {item.score}</Text>
+        <Text className="font-display text-xl text-ink">🔥 {item.score}</Text>
         <Text className="font-sans text-ink-3 text-2xs">{unit}</Text>
       </View>
     </View>

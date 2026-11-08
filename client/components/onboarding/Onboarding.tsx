@@ -56,7 +56,7 @@ function Onboarding({ onDone }: { onDone: () => void }) {
           style={{ position: 'absolute', right: 0, bottom: 8, width: 76, height: 76, transform: [{ rotate: '12deg' }] }}
           contentFit="contain" cachePolicy="memory-disk" transition={200} accessible={false} />
       </View>
-      <Text className="font-display text-ink text-center" style={{ fontSize: 28, lineHeight: 34 }}>{item.title}</Text>
+      <Text className="font-display text-ink text-center" style={{ fontSize: 34, lineHeight: 40, letterSpacing: -1 }}>{item.title}</Text>
       <Text className="font-sans text-ink-2 text-center mt-3" style={{ fontSize: 15, lineHeight: 22, maxWidth: 320 }}>{item.sub}</Text>
     </View>
   ), [width]);

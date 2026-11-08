@@ -30,7 +30,7 @@ interface Props {
 const StatItem = ({ label, value, icon, color }: any) => (
   <View className="flex-1 bg-paper-2 p-3 items-center rounded-2xl">
     <Ionicons name={icon} size={18} color={color} />
-    <Num style={{ fontSize: 17, lineHeight: 22, marginTop: 4 }}>{String(value)}</Num>
+    <Num style={{ fontSize: 19, lineHeight: 24, marginTop: 4 }}>{String(value)}</Num>
     <Text className="text-ink-3 text-xs font-sans mt-0.5">{label}</Text>
   </View>
 );

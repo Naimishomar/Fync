@@ -137,7 +137,7 @@ export default function BunkOMeter() {
                                 <Label style={{ marginBottom: 12 }}>Attendance</Label>
 
                                 <View className="mb-6 w-36 h-36 rounded-full items-center justify-center border border-line bg-paper-2">
-                                    <Num style={{ fontSize: 32, lineHeight: 36 }}>{result.percentage}%</Num>
+                                    <Num style={{ fontSize: 34, lineHeight: 40 }}>{result.percentage}%</Num>
                                 </View>
 
                                 <View className="flex-row items-center mb-4 bg-paper-2 px-4 py-2 rounded-full" style={{ gap: 8 }}>

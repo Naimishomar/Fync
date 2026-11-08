@@ -363,7 +363,7 @@ export default function FyncProfileBuilder() {
               <Card style={{ flex: 1, alignItems: 'center' }}>
                 <IconTile icon="flame-outline" size={44} color={C.accentText} />
                 <View style={{ marginTop: 8 }}>
-                  <AnimatedCount value={profile?.user?.highestStreak || 0} style={{ fontFamily: 'SpaceGrotesk_700Bold', color: C.ink, fontSize: 32, lineHeight: 36, letterSpacing: -1, fontVariant: ['tabular-nums'] }} />
+                  <AnimatedCount value={profile?.user?.highestStreak || 0} style={{ fontFamily: 'SpaceGrotesk_700Bold', color: C.ink, fontSize: 34, lineHeight: 40, letterSpacing: -1, fontVariant: ['tabular-nums'] }} />
                 </View>
                 <Text className="text-ink-3 text-xs font-sans mt-1">Max streak</Text>
               </Card>

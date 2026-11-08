@@ -107,22 +107,22 @@ module.exports = {
 
 
       fontSize: {
-        // 11px is the floor and it is a LABEL treatment only — uppercase, tracked,
-        // never body copy. Body text starts at 15px.
+        // Mirrors constants/type.ts (the one type scale). 11px is the floor and is for
+        // badges/counters only; body copy is 15px.
         label: ['11px', { lineHeight: '14px' }],
         '2xs': ['11px', { lineHeight: '14px' }],
-        xs: ['12px', { lineHeight: '16px' }],
-        sm: ['13px', { lineHeight: '19px' }],
-        base: ['15px', { lineHeight: '23px' }], // body
-        lg: ['17px', { lineHeight: '25px' }],
-        h2: ['19px', { lineHeight: '23px' }],
-        xl: ['19px', { lineHeight: '23px' }],
-        h1: ['24px', { lineHeight: '27px' }],
-        '2xl': ['24px', { lineHeight: '27px' }],
-        '3xl': ['30px', { lineHeight: '32px' }],
-        display: ['34px', { lineHeight: '35px' }],
-        '4xl': ['34px', { lineHeight: '35px' }],
-        '5xl': ['44px', { lineHeight: '45px' }],
+        xs: ['12px', { lineHeight: '16px' }], // caption
+        sm: ['13px', { lineHeight: '18px' }], // sm / meta
+        base: ['15px', { lineHeight: '22px' }], // body
+        lg: ['16px', { lineHeight: '22px' }], // heading
+        h2: ['19px', { lineHeight: '24px' }], // subtitle
+        xl: ['19px', { lineHeight: '24px' }],
+        h1: ['24px', { lineHeight: '30px' }], // title
+        '2xl': ['24px', { lineHeight: '30px' }],
+        '3xl': ['30px', { lineHeight: '36px' }], // game/hero art only
+        display: ['34px', { lineHeight: '40px' }], // display
+        '4xl': ['34px', { lineHeight: '40px' }],
+        '5xl': ['44px', { lineHeight: '50px' }], // hero numbers only
       },
 
       borderRadius: {

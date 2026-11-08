@@ -140,7 +140,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
         <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreatePost'); }}>
           <Ionicons name="aperture-outline" size={20} color={C.brand[500]} />
         </TouchableOpacity>
-        <Text className="text-white text-label font-display uppercase mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", letterSpacing: 0.6, overflow: "hidden" }}>Add Post</Text>
+        <Text className="text-white text-xs font-semibold mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", overflow: "hidden" }}>Add Post</Text>
       </Animated.View>
 
       {/* Sub Button 1 (e.g., Create Video) */}
@@ -148,7 +148,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
         <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateShorts'); }}>
           <Ionicons name="videocam" size={20} color={C.brand[500]} />
         </TouchableOpacity>
-        <Text className="text-white text-label font-display uppercase mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", letterSpacing: 0.6, overflow: "hidden" }}>Add Shorts</Text>
+        <Text className="text-white text-xs font-semibold mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", overflow: "hidden" }}>Add Shorts</Text>
       </Animated.View>
 
       {startupArm && (
@@ -156,7 +156,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
         <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
           <Ionicons name="bulb-outline" size={20} color={C.brand[500]} />
         </TouchableOpacity>
-        <Text className="text-white text-label font-display uppercase mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", letterSpacing: 0.6, overflow: "hidden" }}>Add Startup</Text>
+        <Text className="text-white text-xs font-semibold mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", overflow: "hidden" }}>Add Startup</Text>
       </Animated.View>
       )}
 

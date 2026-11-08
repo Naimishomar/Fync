@@ -239,17 +239,17 @@ const styles = themed(() => ({
     },
     brandText: {
         color: C.brand[600],
-        fontSize: 14,
+        fontSize: 13,
         fontFamily: 'Inter_600SemiBold',
         marginBottom: 4,
     },
     productTitle: {
-        fontSize: 26,
+        fontSize: 24,
         fontFamily: 'SpaceGrotesk_700Bold',
         letterSpacing: -0.5,
         color: C.ink,
         marginBottom: 12,
-        lineHeight: 32,
+        lineHeight: 30,
     },
     priceRow: {
         flexDirection: 'row',
@@ -257,14 +257,15 @@ const styles = themed(() => ({
         marginBottom: 12,
     },
     priceText: {
-        fontSize: 28,
+        fontSize: 24,
+        lineHeight: 30,
         fontFamily: 'SpaceGrotesk_700Bold',
         fontVariant: ['tabular-nums'],
         color: C.ink,
         marginRight: 12,
     },
     originalPriceText: {
-        fontSize: 18,
+        fontSize: 16,
         color: C.ink3,
         textDecorationLine: 'line-through',
         marginRight: 12,
@@ -353,7 +354,7 @@ const styles = themed(() => ({
     },
     bottomPriceValue: {
         color: C.ink,
-        fontSize: 22,
+        fontSize: 24,
         fontFamily: 'SpaceGrotesk_700Bold',
         fontVariant: ['tabular-nums'],
     },

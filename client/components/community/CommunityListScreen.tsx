@@ -63,7 +63,7 @@ const CommunityItem = React.memo(({ item, userId, handleJoin, onOpen }: any) => 
                         <Image source={{ uri: item.logo }} style={{ width: '100%', height: '100%' }} cachePolicy="memory-disk" />
                     </View>
                     <View className="flex-1" style={{ minWidth: 0 }}>
-                        <Text className="text-white font-semibold" style={{ fontSize: 17, lineHeight: 22 }} numberOfLines={1}>{item.name}</Text>
+                        <Text className="text-white font-semibold text-lg" numberOfLines={1}>{item.name}</Text>
                         <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }} numberOfLines={1}>By {item.creator?.username || item.creator?.name}</Text>
                     </View>
                 </View>

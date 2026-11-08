@@ -114,12 +114,12 @@ export default function ImageCompressorScreen() {
             <View className="flex-row items-center justify-between">
               <View>
                 <Label>Original size</Label>
-                <Num style={{ fontSize: 18, marginTop: 4 }}>{formatSize(originalSize)}</Num>
+                <Num style={{ fontSize: 19, lineHeight: 24, marginTop: 4 }}>{formatSize(originalSize)}</Num>
               </View>
               <Ionicons name="arrow-forward" size={20} color={C.ink4} />
               <View className="items-end">
                 <Label>Compressed size</Label>
-                <Num style={{ fontSize: 18, marginTop: 4, color: compressedUri ? C.accentText : C.ink4 }}>
+                <Num style={{ fontSize: 19, lineHeight: 24, marginTop: 4, color: compressedUri ? C.accentText : C.ink4 }}>
                   {compressedUri ? formatSize(compressedSize) : '—'}
                 </Num>
               </View>

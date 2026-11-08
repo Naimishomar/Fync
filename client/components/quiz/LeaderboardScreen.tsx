@@ -39,7 +39,7 @@ const LeaderRow = memo(function LeaderRow({ item, index }: { item: any; index: n
         }
         title={name}
         subtitle={`@${item.user?.username || 'unknown'}`}
-        right={<Num style={{ fontSize: 17 }}>{item.score} <Text className="text-ink-3 text-xs font-sans">pts</Text></Num>}
+        right={<Num style={{ fontSize: 19, lineHeight: 24 }}>{item.score} <Text className="text-ink-3 text-xs font-sans">pts</Text></Num>}
         accessibilityLabel={`Rank ${index + 1}, ${name}, ${item.score} points`}
       />
     </Card>

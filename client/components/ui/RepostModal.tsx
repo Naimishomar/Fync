@@ -88,7 +88,7 @@ export default function RepostModal({
         <View className="flex-row items-center mt-3 p-3 bg-paper-2 rounded-2xl" style={{ gap: 12 }}>
           <Avatar user={author as any} size={32} />
           <View className="flex-1 min-w-0">
-            <Text className="font-semibold text-ink" style={{ fontSize: 14 }} numberOfLines={1}>
+            <Text className="font-semibold text-sm text-ink" numberOfLines={1}>
               {author.name || author.username || 'Unknown'}
             </Text>
             {!!preview && (

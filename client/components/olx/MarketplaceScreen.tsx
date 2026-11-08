@@ -172,7 +172,7 @@ const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDel
                     cachePolicy="memory-disk"
                 />
                 <View style={{ gap: 8 }}>
-                    <Num style={{ fontSize: 28, lineHeight: 32 }}>₹{product.price}</Num>
+                    <Num style={{ fontSize: 24, lineHeight: 30 }}>₹{product.price}</Num>
                     <TagRow>
                         <Tag label={CAT_LABEL[product.product_type] ?? product.product_type} />
                         <Tag label={`Listed ${new Date(product.createdAt).toLocaleDateString()}`} />

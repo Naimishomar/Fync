@@ -140,7 +140,7 @@ const s = themed(() => ({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line,
   },
   headerText: { flex: 1, minWidth: 0 },
-  title: { fontFamily: 'Inter_600SemiBold', fontSize: 17, lineHeight: 22, color: C.ink },
+  title: { fontFamily: 'Inter_600SemiBold', fontSize: 16, lineHeight: 22, color: C.ink },
   subtitle: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 18, color: C.ink3, marginTop: 2 },
   close: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' },
   body: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 },

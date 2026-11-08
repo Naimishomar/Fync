@@ -580,8 +580,8 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
             {isSuspended && (
                 <View className="absolute inset-0 bg-paper items-center justify-center px-gutter z-[100]">
                     <IconTile icon="flash-off-outline" size={72} iconSize={32} color={C.danger} />
-                    <Text className="text-ink font-display text-center mt-6" style={{ fontSize: 26, lineHeight: 32 }}>Community offline</Text>
-                    <Text className="text-ink-3 text-center mt-2 mb-8" style={{ fontSize: 14, lineHeight: 20 }}>
+                    <Text className="text-ink font-display text-center mt-6" style={{ fontSize: 24, lineHeight: 30 }}>Community offline</Text>
+                    <Text className="text-ink-3 text-base text-center mt-2 mb-8">
                         {isCreator ? 'Your plan has run out. Renew it to bring the community back.' : 'The owner needs to renew the plan.'}
                     </Text>
                     {isCreator && (

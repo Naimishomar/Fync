@@ -101,7 +101,7 @@ export default function CodingArena() {
                   className="flex-1 items-center"
                   style={i < 2 ? { borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.18)' } : undefined}
                 >
-                  <Num style={{ fontSize: 22, color: '#fff' }}>{s.n}</Num>
+                  <Num style={{ fontSize: 24, lineHeight: 30, color: '#fff' }}>{s.n}</Num>
                   <Text className="font-medium text-night-3 text-xs mt-1">{s.label}</Text>
                 </View>
               ))}

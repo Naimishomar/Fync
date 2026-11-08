@@ -25,6 +25,7 @@ import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring, wit
 import { Image } from 'expo-image';
 import { tick } from './motion';
 import { artUrl } from '../../constants/features';
+import { TYPE } from '../../constants/type';
 
 /* ------------------------------------------------------------ press feel */
 // Same feel as motion.tsx's PressScale, but the style stays on the Pressable
@@ -730,14 +731,14 @@ export { SearchField, FormField } from './Field';
 
 /* ------------------------------------------------------------------ styles */
 const s = themed(() => ({
-  display: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 34, lineHeight: 38, letterSpacing: -1, color: C.ink },
-  h1: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 24, lineHeight: 29, letterSpacing: -0.5, color: C.ink },
-  h2: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 19, lineHeight: 24, letterSpacing: -0.3, color: C.ink },
-  body: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22, color: C.ink2 },
-  sm: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 18, color: C.ink2 },
-  meta: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 18, color: C.ink3 },
-  strong: { fontFamily: 'Inter_600SemiBold', fontSize: 15, lineHeight: 20, color: C.ink },
-  label: { fontFamily: 'Inter_600SemiBold', fontSize: 13, lineHeight: 18, color: C.ink3 },
+  display: { ...TYPE.display, color: C.ink },
+  h1: { ...TYPE.title, color: C.ink },
+  h2: { ...TYPE.subtitle, color: C.ink },
+  body: { ...TYPE.body, color: C.ink2 },
+  sm: { ...TYPE.sm, color: C.ink2 },
+  meta: { ...TYPE.sm, color: C.ink3 },
+  strong: { ...TYPE.body, fontFamily: 'Inter_600SemiBold', color: C.ink },
+  label: { ...TYPE.sm, fontFamily: 'Inter_600SemiBold', color: C.ink3 },
   num: { fontFamily: 'SpaceGrotesk_700Bold', letterSpacing: -0.5, color: C.ink, fontVariant: ['tabular-nums'] },
 
   disabled: { opacity: 0.5 },
@@ -754,7 +755,7 @@ const s = themed(() => ({
     position: 'absolute', top: 2, right: 2, minWidth: 18, height: 18, paddingHorizontal: 4,
     borderRadius: 9, borderWidth: 2, borderColor: C.paper, alignItems: 'center', justifyContent: 'center',
   },
-  badgeText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, lineHeight: 13, color: C.paper },
+  badgeText: { ...TYPE.micro, color: C.paper },
 
   iconTile: { alignItems: 'center', justifyContent: 'center', backgroundColor: C.paper2 },
 
@@ -765,7 +766,7 @@ const s = themed(() => ({
   cardPad: { padding: 16 },
 
   rule: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 24, marginBottom: 12 },
-  sectionTitle: { flex: 1, minWidth: 0, fontFamily: 'Inter_600SemiBold', fontSize: 16, lineHeight: 22, color: C.ink },
+  sectionTitle: { flex: 1, minWidth: 0, ...TYPE.heading, color: C.ink },
   sectionAction: { fontFamily: 'Inter_600SemiBold', fontSize: 13, lineHeight: 18, color: P.accentText },
   ruleCount: { fontFamily: 'Inter_500Medium', fontSize: 13, color: C.ink3, fontVariant: ['tabular-nums'] },
 
@@ -775,10 +776,10 @@ const s = themed(() => ({
   },
   stickerAlt: { borderWidth: 1, borderColor: C.line },
   stickerSm: { paddingHorizontal: 8, paddingVertical: 2 },
-  stickerText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, lineHeight: 14 },
+  stickerText: TYPE.micro,
 
   stampnum: { alignItems: 'center', justifyContent: 'center' },
-  stampnumCaption: { fontFamily: 'Inter_500Medium', fontSize: 11, lineHeight: 13, color: C.ink3 },
+  stampnumCaption: { ...TYPE.micro, fontFamily: 'Inter_500Medium', color: C.ink3 },
 
   btn: {
     minHeight: 48, paddingHorizontal: GUTTER, borderRadius: 999, borderWidth: 1, borderColor: 'transparent',
@@ -808,7 +809,7 @@ const s = themed(() => ({
     minHeight: 28, paddingHorizontal: 10, borderRadius: 999, borderWidth: 1, borderColor: 'transparent',
     backgroundColor: C.paper2, flexDirection: 'row', alignItems: 'center', gap: 5,
   },
-  tagText: { fontFamily: 'Inter_500Medium', fontSize: 12, lineHeight: 16 },
+  tagText: TYPE.caption,
 
   av: { backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   avText: { fontFamily: 'Inter_600SemiBold', color: C.ink2 },
@@ -816,11 +817,11 @@ const s = themed(() => ({
   listRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 8 },
   listText: { flex: 1, minWidth: 0, gap: 2 },
   listRight: { alignItems: 'flex-end', gap: 4 },
-  listMeta: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 16, color: C.ink3 },
+  listMeta: { ...TYPE.caption, fontFamily: 'Inter_400Regular', color: C.ink3 },
 
   tabs: { flexDirection: 'row', gap: 24, paddingHorizontal: GUTTER, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line },
   tab: { minHeight: 44, justifyContent: 'center', paddingTop: 10, paddingBottom: 12 },
-  tabText: { fontFamily: 'Inter_600SemiBold', fontSize: 14, lineHeight: 20, color: C.ink3 },
+  tabText: { ...TYPE.sm, fontFamily: 'Inter_600SemiBold', color: C.ink3 },
   tabTextOn: { color: C.ink },
   tabUnderline: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, borderRadius: 1, backgroundColor: C.brand },
 
@@ -840,8 +841,8 @@ const s = themed(() => ({
   },
 
   empty: { alignItems: 'center', gap: 8, paddingVertical: 32, paddingHorizontal: 24 },
-  emptyTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 16, lineHeight: 22, color: C.ink, textAlign: 'center' },
-  emptyHint: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 18, color: C.ink3, textAlign: 'center' },
+  emptyTitle: { ...TYPE.heading, color: C.ink, textAlign: 'center' },
+  emptyHint: { ...TYPE.sm, color: C.ink3, textAlign: 'center' },
 }));
 
 export const kitStyles = s;

@@ -191,7 +191,7 @@ const CommentRow = React.memo(function CommentRow({
             <View className="flex-row items-center mt-1.5">
               {ctx.canReply && (
               <Pressable onPress={() => ctx.onReply(comment, root ?? comment)} hitSlop={8}>
-                <Text className="font-display text-ink-2 uppercase" style={{ fontSize: 10 }}>Reply</Text>
+                <Text className="font-semibold text-xs text-ink-2">Reply</Text>
               </Pressable>
               )}
 
@@ -201,18 +201,18 @@ const CommentRow = React.memo(function CommentRow({
                   hitSlop={8}
                   className={ctx.canReply ? "ml-4" : ""}
                 >
-                  <Text className="font-display text-ink-2 uppercase" style={{ fontSize: 10 }}>Edit</Text>
+                  <Text className="font-semibold text-xs text-ink-2">Edit</Text>
                 </Pressable>
               )}
               {mine && ctx.canDelete && (
                 <Pressable onPress={() => ctx.onDelete(comment._id)} hitSlop={8} className="ml-4">
-                  <Text className="font-display text-danger uppercase" style={{ fontSize: 10 }}>Delete</Text>
+                  <Text className="font-semibold text-xs text-danger">Delete</Text>
                 </Pressable>
               )}
 
               {!mine && ctx.onReport && (
                 <Pressable onPress={() => ctx.onReport!(comment)} hitSlop={8} className={ctx.canReply ? "ml-4" : ""}>
-                  <Text className="font-display text-ink-3 uppercase" style={{ fontSize: 10 }}>Report</Text>
+                  <Text className="font-semibold text-xs text-ink-3">Report</Text>
                 </Pressable>
               )}
 
@@ -506,7 +506,7 @@ export default function CommentsSheet({
 
           <View className="flex-row items-center px-5 py-3 border-b border-line" style={{ gap: 12 }}>
             <View className="flex-1 min-w-0">
-              <Text className="font-semibold text-ink" style={{ fontSize: 17 }} accessibilityRole="header">{title}</Text>
+              <Text className="font-semibold text-lg text-ink" accessibilityRole="header">{title}</Text>
               {!loading && comments.length > 0 && (
                 <Text className="font-sans text-ink-3 text-xs mt-0.5">
                   {comments.length} {comments.length === 1 ? 'comment' : 'comments'}

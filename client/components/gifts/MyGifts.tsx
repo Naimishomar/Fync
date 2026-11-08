@@ -14,7 +14,7 @@ const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString('en-IN', { day: 
 /** Status timeline: paid → being made → shipped → delivered, or a stop sign for cancelled/refunded. */
 const Timeline = ({ o }: { o: GiftOrder }) => {
   if (o.status === 'cancelled' || o.status === 'refunded') {
-    return <Text style={{ color: C.danger, marginTop: 10, fontWeight: '600' }}>{STATUS_LABEL[o.status]}</Text>;
+    return <Text style={{ color: C.danger, marginTop: 10, fontFamily: 'Inter_600SemiBold' }}>{STATUS_LABEL[o.status]}</Text>;
   }
   const at = TIMELINE.indexOf(o.status);
   const when = (s: string) => fmt(o.statusHistory.find((h) => h.status === s)?.at);
@@ -30,7 +30,7 @@ const Timeline = ({ o }: { o: GiftOrder }) => {
               <View style={{ flex: 1, height: 2, backgroundColor: i === TIMELINE.length - 1 ? 'transparent' : i < at ? C.success : C.line }} />
             </View>
             <Text className={done ? 'text-ink' : 'text-ink-3'} style={{ fontSize: 11, marginTop: 4, textAlign: 'center' }}>{STATUS_LABEL[s]}</Text>
-            {done && <Text className="text-ink-3" style={{ fontSize: 10 }}>{when(s)}</Text>}
+            {done && <Text className="text-ink-3 text-2xs">{when(s)}</Text>}
           </View>
         );
       })}

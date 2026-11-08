@@ -56,7 +56,7 @@ const StoryRow = memo(({ item, index, ranked, onRead }: { item: Story; index: nu
         style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: C.brand[100] }}
       >
         <Num style={{ fontSize: ranked ? 15 : 17 }}>{ranked ? item.points : index + 1}</Num>
-        <Text className="font-medium text-ink-3" style={{ fontSize: 10 }}>{ranked ? 'pts' : 'rank'}</Text>
+        <Text className="font-medium text-ink-3 text-2xs">{ranked ? 'pts' : 'rank'}</Text>
       </View>
 
       <View className="flex-1" style={{ minWidth: 0 }}>

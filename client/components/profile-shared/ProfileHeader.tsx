@@ -180,7 +180,7 @@ export function ProfileHero({
   );
 }
 
-const STAT_NUM: TextStyle = { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 26, lineHeight: 30, letterSpacing: -0.8, fontVariant: ['tabular-nums'] };
+const STAT_NUM: TextStyle = { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 24, lineHeight: 30, letterSpacing: -0.5, fontVariant: ['tabular-nums'] };
 
 export type Stat = { label: string; value: number | string; onPress?: () => void };
 

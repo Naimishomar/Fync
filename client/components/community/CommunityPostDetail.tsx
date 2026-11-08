@@ -95,7 +95,7 @@ export default function CommunityPostDetail() {
                             <Text className="text-ink-3 mb-2" style={{ fontSize: 12 }} numberOfLines={1}>
                                 {post?.author?.username || 'unknown'} · {post ? ago(post.createdAt) : ''}
                             </Text>
-                            <Text className="text-ink font-display" style={{ fontSize: 22, lineHeight: 28 }}>{post?.title}</Text>
+                            <Text className="text-ink font-display" style={{ fontSize: 24, lineHeight: 30 }}>{post?.title}</Text>
                             {!!post?.body && <Text className="text-ink-2 mt-3" style={{ fontSize: 15, lineHeight: 22 }}>{post.body}</Text>}
                             {post?.image?.map((url: string) => (
                                 <Image key={url} source={{ uri: url }} style={{ width: '100%', height: 224, borderRadius: 12, marginTop: 16, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />

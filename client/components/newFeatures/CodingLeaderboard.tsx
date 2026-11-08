@@ -49,7 +49,7 @@ const RankRow = memo(function RankRow({ item, index, weekly, onOpen }: { item: a
             subtitle={item.college || 'Global'}
             right={
                 <View className="items-center">
-                    <Num style={{ fontSize: 18, lineHeight: 22 }}>{score}</Num>
+                    <Num style={{ fontSize: 19, lineHeight: 24 }}>{score}</Num>
                     <Text className="text-ink-3 text-xs font-semibold">{weekly ? '7 days' : 'Solved'}</Text>
                 </View>
             }
@@ -485,7 +485,7 @@ export default function CodingLeaderboard() {
                                         <Text className="text-ink font-semibold text-base">Contest rating</Text>
                                         <Text className="text-ink-3 text-xs font-sans mt-0.5">Top {lcData.contest.contestTopPercentage || 0}% globally</Text>
                                     </View>
-                                    <Num style={{ fontSize: 28, lineHeight: 32, color: C.accentText }}>{Math.round(lcData.contest.contestRating || 0)}</Num>
+                                    <Num style={{ fontSize: 24, lineHeight: 30, color: C.accentText }}>{Math.round(lcData.contest.contestRating || 0)}</Num>
                                 </Card>
                             ) : null}
 

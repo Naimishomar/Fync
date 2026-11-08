@@ -92,7 +92,7 @@ const OrderCard = ({ o, onSaved }: { o: GiftOrder; onSaved: (o: GiftOrder) => vo
               onPress={() => { Clipboard.setStringAsync(address); Toast.show({ type: 'success', text1: 'Address copied' }); }} />
           </View>
           <Text className="text-ink text-sm mt-1" selectable>{address}</Text>
-          {s?.surprise && <Text style={{ color: C.danger, fontSize: 12, marginTop: 4, fontWeight: '600' }}>Surprise: do not contact the recipient before delivery</Text>}
+          {s?.surprise && <Text style={{ color: C.danger, fontSize: 12, marginTop: 4, fontFamily: 'Inter_600SemiBold' }}>Surprise: do not contact the recipient before delivery</Text>}
           {!!s?.giftNote && <Text className="text-ink-2 text-sm mt-1">Gift note: “{s.giftNote}”</Text>}
           {o.buyer?.email && <Text className="text-ink-3 text-xs mt-1">Buyer: {o.buyer.email}</Text>}
 

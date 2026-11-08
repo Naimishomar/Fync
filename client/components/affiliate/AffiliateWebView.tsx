@@ -151,7 +151,8 @@ const styles = themed(() => ({
     loadingText: {
         color: C.ink3,
         marginTop: 15,
-        fontSize: 14,
+        fontSize: 13,
+        lineHeight: 18,
     },
     footer: {
         minHeight: 64,

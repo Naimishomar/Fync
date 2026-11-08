@@ -217,7 +217,7 @@ const ClubHubScreen = () => {
                     <View className="px-gutter mt-6">
                         <Card padded style={{ alignItems: 'center', gap: 8 }}>
                             <IconTile icon="lock-closed-outline" size={56} iconSize={24} />
-                            <Text className="text-ink font-semibold text-center mt-2" style={{ fontSize: 17 }}>Members only</Text>
+                            <Text className="text-ink font-semibold text-lg text-center mt-2">Members only</Text>
                             <Text className="text-ink-3 text-center mb-4" style={{ fontSize: 13, lineHeight: 18 }}>
                                 Join this club to see its rooms and messages.
                             </Text>

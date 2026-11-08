@@ -56,7 +56,7 @@ export function HubBanner({
                     {logo ? <Image source={{ uri: logo }} style={{ width: '100%', height: '100%' }} cachePolicy="memory-disk" /> : null}
                 </View>
                 <View className="flex-1" style={{ minWidth: 0 }}>
-                    <Text className="text-white font-display" style={{ fontSize: 26, lineHeight: 30 }} numberOfLines={2} accessibilityRole="header">{name}</Text>
+                    <Text className="text-white font-display" style={{ fontSize: 24, lineHeight: 30 }} numberOfLines={2} accessibilityRole="header">{name}</Text>
                     {meta ? <Text className="font-medium mt-1" style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>{meta}</Text> : null}
                 </View>
             </View>
@@ -213,7 +213,7 @@ export function VoteControl({
             <Pressable onPress={() => onVote(1)} hitSlop={4} accessibilityRole="button" accessibilityLabel="Upvote" accessibilityState={{ selected: up }} className="w-10 h-10 items-center justify-center active:opacity-85">
                 <Ionicons name={up ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={24} color={up ? C.brand[500] : C.ink3} />
             </Pressable>
-            <Text className="text-ink font-display" style={{ fontSize: 14, minWidth: 20, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{score}</Text>
+            <Text className="text-ink font-display" style={{ fontSize: 13, minWidth: 20, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{score}</Text>
             <Pressable onPress={() => onVote(-1)} hitSlop={4} accessibilityRole="button" accessibilityLabel="Downvote" accessibilityState={{ selected: down }} className="w-10 h-10 items-center justify-center active:opacity-85">
                 <Ionicons name={down ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={24} color={down ? C.info : C.ink3} />
             </Pressable>

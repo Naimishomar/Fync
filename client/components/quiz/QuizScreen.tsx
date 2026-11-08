@@ -187,7 +187,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
               accessibilityLabel={`${formatTime(timeLeft)} left${low ? ', under a minute' : ''}`}
             >
               <Ionicons name={low ? 'alarm-outline' : 'stopwatch-outline'} size={18} color={low ? C.danger : C.ink2} />
-              <Num style={{ fontSize: 17, marginLeft: 8, color: low ? C.danger : C.ink }}>
+              <Num style={{ fontSize: 19, lineHeight: 24, marginLeft: 8, color: low ? C.danger : C.ink }}>
                 {formatTime(timeLeft)}
               </Num>
             </View>

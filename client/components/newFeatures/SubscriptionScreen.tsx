@@ -171,7 +171,7 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                                 <Text className="text-brand-400 font-semibold text-xs mt-1">Limited time offer</Text>
                             </View>
                             <View className="items-end">
-                                <Text className="text-night-ink font-display" style={{ fontSize: 30, lineHeight: 34 }}>₹{subscriptionAmount}</Text>
+                                <Text className="text-night-ink font-display" style={{ fontSize: 34, lineHeight: 40 }}>₹{subscriptionAmount}</Text>
                                 <Text className="text-night-3 font-sans text-xs">/ month</Text>
                             </View>
                         </View>

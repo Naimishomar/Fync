@@ -191,7 +191,7 @@ const LinkFlow = ({ pending, onLinked }: { pending: Unlinked['pendingCode']; onL
       <View className="rounded-3xl p-6 items-center" style={{ backgroundColor: HERO() }}>
         <Text style={{ fontSize: 52 }}>💞</Text>
         <Text className="font-display text-center mt-2" style={{ color: '#fff', fontSize: 24, lineHeight: 28 }}>Your space for two</Text>
-        <Text className="font-sans text-center mt-2" style={{ color: 'rgba(255,255,255,0.88)', fontSize: 14, lineHeight: 20 }}>
+        <Text className="font-sans text-center mt-2" style={{ color: 'rgba(255,255,255,0.88)', fontSize: 15, lineHeight: 22 }}>
           A daily question, a shared streak, your bucket list and little love notes. Just you and your partner.
         </Text>
       </View>
@@ -309,7 +309,7 @@ const Dashboard = ({ s, reload, setS }: { s: Space; reload: () => Promise<void>;
           </View>
           <View style={{ borderWidth: 3, borderColor: '#fff', borderRadius: 40 }}><Avatar user={partner} size={64} showBadge={false} /></View>
         </View>
-        <Text className="font-sans mt-3" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>You & {first(partner)}</Text>
+        <Text className="font-sans mt-3" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, lineHeight: 18 }}>You & {first(partner)}</Text>
         <Text className="font-display" style={{ color: '#fff', fontSize: 64, lineHeight: 70, fontVariant: ['tabular-nums'] }}>{t.days}</Text>
         <Text className="font-semibold" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13 }}>
           {t.days === 1 ? 'day together' : 'days together'}
@@ -375,7 +375,7 @@ const Dashboard = ({ s, reload, setS }: { s: Space; reload: () => Promise<void>;
 
 const Stat = ({ big, small }: { big: string; small: string }) => (
   <View className="flex-1 rounded-2xl border border-line bg-card py-3 px-2 items-center">
-    <Text className="font-display text-ink" style={{ fontSize: 20 }}>{big}</Text>
+    <Text className="font-display text-xl text-ink">{big}</Text>
     <Text className="font-sans text-ink-3 text-center mt-0.5" style={{ fontSize: 11 }} numberOfLines={2}>{small}</Text>
   </View>
 );
@@ -413,7 +413,7 @@ const QuestionCard = ({ s, onAnswered }: { s: Space; onAnswered: (p: any) => voi
   return (
     <View className="rounded-2xl border p-5" style={{ borderColor: ROSE_LINE(), backgroundColor: ROSE_TINT() }}>
       <Text style={{ fontSize: 22 }}>💌</Text>
-      <Text className="font-semibold text-ink mt-2" style={{ fontSize: 18, lineHeight: 24 }}>{today.question}</Text>
+      <Text className="font-semibold text-lg text-ink mt-2">{today.question}</Text>
 
       {today.mine == null ? (
         <>
@@ -710,8 +710,8 @@ const History = () => {
         <View key={d.day} className="rounded-2xl border border-line bg-card p-4 mt-3">
           <Text className="font-sans text-ink-3" style={{ fontSize: 11 }}>{fmtDay(d.day)}</Text>
           <Text className="font-semibold text-ink mt-1" style={{ fontSize: 15 }}>{d.question}</Text>
-          <Text className="font-sans text-ink-2 mt-2" style={{ fontSize: 14 }}><Text className="text-ink-3">You: </Text>{d.mine ?? '—'}</Text>
-          <Text className="font-sans text-ink-2 mt-1" style={{ fontSize: 14 }}><Text style={{ color: ROSE() }}>Them: </Text>{d.partner === '🔒' ? '🔒 You skipped this one' : d.partner ?? '—'}</Text>
+          <Text className="font-sans text-base text-ink-2 mt-2"><Text className="text-ink-3">You: </Text>{d.mine ?? '—'}</Text>
+          <Text className="font-sans text-base text-ink-2 mt-1"><Text style={{ color: ROSE() }}>Them: </Text>{d.partner === '🔒' ? '🔒 You skipped this one' : d.partner ?? '—'}</Text>
         </View>
       ))}
     </>

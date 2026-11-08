@@ -171,7 +171,7 @@ const MarketplaceScreen = () => {
                 <AppBar title="Reward Store" onBack={() => navigation.goBack()} />
                 <Card style={{ marginHorizontal: 20, marginBottom: 16 }}>
                     <Label>Your balance</Label>
-                    <Num style={{ fontSize: 28, lineHeight: 32, marginTop: 4 }}>{user?.coins || 0} <Text className="text-ink-3 text-sm font-medium">Fync coins</Text></Num>
+                    <Num style={{ fontSize: 24, lineHeight: 30, marginTop: 4 }}>{user?.coins || 0} <Text className="text-ink-3 text-sm font-medium">Fync coins</Text></Num>
                 </Card>
 
                 {loading && !refreshing ? (

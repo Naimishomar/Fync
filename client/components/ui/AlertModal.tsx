@@ -185,7 +185,7 @@ export const AlertHost = () => {
               </View>
 
               {!!request.title && (
-                <Text className="text-ink font-semibold text-center" style={{ fontSize: 17, lineHeight: 22 }} accessibilityRole="header">
+                <Text className="text-ink font-semibold text-center" style={{ fontSize: 16, lineHeight: 22 }} accessibilityRole="header">
                   {request.title}
                 </Text>
               )}
@@ -196,7 +196,7 @@ export const AlertHost = () => {
                   showsVerticalScrollIndicator={false}
                   className="w-full"
                 >
-                  <Text className="text-ink-3 font-sans text-center" style={{ fontSize: 14, lineHeight: 20 }}>
+                  <Text className="text-ink-3 font-sans text-center" style={{ fontSize: 15, lineHeight: 22 }}>
                     {request.message}
                   </Text>
                 </ScrollView>

@@ -122,7 +122,7 @@ export default function ProfileSetup1() {
           {/* A labelled form, not a photo + sheet. Every field carries a visible
               label rather than relying on a placeholder that vanishes on focus. */}
           <View className="px-gutter pt-14 pb-2">
-            <Text className="font-display text-ink" style={{ fontSize: 30, lineHeight: 36, letterSpacing: -0.8 }} accessibilityRole="header">
+            <Text className="font-display text-ink" style={{ fontSize: 34, lineHeight: 40, letterSpacing: -1 }} accessibilityRole="header">
               Profile setup
             </Text>
             <Text className="font-semibold text-sm text-ink-3 mt-2">Step 1 of 2</Text>

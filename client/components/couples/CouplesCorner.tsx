@@ -263,7 +263,7 @@ const CouplesCorner = () => {
               <View className="rounded-2xl overflow-hidden mb-6" style={{ backgroundColor: '#db2777' }}>
                 <View className="p-5 flex-row items-center">
                   <View className="flex-1 pr-3">
-                    <Text className="font-display" style={{ color: '#FFFFFF', fontSize: 22, lineHeight: 26 }}>Play together 💕</Text>
+                    <Text className="font-display" style={{ color: '#FFFFFF', fontSize: 24, lineHeight: 30 }}>Play together 💕</Text>
                     <Text className="font-sans mt-1.5" style={{ color: 'rgba(255,255,255,0.88)', fontSize: 13 }}>
                       Invite your partner with a code, or get matched with someone new.
                     </Text>
@@ -408,7 +408,7 @@ const Playing = ({
               backgroundColor: mine ? `${g.tint}${C.scheme === 'dark' ? '33' : '18'}` : C.card,
             }}
           >
-            <Text className="font-semibold text-ink text-center" style={{ fontSize: 18 }}>{labels[i]}</Text>
+            <Text className="font-semibold text-lg text-ink text-center">{labels[i]}</Text>
             {reveal ? (
               <View className="flex-row justify-center mt-2" style={{ gap: 6 }}>
                 {mine ? <Text className="font-sans text-xs text-ink-2">You</Text> : null}

@@ -65,7 +65,7 @@ const GiftShop = () => {
     <View>
       <View className="mx-gutter mt-2 mb-4 rounded-2xl p-5 overflow-hidden" style={{ backgroundColor: '#db2777' }}>
         <Text className="font-display text-white text-h1" style={{ color: '#fff' }}>Make it personal 💝</Text>
-        <Text style={{ color: '#ffffffdd', marginTop: 6, fontSize: 14, lineHeight: 20 }}>
+        <Text style={{ color: '#ffffffdd', marginTop: 6, fontSize: 15, lineHeight: 22 }}>
           Custom gifts for your person: your photos, your words. We make it and deliver to their door.
         </Text>
       </View>

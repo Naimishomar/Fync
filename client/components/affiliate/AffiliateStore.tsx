@@ -189,7 +189,8 @@ const styles = themed(() => ({
         marginBottom: 4,
     },
     productName: {
-        fontSize: 14,
+        fontSize: 13,
+        lineHeight: 18,
         fontFamily: 'Inter_600SemiBold',
         color: C.ink,
         marginBottom: 8,

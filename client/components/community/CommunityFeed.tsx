@@ -43,7 +43,7 @@ const PostRow = memo(function PostRow({ item, onOpen, onVote }: { item: Post; on
             </Text>
             <Text className="text-ink font-semibold" style={{ fontSize: 16, lineHeight: 22 }}>{item.title}</Text>
             {!!item.body && (
-                <Text numberOfLines={3} className="text-ink-2 mt-1" style={{ fontSize: 14, lineHeight: 20 }}>{item.body}</Text>
+                <Text numberOfLines={3} className="text-ink-2 text-sm mt-1">{item.body}</Text>
             )}
             {!!item.image?.length && (
                 <Image source={{ uri: item.image[0] }} style={{ width: '100%', height: 176, borderRadius: 12, marginTop: 12, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />

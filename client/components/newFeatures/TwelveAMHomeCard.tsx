@@ -121,7 +121,7 @@ export default function TwelveAMLockScreen() {
               : 'An anonymous chat for night owls on your campus. Opens every night at 12 AM.'}
           </Text>
 
-          <Text style={{ color: MUTED, fontSize: 12, fontFamily: 'Inter_600SemiBold', marginTop: 32, marginBottom: 12, letterSpacing: 1 }}>
+          <Text style={{ color: MUTED, fontSize: 12, fontFamily: 'Inter_600SemiBold', marginTop: 32, marginBottom: 12 }}>
             {isOpen ? 'CLOSES IN' : 'OPENS IN'}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
