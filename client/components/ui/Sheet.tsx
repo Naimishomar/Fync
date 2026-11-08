@@ -94,7 +94,7 @@ export function Sheet({
                 <Pressable
                   onPress={onClose}
                   hitSlop={4}
-                  className="active:opacity-60"
+                  className="active:opacity-85"
                   style={s.close}
                   accessibilityRole="button"
                   accessibilityLabel={closeLabel}

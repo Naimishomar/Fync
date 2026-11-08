@@ -114,7 +114,7 @@ export const ListingCard = memo(function ListingCard({
   const cls = 'bg-card rounded-2xl mb-3 mx-gutter p-4 border border-line';
   if (!onPress) return <View className={cls} style={style}>{body}</View>;
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title} className={`${cls} active:opacity-70`} style={style}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title} className={`${cls} active:opacity-85`} style={style}>
       {body}
     </Pressable>
   );
@@ -173,7 +173,7 @@ export const OpportunityCard = memo(({ item, onApply, hideApply }: { item: any; 
       }}
     >
       {item.description ? (
-        <Pressable onPress={() => setOpen((o) => !o)} className="mt-3 active:opacity-70" accessibilityRole="button" accessibilityLabel={open ? 'Show less' : 'Show full description'}>
+        <Pressable onPress={() => setOpen((o) => !o)} className="mt-3 active:opacity-85" accessibilityRole="button" accessibilityLabel={open ? 'Show less' : 'Show full description'}>
           <Text className="text-ink-3 text-sm leading-5 font-sans" numberOfLines={open ? undefined : 2}>{item.description}</Text>
           <Text className="text-accent-text text-xs font-semibold mt-1">{open ? 'Less' : 'More'}</Text>
         </Pressable>

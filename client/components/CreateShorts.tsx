@@ -51,7 +51,7 @@ const VideoItem = React.memo(({ item, isSelected, onSelect }: {
   return (
     <Pressable
       onPress={() => onSelect(item)}
-      className="p-[2px] active:opacity-80"
+      className="p-[2px] active:opacity-85"
       style={{ width: ITEM_SIZE, height: ITEM_SIZE * 1.3 }}
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}

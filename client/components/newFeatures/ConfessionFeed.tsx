@@ -75,7 +75,7 @@ const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete,
                 disabled={!isLongText}
                 accessibilityRole={isLongText ? 'button' : undefined}
                 accessibilityHint={isLongText ? (isExpanded ? 'Show less' : 'Read more') : undefined}
-                className="active:opacity-80"
+                className="active:opacity-85"
             >
                 <Text className="text-ink text-base font-sans leading-6 mb-3">
                     {isExpanded || !isLongText
@@ -92,7 +92,7 @@ const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete,
                     onPress={() => navigation.navigate('PublicProfile', { userId: item.taggedUser?._id })}
                     accessibilityRole="button"
                     accessibilityLabel={`Tagged @${item.taggedUser?.username}`}
-                    className="flex-row items-center bg-paper-2 py-2 px-3 rounded-full self-start mb-3 active:opacity-70"
+                    className="flex-row items-center bg-paper-2 py-2 px-3 rounded-full self-start mb-3 active:opacity-85"
                 >
                     <Ionicons name="at" size={14} color={C.accentText} />
                     <Text className="text-accent-text font-semibold text-sm ml-1">{item.taggedUser?.username}</Text>
@@ -106,7 +106,7 @@ const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete,
                     accessibilityLabel={liked ? 'Unlike' : 'Like'}
                     accessibilityState={{ selected: !!liked }}
                     hitSlop={8}
-                    className="flex-row items-center py-2 active:opacity-70"
+                    className="flex-row items-center py-2 active:opacity-85"
                 >
                     <Ionicons name={liked ? "heart" : "heart-outline"} size={20} color={liked ? C.danger : C.ink3} />
                     <Text className="text-ink-2 ml-2 text-sm font-semibold">{item.likes || 0}</Text>
@@ -116,7 +116,7 @@ const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete,
                     accessibilityRole="button"
                     accessibilityLabel={`Comments, ${item.comments?.length || 0}`}
                     hitSlop={8}
-                    className="flex-row items-center py-2 active:opacity-70"
+                    className="flex-row items-center py-2 active:opacity-85"
                 >
                     <Ionicons name="chatbubbles-outline" size={20} color={C.ink3} />
                     <Text className="text-ink-2 ml-2 text-sm font-semibold">{item.comments?.length || 0}</Text>

@@ -164,7 +164,7 @@ export default function EditProfile() {
       <ScrollView className="px-gutter pt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
         {/* --- Banner Image --- */}
-        <Pressable onPress={() => pickImage('banner')} className="mb-6 active:opacity-70" accessibilityRole="button" accessibilityLabel="Change banner">
+        <Pressable onPress={() => pickImage('banner')} className="mb-6 active:opacity-85" accessibilityRole="button" accessibilityLabel="Change banner">
           <View className="h-32 w-full bg-paper-2 overflow-hidden border border-line justify-center items-center rounded-2xl">
             {banner ? (
               <Image source={{ uri: banner }} className="w-full h-full" resizeMode="cover" />
@@ -182,7 +182,7 @@ export default function EditProfile() {
 
         {/* --- Avatar Image --- */}
         <View className="items-center -mt-16 mb-1">
-          <Pressable onPress={() => pickImage('avatar')} className="active:opacity-70" accessibilityRole="button" accessibilityLabel="Change profile photo">
+          <Pressable onPress={() => pickImage('avatar')} className="active:opacity-85" accessibilityRole="button" accessibilityLabel="Change profile photo">
             <Image
               source={{ uri: avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}` }}
               className="h-24 w-24 rounded-full border-4 border-paper bg-paper-2"

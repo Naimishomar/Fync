@@ -63,7 +63,7 @@ export default function AlumniSidebar(props: any) {
                     <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
                     <Pressable
                         onPress={() => go('Profile')}
-                        className="flex-row items-center flex-1 active:opacity-70"
+                        className="flex-row items-center flex-1 active:opacity-85"
                         style={{ gap: 12 }}
                         accessibilityRole="button"
                         accessibilityLabel="Open your profile"
@@ -124,7 +124,7 @@ export default function AlumniSidebar(props: any) {
                         onPress={confirmLogout}
                         accessibilityRole="button"
                         accessibilityLabel="Sign out"
-                        className="flex-row items-center active:opacity-70"
+                        className="flex-row items-center active:opacity-85"
                         style={{ gap: 12, minHeight: 56 }}
                     >
                         <IconTile icon="log-out-outline" color={C.danger} />

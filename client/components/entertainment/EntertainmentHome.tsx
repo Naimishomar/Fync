@@ -80,7 +80,7 @@ const EntertainmentHome = () => {
         <Pressable
           onPress={() => navigation.navigate('MovieList', { title, type })}
           hitSlop={12}
-          className="active:opacity-70"
+          className="active:opacity-85"
           accessibilityRole="button"
           accessibilityLabel={`See all ${title}`}
         >
@@ -115,7 +115,7 @@ const EntertainmentHome = () => {
         {featuredMovie && (
           <Pressable
             onPress={() => navigation.navigate('MovieDetail', { movieId: featuredMovie.id })}
-            className="w-full h-[500px] mb-6 active:opacity-90"
+            className="w-full h-[500px] mb-6 active:opacity-85"
             accessibilityRole="button"
             accessibilityLabel={`${featuredMovie.title}, open details`}
           >
@@ -148,7 +148,7 @@ const EntertainmentHome = () => {
               <View className="flex-row gap-3">
                 <Pressable
                   onPress={() => navigation.navigate('TrailerReels', { movies: trending, initialIndex: 0 })}
-                  className="flex-1 bg-white flex-row items-center justify-center min-h-[48px] rounded-full active:opacity-70"
+                  className="flex-1 bg-white flex-row items-center justify-center min-h-[48px] rounded-full active:opacity-85"
                   accessibilityRole="button"
                 >
                   <Ionicons name="play" size={20} color="#12100E" />
@@ -172,7 +172,7 @@ const EntertainmentHome = () => {
               key={cat}
               onPress={() => navigation.navigate('MovieList', { title: cat, genre })}
               hitSlop={{ top: 4, bottom: 4 }}
-              className="bg-white/10 px-4 h-9 justify-center rounded-full border border-white/15 active:opacity-70"
+              className="bg-white/10 px-4 h-9 justify-center rounded-full border border-white/15 active:opacity-85"
               accessibilityRole="button"
             >
               <Text className="text-white font-medium text-sm">{cat}</Text>

@@ -281,7 +281,7 @@ const CouplesCorner = () => {
                     key={x.route}
                     onPress={() => navigation.navigate(x.route)}
                     accessibilityRole="button"
-                    className="flex-1 rounded-2xl border border-line bg-card p-4 active:opacity-70"
+                    className="flex-1 rounded-2xl border border-line bg-card p-4 active:opacity-85"
                   >
                     <Image source={{ uri: artUrl(x.art) }} style={{ width: 44, height: 44 }} contentFit="contain" cachePolicy="disk" />
                     <Text className="font-semibold text-ink mt-2" style={{ fontSize: 15 }}>{x.title}</Text>
@@ -401,7 +401,7 @@ const Playing = ({
             disabled={myPick != null || !!reveal}
             accessibilityRole="button"
             accessibilityState={{ selected: mine }}
-            className="rounded-2xl border mb-3 px-5 justify-center active:opacity-70"
+            className="rounded-2xl border mb-3 px-5 justify-center active:opacity-85"
             style={{
               minHeight: 92,
               borderColor: mine ? g.tint : C.line,

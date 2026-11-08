@@ -403,12 +403,12 @@ const ProjectCard = memo(({
 
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2" style={{ marginLeft: -8 }}>
-            <Pressable onPress={() => toggleLike(item)} className="flex-row items-center px-2 active:opacity-70" style={{ minHeight: 44 }} accessibilityRole="button" accessibilityState={{ selected: isLiked }} accessibilityLabel={isLiked ? "Unlike project" : "Like project"}>
+            <Pressable onPress={() => toggleLike(item)} className="flex-row items-center px-2 active:opacity-85" style={{ minHeight: 44 }} accessibilityRole="button" accessibilityState={{ selected: isLiked }} accessibilityLabel={isLiked ? "Unlike project" : "Like project"}>
               <Ionicons name={isLiked ? "heart" : "heart-outline"} size={24} color={isLiked ? C.brand[500] : C.ink} />
               <Text className={`ml-1.5 font-semibold text-sm ${isLiked ? 'text-accent-text' : 'text-ink'}`}>{item.likes}</Text>
             </Pressable>
 
-            <Pressable onPress={() => openComments(item._id)} className="flex-row items-center px-2 active:opacity-70" style={{ minHeight: 44 }} accessibilityRole="button" accessibilityLabel="Comments">
+            <Pressable onPress={() => openComments(item._id)} className="flex-row items-center px-2 active:opacity-85" style={{ minHeight: 44 }} accessibilityRole="button" accessibilityLabel="Comments">
               <Ionicons name="chatbubble-outline" size={22} color={C.ink} />
             </Pressable>
 

@@ -180,7 +180,7 @@ export default function AffiliateAdminScreen() {
               <Text className="text-ink-2 font-semibold text-sm mb-2">Product photo</Text>
               <Pressable
                 onPress={pickPhoto}
-                className="rounded-2xl border border-line overflow-hidden items-center justify-center bg-paper-2 active:opacity-70"
+                className="rounded-2xl border border-line overflow-hidden items-center justify-center bg-paper-2 active:opacity-85"
                 style={{ height: 160 }}
                 accessibilityRole="button"
                 accessibilityLabel={photo ? 'Change product photo' : 'Pick product photo from gallery'}

@@ -30,7 +30,7 @@ const PostOpportunityButton = ({ children, onPress }: any) => {
       >
         <TouchableOpacity
           onPress={() => navigation.navigate('CreateOpportunity', { type: 'internship' })}
-          activeOpacity={0.9}
+          activeOpacity={0.85}
           className="w-14 h-14 rounded-full items-center justify-center"
           style={{ backgroundColor: C.brand[500] }}
           accessibilityRole="button"

@@ -495,7 +495,7 @@ export default function ActiveInterview() {
             onPress={() => Alert.alert("End Interview", "Finish early?", [{ text: "Cancel" }, { text: "End", onPress: cleanupAndExit }])}
             accessibilityRole="button"
             accessibilityLabel="End interview"
-            className="w-16 h-16 rounded-full bg-danger/10 items-center justify-center active:opacity-70"
+            className="w-16 h-16 rounded-full bg-danger/10 items-center justify-center active:opacity-85"
           >
             <Feather name="phone-off" size={28} color={C.danger} />
           </Pressable>

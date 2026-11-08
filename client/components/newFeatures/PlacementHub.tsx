@@ -123,7 +123,7 @@ const QuestionCard = memo(function QuestionCard({ item, me, onUpvote, onSave, on
                         accessibilityRole="button"
                         accessibilityLabel={`Upvote, ${item.upvotes?.length || 0}`}
                         accessibilityState={{ selected: !!isUpvoted }}
-                        className="flex-row items-center px-2 h-11 active:opacity-70"
+                        className="flex-row items-center px-2 h-11 active:opacity-85"
                     >
                         <Ionicons name={isUpvoted ? "heart" : "heart-outline"} size={18} color={isUpvoted ? C.accentText : C.ink3} />
                         <Text className={`ml-1 text-sm font-semibold ${isUpvoted ? 'text-accent-text' : 'text-ink-3'}`}>{item.upvotes?.length || 0}</Text>
@@ -132,7 +132,7 @@ const QuestionCard = memo(function QuestionCard({ item, me, onUpvote, onSave, on
                         onPress={() => onDiscuss(item)}
                         accessibilityRole="button"
                         accessibilityLabel={`Discussion, ${item.comments?.length || 0}`}
-                        className="flex-row items-center px-2 h-11 active:opacity-70"
+                        className="flex-row items-center px-2 h-11 active:opacity-85"
                     >
                         <Ionicons name="chatbubble-outline" size={18} color={C.ink3} />
                         <Text className="ml-1 text-sm font-semibold text-ink-3">{item.comments?.length || 0}</Text>
@@ -313,7 +313,7 @@ const PlacementHub = () => {
                             onPress={() => navigation.navigate("PlacementPredictor")}
                             accessibilityRole="button"
                             accessibilityLabel="Predictor, AI resume scan"
-                            className="flex-1 bg-card border border-line rounded-2xl p-4 active:opacity-70"
+                            className="flex-1 bg-card border border-line rounded-2xl p-4 active:opacity-85"
                         >
                             <IconTile icon="stats-chart-outline" color={C.recruiter} />
                             <Text className="font-semibold text-base text-ink mt-3">Predictor</Text>
@@ -323,7 +323,7 @@ const PlacementHub = () => {
                             onPress={() => navigation.navigate("InterviewSetup")}
                             accessibilityRole="button"
                             accessibilityLabel="Mock interview, real-time simulation"
-                            className="flex-1 bg-card border border-line rounded-2xl p-4 active:opacity-70"
+                            className="flex-1 bg-card border border-line rounded-2xl p-4 active:opacity-85"
                         >
                             <IconTile icon="mic-outline" color={C.accentText} />
                             <Text className="font-semibold text-base text-ink mt-3">Mock interview</Text>
@@ -339,7 +339,7 @@ const PlacementHub = () => {
                                 onPress={() => setSearch(c.name)}
                                 accessibilityRole="button"
                                 accessibilityLabel={`Search ${c.name}`}
-                                className="items-center active:opacity-70"
+                                className="items-center active:opacity-85"
                             >
                                 <View className="bg-card w-14 h-14 rounded-full items-center justify-center border border-line">
                                     <FontAwesome5 name={c.icon} size={22} color={c.color} />
@@ -361,7 +361,7 @@ const PlacementHub = () => {
                                         onPress={() => openDiscussion(item)}
                                         accessibilityRole="button"
                                         accessibilityLabel={`${item.company}, ${item.type}`}
-                                        className="bg-card p-4 rounded-2xl border border-line w-[240px] active:opacity-70"
+                                        className="bg-card p-4 rounded-2xl border border-line w-[240px] active:opacity-85"
                                     >
                                         <Text className="font-semibold text-base text-ink" numberOfLines={1}>{item.company}</Text>
                                         <Text className="text-accent-text text-xs font-semibold mt-0.5" numberOfLines={1}>{item.type}</Text>

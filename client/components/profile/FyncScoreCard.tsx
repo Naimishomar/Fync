@@ -107,7 +107,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate, 
         accessibilityRole="button"
         accessibilityLabel={`Fync score ${score.totalScore} of 1000, level ${badge}`}
         accessibilityState={{ expanded }}
-        className="flex-row items-center p-4 active:opacity-70"
+        className="flex-row items-center p-4 active:opacity-85"
         style={{ gap: 12 }}
       >
         <IconTile icon={cfg.icon} size={56} iconSize={26} color={cfg.color} />

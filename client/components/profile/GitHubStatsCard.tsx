@@ -143,7 +143,7 @@ export default function GitHubStatsCard({
               accessibilityRole="button"
               accessibilityLabel="Sync GitHub stats"
               accessibilityState={{ busy: isSyncing }}
-              className="w-11 h-11 items-center justify-center rounded-full active:opacity-70"
+              className="w-11 h-11 items-center justify-center rounded-full active:opacity-85"
             >
               <Animated.View style={{ transform: [{ rotate: spin }] }}>
                 <Ionicons name="refresh" size={20} color={C.ink2} />
@@ -203,7 +203,7 @@ export default function GitHubStatsCard({
           onPress={() => Linking.openURL(`https://github.com/${username}`).catch(() => {})}
           hitSlop={12}
           accessibilityRole="link"
-          className="flex-row items-center active:opacity-70"
+          className="flex-row items-center active:opacity-85"
           style={{ gap: 4 }}
         >
           <Text className="text-accent-text font-semibold text-sm">View profile</Text>

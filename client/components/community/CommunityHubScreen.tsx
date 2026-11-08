@@ -564,7 +564,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                                         onPress={() => navigation.push('CommunityHub', { communityId: c._id })}
                                         accessibilityRole="button"
                                         accessibilityLabel={c.name}
-                                        className="bg-card p-3 rounded-2xl border border-line items-center w-[30%] active:opacity-70"
+                                        className="bg-card p-3 rounded-2xl border border-line items-center w-[30%] active:opacity-85"
                                     >
                                         <RoomIcon uri={c.logo} icon="people-outline" />
                                         <Text className="text-ink font-semibold text-center mt-2" style={{ fontSize: 12 }} numberOfLines={1}>{c.name}</Text>

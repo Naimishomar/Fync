@@ -90,7 +90,7 @@ const AdCarousel = () => {
           // each of those reserved horizontal space, and an inset banner with a
           // border reads as a card rather than as the poster it is.
           <Pressable
-            className={item.linkUrl ? 'active:opacity-80' : undefined}
+            className={item.linkUrl ? 'active:opacity-85' : undefined}
             onPress={() => handleAdPress(item)}
             accessibilityRole={item.linkUrl ? 'link' : 'image'}
             accessibilityLabel={item.title || 'Sponsored'}

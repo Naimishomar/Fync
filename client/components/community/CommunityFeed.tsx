@@ -36,7 +36,7 @@ const PostRow = memo(function PostRow({ item, onOpen, onVote }: { item: Post; on
             onPress={() => onOpen(item._id)}
             accessibilityRole="button"
             accessibilityLabel={item.title}
-            className="bg-card mx-5 mb-3 rounded-2xl border border-line p-4 active:opacity-70"
+            className="bg-card mx-5 mb-3 rounded-2xl border border-line p-4 active:opacity-85"
         >
             <Text className="text-ink-3 mb-1" style={{ fontSize: 12 }} numberOfLines={1}>
                 {item.author?.username || 'unknown'} · {ago(item.createdAt)}

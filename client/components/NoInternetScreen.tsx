@@ -30,7 +30,7 @@ const NoInternetScreen = ({ onRetry }: { onRetry: () => void }) => {
         <TouchableOpacity
           className="bg-brand-500 flex-row items-center justify-center w-full rounded-full px-5"
           style={{ minHeight: 48, gap: 8 }}
-          activeOpacity={0.7}
+          activeOpacity={0.85}
           onPress={handleRetry}
           accessibilityRole="button"
         >

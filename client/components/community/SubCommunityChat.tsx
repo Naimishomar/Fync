@@ -47,11 +47,11 @@ const EchoMessage = memo(function EchoMessage({ item, myId, creatorId, isCreator
                     <View className="flex-row items-center justify-between mt-2" style={{ gap: 16 }}>
                         <Text style={{ fontSize: 11, color: sub }}>{clock(item.createdAt)}</Text>
                         <View className="flex-row items-center" style={{ gap: 16 }}>
-                            <Pressable onPress={() => onReply(item)} hitSlop={14} accessibilityRole="button" accessibilityLabel="Reply" className="active:opacity-60">
+                            <Pressable onPress={() => onReply(item)} hitSlop={14} accessibilityRole="button" accessibilityLabel="Reply" className="active:opacity-85">
                                 <Ionicons name="arrow-undo-outline" size={16} color={sub} />
                             </Pressable>
                             {canDelete && (
-                                <Pressable onPress={() => onDelete(item._id)} hitSlop={14} accessibilityRole="button" accessibilityLabel="Delete message" className="active:opacity-60">
+                                <Pressable onPress={() => onDelete(item._id)} hitSlop={14} accessibilityRole="button" accessibilityLabel="Delete message" className="active:opacity-85">
                                     <Ionicons name="trash-outline" size={16} color={sub} />
                                 </Pressable>
                             )}

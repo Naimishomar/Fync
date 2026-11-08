@@ -103,7 +103,7 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
                             onPress={pickImage}
                             accessibilityRole="button"
                             accessibilityLabel="Add photos"
-                            className="w-24 h-24 bg-paper-2 border border-dashed border-line rounded-2xl items-center justify-center active:opacity-70"
+                            className="w-24 h-24 bg-paper-2 border border-dashed border-line rounded-2xl items-center justify-center active:opacity-85"
                         >
                             <Ionicons name="camera-outline" size={24} color={C.ink2} />
                             <Text className="text-ink-3 text-xs font-medium mt-1">Add photos</Text>

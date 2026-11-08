@@ -210,7 +210,7 @@ const FeaturedCarousel = () => {
               navigation.navigate(route, params);
             }}
             style={{ width: cardW }}
-            className="active:opacity-80"
+            className="active:opacity-85"
             accessibilityRole="button"
             accessibilityLabel={[item.title, item.org, item.pay, due?.label, ...item.chips].filter(Boolean).join('. ')}
           >

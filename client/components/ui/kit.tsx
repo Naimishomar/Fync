@@ -272,7 +272,7 @@ export function SectionHeader({
     <View style={[s.rule, style]}>
       <Text style={s.sectionTitle} numberOfLines={1} accessibilityRole="header">{title}</Text>
       {right ?? (action && onAction ? (
-        <Pressable onPress={onAction} hitSlop={12} className="active:opacity-60" accessibilityRole="button">
+        <Pressable onPress={onAction} hitSlop={12} className="active:opacity-85" accessibilityRole="button">
           <Text style={s.sectionAction}>{action}</Text>
         </Pressable>
       ) : count != null ? <Text style={s.ruleCount}>{String(count)}</Text> : null)}
@@ -587,7 +587,7 @@ export function Tabs({
             onPress={() => onChange(t)}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
-            className="active:opacity-60"
+            className="active:opacity-85"
             style={[s.tab, fill && { flex: 1, alignItems: 'center' }]}
           >
             <Text style={[s.tabText, on && s.tabTextOn]}>{t}</Text>
@@ -617,7 +617,7 @@ export function SegmentedTabs<T extends string>({
             onPress={() => onChange(it)}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
-            className="active:opacity-70"
+            className="active:opacity-85"
             style={[s.segItem, on && s.segItemOn]}
           >
             <Text style={[s.segText, on && s.segTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{labels?.[it] ?? it}</Text>

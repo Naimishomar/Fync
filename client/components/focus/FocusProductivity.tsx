@@ -229,7 +229,7 @@ export default function FocusProductivity() {
                         accessibilityRole="radio"
                         accessibilityState={{ selected: sessionType === type }}
                         style={{ width: (width - 52) / 2 }}
-                        className={`p-4 rounded-2xl border bg-card active:opacity-70 ${sessionType === type ? 'border-success' : 'border-line'}`}
+                        className={`p-4 rounded-2xl border bg-card active:opacity-85 ${sessionType === type ? 'border-success' : 'border-line'}`}
                     >
                         <View className="flex-row items-center justify-between mb-4">
                             <IconTile

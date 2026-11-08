@@ -217,7 +217,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                   newAns[currentIndex] = optIndex;
                   setAnswers(newAns);
                 }}
-                className={`p-4 mb-3 rounded-2xl flex-row items-center bg-card active:opacity-70 ${isSelected ? 'border-2 border-brand-500' : 'border border-line'}`}
+                className={`p-4 mb-3 rounded-2xl flex-row items-center bg-card active:opacity-85 ${isSelected ? 'border-2 border-brand-500' : 'border border-line'}`}
                 style={{ minHeight: 56 }}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: isSelected, disabled: submitted }}

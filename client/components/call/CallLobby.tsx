@@ -62,7 +62,7 @@ const CallUserRow = memo(function CallUserRow({
         <Pressable
           onPress={() => onCall(item)}
           disabled={busy}
-          className={`w-11 h-11 rounded-full items-center justify-center active:opacity-70 ${busy ? 'bg-paper-2' : 'bg-brand-500'}`}
+          className={`w-11 h-11 rounded-full items-center justify-center active:opacity-85 ${busy ? 'bg-paper-2' : 'bg-brand-500'}`}
           accessibilityRole="button"
           accessibilityLabel={`${busy ? 'Busy' : 'Call'} ${item.name}`}
           accessibilityState={{ disabled: busy }}
@@ -385,7 +385,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
           </Text>
           <Pressable
             onPress={() => endCall(true)}
-            className="w-16 h-16 rounded-full bg-danger items-center justify-center mt-12 active:opacity-70"
+            className="w-16 h-16 rounded-full bg-danger items-center justify-center mt-12 active:opacity-85"
             accessibilityRole="button"
             accessibilityLabel="Cancel call"
           >
@@ -411,7 +411,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
           <View className="items-center">
             <Pressable
               onPress={rejectCall}
-              className="w-16 h-16 rounded-full bg-danger items-center justify-center active:opacity-70"
+              className="w-16 h-16 rounded-full bg-danger items-center justify-center active:opacity-85"
               accessibilityRole="button"
               accessibilityLabel="Decline call"
             >
@@ -423,7 +423,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
           <View className="items-center">
             <Pressable
               onPress={acceptCall}
-              className="w-16 h-16 rounded-full bg-success items-center justify-center active:opacity-70"
+              className="w-16 h-16 rounded-full bg-success items-center justify-center active:opacity-85"
               accessibilityRole="button"
               accessibilityLabel="Accept call"
             >

@@ -97,7 +97,7 @@ const SpeakersRow = memo(({ speakers, canEdit, onAdd, onEdit }: {
                         disabled={!canEdit}
                         accessibilityRole={canEdit ? 'button' : undefined}
                         accessibilityLabel={canEdit ? `Edit ${speaker.name}` : `${speaker.name}, ${speaker.designation}`}
-                        className="items-center w-24 active:opacity-70"
+                        className="items-center w-24 active:opacity-85"
                     >
                         <Avatar uri={speaker.image} initials={speaker.name} size={64} />
                         {canEdit ? (
@@ -1065,7 +1065,7 @@ export default function SpeakerSessionScreen() {
                         onPress={() => pickImage(setSpeakerImage)}
                         accessibilityRole="button"
                         accessibilityLabel="Pick speaker photo"
-                        className="w-28 h-28 rounded-full self-center bg-paper-2 border border-line overflow-hidden items-center justify-center active:opacity-70"
+                        className="w-28 h-28 rounded-full self-center bg-paper-2 border border-line overflow-hidden items-center justify-center active:opacity-85"
                     >
                         {speakerImage ? <ExpoImage source={{ uri: speakerImage }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : <Ionicons name="camera-outline" size={28} color={C.ink3} />}
                     </Pressable>

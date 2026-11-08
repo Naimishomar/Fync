@@ -91,7 +91,7 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
           >
             <Pressable
               onPress={() => navigation.navigate('PublicProfile', { user: p })}
-              className="items-center self-stretch active:opacity-70"
+              className="items-center self-stretch active:opacity-85"
               accessibilityRole="button"
               accessibilityLabel={`View ${p.name}'s profile`}
             >

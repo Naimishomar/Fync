@@ -156,7 +156,7 @@ export default function RecruiterProfileSetup() {
 
         <View className="px-gutter pb-6" style={{ gap: 16 }}>
           <View className="items-center mb-2">
-            <Pressable onPress={pickImage} className="relative active:opacity-70" accessibilityRole="button"
+            <Pressable onPress={pickImage} className="relative active:opacity-85" accessibilityRole="button"
               accessibilityLabel={avatarUri ? 'Change profile picture' : 'Upload profile picture'}>
               {avatarUri ? (
                 <Image source={{ uri: avatarUri }} className="h-24 w-24 rounded-full" />

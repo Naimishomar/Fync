@@ -46,7 +46,7 @@ export const UploadTile = ({ label, onPress, height = 128 }: { label: string; on
     onPress={onPress}
     accessibilityRole="button"
     accessibilityLabel={label}
-    className="w-full border border-dashed border-line rounded-2xl items-center justify-center bg-paper-2 active:opacity-70"
+    className="w-full border border-dashed border-line rounded-2xl items-center justify-center bg-paper-2 active:opacity-85"
     style={{ height }}
   >
     <View className="w-11 h-11 bg-card rounded-full items-center justify-center mb-2">

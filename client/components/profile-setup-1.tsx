@@ -219,7 +219,7 @@ function PickerField({ label, value, placeholder, onPress, icon = 'chevron-down'
     <View style={{ gap: 6 }}>
       <Text className="font-semibold text-ink-2" style={{ fontSize: 13, lineHeight: 18 }}>{label}</Text>
       <Pressable
-        className="flex-row items-center justify-between bg-paper-2 border border-line rounded-2xl px-4 active:opacity-70"
+        className="flex-row items-center justify-between bg-paper-2 border border-line rounded-2xl px-4 active:opacity-85"
         style={{ minHeight: 48, gap: 8 }}
         onPress={onPress}
         accessibilityRole="button"

@@ -372,7 +372,7 @@ export default function FyncProfileBuilder() {
                 onPress={() => setShowCodingModal(true)}
                 accessibilityRole="button"
                 accessibilityLabel="Coding profiles. Boost your score"
-                className="flex-1 bg-card border border-line rounded-2xl p-4 items-center justify-center active:opacity-70"
+                className="flex-1 bg-card border border-line rounded-2xl p-4 items-center justify-center active:opacity-85"
               >
                 <IconTile icon="code-working-outline" size={44} />
                 <Text className="text-ink text-sm font-semibold text-center mt-2">Coding profiles</Text>
@@ -398,7 +398,7 @@ export default function FyncProfileBuilder() {
                 accessibilityRole="button"
                 accessibilityLabel={hasResume ? 'Replace resume' : 'Upload resume'}
                 accessibilityState={{ busy: uploadingResume }}
-                className="flex-row items-center justify-center h-14 rounded-2xl border border-dashed border-line bg-paper-2 active:opacity-70"
+                className="flex-row items-center justify-center h-14 rounded-2xl border border-dashed border-line bg-paper-2 active:opacity-85"
                 style={{ gap: 8 }}
               >
                 {uploadingResume ? (
@@ -422,7 +422,7 @@ export default function FyncProfileBuilder() {
                   {skills.map((skill, index) => (
                     <View key={index} className="bg-card border border-line flex-row items-center pl-3 pr-1 rounded-full" style={{ minHeight: 32 }}>
                       <Text className="text-ink-2 font-medium text-xs">{skill}</Text>
-                      <Pressable onPress={() => removeSkill(index)} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Remove ${skill}`} className="p-1 active:opacity-60">
+                      <Pressable onPress={() => removeSkill(index)} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Remove ${skill}`} className="p-1 active:opacity-85">
                         <Ionicons name="close-circle" size={16} color={C.ink3} />
                       </Pressable>
                     </View>

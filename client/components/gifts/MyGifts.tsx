@@ -58,7 +58,7 @@ const OrderCard = memo(function OrderCard({ o }: { o: GiftOrder }) {
         <Pressable
           disabled={!o.tracking.url}
           onPress={() => o.tracking?.url && Linking.openURL(o.tracking.url)}
-          className="mt-3 flex-row items-center active:opacity-70"
+          className="mt-3 flex-row items-center active:opacity-85"
           style={{ minHeight: 44 }}
           accessibilityRole={o.tracking.url ? 'link' : undefined}
         >

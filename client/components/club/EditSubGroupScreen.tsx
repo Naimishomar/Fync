@@ -260,7 +260,7 @@ const EditSubGroupScreen = () => {
                             disabled={!canEditRoom}
                             accessibilityRole="button"
                             accessibilityLabel="Change room logo"
-                            className="relative active:opacity-70"
+                            className="relative active:opacity-85"
                         >
                             <Image source={logo ? { uri: logo.uri } : subGroup?.logo ? { uri: subGroup.logo } : undefined} className="w-24 h-24 rounded-2xl border border-line bg-paper-2" />
                             {canEditRoom ? (

@@ -172,7 +172,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
                                 <Pressable
                                     onPress={() => handleGuess('higher')}
                                     accessibilityRole="button"
-                                    className="bg-white/10 px-6 py-4 rounded-2xl items-center border border-white/20 flex-1 active:opacity-70"
+                                    className="bg-white/10 px-6 py-4 rounded-2xl items-center border border-white/20 flex-1 active:opacity-85"
                                 >
                                     <Ionicons name="caret-up" size={32} color={C.success} />
                                     <Text className="text-white font-semibold mt-1 text-sm">Higher</Text>
@@ -181,7 +181,7 @@ const TrendClash = ({ onClose }: { onClose: () => void }) => {
                                 <Pressable
                                     onPress={() => handleGuess('lower')}
                                     accessibilityRole="button"
-                                    className="bg-white/10 px-6 py-4 rounded-2xl items-center border border-white/20 flex-1 active:opacity-70"
+                                    className="bg-white/10 px-6 py-4 rounded-2xl items-center border border-white/20 flex-1 active:opacity-85"
                                 >
                                     <Ionicons name="caret-down" size={32} color={C.danger} />
                                     <Text className="text-white font-semibold mt-1 text-sm">Lower</Text>

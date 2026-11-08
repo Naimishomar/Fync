@@ -80,7 +80,7 @@ const CreateSubGroupScreen = () => {
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
                 <ScrollView className="flex-1" contentContainerStyle={{ padding: 20 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                     <View className="items-center mb-6 mt-4">
-                        <Pressable onPress={pickLogo} accessibilityRole="button" accessibilityLabel={logo ? 'Change logo' : 'Add logo'} className="relative active:opacity-70">
+                        <Pressable onPress={pickLogo} accessibilityRole="button" accessibilityLabel={logo ? 'Change logo' : 'Add logo'} className="relative active:opacity-85">
                             {logo ? (
                                 <Image source={{ uri: logo.uri }} className="w-24 h-24 rounded-2xl border border-line bg-paper-2" />
                             ) : (

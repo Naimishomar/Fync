@@ -170,7 +170,7 @@ const OneVsOneSetup = () => {
             <AppBar title="Choose arena" onBack={() => navigation.goBack()} right={
                 <Pressable
                     onPress={() => navigation.navigate("Profile", { userId: user?._id })}
-                    className="flex-row items-center bg-paper-2 pr-3 pl-1 py-1 rounded-full active:opacity-70"
+                    className="flex-row items-center bg-paper-2 pr-3 pl-1 py-1 rounded-full active:opacity-85"
                     style={{ marginRight: 11, minHeight: 44 }}
                     accessibilityRole="button"
                     accessibilityLabel={`Your rank ${stats.rank}. Open profile`}
@@ -194,7 +194,7 @@ const OneVsOneSetup = () => {
                                     Vibration.vibrate(10);
                                 }}
                                 style={{ width: (width - 52) / 2 }}
-                                className={`p-4 rounded-2xl mb-3 bg-card active:opacity-70 ${on ? 'border-2 border-brand-500' : 'border border-line'}`}
+                                className={`p-4 rounded-2xl mb-3 bg-card active:opacity-85 ${on ? 'border-2 border-brand-500' : 'border border-line'}`}
                                 accessibilityRole="radio"
                                 accessibilityState={{ selected: on }}
                                 accessibilityLabel={`${arena.name}. ${arena.description}`}

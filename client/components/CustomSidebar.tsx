@@ -51,7 +51,7 @@ export default function CustomSidebar(props: any) {
                     <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
                         <Pressable
                             onPress={() => go('Profile')}
-                            className="flex-row items-center flex-1 active:opacity-70"
+                            className="flex-row items-center flex-1 active:opacity-85"
                             style={{ gap: 12 }}
                             accessibilityRole="button"
                             accessibilityLabel="Open your profile"

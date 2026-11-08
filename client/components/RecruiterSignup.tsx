@@ -189,10 +189,10 @@ export default function RecruiterSignup() {
                   <Button variant="primary" block title="Verify OTP" onPress={verifyOtpAndProceed} loading={isLoading} />
 
                   <View className="flex-row justify-between mt-4">
-                    <Pressable className="py-2 active:opacity-70" hitSlop={12} accessibilityRole="button" onPress={() => setOtpSent(false)}>
+                    <Pressable className="py-2 active:opacity-85" hitSlop={12} accessibilityRole="button" onPress={() => setOtpSent(false)}>
                       <Text className="text-sm text-ink-2 font-semibold">Back to details</Text>
                     </Pressable>
-                    <Pressable className="py-2 active:opacity-70" hitSlop={12} accessibilityRole="button" onPress={sendOtpToWorkEmail} disabled={isLoading}>
+                    <Pressable className="py-2 active:opacity-85" hitSlop={12} accessibilityRole="button" onPress={sendOtpToWorkEmail} disabled={isLoading}>
                       <Text className="text-sm text-accent-text font-semibold">Resend OTP</Text>
                     </Pressable>
                   </View>
@@ -201,7 +201,7 @@ export default function RecruiterSignup() {
 
               <View className="mt-6 flex-row justify-center items-center">
                 <Text className="text-sm text-ink-2">Already recruiting with us? </Text>
-                <Pressable onPress={() => navigation.navigate('Login')} hitSlop={12} accessibilityRole="button" className="active:opacity-70">
+                <Pressable onPress={() => navigation.navigate('Login')} hitSlop={12} accessibilityRole="button" className="active:opacity-85">
                   <Text className="text-sm font-semibold text-accent-text">Log in</Text>
                 </Pressable>
               </View>

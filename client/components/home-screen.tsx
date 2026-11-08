@@ -261,10 +261,10 @@ const MAX_CHAR_LIMIT = 150;
       {/* Top Header Row (Reddit Style) */}
       <View className="flex-row items-center justify-between mb-3 px-gutter">
         <View className="flex-row items-center flex-1 min-w-0 mr-2">
-          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} hitSlop={6} className="active:opacity-70" accessibilityRole="button" accessibilityLabel={`${item.user?.name || 'Author'} profile`}>
+          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} hitSlop={6} className="active:opacity-85" accessibilityRole="button" accessibilityLabel={`${item.user?.name || 'Author'} profile`}>
             <Avatar user={item.user as any} size={32} />
           </Pressable>
-          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-3 flex-row items-center active:opacity-70" style={{ flexShrink: 1, minWidth: 0 }}>
+          <Pressable onPress={() => navigation.navigate("PublicProfile", { user: item.user })} className="ml-3 flex-row items-center active:opacity-85" style={{ flexShrink: 1, minWidth: 0 }}>
             <View style={{ flexShrink: 1, minWidth: 0 }}>
               {/* Explicit line heights: the default leading on two stacked
                   14px lines opens a gap wide enough to read as two rows. */}
@@ -317,7 +317,7 @@ const MAX_CHAR_LIMIT = 150;
               { text: 'Cancel', style: 'cancel' },
             ]);
           }}
-          className="items-center justify-center rounded-full active:opacity-60"
+          className="items-center justify-center rounded-full active:opacity-85"
           style={{ width: 44, height: 44, marginRight: -12 }}
           accessibilityRole="button"
           accessibilityLabel="Post options"
@@ -382,7 +382,7 @@ const MAX_CHAR_LIMIT = 150;
               : `${item.description?.slice(0, MAX_CHAR_LIMIT)}...`}
           </Text>
           {(item.description?.length || 0) > MAX_CHAR_LIMIT && (
-            <Pressable onPress={() => setIsExpanded(!isExpanded)} className="mt-1 self-start active:opacity-70" hitSlop={8} accessibilityRole="button">
+            <Pressable onPress={() => setIsExpanded(!isExpanded)} className="mt-1 self-start active:opacity-85" hitSlop={8} accessibilityRole="button">
               <Text className="text-ink font-semibold text-sm">
                 {isExpanded ? 'Show less' : 'Show more'}
               </Text>
@@ -421,7 +421,7 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={() => openComments(item._id)}
-          className="flex-row items-center rounded-full px-2 active:opacity-70"
+          className="flex-row items-center rounded-full px-2 active:opacity-85"
           style={{ minHeight: 44 }}
           accessibilityRole="button"
           accessibilityLabel={`${displayCommentCount} comments`}
@@ -437,7 +437,7 @@ const MAX_CHAR_LIMIT = 150;
         {item.user?._id !== currentUser?._id && (
           <Pressable
             onPress={() => (reposted ? handleRepost() : onRequestRepost(item, handleRepost))}
-            className="flex-row items-center rounded-full px-2 active:opacity-70"
+            className="flex-row items-center rounded-full px-2 active:opacity-85"
             style={{ minHeight: 44 }}
             accessibilityRole="button"
             accessibilityState={{ selected: !!reposted }}
@@ -454,7 +454,7 @@ const MAX_CHAR_LIMIT = 150;
 
         <Pressable
           onPress={handleShare}
-          className="flex-row items-center rounded-full px-2 active:opacity-70"
+          className="flex-row items-center rounded-full px-2 active:opacity-85"
           style={{ minHeight: 44 }}
           accessibilityRole="button"
           accessibilityLabel="Share this post"
@@ -467,7 +467,7 @@ const MAX_CHAR_LIMIT = 150;
       {/* Newest comment, LinkedIn style: the conversation is visible from the
           feed, and the whole block opens the sheet. */}
       {!!topComment && (
-        <Pressable onPress={() => openComments(item._id)} className="mt-2 px-gutter active:opacity-70" accessibilityRole="button" accessibilityLabel="Open comments">
+        <Pressable onPress={() => openComments(item._id)} className="mt-2 px-gutter active:opacity-85" accessibilityRole="button" accessibilityLabel="Open comments">
           <View className="flex-row">
             <Avatar user={topComment.commentor as any} size={24} />
             <View className="ml-2 flex-1">
@@ -860,7 +860,7 @@ export default function HomeScreen() {
       <Pressable
         onPress={() => setShowLeaderboard(true)}
         hitSlop={8}
-        className="flex-row items-center bg-paper-2 px-2.5 py-1 rounded-full mr-1 active:opacity-70"
+        className="flex-row items-center bg-paper-2 px-2.5 py-1 rounded-full mr-1 active:opacity-85"
         accessibilityRole="button"
         accessibilityLabel={`Streak, ${(user as any)?.streakCount || 0} days. Open leaderboard`}
       >

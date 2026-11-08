@@ -516,7 +516,7 @@ export default function CommentsSheet({
             <Pressable
               onPress={onClose}
               hitSlop={8}
-              className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center active:opacity-60"
+              className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center active:opacity-85"
               accessibilityRole="button"
               accessibilityLabel="Close"
             >

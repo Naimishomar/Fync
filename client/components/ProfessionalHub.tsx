@@ -298,7 +298,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                     <Pressable
                         onLongPress={() => isMe ? handleDeleteMessage(item._id) : setReplyingTo(item)}
                         accessibilityHint={isMe ? "Long press to delete" : "Long press to reply"}
-                        className={`max-w-[280px] px-4 py-3 rounded-2xl active:opacity-90 ${isMe ? "bg-ink rounded-br-md" : "bg-card rounded-bl-md border border-line"}`}>
+                        className={`max-w-[280px] px-4 py-3 rounded-2xl active:opacity-85 ${isMe ? "bg-ink rounded-br-md" : "bg-card rounded-bl-md border border-line"}`}>
 
                         {item.replyTo && (
                             <View className="mb-2 px-3 py-2 rounded-xl border-l-2 border-brand-500 bg-paper-2">
@@ -326,7 +326,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                                         }
                                     }
                                 }}
-                                className="flex-row items-center p-2 rounded-xl bg-paper-2 active:opacity-70"
+                                className="flex-row items-center p-2 rounded-xl bg-paper-2 active:opacity-85"
                             >
                                 <Ionicons name="document-text" size={24} color={C.brand[500]} />
                                 <View className="ml-2">
@@ -422,7 +422,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                                     onPress={handleSendText}
                                     accessibilityRole="button"
                                     accessibilityLabel="Send"
-                                    className="bg-brand-500 w-10 h-10 rounded-full items-center justify-center m-1 active:opacity-70"
+                                    className="bg-brand-500 w-10 h-10 rounded-full items-center justify-center m-1 active:opacity-85"
                                     hitSlop={4}
                                 >
                                     <Ionicons name="send" size={16} color={C.onBrand} />

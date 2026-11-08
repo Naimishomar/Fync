@@ -284,7 +284,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
     >
       <Pressable
         onPress={pick}
-        className="bg-paper-2 border border-line rounded-2xl px-4 flex-row items-center mb-3 active:opacity-70"
+        className="bg-paper-2 border border-line rounded-2xl px-4 flex-row items-center mb-3 active:opacity-85"
         style={{ minHeight: 56 }}
         accessibilityRole="button"
         accessibilityLabel={file ? `Selected ${file.name}. Choose another PDF` : 'Choose a PDF'}

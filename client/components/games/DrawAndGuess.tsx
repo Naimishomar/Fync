@@ -265,7 +265,7 @@ const DrawAndGuess = () => {
                   className="flex-1 bg-card border border-line rounded-full px-5 mr-2 text-ink" style={{ minHeight: 48 }}
                   onSubmitEditing={sendGuess}
                 />
-                <Pressable onPress={sendGuess} className="bg-brand-500 w-12 h-12 rounded-full items-center justify-center active:opacity-70"
+                <Pressable onPress={sendGuess} className="bg-brand-500 w-12 h-12 rounded-full items-center justify-center active:opacity-85"
                   accessibilityRole="button" accessibilityLabel="Send guess">
                   <Ionicons name="send" size={20} color={C.onBrand} />
                 </Pressable>

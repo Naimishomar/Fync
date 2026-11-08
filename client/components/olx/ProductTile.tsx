@@ -18,7 +18,7 @@ export const ProductTile = memo(function ProductTile({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${title}, ${price}`}
-      className="bg-card rounded-2xl overflow-hidden border border-line mb-3 active:opacity-70"
+      className="bg-card rounded-2xl overflow-hidden border border-line mb-3 active:opacity-85"
       style={{ width }}
     >
       <View className="bg-paper-2 items-center justify-center" style={{ aspectRatio: 1 }}>

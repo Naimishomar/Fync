@@ -133,7 +133,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
       <FieldLabel>Certificate image</FieldLabel>
       {preview ? (
         <Pressable onPress={pickImage} accessibilityRole="button" accessibilityLabel="Change certificate image"
-          className="w-full h-48 rounded-2xl overflow-hidden border border-line bg-paper-2 active:opacity-70">
+          className="w-full h-48 rounded-2xl overflow-hidden border border-line bg-paper-2 active:opacity-85">
           <Image source={{ uri: preview }} style={{ width: '100%', height: '100%' }} contentFit="contain" />
           <View className="absolute top-3 right-3 bg-black/60 rounded-full w-9 h-9 items-center justify-center">
             <Feather name="edit-2" size={14} color="#FFFFFF" />

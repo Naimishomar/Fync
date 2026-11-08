@@ -167,7 +167,7 @@ const CreateOpportunity = () => {
                 onPress={pickLogo}
                 accessibilityRole="button"
                 accessibilityLabel={logoUri ? 'Change company logo' : 'Upload company logo'}
-                className="items-center justify-center bg-paper-2 border border-dashed border-line rounded-2xl p-6 active:opacity-70"
+                className="items-center justify-center bg-paper-2 border border-dashed border-line rounded-2xl p-6 active:opacity-85"
               >
                 {logoUri ? (
                   <View className="items-center">

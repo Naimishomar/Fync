@@ -79,7 +79,7 @@ const MessageRow = memo(function MessageRow({ item, isMine, canDelete, showDate,
                 }}
                 delayLongPress={500}
                 accessibilityHint="Long press for options"
-                className={`flex-row mb-3 ${isMine ? 'justify-end' : 'justify-start'} items-end px-4 active:opacity-70`}
+                className={`flex-row mb-3 ${isMine ? 'justify-end' : 'justify-start'} items-end px-4 active:opacity-85`}
             >
                 {!isMine && (
                     <Image
@@ -333,7 +333,7 @@ export default function EventCommunityChat({ route }: any) {
                                 accessibilityRole="button"
                                 accessibilityLabel="Send message"
                                 accessibilityState={{ disabled: sending || !inputText.trim(), busy: sending }}
-                                className={`w-10 h-10 rounded-full items-center justify-center active:opacity-70 ${inputText.trim() ? 'bg-recruiter' : 'bg-paper-2'}`}
+                                className={`w-10 h-10 rounded-full items-center justify-center active:opacity-85 ${inputText.trim() ? 'bg-recruiter' : 'bg-paper-2'}`}
                             >
                                 {sending ? (
                                     <ActivityIndicator size="small" color={C.paper} />

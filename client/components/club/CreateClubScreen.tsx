@@ -92,7 +92,7 @@ const CreateClubScreen = () => {
                         onPress={() => pickImage('logo')}
                         accessibilityRole="button"
                         accessibilityLabel={logo ? 'Change logo' : 'Upload logo'}
-                        className="w-24 h-24 rounded-2xl bg-card border-4 border-card shadow-hair overflow-hidden -mt-12 ml-6 items-center justify-center active:opacity-70"
+                        className="w-24 h-24 rounded-2xl bg-card border-4 border-card shadow-hair overflow-hidden -mt-12 ml-6 items-center justify-center active:opacity-85"
                     >
                         {logo ? (
                             <Image source={{ uri: logo.uri }} className="w-full h-full" />

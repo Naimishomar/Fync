@@ -44,7 +44,7 @@ export function PickZone({ icon, label, onPress }: { icon: keyof typeof Ionicons
   return (
     <Pressable
       onPress={onPress}
-      className="w-full bg-card border border-dashed border-line rounded-2xl p-6 items-center justify-center mb-5 active:opacity-70"
+      className="w-full bg-card border border-dashed border-line rounded-2xl p-6 items-center justify-center mb-5 active:opacity-85"
       style={{ gap: 12 }}
       accessibilityRole="button"
       accessibilityLabel={label}

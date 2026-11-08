@@ -191,7 +191,7 @@ export default function StudyAssistant() {
                                 onPress={() => runAiTask('CHAT')}
                                 accessibilityRole="button"
                                 accessibilityLabel="Send"
-                                className="bg-brand-500 w-12 h-12 rounded-full items-center justify-center active:opacity-70"
+                                className="bg-brand-500 w-12 h-12 rounded-full items-center justify-center active:opacity-85"
                             >
                                 <Ionicons name="send" size={18} color={C.onBrand} />
                             </Pressable>

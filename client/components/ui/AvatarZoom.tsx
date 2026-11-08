@@ -22,7 +22,7 @@ export default function AvatarZoom({
       <Pressable
         onPress={() => setOpen(true)}
         disabled={!uri}
-        className={`${className ?? ''} active:opacity-80`}
+        className={`${className ?? ''} active:opacity-85`}
         accessibilityRole="imagebutton"
         accessibilityLabel="View profile photo"
       >

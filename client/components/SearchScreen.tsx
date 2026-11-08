@@ -206,7 +206,7 @@ const UserRow = memo(function UserRow({ item, onPress, onRemove }: {
       right={onRemove ? (
         <Pressable
           onPress={() => onRemove(item._id)}
-          className="w-8 h-8 rounded-full bg-paper-2 items-center justify-center active:opacity-60"
+          className="w-8 h-8 rounded-full bg-paper-2 items-center justify-center active:opacity-85"
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={`Remove ${item.username} from recent`}

@@ -255,7 +255,7 @@ const Notification = () => {
 
     return (
       <Pressable
-        className={`flex-row items-center py-3 px-3 -mx-3 rounded-2xl active:opacity-70 ${!item.isRead ? 'bg-paper-2' : ''}`}
+        className={`flex-row items-center py-3 px-3 -mx-3 rounded-2xl active:opacity-85 ${!item.isRead ? 'bg-paper-2' : ''}`}
         style={{ minHeight: 64 }}
         onPress={() => handlePress(item)}
         accessibilityRole="button"

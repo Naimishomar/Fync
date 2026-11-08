@@ -360,7 +360,7 @@ const AlumniConnect = ({ navigation }: any) => {
                                         }
                                     }
                                 }}
-                                className="flex-row items-center bg-paper-2 p-2 rounded-xl active:opacity-70"
+                                className="flex-row items-center bg-paper-2 p-2 rounded-xl active:opacity-85"
                             >
                                 <Ionicons name="document-text" size={24} color={C.alumni} />
                                 <View className="ml-2">
@@ -455,7 +455,7 @@ const AlumniConnect = ({ navigation }: any) => {
                                     accessibilityRole="button"
                                     accessibilityLabel="Send"
                                     hitSlop={4}
-                                    className="bg-brand-500 w-10 h-10 rounded-full items-center justify-center m-1 active:opacity-70"
+                                    className="bg-brand-500 w-10 h-10 rounded-full items-center justify-center m-1 active:opacity-85"
                                 >
                                     <Ionicons name="send" size={16} color={C.onBrand} />
                                 </Pressable>

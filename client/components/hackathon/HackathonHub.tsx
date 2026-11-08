@@ -147,7 +147,7 @@ const HackathonCard = memo(
       <View className="bg-card rounded-2xl overflow-hidden border border-line" style={{ width, marginBottom: CARD_GAP }}>
         <Pressable
           onPress={() => onOpen(item._id)}
-          className="active:opacity-70"
+          className="active:opacity-85"
           accessibilityRole="button"
           accessibilityLabel={`${item.title}, ${status.label}`}
         >

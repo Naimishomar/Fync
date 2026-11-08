@@ -106,7 +106,7 @@ const MovieDetail = () => {
             <View className="flex-row gap-4">
               <Pressable
                 onPress={() => navigation.navigate('TrailerReels', { movies: [movie] })}
-                className="flex-1 bg-danger flex-row items-center justify-center min-h-[48px] rounded-full active:opacity-70"
+                className="flex-1 bg-danger flex-row items-center justify-center min-h-[48px] rounded-full active:opacity-85"
                 accessibilityRole="button"
               >
                 <Ionicons name="play" size={20} color={C.paper} />

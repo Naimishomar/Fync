@@ -73,7 +73,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                                 <Pressable
                                     onPress={() => onToggleStatus(item._id, prod._id)}
                                     hitSlop={8}
-                                    className={`w-7 h-7 rounded-full items-center justify-center border active:opacity-70 ${prod.isProcessed ? 'bg-success border-success' : 'bg-card border-line'}`}
+                                    className={`w-7 h-7 rounded-full items-center justify-center border active:opacity-85 ${prod.isProcessed ? 'bg-success border-success' : 'bg-card border-line'}`}
                                     accessibilityRole="checkbox"
                                     accessibilityState={{ checked: !!prod.isProcessed }}
                                     accessibilityLabel={`Mark ${prod.product_name} processed`}
@@ -83,7 +83,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                             </View>
                             <View className="flex-row items-center gap-1.5">
                                 <Ionicons name="call-outline" size={12} color={C.ink3} />
-                                <Pressable onPress={() => Linking.openURL(`tel:${prod.mobileNumber}`)} hitSlop={12} className="active:opacity-70" accessibilityRole="link">
+                                <Pressable onPress={() => Linking.openURL(`tel:${prod.mobileNumber}`)} hitSlop={12} className="active:opacity-85" accessibilityRole="link">
                                     <Text className="text-recruiter text-xs font-semibold">{prod.mobileNumber}</Text>
                                 </Pressable>
                                 {prod.isProcessed && (
@@ -103,7 +103,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                 <Pressable
                     onPress={handleViewProfile}
                     hitSlop={12}
-                    className="flex-row items-center gap-1 active:opacity-70"
+                    className="flex-row items-center gap-1 active:opacity-85"
                     accessibilityRole="link"
                 >
                     <Text className="text-accent-text font-semibold text-xs">View profile</Text>
@@ -247,7 +247,7 @@ export const ContactMessageItem = ({ item, onDelete, onToggleRead }: any) => (
                 <Pressable
                     onPress={() => onToggleRead(item._id)}
                     hitSlop={4}
-                    className={`w-10 h-10 rounded-full items-center justify-center border active:opacity-70 ${item.isRead ? 'bg-success border-success' : 'bg-card border-line'}`}
+                    className={`w-10 h-10 rounded-full items-center justify-center border active:opacity-85 ${item.isRead ? 'bg-success border-success' : 'bg-card border-line'}`}
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: !!item.isRead }}
                     accessibilityLabel="Mark as read"
@@ -400,7 +400,7 @@ export const PaymentItem = ({ item, onCopy }: any) => {
                         key={label}
                         onPress={() => value && onCopy?.(value)}
                         disabled={!value}
-                        className="flex-row items-center justify-between py-2 active:opacity-70"
+                        className="flex-row items-center justify-between py-2 active:opacity-85"
                         accessibilityRole="button"
                         accessibilityLabel={value ? `Copy ${label} ${value}` : `${label} not available`}
                     >

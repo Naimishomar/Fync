@@ -155,7 +155,7 @@ const PlacementPredictor = () => {
                         onPress={pickDocument}
                         accessibilityRole="button"
                         accessibilityLabel={resume ? `Resume ${resume.name}, tap to change` : 'Upload PDF resume'}
-                        className={`p-6 rounded-2xl border border-dashed items-center justify-center active:opacity-70 ${resume ? 'bg-brand-50 border-brand-500' : 'bg-card border-line'}`}
+                        className={`p-6 rounded-2xl border border-dashed items-center justify-center active:opacity-85 ${resume ? 'bg-brand-50 border-brand-500' : 'bg-card border-line'}`}
                     >
                         <IconTile icon={resume ? 'document-text-outline' : 'cloud-upload-outline'} size={56} color={resume ? C.accentText : C.ink} style={{ marginBottom: 12 }} />
                         <Text className="font-semibold text-sm text-center text-ink" numberOfLines={2}>

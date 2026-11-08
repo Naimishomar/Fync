@@ -45,7 +45,7 @@ const TeammateCard = memo(function TeammateCard({ item, connecting, busy, onOpen
         <View className="bg-card border border-line rounded-2xl p-4 mb-3 mx-gutter">
             <View className="flex-row items-center" style={{ gap: 12 }}>
                 <Pressable
-                    className="flex-row items-center flex-1 active:opacity-70"
+                    className="flex-row items-center flex-1 active:opacity-85"
                     style={{ gap: 12, minWidth: 0 }}
                     onPress={() => onOpen(item)}
                     accessibilityRole="button"

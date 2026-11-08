@@ -107,7 +107,7 @@ const FAQItem = ({ faq }: { faq: { question: string; answer: string } }) => {
   return (
     <Pressable
       onPress={() => setExpanded((e) => !e)}
-      className="bg-card border border-line rounded-2xl p-4 mb-3 active:opacity-70"
+      className="bg-card border border-line rounded-2xl p-4 mb-3 active:opacity-85"
       accessibilityRole="button"
       accessibilityState={{ expanded }}
     >
@@ -149,7 +149,7 @@ const WinnerCard = ({ winner, onOpenProfile }: { winner: Winner; onOpenProfile: 
             <Pressable
               key={u._id}
               onPress={() => onOpenProfile(u._id)}
-              className="flex-row items-center bg-card border border-line rounded-full pl-1 pr-3 py-1 active:opacity-70"
+              className="flex-row items-center bg-card border border-line rounded-full pl-1 pr-3 py-1 active:opacity-85"
               accessibilityRole="button"
               accessibilityLabel={`Open ${u.name}'s profile`}
             >
@@ -171,7 +171,7 @@ const WinnerCard = ({ winner, onOpenProfile }: { winner: Winner; onOpenProfile: 
       {winner.projectLink ? (
         <Pressable
           onPress={() => Linking.openURL(winner.projectLink!).catch(() => {})}
-          className="flex-row items-center mt-3 active:opacity-70"
+          className="flex-row items-center mt-3 active:opacity-85"
           hitSlop={12}
           accessibilityRole="link"
         >
@@ -591,7 +591,7 @@ const HackathonDetail = () => {
                                 Toast.show({ type: 'error', text1: 'Could not open that link' })
                               )
                             }
-                            className="flex-row items-center bg-card border border-line rounded-2xl p-4 mb-2 active:opacity-70"
+                            className="flex-row items-center bg-card border border-line rounded-2xl p-4 mb-2 active:opacity-85"
                             accessibilityRole="link"
                           >
                             <Feather name={icon} size={14} color={C.ink3} />

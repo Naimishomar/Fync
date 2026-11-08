@@ -535,7 +535,7 @@ const Chat = ({ route, navigation }: any) => {
 
           <View className={`${isMe ? "items-end" : "items-start"} flex-1`}>
             <TouchableOpacity
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onLongPress={() => {
                 if (isMe) {
                   Alert.alert("Message", undefined, [

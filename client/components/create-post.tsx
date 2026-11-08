@@ -242,7 +242,7 @@ function CreatePost() {
                       <Pressable
                         onPress={() => removeImage(index)}
                         hitSlop={12}
-                        className="absolute -top-2 -right-2 bg-ink h-7 w-7 rounded-full items-center justify-center active:opacity-70"
+                        className="absolute -top-2 -right-2 bg-ink h-7 w-7 rounded-full items-center justify-center active:opacity-85"
                         accessibilityRole="button"
                         accessibilityLabel="Remove photo"
                       >
@@ -275,7 +275,7 @@ function CreatePost() {
                   <Pressable
                     onPress={() => setLocation(null)}
                     hitSlop={12}
-                    className="active:opacity-60"
+                    className="active:opacity-85"
                     accessibilityRole="button"
                     accessibilityLabel="Remove location"
                   >
@@ -321,7 +321,7 @@ function CreatePost() {
               setLocationOpen(false);
             }}
             disabled={!user?.college}
-            className={`flex-1 items-center justify-center rounded-2xl border border-line active:opacity-70 ${user?.college ? 'bg-card' : 'bg-paper-2 opacity-60'}`}
+            className={`flex-1 items-center justify-center rounded-2xl border border-line active:opacity-85 ${user?.college ? 'bg-card' : 'bg-paper-2 opacity-60'}`}
             style={{ minHeight: 72 }}
             accessibilityRole="button"
             accessibilityLabel={user?.college ? `Use ${user.college}` : 'No college on your profile'}
@@ -337,7 +337,7 @@ function CreatePost() {
 
           <Pressable
             onPress={() => setOtherOpen(true)}
-            className={`flex-1 items-center justify-center rounded-2xl border active:opacity-70 ${otherOpen ? 'bg-card border-brand-500' : 'bg-card border-line'}`}
+            className={`flex-1 items-center justify-center rounded-2xl border active:opacity-85 ${otherOpen ? 'bg-card border-brand-500' : 'bg-card border-line'}`}
             style={{ minHeight: 72 }}
             accessibilityRole="button"
             accessibilityState={{ expanded: otherOpen, selected: otherOpen }}

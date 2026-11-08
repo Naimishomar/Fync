@@ -58,7 +58,7 @@ const OrderCard = ({ o, onSaved }: { o: GiftOrder; onSaved: (o: GiftOrder) => vo
   return (
     <Pressable
       onPress={() => setOpen((v) => !v)}
-      className="mb-3 rounded-2xl border border-line bg-card p-4 active:opacity-70"
+      className="mb-3 rounded-2xl border border-line bg-card p-4 active:opacity-85"
       accessibilityRole="button"
       accessibilityState={{ expanded: open }}
     >
@@ -241,7 +241,7 @@ const ProductForm = ({ product, onClose, onSaved }: { product: GiftProduct | nul
         ))}
         {images.length < 8 && (
           <Pressable onPress={addImages} accessibilityRole="button" accessibilityLabel="Add images"
-            className="items-center justify-center rounded-2xl border border-dashed border-line bg-paper-2 active:opacity-70" style={{ width: 72, height: 72 }}>
+            className="items-center justify-center rounded-2xl border border-dashed border-line bg-paper-2 active:opacity-85" style={{ width: 72, height: 72 }}>
             {busy ? <ActivityIndicator color={C.ink3} /> : <Ionicons name="add" size={24} color={C.ink3} />}
           </Pressable>
         )}

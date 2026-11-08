@@ -11,7 +11,7 @@ const ResultRow = React.memo(function ResultRow({ item, onOpen }: { item: any; o
   return (
     <Pressable
       onPress={() => onOpen(item)}
-      className="bg-card border border-line rounded-2xl p-4 mb-3 active:opacity-70"
+      className="bg-card border border-line rounded-2xl p-4 mb-3 active:opacity-85"
       accessibilityRole="button"
       accessibilityLabel={`Open ${item.title}`}
     >

@@ -94,7 +94,7 @@ const DesiCharades = () => {
               <Text className={`text-xl font-display ml-2 ${timer < 10 ? 'text-fam-fun' : 'text-ink'}`}>
                 00:{timer < 10 ? `0${timer}` : timer}
               </Text>
-              <Pressable onPress={toggleTimer} className="ml-3 w-11 h-11 items-center justify-center active:opacity-70"
+              <Pressable onPress={toggleTimer} className="ml-3 w-11 h-11 items-center justify-center active:opacity-85"
                 accessibilityRole="button" accessibilityLabel={isTimerRunning ? 'Pause timer' : 'Resume timer'}>
                   <Ionicons name={isTimerRunning ? "pause-circle" : "play-circle"} size={28} color={C.ink} />
               </Pressable>

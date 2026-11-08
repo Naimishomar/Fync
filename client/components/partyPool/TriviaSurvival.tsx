@@ -215,7 +215,7 @@ const TriviaSurvival = ({ onClose }: { onClose: () => void }) => {
                         key={i}
                         onPress={() => handleAnswer(opt)}
                         accessibilityRole="button"
-                        className="bg-white/10 px-6 h-[64px] justify-center rounded-2xl border border-white/10 active:opacity-70"
+                        className="bg-white/10 px-6 h-[64px] justify-center rounded-2xl border border-white/10 active:opacity-85"
                     >
                         <Text 
                             className="text-white text-sm font-semibold text-center"

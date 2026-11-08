@@ -76,7 +76,7 @@ function ProfileStrength({ user }: { user: UserType }) {
           <Pressable
             key={i.label}
             onPress={() => navigation.navigate(i.route)}
-            className="flex-row items-center bg-brand-50 border border-line px-3 rounded-full active:opacity-70"
+            className="flex-row items-center bg-brand-50 border border-line px-3 rounded-full active:opacity-85"
             hitSlop={6}
             style={{ minHeight: 32 }}
             accessibilityRole="button"
@@ -101,7 +101,7 @@ const CodingPlatformCard = ({ icon, name, color, username, solved, rating, profi
     <Pressable
       onPress={() => username && Linking.openURL(profileUrl).catch(() => {})}
       disabled={!username}
-      className="flex-1 rounded-2xl border border-line p-3 items-center bg-paper active:opacity-70"
+      className="flex-1 rounded-2xl border border-line p-3 items-center bg-paper active:opacity-85"
       accessibilityRole={username ? 'link' : 'text'}
       accessibilityLabel={`${name}: ${solved || 0} solved${rating ? `, rating ${rating}` : ''}`}
     >
@@ -212,7 +212,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
       {user?.fyncScore !== undefined && (
         <Pressable
           onPress={() => navigation.navigate('FyncProfileBuilder')}
-          className="mx-gutter mt-5 active:opacity-80"
+          className="mx-gutter mt-5 active:opacity-85"
           accessibilityRole="button"
           accessibilityLabel={`Fync score ${score}, level ${user.fyncBadge || 'Newcomer'}. Boost score`}
         >
@@ -613,7 +613,7 @@ function Profile() {
       {subscription?.status === 'expired' && isFeatureOn('fyncProPaid') && (
         <Pressable
           onPress={() => navigation.navigate('SubscriptionScreen')}
-          className="w-full mt-3 bg-card border border-line px-4 py-3 flex-row items-center rounded-2xl active:opacity-70"
+          className="w-full mt-3 bg-card border border-line px-4 py-3 flex-row items-center rounded-2xl active:opacity-85"
           style={{ gap: 12 }}
           accessibilityRole="button"
           accessibilityLabel="Plan expired. Renew to unlock all features"

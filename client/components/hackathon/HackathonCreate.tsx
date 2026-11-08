@@ -32,7 +32,7 @@ const PickRow = ({ label, value, onPress }: { label: string; value: string; onPr
     onPress={onPress}
     accessibilityRole="button"
     accessibilityLabel={`${label}: ${value}`}
-    className="flex-row items-center justify-between bg-paper-2 rounded-2xl px-4 border border-line active:opacity-70"
+    className="flex-row items-center justify-between bg-paper-2 rounded-2xl px-4 border border-line active:opacity-85"
     style={{ minHeight: 48, gap: 12 }}
   >
     <Text className="text-ink-2 text-sm font-semibold flex-shrink">{label}</Text>
@@ -422,11 +422,11 @@ const HackathonCreate = () => {
 
             {/* Visual assets */}
             <View className="flex-row mt-6" style={{ gap: 12 }}>
-              <Pressable onPress={() => pickImage('logo')} accessibilityRole="button" accessibilityLabel="Pick logo" className="w-28 h-28 rounded-2xl bg-paper-2 border border-dashed border-line items-center justify-center overflow-hidden active:opacity-70">
+              <Pressable onPress={() => pickImage('logo')} accessibilityRole="button" accessibilityLabel="Pick logo" className="w-28 h-28 rounded-2xl bg-paper-2 border border-dashed border-line items-center justify-center overflow-hidden active:opacity-85">
                 {logo ? <Image source={{ uri: logo }} className="w-full h-full" /> : <View className="items-center"><Ionicons name="flash-outline" size={28} color={C.ink3} /><Text className="text-xs font-semibold text-ink-3 mt-1">Logo</Text></View>}
               </Pressable>
 
-              <Pressable onPress={() => pickImage('banner')} accessibilityRole="button" accessibilityLabel="Pick banner" className="flex-1 h-28 rounded-2xl bg-paper-2 border border-dashed border-line items-center justify-center overflow-hidden active:opacity-70">
+              <Pressable onPress={() => pickImage('banner')} accessibilityRole="button" accessibilityLabel="Pick banner" className="flex-1 h-28 rounded-2xl bg-paper-2 border border-dashed border-line items-center justify-center overflow-hidden active:opacity-85">
                 {bannerImage ? <Image source={{ uri: bannerImage }} className="w-full h-full" resizeMode="cover" /> : <View className="items-center"><Ionicons name="images-outline" size={28} color={C.ink3} /><Text className="text-xs font-semibold text-ink-3 mt-1">Banner</Text></View>}
               </Pressable>
             </View>
@@ -489,7 +489,7 @@ const HackathonCreate = () => {
                   <Pressable
                     key={key}
                     onPress={() => setEligibilitySheet(key)}
-                    className="bg-paper-2 rounded-2xl border border-line px-4 py-3 mb-3 active:opacity-70"
+                    className="bg-paper-2 rounded-2xl border border-line px-4 py-3 mb-3 active:opacity-85"
                     style={{ minHeight: 48 }}
                     accessibilityRole="button"
                     accessibilityLabel={`${label}: ${isAll ? allLabel : chosen.join(', ')}`}
@@ -570,7 +570,7 @@ const HackathonCreate = () => {
             {sponsors.map((s, i) => (
               <Card key={i} padded style={{ marginBottom: 12 }}>
                 <View className="flex-row items-center" style={{ gap: 12 }}>
-                  <Pressable onPress={() => pickSponsorLogo(i)} accessibilityRole="button" accessibilityLabel="Pick sponsor logo" className="w-16 h-16 rounded-2xl bg-paper-2 border border-line items-center justify-center overflow-hidden active:opacity-70">
+                  <Pressable onPress={() => pickSponsorLogo(i)} accessibilityRole="button" accessibilityLabel="Pick sponsor logo" className="w-16 h-16 rounded-2xl bg-paper-2 border border-line items-center justify-center overflow-hidden active:opacity-85">
                     {s.logo ? <Image source={{ uri: s.logo }} className="w-full h-full" /> : <Ionicons name="image-outline" size={24} color={C.ink3} />}
                   </Pressable>
                   <FormField value={s.name} onChangeText={(t) => updateSponsor(i, 'name', t)} placeholder="Sponsor name" accessibilityLabel="Sponsor name" containerStyle={{ flex: 1 }} />

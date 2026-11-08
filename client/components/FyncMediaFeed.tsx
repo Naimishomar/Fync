@@ -437,7 +437,7 @@ const YouTubeCard = React.memo(({
   return (
     <Pressable
       onPress={() => onPress(item)}
-      className="bg-card mb-3 w-full rounded-2xl overflow-hidden border border-line active:opacity-90"
+      className="bg-card mb-3 w-full rounded-2xl overflow-hidden border border-line active:opacity-85"
       accessibilityRole="button"
       accessibilityLabel={item.title}
     >
@@ -458,7 +458,7 @@ const YouTubeCard = React.memo(({
           <View className="absolute top-3 right-3 flex-row gap-2">
             <Pressable
               onPress={(e) => { e.stopPropagation(); onEdit(item); }}
-              className="w-11 h-11 bg-card rounded-full items-center justify-center active:opacity-70"
+              className="w-11 h-11 bg-card rounded-full items-center justify-center active:opacity-85"
               accessibilityRole="button"
               accessibilityLabel="Edit"
             >
@@ -466,7 +466,7 @@ const YouTubeCard = React.memo(({
             </Pressable>
             <Pressable
               onPress={(e) => { e.stopPropagation(); onDelete(item._id); }}
-              className="w-11 h-11 bg-danger rounded-full items-center justify-center active:opacity-70"
+              className="w-11 h-11 bg-danger rounded-full items-center justify-center active:opacity-85"
               accessibilityRole="button"
               accessibilityLabel="Delete"
             >
@@ -601,7 +601,7 @@ const MediaDetailView = React.memo(({
             {/* Description Section */}
             <TouchableOpacity
               onPress={() => setIsExpanded(!isExpanded)}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               className="bg-card rounded-2xl p-4 border border-line mb-3"
               accessibilityRole="button"
               accessibilityLabel={isExpanded ? "Show less" : "Show more"}

@@ -107,7 +107,7 @@ export default function AlumniProfileSetup() {
             value={password}
             onChangeText={setPassword}
             right={
-              <Pressable onPress={() => setPasswordVisible(!passwordVisible)} hitSlop={12} accessibilityRole="button" className="active:opacity-70"
+              <Pressable onPress={() => setPasswordVisible(!passwordVisible)} hitSlop={12} accessibilityRole="button" className="active:opacity-85"
                 accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}>
                 <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={22} color={C.ink3} />
               </Pressable>
@@ -119,7 +119,7 @@ export default function AlumniProfileSetup() {
             <Text className="font-semibold text-ink-2" style={{ fontSize: 13, lineHeight: 18 }}>College</Text>
             <Pressable
               onPress={() => setShowCollegeModal(true)}
-              className="bg-paper-2 border border-line rounded-2xl px-4 flex-row justify-between items-center active:opacity-70"
+              className="bg-paper-2 border border-line rounded-2xl px-4 flex-row justify-between items-center active:opacity-85"
               style={{ minHeight: 48, gap: 8 }}
               accessibilityRole="button"
               accessibilityLabel={`College. ${college || 'Not set'}`}

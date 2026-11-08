@@ -15,7 +15,7 @@ const GiftCard = memo(function GiftCard({ item, onOpen }: { item: GiftProduct; o
       onPress={() => onOpen(item._id)}
       accessibilityRole="button"
       accessibilityLabel={`${item.title}, ${rupees(item.price)}`}
-      className="flex-1 mb-3 rounded-2xl border border-line bg-card overflow-hidden active:opacity-70"
+      className="flex-1 mb-3 rounded-2xl border border-line bg-card overflow-hidden active:opacity-85"
       style={{ maxWidth: '50%' }}
     >
       <View style={{ aspectRatio: 1, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' }}>

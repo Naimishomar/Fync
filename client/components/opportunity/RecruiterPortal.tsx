@@ -612,7 +612,7 @@ const PostCard = memo(function PostCard({ item, stats, onOpen, onToggle, onEdit,
                         {item.description}
                     </Text>
                     {item.description.length > 60 ? (
-                        <Pressable onPress={() => setExpanded(e => !e)} hitSlop={12} className="mt-1 active:opacity-70" accessibilityRole="button">
+                        <Pressable onPress={() => setExpanded(e => !e)} hitSlop={12} className="mt-1 active:opacity-85" accessibilityRole="button">
                             <Text className="text-accent-text text-xs font-semibold">{expanded ? 'Show less' : 'Show more'}</Text>
                         </Pressable>
                     ) : null}
@@ -691,7 +691,7 @@ const ApplicantCard = memo(function ApplicantCard({ item, portfolioBusy, onPortf
                 {c.email ? (
                     <Pressable
                         onPress={() => Linking.openURL(`mailto:${c.email}`)}
-                        className="flex-row items-center active:opacity-70"
+                        className="flex-row items-center active:opacity-85"
                         style={{ minHeight: 44 }}
                         accessibilityRole="button"
                         accessibilityLabel={`Email ${c.email}`}
@@ -703,7 +703,7 @@ const ApplicantCard = memo(function ApplicantCard({ item, portfolioBusy, onPortf
                 {c.mobileNumber ? (
                     <Pressable
                         onPress={() => Linking.openURL(`tel:${c.mobileNumber}`)}
-                        className="flex-row items-center active:opacity-70"
+                        className="flex-row items-center active:opacity-85"
                         style={{ minHeight: 44 }}
                         accessibilityRole="button"
                         accessibilityLabel={`Call ${c.mobileNumber}`}
@@ -739,7 +739,7 @@ const ApplicantCard = memo(function ApplicantCard({ item, portfolioBusy, onPortf
                     </View>
                     <Pressable
                         onPress={() => Linking.openURL(`https://github.com/${c.githubUsername}`)}
-                        className="mt-2 flex-row items-center justify-center active:opacity-70"
+                        className="mt-2 flex-row items-center justify-center active:opacity-85"
                         style={{ minHeight: 44, gap: 4 }}
                         accessibilityRole="link"
                     >

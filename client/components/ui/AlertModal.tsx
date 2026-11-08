@@ -210,7 +210,7 @@ export const AlertHost = () => {
                   <Pressable
                     key={`${button.text ?? 'button'}-${index}`}
                     onPress={() => close(button)}
-                    className={`${s.bg} rounded-full items-center justify-center px-4 active:opacity-70 ${stacked ? '' : 'flex-1'}`}
+                    className={`${s.bg} rounded-full items-center justify-center px-4 active:opacity-85 ${stacked ? '' : 'flex-1'}`}
                     style={{ minHeight: 48 }}
                     accessibilityRole="button"
                   >

@@ -173,7 +173,7 @@ export default function AlumniSignup() {
 
                   <Button variant="primary" block title="Verify and continue" onPress={verifyOtpAndProceed} loading={isLoading} />
 
-                  <Pressable className="mt-4 self-center active:opacity-70" hitSlop={12} accessibilityRole="button" onPress={() => setOtpSent(false)}>
+                  <Pressable className="mt-4 self-center active:opacity-85" hitSlop={12} accessibilityRole="button" onPress={() => setOtpSent(false)}>
                     <Text className="text-sm font-semibold text-ink-2">Back to details</Text>
                   </Pressable>
                 </>
@@ -181,7 +181,7 @@ export default function AlumniSignup() {
 
               <View className="mt-4 flex-row justify-center items-center">
                 <Text className="text-sm text-ink-2">Already have an account? </Text>
-                <Pressable onPress={() => navigation.navigate('Login')} hitSlop={12} accessibilityRole="button" className="active:opacity-70">
+                <Pressable onPress={() => navigation.navigate('Login')} hitSlop={12} accessibilityRole="button" className="active:opacity-85">
                   <Text className="text-sm font-semibold text-accent-text">Log in</Text>
                 </Pressable>
               </View>

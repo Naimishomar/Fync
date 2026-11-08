@@ -31,7 +31,7 @@ const JobCard = memo(({ item, onOpenDiscussion, onMessageAlumni, onDeleteJob, is
         <ListingCard title={item.title} subtitle={item.alumni?.company} tags={tags}>
             <Pressable
                 onPress={() => navigation.navigate('PublicProfile', { userId: item.alumni?._id })}
-                className="flex-row items-center mt-3 active:opacity-70"
+                className="flex-row items-center mt-3 active:opacity-85"
                 accessibilityRole="button"
                 accessibilityLabel={`Posted by ${item.alumni?.name ?? 'alumni'}`}
                 hitSlop={8}

@@ -103,7 +103,7 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
       <View style={[styles.controls, { paddingBottom: Math.max(40, insets.bottom + 16) }]}>
         <Pressable
           onPress={handleToggleMute}
-          className="active:opacity-70"
+          className="active:opacity-85"
           style={[styles.controlBtn, isMuted && styles.controlBtnActive]}
           accessibilityRole="button"
           accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
@@ -114,7 +114,7 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
 
         <Pressable
           onPress={handleToggleVideo}
-          className="active:opacity-70"
+          className="active:opacity-85"
           style={[styles.controlBtn, !isVideoOn && styles.controlBtnActive]}
           accessibilityRole="button"
           accessibilityLabel={isVideoOn ? 'Turn camera off' : 'Turn camera on'}
@@ -123,11 +123,11 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
           {isVideoOn ? <Camera size={22} color="#fff" /> : <CameraOff size={22} color="#12100E" />}
         </Pressable>
 
-        <Pressable onPress={handleSwitchCamera} className="active:opacity-70" style={styles.controlBtn} accessibilityRole="button" accessibilityLabel="Switch camera">
+        <Pressable onPress={handleSwitchCamera} className="active:opacity-85" style={styles.controlBtn} accessibilityRole="button" accessibilityLabel="Switch camera">
           <RefreshCw size={22} color="#fff" />
         </Pressable>
 
-        <Pressable onPress={onEndCall} className="active:opacity-70" style={styles.endBtn} accessibilityRole="button" accessibilityLabel="End call">
+        <Pressable onPress={onEndCall} className="active:opacity-85" style={styles.endBtn} accessibilityRole="button" accessibilityLabel="End call">
           <PhoneOff size={30} color="#fff" />
         </Pressable>
       </View>

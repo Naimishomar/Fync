@@ -15,7 +15,7 @@ const ProductCard = memo(function ProductCard({ item, onOpen }: { item: any; onO
     return (
         <Pressable
             style={styles.productCard}
-            className="active:opacity-70"
+            className="active:opacity-85"
             onPress={() => onOpen(item._id)}
             accessibilityRole="button"
             accessibilityLabel={`${item.name}, ₹${item.price}`}

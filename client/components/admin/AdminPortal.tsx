@@ -1191,7 +1191,7 @@ const AdminPortal = ({ navigation }: any) => {
             >
                 <Pressable
                     onPress={pickImage}
-                    className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-paper-2 rounded-2xl border border-dashed border-line items-center justify-center mb-4 overflow-hidden active:opacity-70`}
+                    className={`w-full ${activeTab === 'marketplace' || activeTab === 'media' ? '' : 'h-40'} bg-paper-2 rounded-2xl border border-dashed border-line items-center justify-center mb-4 overflow-hidden active:opacity-85`}
                     style={activeTab === 'marketplace' || activeTab === 'media' ? { aspectRatio: 16 / 9 } : undefined}
                     accessibilityRole="button"
                     accessibilityLabel="Pick image"
@@ -1207,7 +1207,7 @@ const AdminPortal = ({ navigation }: any) => {
                 {activeTab === 'media' && (
                     <Pressable
                         onPress={pickVideo}
-                        className="w-full aspect-video bg-paper-2 border border-dashed border-line items-center justify-center mb-4 overflow-hidden rounded-2xl active:opacity-70"
+                        className="w-full aspect-video bg-paper-2 border border-dashed border-line items-center justify-center mb-4 overflow-hidden rounded-2xl active:opacity-85"
                         accessibilityRole="button"
                         accessibilityLabel={videoUri ? 'Video ready. Pick a different video' : 'Pick video file'}
                     >

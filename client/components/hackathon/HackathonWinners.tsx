@@ -355,7 +355,7 @@ const HackathonWinners = () => {
                       <Pressable
                         onPress={() => untagUser(i, u._id)}
                         hitSlop={10}
-                        className="w-6 h-6 items-center justify-center active:opacity-60"
+                        className="w-6 h-6 items-center justify-center active:opacity-85"
                         accessibilityRole="button"
                         accessibilityLabel={`Remove ${u.name}`}
                       >

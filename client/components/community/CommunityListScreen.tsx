@@ -43,7 +43,7 @@ const CommunityItem = React.memo(({ item, userId, handleJoin, onOpen }: any) => 
             onPress={() => onOpen(item._id)}
             accessibilityRole="button"
             accessibilityLabel={item.name}
-            className={`mx-gutter mb-3 bg-card rounded-2xl overflow-hidden border border-line active:opacity-70 ${isSuspended ? 'opacity-50' : ''}`}
+            className={`mx-gutter mb-3 bg-card rounded-2xl overflow-hidden border border-line active:opacity-85 ${isSuspended ? 'opacity-50' : ''}`}
         >
             <View className="h-40 w-full">
                 <Image

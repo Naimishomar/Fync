@@ -159,7 +159,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                         value={password}
                         onChangeText={setPassword}
                         right={
-                          <Pressable onPress={togglePassword} hitSlop={12} accessibilityRole="button" className="active:opacity-70"
+                          <Pressable onPress={togglePassword} hitSlop={12} accessibilityRole="button" className="active:opacity-85"
                             accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}>
                             <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={22} color={C.ink3} />
                           </Pressable>
@@ -177,7 +177,7 @@ const ForgotPassword = ({ route, navigation }: any) => {
                 />
 
                 {isOtpSent && !isLoading && (
-                  <Pressable onPress={() => setIsOtpSent(false)} className="mt-4 self-center active:opacity-70" hitSlop={12} accessibilityRole="button">
+                  <Pressable onPress={() => setIsOtpSent(false)} className="mt-4 self-center active:opacity-85" hitSlop={12} accessibilityRole="button">
                     <Text className="text-ink-2 font-semibold">Change email or resend</Text>
                   </Pressable>
                 )}

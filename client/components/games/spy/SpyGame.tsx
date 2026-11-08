@@ -402,7 +402,7 @@ const Game = ({ room, myId, word, secsLeft, onPlayer }: {
             return (
               <Pressable key={p.userId} onPress={() => vote(p.userId)} onLongPress={() => onPlayer(p)} disabled={!canVote && !mine}
                 accessibilityRole="button" accessibilityLabel={`Vote ${first(p)}`} accessibilityState={{ selected: mine }}
-                className="items-center rounded-2xl border bg-card py-3 active:opacity-70"
+                className="items-center rounded-2xl border bg-card py-3 active:opacity-85"
                 style={{ width: '30%', flexGrow: 1, borderColor: mine ? SPY : C.line, opacity: p.alive ? 1 : 0.35 }}>
                 <Avatar user={p} size={48} showBadge={false} />
                 <Text className="font-sans text-ink text-xs mt-1" numberOfLines={1}>{p.userId === myId ? 'You' : first(p)}</Text>
@@ -423,7 +423,7 @@ const Game = ({ room, myId, word, secsLeft, onPlayer }: {
         return (
           <View key={i}>
             {newRound ? <Text className="font-sans text-ink-3 text-xs mt-2 mb-1">Round {c.round}</Text> : null}
-            <Pressable onPress={() => p && onPlayer(p)} className="flex-row items-center rounded-2xl bg-card border border-line px-3 py-2 mb-2 active:opacity-70" style={{ gap: 10 }}>
+            <Pressable onPress={() => p && onPlayer(p)} className="flex-row items-center rounded-2xl bg-card border border-line px-3 py-2 mb-2 active:opacity-85" style={{ gap: 10 }}>
               <Avatar user={p ?? { username: '?' }} size={28} showBadge={false} />
               <Text className="font-sans text-ink-2 flex-1" numberOfLines={1}>{c.userId === myId ? 'You' : first(p)}</Text>
               <Text className="font-display" style={{ fontSize: 16, color: c.text ? C.ink : C.ink3 }}>{c.text ?? 'skipped ⏳'}</Text>

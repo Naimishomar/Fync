@@ -33,7 +33,7 @@ export const SearchField = forwardRef<TextInput, TextInputProps & {
         <Pressable
           onPress={() => { onChangeText?.(''); onClear?.(); }}
           hitSlop={12}
-          className="active:opacity-60"
+          className="active:opacity-85"
           accessibilityRole="button"
           accessibilityLabel="Clear search"
         >

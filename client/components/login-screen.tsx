@@ -115,13 +115,13 @@ export default function LoginScreen() {
                   onChangeText={setPassword}
                   autoComplete="password"
                   right={
-                    <Pressable onPress={togglePassword} hitSlop={12} accessibilityRole="button" className="active:opacity-70"
+                    <Pressable onPress={togglePassword} hitSlop={12} accessibilityRole="button" className="active:opacity-85"
                       accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}>
                       <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={22} color={C.ink3} />
                     </Pressable>
                   }
                 />
-                <Pressable className="self-end mt-3 active:opacity-70" hitSlop={12} accessibilityRole="button"
+                <Pressable className="self-end mt-3 active:opacity-85" hitSlop={12} accessibilityRole="button"
                   onPress={() => navigation.navigate('ForgotPassword', { email })}>
                   <Text className="font-semibold text-sm text-accent-text">Forgot password?</Text>
                 </Pressable>
@@ -131,7 +131,7 @@ export default function LoginScreen() {
 
               <View className="flex-row justify-center items-center">
                 <Text className="font-sans text-sm text-ink-2">Don’t have an account? </Text>
-                <Pressable onPress={() => navigation.navigate('Signup')} hitSlop={12} accessibilityRole="button" className="active:opacity-70">
+                <Pressable onPress={() => navigation.navigate('Signup')} hitSlop={12} accessibilityRole="button" className="active:opacity-85">
                   <Text className="font-semibold text-sm text-accent-text">Sign up</Text>
                 </Pressable>
               </View>

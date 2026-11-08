@@ -353,7 +353,7 @@ const LostAndFound = () => {
                             onPress={pickImage}
                             accessibilityRole="button"
                             accessibilityLabel={newItemImage ? 'Change photo' : 'Add a photo'}
-                            className="items-center justify-center bg-paper-2 rounded-2xl border border-dashed border-line overflow-hidden active:opacity-70"
+                            className="items-center justify-center bg-paper-2 rounded-2xl border border-dashed border-line overflow-hidden active:opacity-85"
                             style={{ minHeight: 120 }}
                         >
                             {newItemImage ? (

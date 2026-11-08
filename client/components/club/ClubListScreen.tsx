@@ -21,7 +21,7 @@ const ClubCard = memo(({ item, isInvitation, onAccept, onPress, userId }: any) =
             disabled={isInvitation}
             accessibilityRole="button"
             accessibilityLabel={item.name}
-            className="bg-card rounded-2xl mb-3 mx-gutter border border-line p-4 flex-row active:opacity-70"
+            className="bg-card rounded-2xl mb-3 mx-gutter border border-line p-4 flex-row active:opacity-85"
             style={{ gap: 16 }}
         >
             <Image

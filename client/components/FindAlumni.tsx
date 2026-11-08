@@ -14,7 +14,7 @@ const AlumniRow = memo(function AlumniRow({ item, onOpen, onChat }: { item: any;
     return (
         <Pressable
             onPress={() => onOpen(item)}
-            className="bg-card border border-line rounded-2xl p-4 mb-3 flex-row items-center active:opacity-70"
+            className="bg-card border border-line rounded-2xl p-4 mb-3 flex-row items-center active:opacity-85"
             style={{ gap: 12 }}
             accessibilityRole="button"
             accessibilityLabel={`${item.name}, open profile`}

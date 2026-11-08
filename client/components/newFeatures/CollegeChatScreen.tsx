@@ -309,13 +309,13 @@ const CollegeChatScreen = ({ navigation }: any) => {
                                 borderTopRightRadius: isMe ? 6 : 16,
                                 borderBottomRightRadius: isMe ? 6 : 16,
                             }}
-                            className={`px-4 py-2.5 active:opacity-90 ${isMe ? "bg-ink" : "bg-card border border-line"} ${item.pending ? 'opacity-70' : ''}`}
+                            className={`px-4 py-2.5 active:opacity-85 ${isMe ? "bg-ink" : "bg-card border border-line"} ${item.pending ? 'opacity-70' : ''}`}
                         >
                             {item.messageType === "text" && (
                                 <Text className={`text-sm leading-5 font-semibold ${isMe ? "text-paper" : "text-ink"}`}>{item.content}</Text>
                             )}
                             {item.messageType === "image" && (
-                                <Pressable onPress={() => setSelectedImage(item.mediaUrl)} accessibilityRole="imagebutton" accessibilityLabel="View image" className="active:opacity-70">
+                                <Pressable onPress={() => setSelectedImage(item.mediaUrl)} accessibilityRole="imagebutton" accessibilityLabel="View image" className="active:opacity-85">
                                     <Image source={{ uri: item.mediaUrl }} style={{ width: 192, height: 192, borderRadius: 12 }} contentFit="cover" cachePolicy="memory-disk" blurRadius={item.pending ? 10 : 0} />
                                 </Pressable>
                             )}
@@ -473,7 +473,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                             </View>
                              <View className="ml-2">
                                 {text.trim().length > 0 ? (
-                                    <Pressable onPress={handleSendText} accessibilityRole="button" accessibilityLabel="Send" className="w-12 h-12 bg-brand-500 items-center justify-center rounded-full active:opacity-70">
+                                    <Pressable onPress={handleSendText} accessibilityRole="button" accessibilityLabel="Send" className="w-12 h-12 bg-brand-500 items-center justify-center rounded-full active:opacity-85">
                                         <Ionicons name="send" size={20} color={C.onBrand} />
                                     </Pressable>
                                 ) : null}

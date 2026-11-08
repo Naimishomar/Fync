@@ -215,7 +215,7 @@ export default function SettingsScreen() {
           <Button title="Sign out" icon="log-out-outline" variant="secondary" block onPress={confirmLogout} />
           <Pressable
             onPress={confirmDeleteAccount}
-            className="items-center justify-center active:opacity-70"
+            className="items-center justify-center active:opacity-85"
             style={{ minHeight: 44 }}
             accessibilityRole="button" accessibilityLabel="Delete account"
           >

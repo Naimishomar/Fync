@@ -254,7 +254,7 @@ export default function InterviewSetup() {
                         disabled={!!paidDuration}
                         accessibilityRole="radio"
                         accessibilityState={{ selected: duration === min, disabled: !!paidDuration }}
-                        className={`flex-1 p-4 rounded-2xl items-center border active:opacity-70 ${duration === min ? 'bg-brand-50 border-brand-500' : 'bg-paper-2 border-line'}`}
+                        className={`flex-1 p-4 rounded-2xl items-center border active:opacity-85 ${duration === min ? 'bg-brand-50 border-brand-500' : 'bg-paper-2 border-line'}`}
                       >
                         <Text className={`font-display text-lg ${duration === min ? 'text-accent-text' : 'text-ink-2'}`}>
                           {min} <Text className="text-xs font-medium">min</Text>
@@ -274,7 +274,7 @@ export default function InterviewSetup() {
                     onPress={pickResume}
                     accessibilityRole="button"
                     accessibilityLabel={resume ? `Resume ${resume.name}, tap to change` : 'Upload resume'}
-                    className={`p-6 rounded-2xl border border-dashed items-center justify-center active:opacity-70 ${resume ? 'border-brand-500 bg-brand-50' : 'border-line bg-paper-2'}`}
+                    className={`p-6 rounded-2xl border border-dashed items-center justify-center active:opacity-85 ${resume ? 'border-brand-500 bg-brand-50' : 'border-line bg-paper-2'}`}
                   >
                     {resume ? (
                       <View className="items-center">

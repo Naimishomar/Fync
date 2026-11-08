@@ -176,7 +176,7 @@ export default function SignUpScreen() {
                 value={password} onChangeText={setPassword} autoComplete="new-password"
                 right={
                   <Pressable onPress={() => setPasswordVisible(!passwordVisible)} hitSlop={12}
-                    accessibilityRole="button" className="active:opacity-70"
+                    accessibilityRole="button" className="active:opacity-85"
                     accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}>
                     <Ionicons name={passwordVisible ? 'eye-off-outline' : 'eye-outline'} size={22} color={C.ink3} />
                   </Pressable>
@@ -187,7 +187,7 @@ export default function SignUpScreen() {
                   accessibilityLabel="I agree to the Terms and Conditions" />
                 <View className="flex-row flex-wrap flex-1">
                   <Text className="font-sans text-sm text-ink-2">I agree to the </Text>
-                  <Pressable onPress={() => navigation.navigate('TermsAndCondition')} hitSlop={12} accessibilityRole="link" className="active:opacity-70">
+                  <Pressable onPress={() => navigation.navigate('TermsAndCondition')} hitSlop={12} accessibilityRole="link" className="active:opacity-85">
                     <Text className="font-semibold text-sm text-accent-text">Terms &amp; Conditions</Text>
                   </Pressable>
                 </View>
@@ -218,7 +218,7 @@ export default function SignUpScreen() {
 
             <View className="mt-5 flex-row justify-center items-center">
               <Text className="font-sans text-sm text-ink-2">Already have an account? </Text>
-              <Pressable onPress={() => navigation.navigate('Login')} hitSlop={12} accessibilityRole="button" className="active:opacity-70">
+              <Pressable onPress={() => navigation.navigate('Login')} hitSlop={12} accessibilityRole="button" className="active:opacity-85">
                 <Text className="font-semibold text-sm text-accent-text">Log in</Text>
               </Pressable>
             </View>

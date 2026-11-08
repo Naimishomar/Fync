@@ -58,7 +58,7 @@ const Bubble = memo(function Bubble({
     </View>
   );
   return (
-    <Pressable onPress={onPress} className="active:opacity-70 items-center" style={{ width: RING + 8 }} accessibilityRole="button" accessibilityLabel={label}>
+    <Pressable onPress={onPress} className="active:opacity-85 items-center" style={{ width: RING + 8 }} accessibilityRole="button" accessibilityLabel={label}>
       {ring === 'new' ? (
         <LinearGradient colors={[C.brand[600], C.brand[400], '#FBBF24']} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }}
           style={{ width: RING, height: RING, borderRadius: RING / 2, alignItems: 'center', justifyContent: 'center' }}>
@@ -321,7 +321,7 @@ function StoryViewer({
             </Text>
             <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{ago(story.createdAt)}</Text>
             <View style={{ flex: 1 }} />
-            <Pressable onPress={onClose} hitSlop={12} accessibilityLabel="Close" className="active:opacity-70">
+            <Pressable onPress={onClose} hitSlop={12} accessibilityLabel="Close" className="active:opacity-85">
               <Ionicons name="close" size={28} color="#fff" />
             </Pressable>
           </View>
@@ -329,12 +329,12 @@ function StoryViewer({
 
         {group.isMine ? (
           <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' }}>
-            <Pressable onPress={() => { hold(true); showViewers(); }} className="active:opacity-70" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 }} accessibilityRole="button">
+            <Pressable onPress={() => { hold(true); showViewers(); }} className="active:opacity-85" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 }} accessibilityRole="button">
               <Ionicons name="eye-outline" size={22} color="#fff" />
               <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>{story.viewCount ?? 0} views</Text>
             </Pressable>
             <View style={{ flex: 1 }} />
-            <Pressable onPress={remove} hitSlop={10} className="active:opacity-70" accessibilityLabel="Delete story" style={{ minHeight: 44, justifyContent: 'center' }}>
+            <Pressable onPress={remove} hitSlop={10} className="active:opacity-85" accessibilityLabel="Delete story" style={{ minHeight: 44, justifyContent: 'center' }}>
               <Ionicons name="trash-outline" size={22} color="#fff" />
             </Pressable>
           </View>
@@ -448,13 +448,13 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
 
         {/* Top: close, and (text mode) colour swatches. */}
         <View style={{ position: 'absolute', top: insets.top + 10, left: 14, right: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Pressable onPress={close} hitSlop={10} accessibilityLabel="Close" className="active:opacity-70"
+          <Pressable onPress={close} hitSlop={10} accessibilityLabel="Close" className="active:opacity-85"
             style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name="close" size={24} color="#fff" />
           </Pressable>
           <View style={{ flex: 1 }} />
           {image ? (
-            <Pressable onPress={() => setMedia(null)} hitSlop={10} accessibilityLabel="Remove photo or video" className="active:opacity-70"
+            <Pressable onPress={() => setMedia(null)} hitSlop={10} accessibilityLabel="Remove photo or video" className="active:opacity-85"
               style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="trash-outline" size={20} color="#fff" />
             </Pressable>
@@ -466,13 +466,13 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
 
         {/* Bottom: gallery + share. */}
         <View style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 20, flexDirection: 'row', alignItems: 'center' }}>
-          <Pressable onPress={pick} className="active:opacity-70" accessibilityRole="button"
+          <Pressable onPress={pick} className="active:opacity-85" accessibilityRole="button"
             style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 48, paddingHorizontal: 18, borderRadius: 24, backgroundColor: 'rgba(0,0,0,0.35)' }}>
             <Ionicons name="images-outline" size={20} color="#fff" />
             <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>{image ? 'Change' : 'Photo / video'}</Text>
           </Pressable>
           <View style={{ flex: 1 }} />
-          <Pressable onPress={share} disabled={!canShare || posting} className="active:opacity-70" accessibilityRole="button"
+          <Pressable onPress={share} disabled={!canShare || posting} className="active:opacity-85" accessibilityRole="button"
             style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 48, paddingHorizontal: 20, borderRadius: 24, backgroundColor: '#fff', opacity: canShare ? 1 : 0.5 }}>
             {posting ? <ActivityIndicator color="#12100E" /> : (
               <>

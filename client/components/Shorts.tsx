@@ -258,7 +258,7 @@ const SingleShort = React.memo(({
                   ]
                 );
               }}
-              className="mb-4 active:opacity-70"
+              className="mb-4 active:opacity-85"
               hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel="Delete short"
@@ -267,7 +267,7 @@ const SingleShort = React.memo(({
             </Pressable>
           )}
 
-          <Pressable onPress={() => onLike(item)} hitSlop={6} className="active:opacity-70" accessibilityRole="button" accessibilityState={{ selected: !!isLiked }} accessibilityLabel={isLiked ? "Unlike" : "Like"}>
+          <Pressable onPress={() => onLike(item)} hitSlop={6} className="active:opacity-85" accessibilityRole="button" accessibilityState={{ selected: !!isLiked }} accessibilityLabel={isLiked ? "Unlike" : "Like"}>
             <Ionicons
               name={isLiked ? "heart" : "heart-outline"}
               size={34}
@@ -276,7 +276,7 @@ const SingleShort = React.memo(({
           </Pressable>
           <Text className="font-semibold text-xs text-white mb-4">{item.likes || 0}</Text>
 
-          <Pressable onPress={() => onComment(item._id)} hitSlop={8} className="mb-4 active:opacity-70" accessibilityRole="button" accessibilityLabel="Comments">
+          <Pressable onPress={() => onComment(item._id)} hitSlop={8} className="mb-4 active:opacity-85" accessibilityRole="button" accessibilityLabel="Comments">
             <Ionicons name="chatbubble-outline" size={28} color="white" />
           </Pressable>
 
@@ -312,7 +312,7 @@ const SingleShort = React.memo(({
                 );
               }
             }}
-            className="mb-4 items-center active:opacity-70"
+            className="mb-4 items-center active:opacity-85"
             accessibilityRole="button"
             accessibilityLabel={`Tip ${author.name ?? 'creator'}`}
           >
@@ -342,7 +342,7 @@ const SingleShort = React.memo(({
             </Pressable>
           )}
 
-          <Pressable onPress={handleShare} hitSlop={8} className="mb-4 active:opacity-70" accessibilityRole="button" accessibilityLabel="Share">
+          <Pressable onPress={handleShare} hitSlop={8} className="mb-4 active:opacity-85" accessibilityRole="button" accessibilityLabel="Share">
             <Ionicons name="paper-plane-outline" size={28} color="white" />
           </Pressable>
 

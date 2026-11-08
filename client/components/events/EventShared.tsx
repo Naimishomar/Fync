@@ -346,7 +346,7 @@ export function PickerField({
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={label ? `${label}: ${value || placeholder}` : value || placeholder}
-        className="flex-row items-center min-h-[48px] px-4 rounded-2xl bg-paper-2 border border-line active:opacity-70"
+        className="flex-row items-center min-h-[48px] px-4 rounded-2xl bg-paper-2 border border-line active:opacity-85"
         style={{ gap: 8 }}
       >
         <Text className={`flex-1 text-base font-sans ${value ? 'text-ink' : 'text-ink-3'}`} numberOfLines={1}>{value || placeholder}</Text>
@@ -361,12 +361,12 @@ export function BrandingPicker({
 }: { banner: string | null; logo: string | null; onBanner: (u: string) => void; onLogo: (u: string) => void }) {
   return (
     <View className="flex-row" style={{ gap: 12 }}>
-      <Pressable onPress={() => pickImage(onBanner)} accessibilityRole="button" accessibilityLabel="Pick banner image" className="flex-1 h-32 rounded-2xl bg-paper-2 border border-line overflow-hidden items-center justify-center active:opacity-70">
+      <Pressable onPress={() => pickImage(onBanner)} accessibilityRole="button" accessibilityLabel="Pick banner image" className="flex-1 h-32 rounded-2xl bg-paper-2 border border-line overflow-hidden items-center justify-center active:opacity-85">
         {banner ? <Image source={{ uri: banner }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : (
           <><Ionicons name="image-outline" size={22} color={C.ink3} /><Text className="text-ink-3 text-xs font-semibold mt-1">Banner</Text></>
         )}
       </Pressable>
-      <Pressable onPress={() => pickImage(onLogo)} accessibilityRole="button" accessibilityLabel="Pick logo image" className="w-32 h-32 rounded-2xl bg-paper-2 border border-line overflow-hidden items-center justify-center active:opacity-70">
+      <Pressable onPress={() => pickImage(onLogo)} accessibilityRole="button" accessibilityLabel="Pick logo image" className="w-32 h-32 rounded-2xl bg-paper-2 border border-line overflow-hidden items-center justify-center active:opacity-85">
         {logo ? <Image source={{ uri: logo }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : (
           <><Ionicons name="camera-outline" size={22} color={C.ink3} /><Text className="text-ink-3 text-xs font-semibold mt-1">Logo</Text></>
         )}

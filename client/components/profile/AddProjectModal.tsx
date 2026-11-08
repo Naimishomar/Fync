@@ -23,7 +23,7 @@ const Thumb = ({ uri, onRemove }: { uri: string; onRemove: () => void }) => (
   <View className="w-[30%] aspect-square rounded-2xl overflow-hidden border border-line bg-paper-2">
     <Image source={{ uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
     <Pressable onPress={onRemove} hitSlop={12} accessibilityRole="button" accessibilityLabel="Remove image"
-      className="absolute top-1 right-1 bg-black/60 rounded-full w-7 h-7 items-center justify-center active:opacity-70">
+      className="absolute top-1 right-1 bg-black/60 rounded-full w-7 h-7 items-center justify-center active:opacity-85">
       <Ionicons name="close" size={14} color="#FFFFFF" />
     </Pressable>
   </View>
@@ -163,7 +163,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
       <View className="flex-row items-center justify-between">
         <FieldLabel>Images ({count}/5)</FieldLabel>
         {count > 0 && count < 5 ? (
-          <Pressable onPress={pickImages} hitSlop={12} accessibilityRole="button" className="mb-2 active:opacity-70">
+          <Pressable onPress={pickImages} hitSlop={12} accessibilityRole="button" className="mb-2 active:opacity-85">
             <Text className="text-accent-text text-sm font-semibold">Add images</Text>
           </Pressable>
         ) : null}

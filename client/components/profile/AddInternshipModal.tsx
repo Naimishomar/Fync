@@ -180,7 +180,7 @@ export default function AddInternshipModal({ visible, initial, onClose, onSucces
         onPress={() => pickDocument(current ? 'offer' : 'cert')}
         accessibilityRole="button"
         accessibilityLabel={current ? 'Upload offer letter' : 'Upload completion certificate'}
-        className="bg-paper-2 border border-line px-4 rounded-2xl flex-row items-center active:opacity-70"
+        className="bg-paper-2 border border-line px-4 rounded-2xl flex-row items-center active:opacity-85"
         style={{ minHeight: 56, gap: 12 }}
       >
         <Feather name={current ? 'file-text' : 'award'} size={18} color={C.ink2} />

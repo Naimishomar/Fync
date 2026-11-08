@@ -625,7 +625,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             }
                         }} />}
                     >
-                            <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data?.user })} className="flex-row items-center active:opacity-70" accessibilityRole="button">
+                            <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data?.user })} className="flex-row items-center active:opacity-85" accessibilityRole="button">
                                 <Avatar user={data.user as any} size={36} />
                                 <View className="ml-3 flex-1 min-w-0">
                                     <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{data.user?.username}</Text>
@@ -665,27 +665,27 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                         </Reanimated.View>
 
                         <View className="px-gutter pt-3 flex-row items-center gap-2">
-                            <TouchableOpacity onPress={handleLike} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-70" style={{ minHeight: 40 }} hitSlop={2}>
+                            <TouchableOpacity onPress={handleLike} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-85" style={{ minHeight: 40 }} hitSlop={2}>
                                 <Reanimated.View style={likePopStyle}>
                                     <Ionicons name={isLiked ? "thumbs-up" : "thumbs-up-outline"} size={20} color={isLiked ? C.brand[500] : C.ink2} />
                                 </Reanimated.View>
                                 <Text className={`font-semibold text-xs ml-1.5 ${isLiked ? 'text-accent-text' : 'text-ink-3'}`}>{likeCount}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-70" style={{ minHeight: 40 }} hitSlop={2}>
+                            <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-85" style={{ minHeight: 40 }} hitSlop={2}>
                                 <Ionicons name="chatbubble-outline" size={20} color={C.ink2} />
                                 <Text className="text-ink-3 font-semibold text-xs ml-1.5">{commentCount}</Text>
                             </TouchableOpacity>
                             {/* Hidden on your own post: the endpoint refuses it,
                                 so the control could only produce an error. */}
                             {data.user?._id !== currentUser?._id && (
-                                <TouchableOpacity onPress={() => (reposted ? handleRepost() : setRepostModalOpen(true))} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-70" style={{ minHeight: 40 }} hitSlop={2}>
+                                <TouchableOpacity onPress={() => (reposted ? handleRepost() : setRepostModalOpen(true))} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-85" style={{ minHeight: 40 }} hitSlop={2}>
                                     <Ionicons name={reposted ? "repeat" : "repeat-outline"} size={20} color={reposted ? C.brand[600] : C.ink2} />
                                     {repostCount > 0 && (
                                         <Text className={`font-semibold text-xs ml-1.5 ${reposted ? 'text-accent-text' : 'text-ink-3'}`}>{repostCount}</Text>
                                     )}
                                 </TouchableOpacity>
                             )}
-                            <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-70" style={{ minHeight: 40 }} hitSlop={2}>
+                            <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-85" style={{ minHeight: 40 }} hitSlop={2}>
                                 <Ionicons name="paper-plane-outline" size={20} color={C.ink2} />
                                 <Text className="text-ink-3 font-semibold text-xs ml-1.5">Share</Text>
                             </TouchableOpacity>
@@ -719,7 +719,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     <Text className="text-ink-3 text-sm">No comments yet. Be the first!</Text>
                                 )}
                                 
-                                <Pressable onPress={() => setCommentModalVisible(true)} className="mt-4 bg-paper-2 px-4 rounded-full justify-center border border-line active:opacity-70" style={{ minHeight: 48 }} accessibilityRole="button">
+                                <Pressable onPress={() => setCommentModalVisible(true)} className="mt-4 bg-paper-2 px-4 rounded-full justify-center border border-line active:opacity-85" style={{ minHeight: 48 }} accessibilityRole="button">
                                     <Text className="text-ink-3 text-sm">Add a comment…</Text>
                                 </Pressable>
                             </View>
@@ -737,7 +737,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                             // push, not navigate: the screen is already mounted for
                                             // another item, and replacing it would lose the way back.
                                             onPress={() => navigation.push('IndividualPostOrShort', item.isShort ? { shortId: item._id } : { postId: item._id })}
-                                            className="flex-row mb-3 active:opacity-70"
+                                            className="flex-row mb-3 active:opacity-85"
                                         >
                                             <View className="w-24 h-24 rounded-2xl overflow-hidden bg-paper-2">
                                                 {item.isShort ? (
@@ -884,7 +884,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             {/* Media Preview / Picker */}
                             <Pressable 
                                 onPress={pickMedia}
-                                className="mb-4 aspect-video w-full bg-paper-2 overflow-hidden border border-dashed border-line justify-center items-center rounded-2xl active:opacity-70"
+                                className="mb-4 aspect-video w-full bg-paper-2 overflow-hidden border border-dashed border-line justify-center items-center rounded-2xl active:opacity-85"
                                 accessibilityRole="button"
                                 accessibilityLabel={isShort ? "Change video" : "Replace photos"}
                             >

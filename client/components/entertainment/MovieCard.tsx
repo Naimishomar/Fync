@@ -20,7 +20,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ item, onPress, width = 140, heigh
     <Pressable
       onPress={onPress}
       style={{ width, height, marginRight }}
-      className="rounded-2xl overflow-hidden bg-night active:opacity-80"
+      className="rounded-2xl overflow-hidden bg-night active:opacity-85"
       accessibilityRole="button"
       accessibilityLabel={`${item.title}, rated ${Number(item.vote_average ?? 0).toFixed(1)}`}
     >

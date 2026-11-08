@@ -124,7 +124,7 @@ const Option = React.memo(function Option({
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center rounded-2xl border px-4 active:opacity-70 ${on ? 'bg-card border-brand-500' : 'bg-card border-line'}`}
+      className={`flex-row items-center rounded-2xl border px-4 active:opacity-85 ${on ? 'bg-card border-brand-500' : 'bg-card border-line'}`}
       style={{ minHeight: 52, gap: 12 }}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: on }}

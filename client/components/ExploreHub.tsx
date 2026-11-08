@@ -34,7 +34,7 @@ const Item = ({ feature, columns, onOpen }: { feature: Feature; columns: number;
   <View style={{ width: `${100 / columns}%`, paddingHorizontal: 4 }}>
     <Pressable
       onPress={() => onOpen(feature)}
-      className="items-center active:opacity-60"
+      className="items-center active:opacity-85"
       style={{ gap: 8 }}
       accessibilityRole="button"
       accessibilityLabel={`${feature.label}. ${feature.hint}`}

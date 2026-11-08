@@ -169,7 +169,7 @@ export default function ProfileSetup2() {
               <View className="items-center mb-8">
                 <Pressable
                   onPress={handleUploadProfilePic}
-                  className="h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-paper-2 border border-dashed border-line active:opacity-70"
+                  className="h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-paper-2 border border-dashed border-line active:opacity-85"
                   accessibilityRole="button"
                   accessibilityLabel={profileImageUri ? 'Change profile photo' : 'Upload profile photo'}
                 >

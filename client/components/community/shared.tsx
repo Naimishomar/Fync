@@ -75,7 +75,7 @@ export function ImagePick({
             disabled={disabled || !onPress}
             accessibilityRole="button"
             accessibilityLabel={uri ? `Change ${label.toLowerCase()}` : label}
-            className="bg-paper-2 rounded-2xl border border-dashed border-line items-center justify-center overflow-hidden active:opacity-70"
+            className="bg-paper-2 rounded-2xl border border-dashed border-line items-center justify-center overflow-hidden active:opacity-85"
             style={style}
         >
             {uri ? (
@@ -127,7 +127,7 @@ export function DecideButtons({
                 disabled={disabled}
                 accessibilityRole="button"
                 accessibilityLabel={name ? `Approve ${name}` : 'Approve'}
-                className="w-11 h-11 rounded-full bg-success items-center justify-center active:opacity-70"
+                className="w-11 h-11 rounded-full bg-success items-center justify-center active:opacity-85"
                 style={disabled ? { opacity: 0.5 } : undefined}
             >
                 <Ionicons name="checkmark" size={20} color={C.paper} />
@@ -137,7 +137,7 @@ export function DecideButtons({
                 disabled={disabled}
                 accessibilityRole="button"
                 accessibilityLabel={name ? `Decline ${name}` : 'Decline'}
-                className="w-11 h-11 rounded-full bg-paper-2 items-center justify-center active:opacity-70"
+                className="w-11 h-11 rounded-full bg-paper-2 items-center justify-center active:opacity-85"
                 style={disabled ? { opacity: 0.5 } : undefined}
             >
                 <Ionicons name="close" size={20} color={C.ink2} />
@@ -170,7 +170,7 @@ export function ChatComposer({
             {top}
             <View className="flex-row items-end" style={{ gap: 8 }}>
                 {onAttach ? (
-                    <Pressable onPress={onAttach} accessibilityRole="button" accessibilityLabel="Attach file" className="w-11 h-11 rounded-full bg-paper-2 items-center justify-center active:opacity-70">
+                    <Pressable onPress={onAttach} accessibilityRole="button" accessibilityLabel="Attach file" className="w-11 h-11 rounded-full bg-paper-2 items-center justify-center active:opacity-85">
                         <Ionicons name="attach" size={22} color={C.ink2} />
                     </Pressable>
                 ) : null}
@@ -192,7 +192,7 @@ export function ChatComposer({
                     accessibilityRole="button"
                     accessibilityLabel="Send"
                     accessibilityState={{ disabled: !canSend, busy: !!sending }}
-                    className={`w-11 h-11 rounded-full items-center justify-center active:opacity-70 ${canSend ? 'bg-brand-500' : 'bg-paper-2'}`}
+                    className={`w-11 h-11 rounded-full items-center justify-center active:opacity-85 ${canSend ? 'bg-brand-500' : 'bg-paper-2'}`}
                 >
                     {sending ? <ActivityIndicator size="small" color={C.ink} /> : <Ionicons name="arrow-up" size={22} color={canSend ? C.onBrand : C.ink4} />}
                 </Pressable>
@@ -210,11 +210,11 @@ export function VoteControl({
     const down = myVote === -1;
     return (
         <View className={`items-center bg-paper-2 rounded-full ${vertical ? '' : 'flex-row'}`} style={{ padding: 2 }}>
-            <Pressable onPress={() => onVote(1)} hitSlop={4} accessibilityRole="button" accessibilityLabel="Upvote" accessibilityState={{ selected: up }} className="w-10 h-10 items-center justify-center active:opacity-60">
+            <Pressable onPress={() => onVote(1)} hitSlop={4} accessibilityRole="button" accessibilityLabel="Upvote" accessibilityState={{ selected: up }} className="w-10 h-10 items-center justify-center active:opacity-85">
                 <Ionicons name={up ? 'arrow-up-circle' : 'arrow-up-circle-outline'} size={24} color={up ? C.brand[500] : C.ink3} />
             </Pressable>
             <Text className="text-ink font-display" style={{ fontSize: 14, minWidth: 20, textAlign: 'center', fontVariant: ['tabular-nums'] }}>{score}</Text>
-            <Pressable onPress={() => onVote(-1)} hitSlop={4} accessibilityRole="button" accessibilityLabel="Downvote" accessibilityState={{ selected: down }} className="w-10 h-10 items-center justify-center active:opacity-60">
+            <Pressable onPress={() => onVote(-1)} hitSlop={4} accessibilityRole="button" accessibilityLabel="Downvote" accessibilityState={{ selected: down }} className="w-10 h-10 items-center justify-center active:opacity-85">
                 <Ionicons name={down ? 'arrow-down-circle' : 'arrow-down-circle-outline'} size={24} color={down ? C.info : C.ink3} />
             </Pressable>
         </View>

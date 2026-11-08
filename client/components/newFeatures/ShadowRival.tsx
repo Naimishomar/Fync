@@ -310,7 +310,7 @@ export default function ShadowRival() {
                                 accessibilityRole="button"
                                 accessibilityLabel={`Reroll Shadow, ${data.rematchesLeft ?? 0} left`}
                                 accessibilityState={{ disabled: busy || (data.rematchesLeft ?? 0) < 1 }}
-                                className="flex-row items-center px-4 py-4 border-b border-line active:opacity-70"
+                                className="flex-row items-center px-4 py-4 border-b border-line active:opacity-85"
                             >
                                 <Ionicons name="shuffle" size={18} color={(data.rematchesLeft ?? 0) < 1 ? C.ink3 : C.accentText} />
                                 <Text className={`font-semibold text-base ml-3 flex-1 ${(data.rematchesLeft ?? 0) < 1 ? "text-ink-3" : "text-ink"}`}>

@@ -108,7 +108,7 @@ export default function ProjectCard({
             accessibilityRole="button"
             accessibilityLabel={isLiked ? 'Unlike project' : 'Like project'}
             accessibilityState={{ selected: !!isLiked }}
-            className="flex-row items-center px-3 rounded-full active:opacity-70"
+            className="flex-row items-center px-3 rounded-full active:opacity-85"
             style={{ minHeight: 44, gap: 6 }}
           >
             <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={18} color={isLiked ? C.danger : C.ink3} />

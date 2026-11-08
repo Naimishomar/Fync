@@ -54,7 +54,7 @@ const ClubMessage = memo(function ClubMessage({ item, myId, senderIsAdmin, onVot
                                     accessibilityRole="button"
                                     accessibilityLabel={`${opt.optionText}, ${Math.round(pct)} percent`}
                                     accessibilityState={{ selected: hasVoted }}
-                                    className={`mb-2 bg-paper-2 rounded-xl overflow-hidden border active:opacity-70 ${hasVoted ? 'border-brand-500' : 'border-line'}`}
+                                    className={`mb-2 bg-paper-2 rounded-xl overflow-hidden border active:opacity-85 ${hasVoted ? 'border-brand-500' : 'border-line'}`}
                                 >
                                     <View className="flex-row items-center justify-between p-3">
                                         <View className="absolute left-0 top-0 bottom-0 bg-brand-500/15" style={{ width: `${pct}%` }} />

@@ -196,7 +196,7 @@ const ContactUs = () => {
                                             <Pressable
                                                 onPress={() => removeImage(index)}
                                                 hitSlop={12}
-                                                className="absolute top-1.5 right-1.5 bg-black/60 rounded-full p-1 active:opacity-70"
+                                                className="absolute top-1.5 right-1.5 bg-black/60 rounded-full p-1 active:opacity-85"
                                                 accessibilityRole="button"
                                                 accessibilityLabel={`Remove screenshot ${index + 1}`}
                                             >
@@ -207,7 +207,7 @@ const ContactUs = () => {
                                     {selectedImages.length < 3 && (
                                         <Pressable
                                             onPress={pickImages}
-                                            className="w-20 h-20 rounded-2xl border border-dashed border-line justify-center items-center bg-paper-2 active:opacity-70"
+                                            className="w-20 h-20 rounded-2xl border border-dashed border-line justify-center items-center bg-paper-2 active:opacity-85"
                                             accessibilityRole="button"
                                             accessibilityLabel="Attach screenshot"
                                         >

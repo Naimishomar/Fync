@@ -431,7 +431,7 @@ export default function TwelveAMClub() {
                                 accessibilityRole="button"
                                 accessibilityLabel="Report and leave"
                                 hitSlop={8}
-                                className="bg-night border border-danger/40 px-3 py-2 rounded-full mr-2 active:opacity-70"
+                                className="bg-night border border-danger/40 px-3 py-2 rounded-full mr-2 active:opacity-85"
                             >
                                 <Text className="text-danger text-xs font-semibold">Report</Text>
                             </Pressable>
@@ -442,7 +442,7 @@ export default function TwelveAMClub() {
                                 accessibilityRole="button"
                                 accessibilityLabel="Next stranger"
                                 hitSlop={8}
-                                className="bg-night border border-white/10 px-3 py-2 rounded-full mr-2 active:opacity-70"
+                                className="bg-night border border-white/10 px-3 py-2 rounded-full mr-2 active:opacity-85"
                             >
                                 <Text className="text-recruiter text-xs font-semibold">Next</Text>
                             </Pressable>
@@ -479,7 +479,7 @@ export default function TwelveAMClub() {
                         <Pressable
                             onPress={findMatch}
                             accessibilityRole="button"
-                            className="bg-recruiter px-gutter h-12 rounded-full mt-8 w-full items-center justify-center active:opacity-70"
+                            className="bg-recruiter px-gutter h-12 rounded-full mt-8 w-full items-center justify-center active:opacity-85"
                         >
                             <Text className="text-paper font-semibold text-base">Connect now</Text>
                         </Pressable>
@@ -533,7 +533,7 @@ export default function TwelveAMClub() {
                                   disabled={isProcessing}
                                   accessibilityRole="button"
                                   accessibilityLabel="Send a photo"
-                                  className="w-11 h-11 bg-night items-center justify-center rounded-full active:opacity-70"
+                                  className="w-11 h-11 bg-night items-center justify-center rounded-full active:opacity-85"
                               >
                                   {isProcessing ? (
                                       <ActivityIndicator size="small" color={C.recruiter} />
@@ -562,7 +562,7 @@ export default function TwelveAMClub() {
                               accessibilityRole="button"
                               accessibilityLabel="Send"
                               accessibilityState={{ disabled: isProcessing || !inputText.trim() }}
-                              className={`w-11 h-11 rounded-full items-center justify-center active:opacity-70 ${inputText.trim() ? 'bg-recruiter' : 'bg-night'}`}
+                              className={`w-11 h-11 rounded-full items-center justify-center active:opacity-85 ${inputText.trim() ? 'bg-recruiter' : 'bg-night'}`}
                           >
                               <Feather name="arrow-up" size={24} color={inputText.trim() ? C.paper : C.night3} />
                           </Pressable>

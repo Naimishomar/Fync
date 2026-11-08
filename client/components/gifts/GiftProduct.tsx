@@ -127,7 +127,7 @@ const GiftProduct = () => {
                   ))}
                   {photos.length < maxPhotos && (
                     <Pressable onPress={pickPhotos} accessibilityRole="button" accessibilityLabel="Add photos"
-                      className="items-center justify-center rounded-2xl border border-dashed border-line bg-paper-2 active:opacity-70" style={{ width: 76, height: 76 }}>
+                      className="items-center justify-center rounded-2xl border border-dashed border-line bg-paper-2 active:opacity-85" style={{ width: 76, height: 76 }}>
                       <Ionicons name="add" size={26} color={C.ink3} />
                     </Pressable>
                   )}

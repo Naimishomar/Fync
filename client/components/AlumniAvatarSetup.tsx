@@ -136,7 +136,7 @@ export default function AlumniAvatarSetup() {
           <View className="items-center mb-8">
             <Pressable
               onPress={handleUploadProfilePic}
-              className="h-48 w-48 items-center justify-center overflow-hidden rounded-full bg-paper-2 border border-line active:opacity-70"
+              className="h-48 w-48 items-center justify-center overflow-hidden rounded-full bg-paper-2 border border-line active:opacity-85"
               accessibilityRole="button"
               accessibilityLabel={profileImageUri ? 'Change profile photo' : 'Upload profile photo'}
             >

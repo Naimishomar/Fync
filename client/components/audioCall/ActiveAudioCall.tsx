@@ -84,7 +84,7 @@ export default function ActiveAudioCall({
         >
           <Pressable
             onPress={handleToggleMute}
-            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${isMuted ? 'bg-white' : 'bg-white/10'}`}
+            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-85 ${isMuted ? 'bg-white' : 'bg-white/10'}`}
             accessibilityRole="button"
             accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
             accessibilityState={{ selected: isMuted }}
@@ -98,7 +98,7 @@ export default function ActiveAudioCall({
 
           <Pressable
             onPress={onEndCall}
-            className="w-20 h-20 rounded-full bg-danger items-center justify-center active:opacity-70"
+            className="w-20 h-20 rounded-full bg-danger items-center justify-center active:opacity-85"
             accessibilityRole="button"
             accessibilityLabel="End call"
           >
@@ -107,7 +107,7 @@ export default function ActiveAudioCall({
 
           <Pressable
             onPress={() => setIsSpeaker(webRTCManager.setSpeakerphone(!isSpeaker))}
-            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-70 ${isSpeaker ? 'bg-white' : 'bg-white/10'}`}
+            className={`w-14 h-14 rounded-full items-center justify-center active:opacity-85 ${isSpeaker ? 'bg-white' : 'bg-white/10'}`}
             accessibilityRole="button"
             accessibilityLabel={isSpeaker ? 'Switch to earpiece' : 'Switch to speaker'}
             accessibilityState={{ selected: isSpeaker }}

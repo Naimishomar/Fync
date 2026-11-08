@@ -120,7 +120,7 @@ const NoticeCard = memo(function NoticeCard({ item, userId, official, onLike, on
         <Pressable
           onPress={() => openNoticeLink(item.link!)}
           accessibilityRole="link"
-          className="flex-row items-center bg-paper-2 rounded-full self-start mt-3 px-4 active:opacity-70"
+          className="flex-row items-center bg-paper-2 rounded-full self-start mt-3 px-4 active:opacity-85"
           style={{ minHeight: 40, gap: 8 }}
         >
           <Ionicons name="link-outline" size={16} color={C.ink} />
@@ -131,7 +131,7 @@ const NoticeCard = memo(function NoticeCard({ item, userId, official, onLike, on
       {item.image && item.image.length > 0 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ gap: 12 }}>
           {item.image.map((imgUri, idx) => (
-            <Pressable key={idx} onPress={() => onImage(imgUri)} accessibilityRole="imagebutton" accessibilityLabel={`Open image ${idx + 1}`} className="active:opacity-80">
+            <Pressable key={idx} onPress={() => onImage(imgUri)} accessibilityRole="imagebutton" accessibilityLabel={`Open image ${idx + 1}`} className="active:opacity-85">
               <ExpoImage
                 source={{ uri: imgUri }}
                 style={{ width: 256, height: 160, borderRadius: 16, backgroundColor: C.paper2 }}
@@ -149,7 +149,7 @@ const NoticeCard = memo(function NoticeCard({ item, userId, official, onLike, on
           accessibilityRole="button"
           accessibilityLabel={liked ? 'Unlike' : 'Like'}
           accessibilityState={{ selected: liked }}
-          className="flex-row items-center px-3 rounded-full active:opacity-70"
+          className="flex-row items-center px-3 rounded-full active:opacity-85"
           style={{ minHeight: 44, gap: 6 }}
         >
           <Ionicons name={liked ? "heart" : "heart-outline"} size={20} color={liked ? C.danger : C.ink3} />
@@ -159,7 +159,7 @@ const NoticeCard = memo(function NoticeCard({ item, userId, official, onLike, on
           onPress={() => onComments(item._id)}
           accessibilityRole="button"
           accessibilityLabel={`Comments, ${item.comments?.length || 0}`}
-          className="flex-row items-center px-3 rounded-full active:opacity-70"
+          className="flex-row items-center px-3 rounded-full active:opacity-85"
           style={{ minHeight: 44, gap: 6 }}
         >
           <Ionicons name="chatbubble-outline" size={19} color={C.ink3} />
@@ -514,7 +514,7 @@ const NoticeBoard = () => {
             onPress={() => setCreateModalVisible(true)}
             accessibilityRole="button"
             accessibilityLabel="Post a notice"
-            className="absolute right-gutter w-14 h-14 rounded-full bg-brand-500 items-center justify-center active:opacity-70 shadow-hair"
+            className="absolute right-gutter w-14 h-14 rounded-full bg-brand-500 items-center justify-center active:opacity-85 shadow-hair"
             style={{ bottom: bottomInset + 56 }}
           >
             <Ionicons name="create-outline" size={24} color={C.onBrand} />
@@ -564,7 +564,7 @@ const NoticeBoard = () => {
                 }}
                 accessibilityRole="button"
                 accessibilityLabel={images.length ? `Change images, ${images.length} selected` : 'Add images'}
-                className="border border-dashed border-line rounded-2xl items-center justify-center bg-paper-2 active:opacity-70"
+                className="border border-dashed border-line rounded-2xl items-center justify-center bg-paper-2 active:opacity-85"
                 style={{ minHeight: 96, gap: 8 }}
               >
                 <Ionicons name="images-outline" size={28} color={C.ink3} />

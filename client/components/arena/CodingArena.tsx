@@ -181,7 +181,7 @@ export default function CodingArena() {
               <Pressable
                 key={c._id}
                 onPress={() => openWeb(`/arena/contest/${c._id}`)}
-                className={`mb-3 rounded-2xl p-4 active:opacity-70 ${running ? 'bg-night border border-line' : 'bg-card border border-line'}`}
+                className={`mb-3 rounded-2xl p-4 active:opacity-85 ${running ? 'bg-night border border-line' : 'bg-card border border-line'}`}
                 accessibilityRole="button"
                 accessibilityLabel={running ? `${c.title}, live, ends in ${when}` : `${c.title}, starts in ${when}`}
               >

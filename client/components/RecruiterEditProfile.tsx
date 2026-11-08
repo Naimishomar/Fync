@@ -134,7 +134,7 @@ export default function RecruiterEditProfile() {
         {/* Banner */}
         <Pressable
           onPress={() => pickImage('banner')}
-          className="mx-gutter h-40 bg-paper-2 rounded-2xl overflow-hidden border border-line active:opacity-70"
+          className="mx-gutter h-40 bg-paper-2 rounded-2xl overflow-hidden border border-line active:opacity-85"
           accessibilityRole="button"
           accessibilityLabel="Change banner"
         >
@@ -155,7 +155,7 @@ export default function RecruiterEditProfile() {
         <View className="items-center -mt-12">
           <Pressable
             onPress={() => pickImage('avatar')}
-            className="p-1 bg-paper rounded-full active:opacity-70"
+            className="p-1 bg-paper rounded-full active:opacity-85"
             accessibilityRole="button"
             accessibilityLabel="Change company logo"
           >

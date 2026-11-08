@@ -314,7 +314,7 @@ const Dashboard = ({ s, reload, setS }: { s: Space; reload: () => Promise<void>;
         <Text className="font-semibold" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13 }}>
           {t.days === 1 ? 'day together' : 'days together'}
         </Text>
-        <Pressable onPress={() => setPickDate(true)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Together since ${fmtDay(s.couple.since)}. Edit date`} className="flex-row items-center mt-3 rounded-full px-3 py-1.5 active:opacity-70" style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}>
+        <Pressable onPress={() => setPickDate(true)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Together since ${fmtDay(s.couple.since)}. Edit date`} className="flex-row items-center mt-3 rounded-full px-3 py-1.5 active:opacity-85" style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}>
           <Text className="font-sans" style={{ color: '#fff', fontSize: 12 }}>since {fmtDay(s.couple.since)}  </Text>
           <Ionicons name="pencil" size={12} color="#fff" />
         </Pressable>
@@ -492,7 +492,7 @@ const NudgeCard = ({ s }: { s: Space }) => {
       onPress={send}
       accessibilityRole="button"
       accessibilityLabel="Send thinking of you"
-      className="rounded-2xl border border-line bg-card mt-4 p-4 flex-row items-center active:opacity-70"
+      className="rounded-2xl border border-line bg-card mt-4 p-4 flex-row items-center active:opacity-85"
       style={{ opacity: wait > 0 ? 0.7 : 1 }}
     >
       <Animated.Text style={{ fontSize: 30, transform: [{ scale: pop }] }}>💭</Animated.Text>
@@ -572,7 +572,7 @@ const Bucket = ({ items, meId, partner, onChange }: {
         <Empty icon="rocket-outline" title="Your list is empty" hint="Sunrise trek? Goa trip? Write your first one." />
       ) : sorted.map((it) => (
         <Pressable key={it._id} onPress={() => toggle(it)} onLongPress={() => remove(it)} accessibilityRole="checkbox" accessibilityState={{ checked: !!it.doneAt }}
-          className="flex-row items-center px-4 py-3 border-b border-line active:opacity-70">
+          className="flex-row items-center px-4 py-3 border-b border-line active:opacity-85">
           <Ionicons name={it.doneAt ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={it.doneAt ? ROSE() : C.ink4} />
           <View className="flex-1 ml-3">
             <Text className={`font-sans ${it.doneAt ? 'text-ink-3' : 'text-ink'}`} style={{ fontSize: 15, textDecorationLine: it.doneAt ? 'line-through' : 'none' }}>{it.text}</Text>
@@ -647,7 +647,7 @@ const Notes = ({ partner, meId, unread, onRead }: { partner: Person; meId: strin
         </View>
       </View>
       {failed ? (
-        <Pressable onPress={load} className="p-4 items-center active:opacity-70" accessibilityRole="button"><Text className="font-sans text-ink-3">{"Couldn't load notes · tap to retry"}</Text></Pressable>
+        <Pressable onPress={load} className="p-4 items-center active:opacity-85" accessibilityRole="button"><Text className="font-sans text-ink-3">{"Couldn't load notes · tap to retry"}</Text></Pressable>
       ) : !notes ? (
         <ActivityIndicator color={ROSE()} style={{ marginTop: 16 }} />
       ) : notes.length === 0 ? (
@@ -696,7 +696,7 @@ const History = () => {
 
   return (
     <>
-      <Pressable onPress={toggle} className="flex-row items-center justify-between mt-6 active:opacity-70" style={{ minHeight: 44 }} accessibilityRole="button" accessibilityState={{ expanded: open }}>
+      <Pressable onPress={toggle} className="flex-row items-center justify-between mt-6 active:opacity-85" style={{ minHeight: 44 }} accessibilityRole="button" accessibilityState={{ expanded: open }}>
         <Text className="font-semibold text-base text-ink">Past questions</Text>
         <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={C.ink3} />
       </Pressable>

@@ -163,7 +163,7 @@ const CreateRoom = () => {
               <Text className="font-semibold text-sm text-ink-2">Start time</Text>
               <Pressable
                 onPress={handleDatePress}
-                className="bg-card px-4 rounded-2xl border border-line flex-row items-center justify-between active:opacity-70"
+                className="bg-card px-4 rounded-2xl border border-line flex-row items-center justify-between active:opacity-85"
                 style={{ minHeight: 48 }}
                 accessibilityRole="button"
                 accessibilityLabel="Change start time"
@@ -232,7 +232,7 @@ const CreateRoom = () => {
                     <Pressable
                       onPress={() => updateQuestion(qIndex, "correctAnswer", i)}
                       hitSlop={10}
-                      className={`w-6 h-6 mr-3 rounded-full border items-center justify-center active:opacity-70 ${correct ? "bg-brand-500 border-brand-500" : "border-line bg-card"}`}
+                      className={`w-6 h-6 mr-3 rounded-full border items-center justify-center active:opacity-85 ${correct ? "bg-brand-500 border-brand-500" : "border-line bg-card"}`}
                       accessibilityRole="radio"
                       accessibilityState={{ selected: correct }}
                       accessibilityLabel={`Mark option ${i + 1} correct`}

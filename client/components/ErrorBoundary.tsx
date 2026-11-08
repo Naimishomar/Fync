@@ -75,7 +75,7 @@ class ErrorBoundary extends Component<Props, State> {
 
             <TouchableOpacity
               onPress={this.handleReset}
-              activeOpacity={0.7}
+              activeOpacity={0.85}
               accessibilityRole="button"
               style={{
                 flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -89,7 +89,7 @@ class ErrorBoundary extends Component<Props, State> {
 
             <TouchableOpacity
               onPress={() => this.setState({ hasError: false, error: null })}
-              activeOpacity={0.7}
+              activeOpacity={0.85}
               accessibilityRole="button"
               style={{
                 alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', maxWidth: 320, width: '100%',

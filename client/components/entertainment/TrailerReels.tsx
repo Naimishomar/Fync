@@ -214,7 +214,7 @@ const ReelItem = React.memo(function ReelItem({
           <View className="flex-row gap-2">
             <Pressable
               onPress={handleShare}
-              className="w-11 h-11 bg-white/10 rounded-full items-center justify-center active:opacity-70"
+              className="w-11 h-11 bg-white/10 rounded-full items-center justify-center active:opacity-85"
               accessibilityRole="button"
               accessibilityLabel="Share trailer"
             >
@@ -223,7 +223,7 @@ const ReelItem = React.memo(function ReelItem({
 
             <Pressable
               onPress={onToggleMute}
-              className="w-11 h-11 bg-white/10 rounded-full items-center justify-center active:opacity-70"
+              className="w-11 h-11 bg-white/10 rounded-full items-center justify-center active:opacity-85"
               accessibilityRole="button"
               accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
               accessibilityState={{ selected: isMuted }}
@@ -391,7 +391,7 @@ const TrailerReels = () => {
       <Pressable
         onPress={() => navigation.goBack()}
         style={{ position: 'absolute', top: insets.top + 10, left: 9 }}
-        className="w-11 h-11 items-center justify-center rounded-full bg-black/40 z-[100] active:opacity-70"
+        className="w-11 h-11 items-center justify-center rounded-full bg-black/40 z-[100] active:opacity-85"
         accessibilityRole="button"
         accessibilityLabel="Go back"
       >

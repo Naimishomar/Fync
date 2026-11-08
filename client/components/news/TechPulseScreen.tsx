@@ -46,7 +46,7 @@ const StoryRow = memo(({ item, index, ranked, onRead }: { item: Story; index: nu
     onPress={() => onRead(item)}
     accessibilityRole="button"
     accessibilityLabel={`${item.title}. ${item.points} points on ${item.source}`}
-    className="bg-card rounded-2xl p-4 mb-3 border border-line active:opacity-70"
+    className="bg-card rounded-2xl p-4 mb-3 border border-line active:opacity-85"
   >
     <View className="flex-row">
       {/* Only Hacker News carries a score; on the Google News feeds the disc
@@ -75,7 +75,7 @@ const StoryRow = memo(({ item, index, ranked, onRead }: { item: Story; index: nu
           <Pressable
             onPress={() => open(item.discussionUrl)}
             hitSlop={12}
-            className="flex-row items-center mt-3 self-start active:opacity-60"
+            className="flex-row items-center mt-3 self-start active:opacity-85"
             accessibilityRole="button"
             accessibilityLabel={`Read ${item.comments} comments`}
           >

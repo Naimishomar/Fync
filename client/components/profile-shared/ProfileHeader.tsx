@@ -190,7 +190,7 @@ export function StatsCard({ items, style }: { items: Stat[]; style?: any }) {
         <React.Fragment key={s.label}>
           {i > 0 && <View className="w-px self-stretch bg-line my-1" />}
           <Pressable
-            className="items-center flex-1 active:opacity-60"
+            className="items-center flex-1 active:opacity-85"
             onPress={s.onPress}
             disabled={!s.onPress}
             accessibilityRole={s.onPress ? 'button' : 'text'}
@@ -221,7 +221,7 @@ export function ProfileTabs<K extends string>({
           <Pressable
             key={t.key}
             onPress={() => onChange(t.key)}
-            className="flex-1 items-center justify-center active:opacity-60"
+            className="flex-1 items-center justify-center active:opacity-85"
             style={{ minHeight: 48 }}
             accessibilityRole="tab"
             accessibilityLabel={t.label}
@@ -267,7 +267,7 @@ export const GridCell = memo(function GridCell({
     <Pressable
       onPress={() => onOpen(item, short)}
       onLongPress={onLongPress ? () => onLongPress(item, short) : undefined}
-      className="m-[1px] rounded-lg overflow-hidden bg-paper-2 active:opacity-80"
+      className="m-[1px] rounded-lg overflow-hidden bg-paper-2 active:opacity-85"
       style={{ width: COL - 2, height: short ? COL * 1.6 : COL - 2 }}
       accessibilityRole="button"
       accessibilityLabel={short ? `Short${item.title ? `: ${item.title}` : ''}` : `Post${item.description ? `: ${String(item.description).slice(0, 60)}` : ''}`}
