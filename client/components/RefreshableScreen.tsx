@@ -1,7 +1,8 @@
 import React, { useState, ReactNode } from "react";
-import { ScrollView, RefreshControl, ViewStyle, StyleProp } from "react-native";
+import { ScrollView, ViewStyle, StyleProp } from "react-native";
 import { C } from '../constants/colors';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 type Props = {
   onRefresh: () => Promise<void> | void;
   children: ReactNode;
@@ -25,7 +26,7 @@ const RefreshableScreen = ({ onRefresh, children, style }: Props) => {
       contentContainerStyle={{ flexGrow: 1 }}
       style={style}
       refreshControl={
-        <RefreshControl
+        <FyncRefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
           colors={[C.brand[500]]}

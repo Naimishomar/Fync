@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, StatusBar, Animated } from 'react-native'
+import { View, Text, FlatList, ActivityIndicator, StatusBar, Animated } from 'react-native'
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../context/axiosConfig';
@@ -10,6 +10,7 @@ import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
 import { AppBar, IconBtn, SegmentedTabs, Tag, Button, Empty, Sheet, FormField } from './ui/kit';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 // --- TYPES ---
 interface Gig {
     _id: string;
@@ -396,7 +397,7 @@ export default function PaidGigs({ navigation }: any) {
                         data={gigs}
                         keyExtractor={(item) => item._id}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
+                        refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                         contentContainerStyle={{ paddingBottom: 120, paddingTop: 8 }}
                         renderItem={renderGig}
                         onEndReached={handleLoadMore}

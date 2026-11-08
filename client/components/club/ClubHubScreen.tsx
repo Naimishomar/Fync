@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Share } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, StatusBar, Share } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
@@ -8,6 +8,7 @@ import { C } from '../../constants/colors';
 import { AppBar, IconBtn, Empty, Button, Card, Divider, ListRow, SectionHeader, Tag, IconTile } from '../ui/kit';
 import { HubBanner, RoomIcon } from '../community/shared';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 const ClubHubScreen = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
@@ -144,7 +145,7 @@ const ClubHubScreen = () => {
             <StatusBar barStyle="light-content" />
             <ScrollView keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchClubDetails(); }} tintColor={C.brand[500]} />}
+                refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchClubDetails(); }} tintColor={C.brand[500]} />}
             >
                 <HubBanner
                     banner={club.banner}

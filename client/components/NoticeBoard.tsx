@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { View, Text, FlatList, Pressable, Linking, ScrollView, RefreshControl, Platform, StyleSheet, Animated, StatusBar, Modal, ActivityIndicator } from 'react-native'
+import { View, Text, FlatList, Pressable, Linking, ScrollView, Platform, StyleSheet, Animated, StatusBar, Modal, ActivityIndicator } from 'react-native'
 import { Image as ExpoImage } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -17,6 +17,7 @@ import { AppBar, IconBtn, Empty, Button, SegmentedTabs, Tag, Sheet, FormField } 
 import { isFeatureOn } from '../constants/features';
 import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 const ADMIN_EMAIL = "dev.fync@fync.com";
 
 // Notice comments are flat (no replies); the rows already match the sheet's shape.
@@ -482,7 +483,7 @@ const NoticeBoard = () => {
               renderItem={renderNotice}
               contentContainerStyle={{ paddingBottom: 120, paddingTop: 8 }}
               showsVerticalScrollIndicator={false}
-              refreshControl={<RefreshControl tintColor={C.brand[500]} refreshing={refreshing} onRefresh={onRefresh} />}
+              refreshControl={<FyncRefreshControl tintColor={C.brand[500]} refreshing={refreshing} onRefresh={onRefresh} />}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
               initialNumToRender={5}

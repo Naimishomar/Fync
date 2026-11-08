@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, TextInput, ScrollView } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
 import axios from '../../context/axiosConfig';
@@ -7,6 +7,7 @@ import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, Meta, Button, Card, Divider, ListRow, SectionHeader } from '../ui/kit';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 /**
  * Problem bank admin.
  *
@@ -98,7 +99,7 @@ export default function ArenaAdminScreen() {
 
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60 }}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={C.brand[500]} />}
+        refreshControl={<FyncRefreshControl refreshing={false} onRefresh={load} tintColor={C.brand[500]} />}
         keyboardShouldPersistTaps="handled"
       >
         <View className="flex-row items-center mb-2" style={{ gap: 8 }}>

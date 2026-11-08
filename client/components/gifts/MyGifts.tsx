@@ -1,5 +1,5 @@
 import React, { useCallback, useState, memo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, Linking, Pressable } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Linking, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import { C } from '../../constants/colors';
 import { AppBar, Screen, Empty, Button, Card } from '../ui/kit';
 import { GiftOrder, rupees, STATUS_LABEL, TIMELINE } from './shared';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '');
 
 /** Status timeline: paid → being made → shipped → delivered, or a stop sign for cancelled/refunded. */
@@ -104,7 +105,7 @@ const MyGifts = () => {
           data={orders}
           keyExtractor={(o) => o._id}
           contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}
+          refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}
           ListEmptyComponent={error
             ? <Empty icon="cloud-offline-outline" title="Couldn't load your gifts" action={<Button title="Retry" onPress={load} />} />
             : <Empty icon="gift-outline" title="No gifts yet" hint="Surprise your person with something made just for them."

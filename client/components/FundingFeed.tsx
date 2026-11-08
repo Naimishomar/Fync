@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, memo, useCallback } from "react";
 import { readCache, writeCache } from "../utils/screenCache";
-import {View, Text, FlatList, Pressable, Dimensions, ScrollView, ActivityIndicator, TouchableOpacity, Linking, RefreshControl, StatusBar} from 'react-native'
+import {View, Text, FlatList, Pressable, Dimensions, ScrollView, ActivityIndicator, TouchableOpacity, Linking, StatusBar} from 'react-native'
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess, Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
@@ -27,6 +27,7 @@ import { Alert } from './ui/AlertModal';
 import { AppBar, Button, Empty, IconBtn } from './ui/kit';
 import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 import { C } from '../constants/colors';
+import FyncRefreshControl from './ui/FyncRefreshControl';
 // Threads come back nested already; only the reply field is spelled differently.
 const FUNDING_COMMENTS: CommentsApi = {
   list: (id) => `/funding/comment/all/${id}`,
@@ -585,7 +586,7 @@ export default function FundingFeed() {
               renderItem={renderProject}
               keyExtractor={(item) => item._id}
               showsVerticalScrollIndicator={false}
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
+              refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
               onEndReached={handleLoadMore}
               onEndReachedThreshold={0.5}
               ListFooterComponent={

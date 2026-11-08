@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -10,6 +10,7 @@ import { AppBar, Button } from '../ui/kit';
 import { VoteControl, ago } from './shared';
 import CommentsSheet, { CommentsApi } from '../ui/CommentsSheet';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // Backend (communityPost.routes): comments come back with the post from
 // GET /communities/posts/:id as `comments` (getCommentThread, commentor populated).
 // POST takes `parentComment`; DELETE /communities/comments/:id. No update route.
@@ -88,7 +89,7 @@ export default function CommunityPostDetail() {
 
                     <ScrollView keyboardShouldPersistTaps="handled"
                         contentContainerStyle={{ paddingBottom: 24 }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchPost(); }} tintColor={C.brand[500]} />}
+                        refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchPost(); }} tintColor={C.brand[500]} />}
                     >
                         <View className="bg-card mx-5 p-4 rounded-2xl border border-line">
                             <Text className="text-ink-3 mb-2" style={{ fontSize: 12 }} numberOfLines={1}>

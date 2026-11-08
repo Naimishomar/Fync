@@ -1,11 +1,12 @@
 import React, { memo, useCallback, useEffect, useState } from 'react';
-import { View, Text, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
 import { AppBar, Button, Chip, Empty, Screen } from '../ui/kit';
 import Avatar from '../Avatar';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 /**
  * Top couples by daily-question streak. Only couples where both partners
  * opted in (Couple Space → "Show us on the leaderboard") are listed.
@@ -74,7 +75,7 @@ const CoupleLeaderboard = () => {
           data={data?.couples ?? []}
           keyExtractor={(c) => c.id}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
-          refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.ink3} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
+          refreshControl={<FyncRefreshControl refreshing={refreshing} tintColor={C.ink3} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
           ListEmptyComponent={
             <View className="mt-10">
               <Empty icon="heart-outline" title="No couples here yet" hint="Answer the daily question together, opt in, and be the first." />

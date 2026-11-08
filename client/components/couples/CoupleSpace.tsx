@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, Pressable, ScrollView, TextInput, ActivityIndicator, RefreshControl, Share, Platform, Animated, Easing, Switch,
+  View, Text, Pressable, ScrollView, TextInput, ActivityIndicator, Share, Platform, Animated, Easing, Switch,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -13,6 +13,7 @@ import { AppBar, Button, IconBtn, Screen, Empty, SectionHeader, ListRow, FormFie
 import { Alert } from '../ui/AlertModal';
 import Avatar from '../Avatar';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 /**
  * Couple Space: a private daily space for two linked partners.
  * Everything (streaks, day boundaries, hiding the partner's answer) is decided
@@ -121,7 +122,7 @@ const CoupleSpace = () => {
         <ScrollView
           contentContainerStyle={{ padding: 20, paddingBottom: 56 }}
           keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={ROSE()} colors={[ROSE()]} />}
+          refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={ROSE()} colors={[ROSE()]} />}
         >
           {data.linked ? <Dashboard s={data} reload={load} setS={(s) => setData(s)} /> : <LinkFlow pending={data.pendingCode} onLinked={load} />}
         </ScrollView>

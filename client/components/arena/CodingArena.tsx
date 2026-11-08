@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, FlatList, Pressable, ActivityIndicator,
-  RefreshControl, Linking,
+  Linking,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -11,6 +11,7 @@ import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
 import { AppBar, Avatar, Button, Card, Empty, IconTile, ListRow, Num, SectionHeader, SegmentedTabs } from '../ui/kit';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://fync-zeta.vercel.app';
 
 /**
@@ -304,7 +305,7 @@ export default function CodingArena() {
           // that is a gesture pill or three physical buttons.
           contentContainerStyle={{ paddingBottom: bottomInset + 48 + 24 }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.brand[500]} />
+            <FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.brand[500]} />
           }
           ListEmptyComponent={
             <Empty

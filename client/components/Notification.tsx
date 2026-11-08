@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  RefreshControl,
   Pressable,
   Platform,
   StatusBar
@@ -21,6 +20,7 @@ import Avatar from './Avatar';
 import { withTimeHeaders, HeaderRow } from '../utils/timeBuckets';
 import { getFullUrl } from '../utils/imageUtils';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 // --- TYPES ---
 interface NotificationItem {
   _id: string;
@@ -349,7 +349,7 @@ const Notification = () => {
             windowSize={5}
             removeClippedSubviews={Platform.OS === 'android'}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
+              <FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
             }
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}

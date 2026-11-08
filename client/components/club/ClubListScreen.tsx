@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, memo } from 'react';
-import { View, Text, Pressable, FlatList, TextInput, ActivityIndicator, RefreshControl, StatusBar } from 'react-native';
+import { View, Text, Pressable, FlatList, TextInput, ActivityIndicator, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -9,6 +9,7 @@ import { C } from '../../constants/colors';
 import { AppBar, IconBtn, Empty, Button, Sheet, ListRow, IconTile, SectionHeader, Tag, TagRow } from '../ui/kit';
 import { useBottomInset } from '../../constants/layout';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // Ids may arrive populated ({ _id }) or bare, depending on the endpoint.
 const hasId = (arr: any[] | undefined, id?: string) => !!id && !!arr?.some((x: any) => (x?._id || x) === id);
 
@@ -162,7 +163,7 @@ const ClubListScreen = () => {
                 renderItem={renderItem}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: bottomInset }}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
+                refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                 ListEmptyComponent={loading ? <ActivityIndicator color={C.brand[500]} className="mt-20" /> : loadError ? (
                     <View className="mt-20">
                         <Empty icon="cloud-offline-outline" title="Couldn't load clubs" action={<Button title="Try again" onPress={() => { setLoading(true); fetchClubs(); }} />} />

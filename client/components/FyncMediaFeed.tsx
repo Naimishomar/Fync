@@ -32,6 +32,7 @@ import { AppBar, IconBtn, Button, Empty, Tag, TagRow, IconTile, Sheet, FormField
 import Avatar from './Avatar';
 import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 // The server returns every comment flat, newest first, each reply pointing at
 // its parent. The sheet wants threads, so fold each reply under its top-level
 // ancestor (a reply to a reply still lands in the right thread).
@@ -925,8 +926,7 @@ export default function FyncMediaFeed() {
               renderItem={renderItem}
               keyExtractor={item => item._id}
               showsVerticalScrollIndicator={false}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
+              refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
               onEndReached={loadMore}
               onEndReachedThreshold={0.5}
               contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}

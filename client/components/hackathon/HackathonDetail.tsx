@@ -6,7 +6,6 @@ import {
   Image,
   ActivityIndicator,
   Animated,
-  RefreshControl,
   Linking,
   Share,
 } from 'react-native';
@@ -25,6 +24,7 @@ import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
 import { AppBar, Button, Card, Divider, FilterChips, IconBtn, Label, ListRow, Tag, TagRow } from '../ui/kit';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 /**
  * A hackathon listing.
  *
@@ -390,7 +390,7 @@ const HackathonDetail = () => {
         })}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
+        refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
         contentContainerStyle={{ paddingBottom: 140 + bottomInset }}
       >
         {/* Banner */}

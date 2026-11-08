@@ -5,7 +5,7 @@
  * POST /affiliate/add-product, which had no way to be called.
  */
 import React, { useState, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -16,6 +16,7 @@ import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, Card, Label, Num, SectionHeader, Button, Chip, Tag, Empty, FormField } from '../ui/kit';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 const CATEGORIES = ['Education', 'Electronics', 'Fashion', 'Books', 'Lifestyle', 'Other'];
 
 type Field = { key: string; label: string; placeholder: string; numeric?: boolean; multi?: boolean };
@@ -162,7 +163,7 @@ export default function AffiliateAdminScreen() {
         <AppBar title="Store admin" onBack={() => navigation.goBack()} />
 
         <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-gutter pt-4" showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand[500]} colors={[C.brand[500]]} />}>
+          refreshControl={<FyncRefreshControl refreshing={loading} onRefresh={load} tintColor={C.brand[500]} colors={[C.brand[500]]} />}>
 
           <Card padded>
             <Label>Commission per sale</Label>

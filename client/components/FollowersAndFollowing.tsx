@@ -18,6 +18,7 @@ import { AppBar, Button, Empty, ListRow } from './ui/kit';
 import Avatar from './Avatar';
 import { tapHaptic } from '../utils/haptics';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 type User = {
   _id: string;
   username: string;
@@ -148,8 +149,7 @@ const FollowersAndFollowing = () => {
                 renderItem={renderItem}
                 contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
                 showsVerticalScrollIndicator={false}
-                refreshing={refreshing}
-                onRefresh={() => { setRefreshing(true); fetchList(); }}
+                refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchList(); }} />}
                 ListEmptyComponent={
                 <View className="mt-16">
                     <Empty

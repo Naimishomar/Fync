@@ -5,7 +5,6 @@ import {
   FlatList,
   ActivityIndicator,
   StatusBar,
-  RefreshControl,
   Pressable,
   useWindowDimensions,
 } from 'react-native';
@@ -21,6 +20,7 @@ import { Image } from 'expo-image';
 import { AppBar, Button, Empty, FilterChips, SearchField, SegmentedTabs, Tag, TagRow } from '../ui/kit';
 import { ListingSwitcher } from '../opportunity/OpportunityCard';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // ─── Layout constants ─────────────────────────────────────────────────────────
 // Fixed pixel heights, not percentages of the screen. The banner used to be
 // hp(28–35) and the header hp(35–45), so on a 6.1" phone a single card was
@@ -468,7 +468,7 @@ const HackathonHub = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />
+            <FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />
           }
           onEndReached={onEndReached}
           onEndReachedThreshold={0.6}

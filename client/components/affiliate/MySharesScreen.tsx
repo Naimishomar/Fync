@@ -6,7 +6,7 @@
  * a rupee figure derived from clicks would be inventing a number.
  */
 import React, { useCallback, useState, memo } from 'react';
-import { View, FlatList, ActivityIndicator, RefreshControl, Share, StatusBar } from 'react-native';
+import { View, FlatList, ActivityIndicator, Share, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
@@ -14,6 +14,7 @@ import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, ListRow, IconBtn, SectionHeader, Empty, Button } from '../ui/kit';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 type ShareRow = {
   _id: string;
   code: string;
@@ -86,7 +87,7 @@ export default function MySharesScreen() {
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.brand[500]} colors={[C.brand[500]]} />
+              <FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.brand[500]} colors={[C.brand[500]]} />
             }
             renderItem={({ item }) => <ShareItem item={item} onShare={reshare} />}
             ListEmptyComponent={

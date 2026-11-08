@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
-import { View, Text, Pressable, FlatList, ActivityIndicator, RefreshControl, Linking, StatusBar } from 'react-native';
+import { View, Text, Pressable, FlatList, ActivityIndicator, Linking, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
 import { AppBar, SearchField, SegmentedTabs, Tag, IconBtn, Button, Empty } from './ui/kit';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 interface UserProfile {
     _id: string;
     name: string;
@@ -246,7 +247,7 @@ export default function FindTeammate() {
                         contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />
+                            <FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />
                         }
                         // A local search filters what is already loaded, so paging
                         // while filtering would append rows the filter then hides.

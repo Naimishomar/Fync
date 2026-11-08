@@ -29,6 +29,7 @@ import { HeartBurst, useDoubleTap } from './ui/HeartBurst';
 import { tapHaptic } from '../utils/haptics';
 
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 /* ---------------- CONSTANTS ---------------- */
 
 const SCREEN_HEIGHT = Dimensions.get("screen").height;
@@ -680,8 +681,7 @@ export default function Shorts() {
         maxToRenderPerBatch={2}
         updateCellsBatchingPeriod={50}
         removeClippedSubviews={Platform.OS === 'android'}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
+        refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         ListEmptyComponent={

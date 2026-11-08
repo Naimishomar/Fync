@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Text, View, Pressable, RefreshControl, Linking, ActivityIndicator, DeviceEventEmitter } from 'react-native';
+import { Text, View, Pressable, Linking, ActivityIndicator, DeviceEventEmitter } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -24,6 +24,7 @@ import { AnimatedCount } from './ui/motion';
 import { LevelUpCelebration } from './ui-extra/Confetti';
 import { LEVEL_ICON } from './ui-extra/ScoreRing';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 // ─── Types ────────────────────────────────────────────────────────────────────
 type UserType = {
   _id: string; name: string; username: string; avatar: string;
@@ -677,7 +678,7 @@ function Profile() {
         data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : activeTab === 'reposts' ? reposts : (['ABOUT'] as any)}
         keyExtractor={(item, i) => (typeof item === 'string' ? item : item._id ?? String(i))}
         numColumns={activeTab === 'about' ? 1 : 3}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
+        refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         ListHeaderComponent={<>{renderProfileInfo()}<ProfileTabs items={PROFILE_TABS} value={activeTab} onChange={setActiveTab} /></>}

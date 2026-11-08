@@ -1,5 +1,5 @@
 import React, { memo, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, Linking, Pressable, Switch } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Linking, Pressable, Switch } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -13,6 +13,7 @@ import { C } from '../../constants/colors';
 import { AppBar, Avatar, Button, Card, Chip, Empty, FilterChips, FormField, IconBtn, Label, ListRow, Meta, Num, SearchField, SectionHeader, Sheet, Tag } from '../ui/kit';
 import { useTabBarAutoHide, useTabBarClearance } from '../../constants/layout';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 /**
  * view: 'posts'        → My Posts list (default)
  * view: 'applicants'   → Applicants for selectedPost
@@ -456,7 +457,7 @@ const RecruiterPortal = () => {
                             keyExtractor={item => item._id}
                             renderItem={renderPostCard}
                             contentContainerStyle={{ paddingTop: 8, paddingBottom: tabBarClearance }}
-                            refreshControl={<RefreshControl refreshing={loading} onRefresh={() => fetchData()} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
+                            refreshControl={<FyncRefreshControl refreshing={loading} onRefresh={() => fetchData()} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
                             ListEmptyComponent={
                                 <Empty
                                     icon="file-tray-outline"
@@ -477,7 +478,7 @@ const RecruiterPortal = () => {
                         keyExtractor={item => item._id}
                         renderItem={renderApplicantCard}
                         contentContainerStyle={{ paddingTop: 12, paddingBottom: tabBarClearance }}
-                        refreshControl={<RefreshControl refreshing={loading} onRefresh={() => fetchData()} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
+                        refreshControl={<FyncRefreshControl refreshing={loading} onRefresh={() => fetchData()} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
                         ListEmptyComponent={
                             // Distinguish "nobody applied" from "your filter hid everyone".
                             <Empty

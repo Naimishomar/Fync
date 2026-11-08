@@ -11,6 +11,7 @@ import { AppBar, IconBtn, Button, Empty, Sheet, FormField } from '../ui/kit';
 import { ListingCard, type ListingTag } from '../opportunity/OpportunityCard';
 import CommentsSheet, { CommentsApi } from '../ui/CommentsSheet';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // Backend: GET /job-openings/comments/:id -> { comments } (getCommentThread, commentor populated);
 // POST /job-openings/comment/:id takes `parentCommentId`. No update/delete routes.
 const JOB_COMMENTS: CommentsApi = {
@@ -216,8 +217,7 @@ export default function AlumniJobs() {
                     renderItem={renderJob}
                     contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
                     showsVerticalScrollIndicator={false}
-                    onRefresh={onRefresh}
-                    refreshing={refreshing}
+                    refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                     ListEmptyComponent={!loading ? (
                         <Empty icon="briefcase-outline" title="No jobs yet" hint="Check back later for new openings from your alumni network." />
                     ) : <ActivityIndicator size="large" color={C.brand[500]} className="mt-20" />}

@@ -6,7 +6,7 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   View, Text, FlatList, Pressable, ActivityIndicator,
-  RefreshControl, Linking, StatusBar,
+  Linking, StatusBar,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -15,6 +15,7 @@ import { Alert } from '../ui/AlertModal';
 import { AppBar, Empty, Label, Num, SectionHeader, SegmentedTabs, Tag } from '../ui/kit';
 import { C } from '../../constants/colors';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 type Feed = 'global' | 'india' | 'placement';
 
 const FEEDS: Array<{ id: Feed; label: string; blurb: string }> = [
@@ -161,7 +162,7 @@ export default function TechPulseScreen() {
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 60 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl
+              <FyncRefreshControl
                 refreshing={refreshing}
                 onRefresh={() => { setRefreshing(true); load(); }}
                 tintColor={C.brand[500]} colors={[C.brand[500]]}

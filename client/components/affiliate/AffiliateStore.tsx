@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { View, Text, FlatList, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, FlatList, Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -7,6 +7,7 @@ import { C, themed } from '../../constants/colors';
 import { AppBar, SearchField, FilterChips, Empty } from '../ui/kit';
 import { Image } from 'expo-image';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 const CATEGORIES = ['All', 'Education', 'Electronics', 'Fashion', 'Books', 'Lifestyle'];
 
 const ProductCard = memo(function ProductCard({ item, onOpen }: { item: any; onOpen: (id: string) => void }) {
@@ -115,7 +116,7 @@ const AffiliateStore = () => {
                     numColumns={2}
                     contentContainerStyle={styles.productList}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
+                        <FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
                     }
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>

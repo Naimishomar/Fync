@@ -20,6 +20,7 @@ import {
     JoinedCard, PassSheet, PickerField, ScannerModal, TicketsSheet, ToggleRow, formatTime, pickImage,
 } from './EventShared';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // --- TYPES ---
 interface User {
     _id: string;
@@ -818,8 +819,7 @@ export default function SpeakerSessionScreen() {
                     keyExtractor={(item: any) => item._id}
                     contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
                     showsVerticalScrollIndicator={false}
-                    onRefresh={onRefresh}
-                    refreshing={refreshing}
+                    refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
                     renderItem={({ item }: { item: SpeakerSession }) => {

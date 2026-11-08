@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { readCache, writeCache, userKey } from '../../utils/screenCache';
-import { View, Text, ScrollView, Pressable, RefreshControl, ActivityIndicator, Linking, StatusBar, TextInput } from 'react-native'
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Linking, StatusBar, TextInput } from 'react-native'
 import * as DocumentPicker from 'expo-document-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -27,6 +27,7 @@ import { LevelUpCelebration } from '../ui-extra/Confetti';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // ─── Completeness Bar ─────────────────────────────────────────────────────────
 function CompletenessBar({ pct }: { pct: number }) {
   return (
@@ -536,7 +537,7 @@ export default function FyncProfileBuilder() {
         <ScrollView keyboardShouldPersistTaps="handled"
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
+          refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
           contentContainerStyle={{ paddingBottom: 44 + bottomInset, paddingTop: 12 }}
         >
           {renderContent()}

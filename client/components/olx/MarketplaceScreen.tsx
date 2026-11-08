@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, Dimensions, ScrollView, Pressable, StatusBar } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Dimensions, ScrollView, Pressable, StatusBar } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,6 +11,7 @@ import { C } from '../../constants/colors';
 import { AppBar, IconBtn, Empty, Button, Chip, FilterChips, Label, Num, Tag, TagRow, ListRow, Avatar, Sheet, SearchField, FormField } from '../ui/kit';
 import { ProductTile } from './ProductTile';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 const CATEGORIES = ['electronics', 'books', 'fashion', 'others'] as const;
 const TABS = ['all', ...CATEGORIES] as const;
 const CAT_LABEL: Record<string, string> = { all: 'All', electronics: 'Electronics', books: 'Books', fashion: 'Fashion', others: 'Others' };
@@ -301,7 +302,7 @@ const MarketplaceScreen = () => {
                         contentContainerStyle={{ paddingTop: 4, paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchProducts(); }} tintColor={C.brand[500]} />
+                            <FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchProducts(); }} tintColor={C.brand[500]} />
                         }
                         ListEmptyComponent={
                             <View className="mt-20">

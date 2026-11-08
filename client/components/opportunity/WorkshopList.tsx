@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
-import { View, FlatList, ActivityIndicator, Linking, RefreshControl, StatusBar } from 'react-native';
+import { View, FlatList, ActivityIndicator, Linking, StatusBar } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { C } from '../../constants/colors';
 import { AppBar, Empty, SearchField } from '../ui/kit';
 import { ListingCard, FooterStat } from './OpportunityCard';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 interface Workshop {
   id: number;
   title: string;
@@ -156,7 +157,7 @@ export default function WorkshopList() {
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
+            <FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
           }
           ListFooterComponent={renderFooter}
           ListEmptyComponent={

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef, memo } from "react";
-import { View, Text, FlatList, Pressable, ActivityIndicator, RefreshControl, StatusBar } from "react-native";
+import { View, Text, FlatList, Pressable, ActivityIndicator, StatusBar } from "react-native";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import Avatar from "./Avatar";
@@ -8,6 +8,7 @@ import { TeammateSkeleton } from "./Skeleton";
 import { RoleSticker, AppBar, IconBtn, SearchField, Chip, Sheet, Button, Empty, Tag } from './ui/kit';
 import { C } from '../constants/colors';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 /** One alumnus. Module scope + memo so FlatList rows update instead of remounting. */
 const AlumniRow = memo(function AlumniRow({ item, onOpen, onChat }: { item: any; onOpen: (u: any) => void; onChat: (u: any) => void }) {
     return (
@@ -197,7 +198,7 @@ const FindAlumni = ({ navigation }: any) => {
                         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 100 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
+                            <FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
                         }
                         onEndReached={loadMore}
                         onEndReachedThreshold={0.5}

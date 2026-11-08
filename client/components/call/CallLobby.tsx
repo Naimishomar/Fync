@@ -7,8 +7,7 @@ import {
   Modal,
   StatusBar,
   ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+  } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../../context/auth.context';
 import { webRTCManager } from '../../services/WebRTCService';
@@ -19,6 +18,7 @@ import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
 import { AppBar, Meta, Label, Empty, ListRow, Sheet } from '../ui/kit';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 /**
  * One lobby for both audio and video calling.
  *
@@ -355,7 +355,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomInset + 24 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={() => loadUsers(true)} tintColor={C.brand[500]} />
+              <FyncRefreshControl refreshing={refreshing} onRefresh={() => loadUsers(true)} tintColor={C.brand[500]} />
             }
             ListHeaderComponent={<Label className="mb-2">Online now</Label>}
             ListEmptyComponent={

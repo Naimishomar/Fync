@@ -13,6 +13,7 @@ import { AppBar, IconBtn, Meta, Empty, Button, Card, IconTile, ListRow, Sheet, F
 import CommentsSheet, { CommentsApi, CommentModel } from '../ui/CommentsSheet';
 import { report } from '../../utils/safety';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 const CONFESSION_COMMENTS: CommentsApi = {
     list: (id) => `/confessions/comments/${id}`,
     add: (id) => `/confessions/comment/${id}`,
@@ -386,8 +387,7 @@ const ConfessionFeed = () => {
                     contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100, paddingTop: 8 }}
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
+                    refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
                     ListHeaderComponent={<Meta style={{ marginBottom: 12 }}>{user?.college || 'Campus'}</Meta>}
                     ListFooterComponent={() => (
                         loadingMore ? <ActivityIndicator color={C.brand[500]} className="my-8" /> : <View className="h-20" />

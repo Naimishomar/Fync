@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, Pressable, FlatList, RefreshControl, StatusBar, Animated } from 'react-native';
+import { View, Text, Pressable, FlatList, StatusBar, Animated } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -11,6 +11,7 @@ import { AppBar, IconBtn, Button, Tag, Empty, SegmentedTabs, SearchField } from 
 import { FALLBACK_BANNER } from './shared';
 import { useBottomInset } from '../../constants/layout';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // Defined at module level: declared inside the screen it was a new component type
 // on every keystroke in search, remounting (and restarting) every pulse.
 const CommunitySkeleton = () => {
@@ -181,7 +182,7 @@ const CommunityListScreen = () => {
                     renderItem={renderItem}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: bottomInset }}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
+                    refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                     ListEmptyComponent={
                         <View className="mt-16">
                             <Empty icon="compass-outline" title="No communities found" hint="Try another search or filter." />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, FlatList, StatusBar, RefreshControl, Animated, Dimensions } from 'react-native';
+import { View, Text, FlatList, StatusBar, Animated, Dimensions } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
@@ -10,6 +10,7 @@ import { AppBar, Button, Card, Empty, Label, Num, Sheet, FormField } from '../ui
 import { C } from '../../constants/colors';
 import { ProductTile } from '../olx/ProductTile';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // 20px gutter each side, 12 between the two columns.
 const COLUMN_WIDTH = (Dimensions.get('window').width - 40 - 12) / 2;
 // Outside the screen so a parent re-render doesn't remount it and restart the pulse.
@@ -192,7 +193,7 @@ const MarketplaceScreen = () => {
                         numColumns={2}
                         columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 20 }}
                         contentContainerStyle={{ paddingBottom: 100 }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.warning} />}
+                        refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.warning} />}
                         ListEmptyComponent={
                             <View className="mt-20">
                                 <Empty icon="storefront-outline" title="Store is empty" hint="New rewards are arriving soon." />

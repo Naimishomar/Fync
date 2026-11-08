@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, ScrollView, Linking, Animated, StatusBar } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, ScrollView, Linking, Animated, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -13,6 +13,7 @@ import {
     SearchField, SectionHeader, SegmentedTabs, Sheet, Tag, TagRow,
 } from '../ui/kit';
 import { C } from '../../constants/colors';
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // Mirrors LEETCODE_COOLDOWN_SECONDS on the server.
 const COOLDOWN_MS = 15 * 60 * 1000;
 
@@ -389,7 +390,7 @@ export default function CodingLeaderboard() {
                         data={users} keyExtractor={(item) => item._id} renderItem={renderItem}
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
+                        refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                         ListEmptyComponent={<Empty icon="code-slash-outline" title="No coders yet" hint="The arena is quiet right now." />}
                     />
                 )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, RefreshControl, ViewToken, TouchableOpacity, Share, DeviceEventEmitter, ScrollView, useWindowDimensions, StatusBar} from 'react-native'
+import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, ViewToken, TouchableOpacity, Share, DeviceEventEmitter, ScrollView, useWindowDimensions, StatusBar} from 'react-native'
 import { FlashList, useRecyclingState } from '@shopify/flash-list';
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -46,6 +46,7 @@ import { ProgressiveImage } from './ui/ProgressiveImage';
 import { formatCount } from '../utils/format';
 import { GreetingCard, Flame } from './home/GreetingCard';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 const FEED_TABS = ['For you', 'Following'];
 
 // --- TYPES ---
@@ -927,7 +928,7 @@ export default function HomeScreen() {
         ListHeaderComponent={listHeader}
 
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
+          <FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}

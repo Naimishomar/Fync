@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Pressable, Animated, StatusBar, RefreshControl } from 'react-native'
+import { View, Text, FlatList, ActivityIndicator, Pressable, Animated, StatusBar } from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../context/axiosConfig';
@@ -11,6 +11,7 @@ import { C } from '../constants/colors';
 import { AppBar, IconBtn, Empty, Button, SegmentedTabs, Tag, Sheet, FormField } from './ui/kit';
 import { Image } from 'expo-image';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 // Module scope: declared inside the screen it was a new component type on every
 // render, so each keystroke remounted it and started another endless loop.
 const ItemSkeleton = () => {
@@ -303,7 +304,7 @@ const LostAndFound = () => {
                         renderItem={renderItem}
                         contentContainerStyle={{ paddingBottom: 120 }}
                         showsVerticalScrollIndicator={false}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchItems(true); }} tintColor={C.brand[500]} />}
+                        refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchItems(true); }} tintColor={C.brand[500]} />}
                         ListEmptyComponent={loadError ? (
                             <Empty icon="cloud-offline-outline" title="Couldn't load items" action={<Button title="Try again" onPress={() => fetchItems()} />} />
                         ) : (

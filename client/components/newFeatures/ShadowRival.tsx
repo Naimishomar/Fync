@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Pressable, Switch, Dimensions } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, StatusBar, Pressable, Switch, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import { Alert } from '../ui/AlertModal';
 
 import { AppBar, Card, Empty } from '../ui/kit';
 import { C } from '../../constants/colors';
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 type Metrics = { solved: number; commits: number; streak: number; total: number };
 type HistoryPoint = { d: string; me: number; rival: number };
 type Rivalry = {
@@ -171,7 +172,7 @@ export default function ShadowRival() {
                     contentContainerStyle={{ paddingBottom: 40 }}
                     showsVerticalScrollIndicator={false}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchRival(); }} tintColor={C.brand[500]} />
+                        <FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchRival(); }} tintColor={C.brand[500]} />
                     }
                 >
                     <View className="px-gutter mb-6">

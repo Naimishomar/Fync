@@ -10,8 +10,7 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
-  RefreshControl,
-} from "react-native";
+  } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
@@ -26,6 +25,7 @@ import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 import { AppBar, Button, Empty, ListRow, Badge, SearchField, SectionHeader, Card } from './ui/kit';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 /** Avatar with a green presence dot. */
 const OnlineAvatar = React.memo(({ user, online }: { user: any; online: boolean }) => (
   <View>
@@ -382,7 +382,7 @@ const ChatList = () => {
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
             refreshControl={search.length === 0 ? (
-              <RefreshControl
+              <FyncRefreshControl
                 refreshing={refreshing}
                 onRefresh={async () => { setRefreshing(true); await loadChats(); setRefreshing(false); }}
                 tintColor={C.brand[500]}

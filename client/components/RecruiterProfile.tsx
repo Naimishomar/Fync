@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, Linking } from 'react-native';
+import { View, Text, ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -14,6 +14,7 @@ import { getFullUrl } from '../utils/imageUtils';
 import { AppBar, Button, Card, Divider, H1, IconBtn, Label, ListRow, Num, SectionHeader, Tabs, Tag } from './ui/kit';
 import { useTabBarAutoHide, useTabBarClearance } from '../constants/layout';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 const RecruiterProfile = () => {
     const autoHideTabBar = useTabBarAutoHide();
     const tabBarClearance = useTabBarClearance();
@@ -181,7 +182,7 @@ const RecruiterProfile = () => {
                 {...autoHideTabBar}
                 contentContainerStyle={{ paddingBottom: tabBarClearance }}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.recruiter} colors={[C.recruiter]} />
+                    <FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.recruiter} colors={[C.recruiter]} />
                 }
             >
                 {renderHeader()}

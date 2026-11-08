@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, ScrollView, Pressable, FlatList, RefreshControl, Animated, StatusBar } from 'react-native';
+import { View, Text, ScrollView, Pressable, FlatList, Animated, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
 import { useBottomInset } from '../../constants/layout';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -17,6 +17,7 @@ import {
 import CommentsSheet, { CommentsApi } from '../ui/CommentsSheet';
 import { C } from '../../constants/colors';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // Backend: GET /placement/comments/:id -> { comments } (getCommentThread, commentor populated);
 // POST /placement/comment/:id takes `parentCommentId`. No update/delete routes.
 const PLACEMENT_COMMENTS: CommentsApi = {
@@ -302,7 +303,7 @@ const PlacementHub = () => {
                     renderItem={renderQuestionCard}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: bottomInset }}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
+                    refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
                     ListHeaderComponent={<>
                     <View className="px-gutter mb-6 flex-row" style={{ gap: 12 }}>
                         <Pressable

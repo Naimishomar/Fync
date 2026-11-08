@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState, memo } from 'react';
-import { View, Text, Pressable, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, Pressable, FlatList, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import { C } from '../../constants/colors';
 import { AppBar, IconBtn, Screen, Chip, Empty, Button, Num } from '../ui/kit';
 import { GiftProduct, rupees } from './shared';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 const GiftCard = memo(function GiftCard({ item, onOpen }: { item: GiftProduct; onOpen: (id: string) => void }) {
   return (
     <Pressable
@@ -94,7 +95,7 @@ const GiftShop = () => {
           ListHeaderComponent={header}
           columnWrapperStyle={{ paddingHorizontal: 20, gap: 12 }}
           contentContainerStyle={{ paddingBottom: 40 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}
+          refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />}
           ListEmptyComponent={<Empty icon="gift-outline" title="No gifts here yet" hint="New gifts are on the way." />}
           renderItem={renderItem}
         />

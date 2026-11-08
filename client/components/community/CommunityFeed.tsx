@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
-import { View, Text, FlatList, Pressable, ActivityIndicator, RefreshControl, StatusBar } from 'react-native';
+import { View, Text, FlatList, Pressable, ActivityIndicator, StatusBar } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import { AppBar, IconBtn, Button, Chip, ChipRow, Empty, Sheet, FormField } from 
 import { VoteControl, ago } from './shared';
 import { useBottomInset } from '../../constants/layout';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 type Post = {
     _id: string;
     title: string;
@@ -211,7 +212,7 @@ export default function CommunityFeed() {
                     onEndReachedThreshold={0.4}
                     ListFooterComponent={loadingMore ? <ActivityIndicator color={C.brand[500]} className="my-4" /> : null}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setCursor(null); fetchFeed(sort); }} tintColor={C.brand[500]} />
+                        <FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setCursor(null); fetchFeed(sort); }} tintColor={C.brand[500]} />
                     }
                     ListEmptyComponent={
                         <Empty

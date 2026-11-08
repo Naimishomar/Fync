@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Linking, StatusBar, RefreshControl } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Linking, StatusBar } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
@@ -9,6 +9,7 @@ import { C } from '../../constants/colors';
 import { AppBar, Avatar, Button, Card, Empty, IconTile, SearchField, Sheet, Tabs } from '../ui/kit';
 import { OpportunityCard, ListingSwitcher } from './OpportunityCard';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 type Kind = 'job' | 'internship';
 const COPY: Record<Kind, { title: string; switcher: 'jobs' | 'internships'; noun: string; nouns: string }> = {
   job: { title: 'Jobs', switcher: 'jobs', noun: 'job', nouns: 'jobs' },
@@ -243,7 +244,7 @@ export default function OpportunityList({ type }: { type: Kind }) {
           updateCellsBatchingPeriod={50}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
+          refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
           ListFooterComponent={renderFooter}
           contentContainerStyle={{ paddingBottom: 100, paddingTop: 12 }}
           showsVerticalScrollIndicator={false}

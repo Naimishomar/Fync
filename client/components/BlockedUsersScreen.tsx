@@ -7,6 +7,7 @@ import { getFullUrl } from '../utils/imageUtils';
 import { useBottomInset } from '../constants/layout';
 import { AppBar, Avatar, Button, Empty, ListRow, Screen, C } from './ui/kit';
 
+import FyncRefreshControl from './ui/FyncRefreshControl';
 type BlockedUser = { _id: string; name?: string; username?: string; avatar?: string };
 
 const BlockedRow = memo(function BlockedRow({ item, busy, onUnblock }: { item: BlockedUser; busy: boolean; onUnblock: (u: BlockedUser) => void }) {
@@ -67,8 +68,7 @@ export default function BlockedUsersScreen() {
         <FlatList
           data={users}
           keyExtractor={(u) => u._id}
-          refreshing={refreshing}
-          onRefresh={() => { setRefreshing(true); fetchBlocked(); }}
+          refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchBlocked(); }} />}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottom + 20, flexGrow: 1 }}
           renderItem={({ item }) => <BlockedRow item={item} busy={busyId === item._id} onUnblock={unblock} />}
           ListEmptyComponent={

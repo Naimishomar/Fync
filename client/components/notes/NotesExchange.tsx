@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, Linking, Pressable } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Linking, Pressable } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
 import { AppBar, Button, Card, Chip, ChipRow, Empty, Label, Tag, Sheet, SearchField, FormField } from '../ui/kit';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 interface Note {
   _id: string;
   title: string;
@@ -143,7 +144,7 @@ export default function NotesExchange() {
           keyExtractor={(n) => n._id}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchNotes(); }} tintColor={C.brand[500]} />
+            <FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchNotes(); }} tintColor={C.brand[500]} />
           }
           ListEmptyComponent={
             <View className="mt-16">

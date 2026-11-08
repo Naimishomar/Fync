@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { View, FlatList, ActivityIndicator, RefreshControl, StatusBar, Platform } from 'react-native';
+import { View, FlatList, ActivityIndicator, StatusBar, Platform } from 'react-native';
 import axios from '../../context/axiosConfig';
 import { navigate, goBack } from '../../utils/navigation';
 import { useAuth } from '../../context/auth.context';
@@ -17,6 +17,7 @@ import {
     JoinedCard, PassSheet, PickerField, ScannerModal, TicketsSheet, ToggleRow, formatTime,
 } from './EventShared';
 
+import FyncRefreshControl from '../ui/FyncRefreshControl';
 // --- TYPES ---
 interface User {
     _id: string;
@@ -574,7 +575,7 @@ export default function BootcampScreen() {
                             onEdit={() => openEditor(item)}
                         />
                     )}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchSessions(); }} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
+                    refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchSessions(); }} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
                     ListEmptyComponent={<Empty icon="rocket-outline" title="No bootcamps yet" hint="Tap + to create one for your campus." />}
                 />
 
