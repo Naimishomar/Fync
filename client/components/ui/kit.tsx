@@ -178,11 +178,20 @@ export const IconTile = memo(function IconTile({
 
 /* -------------------------------------------------------------------- card */
 /** Soft card: bg-card, 1px line, radius 16. `stamp` is accepted and ignored. */
+const hasPadding = (style: any) => {
+  const flat = StyleSheet.flatten(style) || {};
+  return Object.keys(flat).some((k) => k.startsWith('padding'));
+};
+
 export function Card({
   stamp: _stamp, padded, style, children, ...p
 }: ViewProps & { stamp?: boolean; padded?: boolean }) {
+  // Padded by default unless the caller sets its own padding (list cards pass
+  // paddingHorizontal for their rows) or opts out with padded={false}. Without
+  // this, content in a plain <Card> sat flush against the border.
+  const pad = padded ?? !hasPadding(style);
   return (
-    <View {...p} style={[s.card, padded && s.cardPad, style]}>
+    <View {...p} style={[s.card, pad && s.cardPad, style]}>
       {children}
     </View>
   );
@@ -566,7 +575,7 @@ export function SegmentedTabs<T extends string>({
             className="active:opacity-70"
             style={[s.segItem, on && s.segItemOn]}
           >
-            <Text style={[s.segText, on && s.segTextOn]} numberOfLines={1}>{labels?.[it] ?? it}</Text>
+            <Text style={[s.segText, on && s.segTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{labels?.[it] ?? it}</Text>
           </Pressable>
         );
       })}
@@ -735,7 +744,7 @@ const s = themed(() => ({
   tabUnderline: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, borderRadius: 1, backgroundColor: C.brand },
 
   seg: { flexDirection: 'row', padding: 4, gap: 4, borderRadius: 999, backgroundColor: C.paper2 },
-  segItem: { flex: 1, minHeight: 36, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  segItem: { flex: 1, minWidth: 0, minHeight: 36, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   segItemOn: { backgroundColor: C.card, boxShadow: '0 1px 2px rgba(18,16,14,0.08)' },
   segText: { fontFamily: 'Inter_500Medium', fontSize: 13, lineHeight: 18, color: C.ink3 },
   segTextOn: { fontFamily: 'Inter_600SemiBold', color: C.ink },

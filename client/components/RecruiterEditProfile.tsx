@@ -126,7 +126,7 @@ export default function RecruiterEditProfile() {
       <AppBar
         title="Profile settings"
         onBack={() => navigation.goBack()}
-        right={<Button small variant="primary" title="Save" loading={loading} disabled={!hasChanges} onPress={handleUpdate} />}
+        right={<Button small variant="primary" title="Save" loading={loading} disabled={!hasChanges} onPress={handleUpdate} style={{ marginRight: 11 }} />}
       />
 
       <ScrollView keyboardShouldPersistTaps="handled" className="flex-1" showsVerticalScrollIndicator={false}>

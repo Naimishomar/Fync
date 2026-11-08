@@ -522,7 +522,7 @@ export default function FyncProfileBuilder() {
         <AppBar
           title="Fync portfolio"
           onBack={() => navigation.goBack()}
-          right={<Button small variant="tertiary" icon="document-text-outline" title="Resume" onPress={downloadResume} />}
+          right={<Button small variant="tertiary" icon="document-text-outline" title="Resume" onPress={downloadResume} style={{ marginRight: 11 }} />}
         />
         <View className="px-gutter pb-2">
           <SegmentedTabs items={TABS} labels={TAB_LABELS} value={activeTab} onChange={setActiveTab} />

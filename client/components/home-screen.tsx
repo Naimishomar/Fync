@@ -388,7 +388,7 @@ const MAX_CHAR_LIMIT = 150;
       {/* Caption sits under the media, Instagram order: photo, then words,
           then the controls. */}
       {!!item.description && (
-        <View className="mb-3 px-gutter">
+        <View className="mb-0.5 px-gutter">
           <Text className="font-sans text-sm leading-5 text-ink">
             {isExpanded || (item.description?.length || 0) <= MAX_CHAR_LIMIT
               ? item.description
@@ -406,7 +406,9 @@ const MAX_CHAR_LIMIT = 150;
 
       {/* Action Bar. Flat on the page like Instagram's: no chrome, ink icons
           at full strength carry the affordance. */}
-      <View className="flex-row items-center gap-2 px-gutter" style={{ marginLeft: -8 }}>
+      {/* Negative top margin: the 44pt touch targets centre a 22pt icon, which
+          left ~11pt of empty box above the icons on top of the caption gap. */}
+      <View className="flex-row items-center gap-2 px-gutter" style={{ marginLeft: -8, marginTop: item.description ? -6 : 0 }}>
         <Animated.View style={{ transform: [{ scale: springValue }] }}>
           <Pressable
             onPress={handleLike}
