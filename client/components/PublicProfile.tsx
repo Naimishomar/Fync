@@ -15,6 +15,7 @@ import { C } from '../constants/colors';
 import { AppBar, Button, Card, Empty, IconBtn, IconTile, ListRow, Tag, TagRow } from './ui/kit';
 import { ProgressiveImage } from './ui/ProgressiveImage';
 import { ActivityCalendar } from './profile-shared/ActivityCalendar';
+import { profileAccent } from '../constants/profileAccents';
 import { ProfileHero, GeneratedBanner, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab, AnimatedFlashList, useProfileScroll, CompactProfileBar } from './profile-shared/ProfileHeader';
 import Reanimated from 'react-native-reanimated';
 import { usePop } from './ui/motion';
@@ -493,6 +494,7 @@ const PublicProfile = () => {
         return <ProfileSkeleton />;
     }
 
+    const accentFill = profileAccent((profileUser as any).accentColor).fill;
     // Switch between Recruiter and Student layouts
     if (profileUser.user_access === 'recruiter') {
         return renderRecruiterProfile();
@@ -539,6 +541,7 @@ const PublicProfile = () => {
                                             title={isFollowing ? "Following" : "Follow"}
                                             icon={isFollowing ? "checkmark" : "person-add-outline"}
                                             variant={isFollowing ? 'secondary' : 'primary'}
+                                            style={isFollowing ? undefined : { backgroundColor: accentFill, borderColor: accentFill }}
                                             block
                                             onPress={handleFollowToggle}
                                         />
@@ -546,10 +549,10 @@ const PublicProfile = () => {
                                     <Button title="Message" icon="chatbubble-ellipses-outline" style={{ flex: 1 }} onPress={startChat} />
                                 </View>
                             )}
-                            <ActivityCalendar userId={profileUser._id} streak={(profileUser as any).streakCount} highest={(profileUser as any).highestStreak} />
+                            <ActivityCalendar userId={profileUser._id} streak={(profileUser as any).streakCount} highest={(profileUser as any).highestStreak} accent={(profileUser as any).accentColor} />
                         </ProfileHero>
 
-                        <ProfileTabs items={PUBLIC_TABS} value={activeTab} onChange={setActiveTab} />
+                        <ProfileTabs items={PUBLIC_TABS} value={activeTab} onChange={setActiveTab} accent={(profileUser as any).accentColor} />
                     </View>
                 }
                 renderItem={renderTabItem}

@@ -173,6 +173,18 @@ await check('self-delete removes reports the user filed, keeps reports against t
   assert.equal(await Report.countDocuments({ targetUser: a.doc._id }), 1);
 });
 
+await check('updateUser saves a preset accent, refuses others; public profile shows it', async () => {
+  const a = await mkUser(); const b = await mkUser();
+  assert.equal(a.doc.accentColor, 'orange');
+  const bad = await call(ctl.updateUser, { user: a.ctx, body: { accentColor: 'red; drop' } });
+  assert.equal(bad.status, 400, JSON.stringify(bad));
+  const ok = await call(ctl.updateUser, { user: a.ctx, body: { accentColor: 'teal' } });
+  assert.equal(ok.status, 200, JSON.stringify(ok));
+  assert.equal(ok.body.user.accentColor, 'teal');
+  const pub = await call(ctl.getUserProfile, { user: b.ctx, params: { id: String(a.doc._id) } });
+  assert.equal(pub.body.user?.accentColor, 'teal', JSON.stringify(pub));
+});
+
 await mongoose.disconnect();
 await mongod.stop();
 await redisClient.quit();

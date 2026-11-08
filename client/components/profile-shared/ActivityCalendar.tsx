@@ -9,6 +9,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { Card, Label } from '../ui/kit';
 import { C } from '../../constants/colors';
+import { profileAccent } from '../../constants/profileAccents';
 
 type Day = { date: string; count: number };
 
@@ -23,12 +24,14 @@ const weekday = (key: string) => { const [y, m, d] = parts(key); return new Date
 const label = (key: string) => { const [, m, d] = parts(key); return `${d} ${MONTHS[m - 1]}`; };
 const postsText = (n: number) => (n === 0 ? 'No uploads' : `${n} upload${n === 1 ? '' : 's'}`);
 
-// Read at render: C is theme-aware. brand 200 is a deep amber in dark mode, so the ramp still climbs.
-const levelColors = () => [C.paper2, C.brand[200], C.brand[300], C.brand[400], C.brand[500]];
+// Read at render: C is theme-aware. Alpha steps of the accent climb on light and dark paper alike.
+const levelColors = (fill: string) => [C.paper2, `${fill}40`, `${fill}73`, `${fill}A6`, fill];
 const levelOf = (count: number, max: number) => (count <= 0 ? 0 : Math.max(1, Math.ceil((count * 4) / max)));
 
-export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak = 0, highest = 0, refreshKey }: {
+export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak = 0, highest = 0, refreshKey, accent }: {
   userId?: string; streak?: number; highest?: number; refreshKey?: unknown;
+  /** user.accentColor key; orange when absent. */
+  accent?: string;
 }) {
   const [days, setDays] = useState<Day[] | null>(null);
   const [picked, setPicked] = useState<Day | null>(null);
@@ -63,14 +66,15 @@ export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak 
   }, [days]);
 
   if (!grid) return null;
-  const colors = levelColors();
+  const fill = profileAccent(accent).fill;
+  const colors = levelColors(fill);
 
   return (
     <Card style={{ marginTop: 12, width: '100%' }}>
       <View className="flex-row items-center justify-between">
         <Text className="text-ink font-semibold text-base" accessibilityRole="header">Activity</Text>
         <View className="flex-row items-center" style={{ gap: 4 }}>
-          <Ionicons name="flame" size={14} color={C.brand[500]} />
+          <Ionicons name="flame" size={14} color={fill} />
           <Text className="text-ink-2 text-xs">
             {streak} day streak · Best {highest}
           </Text>

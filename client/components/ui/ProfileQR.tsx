@@ -7,6 +7,7 @@ import { Button, Card } from './kit';
 import { Alert } from './AlertModal';
 import { ScannerModal } from '../events/EventShared';
 import { C } from '../../constants/colors';
+import { shareCard } from '../../utils/shareCard';
 
 const BASE = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://fync-api.duckdns.org';
 
@@ -42,9 +43,13 @@ export default function ProfileQRCard({ user, onNavigate }: {
   const [permission, requestPermission] = useCameraPermissions();
   const handled = useRef(false);
 
-  const share = useCallback(() => {
-    if (!user?._id) return;
-    Share.share({ message: `Find me on Fync: ${profileLink(user._id)}` }).catch(() => {});
+  const [sharing, setSharing] = useState(false);
+  const share = useCallback(async () => {
+    const id = user?._id;
+    if (!id) return;
+    setSharing(true);
+    await shareCard('u', id, 'Share my Fync profile', () => Share.share({ message: `Find me on Fync: ${profileLink(id)}` }));
+    setSharing(false);
   }, [user?._id]);
 
   const openScanner = useCallback(async () => {
@@ -89,7 +94,7 @@ export default function ProfileQRCard({ user, onNavigate }: {
           <QR value={link} size={size} />
         </View>
         <View className="flex-row self-stretch" style={{ gap: 12 }}>
-          <View className="flex-1"><Button title="Share" icon="share-social-outline" variant="secondary" block onPress={share} /></View>
+          <View className="flex-1"><Button title="Share" icon="share-social-outline" variant="secondary" block loading={sharing} onPress={share} /></View>
           <View className="flex-1"><Button title="Scan QR" icon="scan-outline" variant="primary" block onPress={openScanner} /></View>
         </View>
       </Card>

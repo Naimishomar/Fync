@@ -17,7 +17,11 @@ import { NotificationSkeleton } from './Skeleton';
 import { C, themed } from '../constants/colors';
 import { AppBar, Button, Empty, IconTile } from './ui/kit';
 import Avatar from './Avatar';
-import { withTimeHeaders, HeaderRow } from '../utils/timeBuckets';
+import { timeBucket } from '../utils/timeBuckets';
+import Animated from 'react-native-reanimated';
+import { enterAt } from './ui/motion';
+import { ProgressiveImage } from './ui/ProgressiveImage';
+import { groupNotifications, NotifGroup, SectionHeader } from './notifications/groupNotifications';
 import { getFullUrl } from '../utils/imageUtils';
 
 import FyncRefreshControl from './ui/FyncRefreshControl';
@@ -163,153 +167,21 @@ const Notification = () => {
     }
   };
 
-  // Today / This week / Earlier header rows interleaved into the list data,
-  // so paging and refresh keep working on the plain notifications array.
-  const rows = useMemo(() => withTimeHeaders(notifications), [notifications]);
+  // Today / This week / Earlier headers, with same-type/same-target rows folded
+  // into one group per section; paging and refresh still work on the plain array.
+  const rows = useMemo(() => groupNotifications(notifications, timeBucket), [notifications]);
 
-  // --- RENDER ITEM ---
-  const renderItem = useCallback(({ item: row }: { item: NotificationItem | HeaderRow }) => {
-    if ('kind' in row) {
-      return (
-        <Text className="text-ink-3 text-[13px] font-semibold mt-4 mb-1" accessibilityRole="header">
-          {row.label}
-        </Text>
-      );
-    }
-    const item = row;
-    let message = '';
-    let iconName: any = 'notifications';
-    let iconColor = C.ink;
-    // Anonymous: never name or picture the sender of a confession tag.
-    const anonymous = item.type === 'tag' && !!item.confession;
-
-    switch (item.type) {
-      case 'follow':
-        message = 'started following you.';
-        iconName = 'person-add';
-        iconColor = C.fam.career;
-        break;
-      case 'tag':
-        message = anonymous ? 'Someone confessed about you' : 'tagged you in a post.';
-        iconName = 'at';
-        iconColor = C.fam.study;
-        break;
-      case 'like':
-        message = 'liked your post.';
-        iconName = 'heart';
-        iconColor = C.fam.fun;
-        break;
-      case 'comment':
-        message = `commented: "${item.commentText || 'Nice!'}"`;
-        iconName = 'chatbubble';
-        iconColor = C.success;
-        break;
-      case 'story_comment':
-        message = `commented: "${item.commentText || 'Nice!'} on your shorts"`;
-        iconName = 'chatbubble';
-        iconColor = C.success;
-        break;
-      case 'story_like':
-        message = 'liked your shorts.';
-        iconName = 'heart-circle';
-        iconColor = C.warning;
-        break;
-      case 'split_request':
-        message = item.commentText || 'requested a split payment.';
-        iconName = 'wallet';
-        iconColor = C.alumniLit;
-        break;
-      case 'split_paid':
-        message = item.commentText || 'paid their debt.';
-        iconName = 'cash';
-        iconColor = C.success;
-        break;
-      case 'broadcast':
-        message = item.message || 'sent an announcement.';
-        iconName = 'megaphone';
-        iconColor = C.brand[500];
-        break;
-      case 'hackathon_announcement':
-        message = item.message || 'posted a hackathon announcement.';
-        iconName = 'megaphone';
-        iconColor = C.brand[500];
-        break;
-      case 'reply':
-      case 'college_reply':
-        message = item.commentText ? `replied: "${item.commentText}"` : 'replied to you.';
-        iconName = 'return-down-forward';
-        iconColor = C.fam.social;
-        break;
-      case 'opportunity':
-        message = item.message || 'sent you an opportunity update.';
-        iconName = 'briefcase';
-        iconColor = C.brand[500];
-        break;
-      default:
-        // Fallback: always show backend message if available
-        message = item.message || item.commentText || 'sent you a notification.';
-        iconName = 'notifications';
-        iconColor = C.fam.study;
-        break;
-    }
-
-    return (
-      <Pressable
-        className={`flex-row items-center py-3 px-3 -mx-3 rounded-2xl active:opacity-85 ${!item.isRead ? 'bg-paper-2' : ''}`}
-        style={{ minHeight: 64 }}
-        onPress={() => handlePress(item)}
-        accessibilityRole="button"
-        accessibilityLabel={`${!item.isRead ? 'Unread. ' : ''}${anonymous ? '' : (item.sender?.username || 'Fync') + ' '}${message}, ${getTimeAgo(item.createdAt)}`}
-      >
-        {/* Avatar Section */}
-        <View className="relative mr-3">
-          {anonymous ? (
-            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="person" size={18} color={C.ink3} />
-            </View>
-          ) : (
-          <Avatar user={item.sender as any} size={44} showBadge={false} />
-          )}
-          {!item.isRead && (
-            <View className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-brand-500 rounded-full border-2 border-paper" />
-          )}
-        </View>
-
-        {/* Text Section */}
-        <View className="flex-1">
-          {/* Capped: a long comment used to stretch one row over half the screen. */}
-          <Text className="font-sans text-sm leading-5 text-ink-2" numberOfLines={3}>
-            {anonymous || item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
-              // Opportunity notifications: show full message without username prefix
-              <Text className="font-semibold text-sm text-ink">{message}</Text>
-            ) : (
-              <>
-                <Text className="font-semibold text-sm text-ink">
-                  {item.sender?.username || item.sender?.name || 'Fync'}
-                </Text>{' '}{message}
-              </>
-            )}
-          </Text>
-          <Text className="font-sans text-xs text-ink-3 mt-0.5">
-            {getTimeAgo(item.createdAt)}
-          </Text>
-        </View>
-
-        {/* Right Side: Post Image / Follow Button / Opportunity Icon */}
-        {item.type === 'broadcast' && item.imageUrl ? (
-          <ExpoImage source={{ uri: getFullUrl(item.imageUrl) || '' }} style={s.thumb} cachePolicy="memory-disk" />
-        ) : item.type === 'opportunity' || item.type === 'hackathon_announcement' || item.type === 'broadcast' ? (
-          <IconTile icon={item.type === 'broadcast' ? 'megaphone-outline' : 'briefcase-outline'} size={40} style={{ marginLeft: 8 }} />
-        ) : item.type !== 'follow' && item.post?.image && item.post.image.length > 0 ? (
-          <ExpoImage source={{ uri: getFullUrl(item.post.image[0]) || '' }} style={s.thumb} cachePolicy="memory-disk" />
-        ) : item.type === 'follow' ? (
-          <View className="bg-paper-2 border border-line ml-2 px-3 py-1.5 rounded-full">
-            <Text className="text-ink text-xs font-semibold">View profile</Text>
-          </View>
-        ) : null}
-      </Pressable>
-    );
-  }, [navigation]);
+  const renderItem = useCallback(({ item: row, index }: { item: Row; index: number }) => (
+    row.kind === 'header' ? (
+      <Text className="text-ink-3 text-[13px] font-semibold mt-4 mb-1" accessibilityRole="header">
+        {row.label}
+      </Text>
+    ) : (
+      <Animated.View entering={enterAt(index)}>
+        <NotificationRow group={row} onPress={handlePress} />
+      </Animated.View>
+    )
+  ), [navigation]);
 
   return (
     <View className="flex-1 bg-paper">
@@ -367,6 +239,131 @@ const Notification = () => {
     </View>
   );
 };
+
+type Row = NotifGroup<NotificationItem> | SectionHeader<string>;
+
+const SYSTEM = new Set(['opportunity', 'hackathon_announcement', 'broadcast']);
+
+const describe = (item: NotificationItem): string => {
+  switch (item.type) {
+    case 'follow': return 'started following you.';
+    case 'tag': return item.confession ? 'Someone confessed about you' : 'tagged you in a post.';
+    case 'like': return 'liked your post.';
+    case 'comment': return `commented: "${item.commentText || 'Nice!'}"`;
+    case 'story_comment': return `commented: "${item.commentText || 'Nice!'} on your shorts"`;
+    case 'story_like': return 'liked your shorts.';
+    case 'split_request': return item.commentText || 'requested a split payment.';
+    case 'split_paid': return item.commentText || 'paid their debt.';
+    case 'broadcast': return item.message || 'sent an announcement.';
+    case 'hackathon_announcement': return item.message || 'posted a hackathon announcement.';
+    case 'reply':
+    case 'college_reply': return item.commentText ? `replied: "${item.commentText}"` : 'replied to you.';
+    case 'opportunity': return item.message || 'sent you an opportunity update.';
+    default: return item.message || item.commentText || 'sent you a notification.';
+  }
+};
+
+// Folded rows can't quote one comment, so they get a generic verb.
+const GROUP_VERB: Record<string, string> = {
+  like: 'liked your post.',
+  story_like: 'liked your shorts.',
+  comment: 'commented on your post.',
+  story_comment: 'commented on your shorts.',
+  follow: 'started following you.',
+};
+
+const nameOf = (u?: NotificationItem['sender']) => u?.username || u?.name || 'Fync';
+
+const AVATAR = 44;
+const STACK = 30;
+
+const AvatarStack = ({ senders, ring }: { senders: NotificationItem['sender'][]; ring: string }) => {
+  const shown = senders.slice(0, 3);
+  // Back-to-front so the newest sender sits on top-left, like Instagram.
+  return (
+    <View style={{ width: AVATAR, height: AVATAR }}>
+      {shown.map((u, i) => (
+        <View
+          key={u._id}
+          style={{
+            position: 'absolute', left: i * 5, top: i * 5, zIndex: 3 - i,
+            borderRadius: STACK / 2 + 2, borderWidth: 2, borderColor: ring,
+          }}
+        >
+          <Avatar user={u as any} size={STACK} showBadge={false} />
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const NotificationRow = React.memo(function NotificationRow({
+  group, onPress,
+}: { group: NotifGroup<NotificationItem>; onPress: (n: NotificationItem) => void }) {
+  const item = group.lead;
+  const unread = group.unread;
+  // Anonymous: never name or picture the sender of a confession tag.
+  const anonymous = item.type === 'tag' && !!item.confession;
+  const people = group.senders.length;
+  const folded = people > 1;
+  const message = folded ? GROUP_VERB[item.type] ?? describe(item) : describe(item);
+  const who = !folded ? nameOf(item.sender)
+    : people === 2 ? `${nameOf(group.senders[0])} and ${nameOf(group.senders[1])}`
+    : `${nameOf(group.senders[0])} and ${people - 1} others`;
+  const time = getTimeAgo(item.createdAt);
+  const postImage = item.type !== 'follow' ? item.post?.image?.[0] : undefined;
+
+  return (
+    <Pressable
+      className={`flex-row items-center py-3 px-3 -mx-3 rounded-2xl active:opacity-85 ${unread ? 'bg-paper-2' : ''}`}
+      style={{ minHeight: 64 }}
+      onPress={() => onPress(item)}
+      accessibilityRole="button"
+      accessibilityLabel={`${unread ? 'Unread. ' : ''}${anonymous ? '' : who + ' '}${message}, ${time}`}
+    >
+      <View className="relative mr-3">
+        {anonymous ? (
+          <View style={{ width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name="person" size={18} color={C.ink3} />
+          </View>
+        ) : folded ? (
+          <AvatarStack senders={group.senders} ring={unread ? C.paper2 : C.paper} />
+        ) : (
+          <Avatar user={item.sender as any} size={AVATAR} showBadge={false} />
+        )}
+        {unread && (
+          <View className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-brand-500 rounded-full border-2 border-paper" style={{ zIndex: 5 }} />
+        )}
+      </View>
+
+      <View className="flex-1">
+        {/* Capped: a long comment used to stretch one row over half the screen. */}
+        <Text className="font-sans text-sm leading-5 text-ink-2" numberOfLines={3}>
+          {anonymous || SYSTEM.has(item.type) ? (
+            <Text className="font-semibold text-sm text-ink">{message}</Text>
+          ) : (
+            <>
+              <Text className="font-semibold text-sm text-ink">{who}</Text>{' '}{message}
+            </>
+          )}
+        </Text>
+        <Text className="font-sans text-xs text-ink-3 mt-0.5">{time}</Text>
+      </View>
+
+      {item.type === 'broadcast' && item.imageUrl ? (
+        <ExpoImage source={{ uri: getFullUrl(item.imageUrl) || '' }} style={s.thumb} cachePolicy="memory-disk" />
+      ) : SYSTEM.has(item.type) ? (
+        <IconTile icon={item.type === 'broadcast' ? 'megaphone-outline' : 'briefcase-outline'} size={40} style={{ marginLeft: 8 }} />
+      ) : postImage ? (
+        <ProgressiveImage path={postImage} thumbOnly style={s.thumb} />
+      ) : item.type === 'follow' && !folded ? (
+        <View className="bg-paper-2 border border-line ml-2 px-3 py-1.5 rounded-full">
+          <Text className="text-ink text-xs font-semibold">View profile</Text>
+        </View>
+      ) : null}
+    </Pressable>
+  );
+});
 
 const s = themed(() => ({ thumb: { width: 48, height: 48, borderRadius: 12, marginLeft: 8, backgroundColor: C.paper2 } }));
 

@@ -19,8 +19,8 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
  * reduce-motion draws it full straight away. `level` adds a pill over its foot.
  */
 export const ScoreRing = memo(function ScoreRing({
-  score, size = 128, stroke = 5, level, children,
-}: { score: number; size?: number; stroke?: number; level?: string; children: React.ReactNode }) {
+  score, size = 128, stroke = 5, level, color, children,
+}: { score: number; size?: number; stroke?: number; level?: string; color?: string; children: React.ReactNode }) {
   const reduce = useReducedMotion();
   const target = Math.min(1, Math.max(0, (Number(score) || 0) / 1000));
   const r = (size - stroke) / 2;
@@ -38,7 +38,7 @@ export const ScoreRing = memo(function ScoreRing({
       <Svg width={size} height={size} style={{ position: 'absolute', transform: [{ rotate: '-90deg' }] }}>
         <Circle cx={size / 2} cy={size / 2} r={r} stroke={C.line} strokeWidth={stroke} fill="none" />
         <AnimatedCircle
-          cx={size / 2} cy={size / 2} r={r} stroke={C.brand[500]} strokeWidth={stroke} fill="none"
+          cx={size / 2} cy={size / 2} r={r} stroke={color ?? C.brand[500]} strokeWidth={stroke} fill="none"
           strokeLinecap="round" strokeDasharray={`${circ} ${circ}`} animatedProps={animatedProps}
         />
       </Svg>
@@ -46,7 +46,7 @@ export const ScoreRing = memo(function ScoreRing({
       {!!level && (
         <View
           className="absolute flex-row items-center bg-brand-500 rounded-full px-2.5 py-0.5 border-2 border-card"
-          style={{ bottom: -10, gap: 4 }}
+          style={[{ bottom: -10, gap: 4 }, color ? { backgroundColor: color } : null]}
           accessibilityLabel={`Fync score ${score} of 1000, level ${level}`}
         >
           <Ionicons name={LEVEL_ICON[level] || 'leaf'} size={11} color={C.onBrand} />

@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { memo } from 'react';
 import Avatar from './Avatar';
 import { getFullUrl } from '../utils/imageUtils';
+import { shareCard } from '../utils/shareCard';
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import CommentsSheet from './ui/CommentsSheet';
@@ -423,20 +424,27 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         }
     }, [reposted, repostCount, endpoints.repost]);
 
+    const [sharing, setSharing] = useState(false);
     const handleShare = async () => {
+        if (sharing) return;
+        setSharing(true);
         try {
             const id = data._id;
             const idParam = isShort ? `shortId=${id}` : `postId=${id}`;
             const shareUrl = `https://fync-api.duckdns.org/view?${idParam}`;
             const playStoreUrl = "https://play.google.com/store/apps/details?id=com.naimishomar.fync";
 
-            await Share.share({
+            const linkShare = () => Share.share({
                 message: isShort 
                     ? `Check out this short "${data.title}" on Fync!\n\nWatch here: ${shareUrl}\n\nDon't have Fync? Download: ${playStoreUrl}`
                     : `Check out this post by ${data.user?.username} on Fync!\n\n${data.description || ''}\n\nView post: ${shareUrl}\n\nDon't have Fync? Download: ${playStoreUrl}`,
             });
+            // Shorts are video: no card, keep the link.
+            await (isShort ? linkShare() : shareCard('post', id, 'Share post', linkShare));
         } catch (error: any) {
             console.log('Share error:', error.message);
+        } finally {
+            setSharing(false);
         }
     };
 
@@ -703,8 +711,10 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     )}
                                 </TouchableOpacity>
                             )}
-                            <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-85" style={{ minHeight: 40 }} hitSlop={2}>
-                                <Ionicons name="paper-plane-outline" size={20} color={C.ink2} />
+                            <TouchableOpacity onPress={handleShare} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-85" style={{ minHeight: 40 }} hitSlop={2} accessibilityRole="button" accessibilityLabel="Share" accessibilityState={{ busy: sharing }}>
+                                {sharing
+                                    ? <ActivityIndicator size="small" color={C.ink2} style={{ width: 20 }} />
+                                    : <Ionicons name="paper-plane-outline" size={20} color={C.ink2} />}
                                 <Text className="text-ink-3 font-semibold text-xs ml-1.5">Share</Text>
                             </TouchableOpacity>
                         </View>

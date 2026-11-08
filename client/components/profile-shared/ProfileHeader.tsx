@@ -23,6 +23,7 @@ import { ScoreRing } from '../ui-extra/ScoreRing';
 import { getFullUrl } from '../../utils/imageUtils';
 import { C } from '../../constants/colors';
 import { formatCount } from '../../utils/format';
+import { profileAccent } from '../../constants/profileAccents';
 
 // Warm, brand-adjacent triples: saturated mid-tones so white text and the dark
 // scrim read on them in both themes.
@@ -119,6 +120,7 @@ export function ProfileHero({
   user: any; banner?: string; bio?: string; college?: string; children?: React.ReactNode;
   scrollY?: SharedValue<number>;
 }) {
+  const accent = profileAccent(user?.accentColor);
   const fallback = useSharedValue(0);
   const y = scrollY ?? fallback;
   const reduce = useReducedMotion();
@@ -145,13 +147,13 @@ export function ProfileHero({
         <Reanimated.View style={[{ marginTop: -56 }, avatarAnim]}>
         <AvatarZoom avatar={user?.avatar} className="p-1.5 bg-card rounded-full shadow-hair">
           {typeof user?.fyncScore === 'number' ? (
-            <ScoreRing score={user.fyncScore} size={128} stroke={5} level={user.fyncBadge || 'Newcomer'}>
+            <ScoreRing score={user.fyncScore} size={128} stroke={5} level={user.fyncBadge || 'Newcomer'} color={accent.fill}>
               <View className="rounded-full overflow-hidden">
                 <Avatar user={user} size={110} />
               </View>
             </ScoreRing>
           ) : (
-            <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
+            <View className="rounded-full overflow-hidden border-[3px]" style={{ borderColor: accent.fill }}>
               <Avatar user={user} size={110} />
             </View>
           )}
@@ -159,7 +161,7 @@ export function ProfileHero({
         </Reanimated.View>
 
         <Text className="font-display text-ink text-h1 text-center mt-4" numberOfLines={2}>{user?.name || user?.username}</Text>
-        <Text className="text-accent-text font-semibold text-sm mt-1">@{user?.username}</Text>
+        <Text className="font-semibold text-sm mt-1" style={{ color: accent.text }}>@{user?.username}</Text>
 
         {!!bio?.trim() && (
           <Text className="text-ink-2 text-center mt-3 px-6 text-sm leading-[21px]" numberOfLines={3}>{bio}</Text>
@@ -209,10 +211,11 @@ export function StatsCard({ items, style }: { items: Stat[]; style?: any }) {
 
 export type ProfileTab<K extends string> = { key: K; icon: string; activeIcon: string; label: string };
 
-/** Icon tabs: filled icon + 2px brand underline on the selected one. */
+/** Icon tabs: filled icon + 2px accent underline on the selected one. `accent`: user.accentColor key. */
 export function ProfileTabs<K extends string>({
-  items, value, onChange,
-}: { items: ProfileTab<K>[]; value: K; onChange: (k: K) => void }) {
+  items, value, onChange, accent,
+}: { items: ProfileTab<K>[]; value: K; onChange: (k: K) => void; accent?: string }) {
+  const line = profileAccent(accent).fill;
   return (
     <View className="flex-row bg-paper border-b border-line px-gutter" accessibilityRole="tablist">
       {items.map((t) => {
@@ -228,7 +231,7 @@ export function ProfileTabs<K extends string>({
             accessibilityState={{ selected: on }}
           >
             <Ionicons name={(on ? t.activeIcon : t.icon) as any} size={22} color={on ? C.ink : C.ink3} />
-            {on && <View className="absolute bottom-0 h-0.5 w-10 rounded-full bg-brand-500" />}
+            {on && <View className="absolute bottom-0 h-0.5 w-10 rounded-full" style={{ backgroundColor: line }} />}
           </Pressable>
         );
       })}

@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+export const PROFILE_ACCENTS = ['orange', 'pink', 'purple', 'indigo', 'blue', 'teal', 'green', 'gold'];
+
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -114,6 +116,12 @@ const userSchema = new mongoose.Schema({
     },
     about: {
         type: String,
+    },
+    // Profile accent preset key; the client maps it to colours.
+    accentColor: {
+        type: String,
+        enum: PROFILE_ACCENTS,
+        default: 'orange'
     },
     // Alumni specific fields
     graduationYear: {
@@ -458,7 +466,7 @@ export const PUBLIC_PROFILE_FIELDS =
     'codingProfiles codingStats company role experienceLevel domains industry companySize ' +
     'companyWebsite education githubUsername githubStats fyncScore fyncBadge codingRating ' +
     'contestHistory streakCount highestStreak lastPostDate oneVsOnePoints isVerifiedAlumni ' +
-    'portfolioVisibility profileBuilderCompleted createdAt';
+    'portfolioVisibility profileBuilderCompleted accentColor createdAt';
 
 const User = mongoose.model('User', userSchema);
 export default User;

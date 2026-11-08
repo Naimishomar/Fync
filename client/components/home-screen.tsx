@@ -29,6 +29,7 @@ import {
 import { BlurView } from 'expo-blur';
 import StreakLeaderboardModal from './StreakLeaderboardModal';
 import { getFullUrl } from '../utils/imageUtils';
+import { shareCard } from '../utils/shareCard';
 import { prefetchPostImages } from '../utils/imageWarm';
 import { useTabBarClearance, useBottomInset, useTabBarAutoHide } from '../constants/layout';
 import { fetchUnreadCounts } from '../utils/supabase';
@@ -233,15 +234,15 @@ const MAX_CHAR_LIMIT = 150;
     </ZoomableImage>
   );
 
+  const [sharing, setSharing] = useRecyclingState(false, [item._id]);
   const handleShare = async () => {
-    try {
-      const shareUrl = `https://fync-api.duckdns.org/view?postId=${item._id}`;
-      await Share.share({
-        message: `Check out this post by ${item.user?.username} on Fync!\n\n${item.description || ''}\n\nView post: ${shareUrl}`,
-      });
-    } catch (error: any) {
-      console.log('Share error:', error.message);
-    }
+    if (sharing) return;
+    setSharing(true);
+    const shareUrl = `https://fync-api.duckdns.org/view?postId=${item._id}`;
+    await shareCard('post', item._id, 'Share post', () => Share.share({
+      message: `Check out this post by ${item.user?.username} on Fync!\n\n${item.description || ''}\n\nView post: ${shareUrl}`,
+    }));
+    setSharing(false);
   };
 
   return (
@@ -460,8 +461,11 @@ const MAX_CHAR_LIMIT = 150;
           style={{ minHeight: 44 }}
           accessibilityRole="button"
           accessibilityLabel="Share this post"
+          accessibilityState={{ busy: sharing }}
         >
-          <Ionicons name="paper-plane-outline" size={20} color={C.ink} />
+          {sharing
+            ? <ActivityIndicator size="small" color={C.ink} style={{ width: 20 }} />
+            : <Ionicons name="paper-plane-outline" size={20} color={C.ink} />}
         </Pressable>
 
       </View>

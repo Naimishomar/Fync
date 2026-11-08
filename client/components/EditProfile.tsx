@@ -20,6 +20,7 @@ import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 import { AppBar, Button, FormField } from './ui/kit';
 import { getFullUrl } from '../utils/imageUtils';
+import { ACCENT_KEYS, PROFILE_ACCENTS, profileAccent } from '../constants/profileAccents';
 
 export default function EditProfile() {
   const { user, setUser } = useAuth();
@@ -42,6 +43,8 @@ export default function EditProfile() {
   const [linkedinId, setLinkedinId] = useState(user?.linkedIn_id || '');
 
   const [upiId, setUpiId] = useState(user?.upiId || '');
+  const savedAccent = user?.accentColor || 'orange';
+  const [accentColor, setAccentColor] = useState<string>(savedAccent);
 
   // --- Images ---
   const [avatar, setAvatar] = useState(getFullUrl(user?.avatar));
@@ -62,6 +65,7 @@ export default function EditProfile() {
     githubId !== (user?.github_id || '') ||
     linkedinId !== (user?.linkedIn_id || '') ||
     upiId !== (user?.upiId || '') ||
+    accentColor !== savedAccent ||
     newAvatar !== null ||
     newBanner !== null;
 
@@ -106,6 +110,7 @@ export default function EditProfile() {
       formData.append('github_id', githubId);
       formData.append('linkedIn_id', linkedinId);
       formData.append('upiId', upiId);
+      formData.append('accentColor', accentColor);
 
 
       // Append Avatar
@@ -207,6 +212,29 @@ export default function EditProfile() {
 
           <FormField label="Interests" value={interest} onChangeText={setInterest} placeholder="e.g. AI, Web3, Cycling" />
           <FormField label="Hobbies" value={hobbies} onChangeText={setHobbies} placeholder="Reading, Gaming..." />
+
+          <View>
+            <Text className="font-semibold text-ink-2 mb-2" style={{ fontSize: 13, lineHeight: 18 }}>Profile colour</Text>
+            <View className="flex-row flex-wrap" style={{ gap: 12 }} accessibilityRole="radiogroup">
+              {ACCENT_KEYS.map((k) => {
+                const on = accentColor === k;
+                return (
+                  <Pressable
+                    key={k}
+                    onPress={() => setAccentColor(k)}
+                    className="w-11 h-11 rounded-full items-center justify-center active:opacity-85"
+                    style={{ backgroundColor: PROFILE_ACCENTS[k].fill, borderWidth: on ? 2 : 0, borderColor: C.ink }}
+                    accessibilityRole="radio"
+                    accessibilityLabel={PROFILE_ACCENTS[k].label}
+                    accessibilityState={{ selected: on }}
+                  >
+                    {on && <Ionicons name="checkmark" size={20} color={profileAccent(k).on} />}
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text className="text-ink-3 text-xs mt-2">Used on your profile ring, tabs and buttons.</Text>
+          </View>
 
           {isFeatureOn('creatorTips') && (
           <FormField

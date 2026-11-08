@@ -17,6 +17,7 @@ import { Alert } from './ui/AlertModal';
 import { Button, Card, Empty, FormField, IconBtn, IconTile, ListRow, Sheet, Tag, TagRow } from './ui/kit';
 import { ProfileHero, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab, AnimatedFlashList, useProfileScroll, CompactProfileBar } from './profile-shared/ProfileHeader';
 import { ActivityCalendar } from './profile-shared/ActivityCalendar';
+import { profileAccent } from '../constants/profileAccents';
 import { GridSkeleton } from './Skeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../constants/colors';
@@ -59,18 +60,19 @@ function ProfileStrength({ user }: { user: UserType }) {
   const missing = STRENGTH_ITEMS.filter(i => !i.done(user));
   if (!missing.length) return null;
   const pct = Math.round(((STRENGTH_ITEMS.length - missing.length) / STRENGTH_ITEMS.length) * 100);
+  const accent = profileAccent((user as any)?.accentColor);
   return (
     <View className="w-full mt-3 bg-card border border-line rounded-2xl p-4">
       <View className="flex-row items-center justify-between">
         <Text className="font-semibold text-sm text-ink">Profile strength</Text>
-        <Text className="font-semibold text-sm text-accent-text">{pct}%</Text>
+        <Text className="font-semibold text-sm" style={{ color: accent.text }}>{pct}%</Text>
       </View>
       <View
         className="h-2 bg-paper-2 rounded-full overflow-hidden mt-3"
         accessibilityRole="progressbar"
         accessibilityValue={{ min: 0, max: 100, now: pct }}
       >
-        <View className="h-full bg-brand-500 rounded-full" style={{ width: `${pct}%` }} />
+        <View className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: accent.fill }} />
       </View>
       <View className="flex-row flex-wrap mt-3" style={{ gap: 8 }}>
         {missing.slice(0, 2).map(i => (
@@ -583,6 +585,7 @@ function Profile() {
   };
 
   // ── Profile Header ─────────────────────────────────────────────────────
+  const accentFill = profileAccent((user as any)?.accentColor).fill;
   const renderProfileInfo = () => (
     <ProfileHero user={user} banner={user?.banner} bio={user?.about} college={user?.college} scrollY={scrollY}>
       <StatsCard items={[
@@ -633,11 +636,11 @@ function Profile() {
       {/* Action buttons: same height, shape and type, so they read as a pair. */}
       <View className="flex-row mt-3 w-full" style={{ gap: 12 }}>
         <Button title="Edit profile" icon="create-outline" style={{ flex: 1 }} onPress={() => navigation.navigate('EditProfile')} />
-        <Button title="Portfolio" icon="briefcase-outline" variant="primary" style={{ flex: 1 }} onPress={() => navigation.navigate('FyncProfileBuilder')} />
+        <Button title="Portfolio" icon="briefcase-outline" variant="primary" style={{ flex: 1, backgroundColor: accentFill, borderColor: accentFill }} onPress={() => navigation.navigate('FyncProfileBuilder')} />
       </View>
 
       <ProfileStrength user={user} />
-      <ActivityCalendar userId={user?._id} streak={(user as any)?.streakCount} highest={(user as any)?.highestStreak} refreshKey={postCount} />
+      <ActivityCalendar userId={user?._id} streak={(user as any)?.streakCount} highest={(user as any)?.highestStreak} refreshKey={postCount} accent={(user as any)?.accentColor} />
     </ProfileHero>
   );
 
@@ -688,7 +691,7 @@ function Profile() {
         refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
-        ListHeaderComponent={<>{renderProfileInfo()}<ProfileTabs items={PROFILE_TABS} value={activeTab} onChange={setActiveTab} /></>}
+        ListHeaderComponent={<>{renderProfileInfo()}<ProfileTabs items={PROFILE_TABS} value={activeTab} onChange={setActiveTab} accent={(user as any)?.accentColor} /></>}
         renderItem={renderTabItem}
         ListFooterComponent={isLoadingMore ? <View className="py-4"><ActivityIndicator size="small" color={C.ink3} /></View> : null}
         ListEmptyComponent={!loaded ? <GridSkeleton /> : activeTab === 'posts' ? (
