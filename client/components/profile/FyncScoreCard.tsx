@@ -3,7 +3,8 @@ import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
-import { Card, IconTile, Num } from '../ui/kit';
+import { Card, IconTile } from '../ui/kit';
+import { AnimatedCount } from '../ui/motion';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 // color: text/icon (AA on card); bar: the progress fill.
@@ -47,9 +48,11 @@ interface Props {
   userId: string;
   isOwner?: boolean;
   onRecalculate?: () => void;
+  /** Called with the badge whenever the score loads, e.g. to celebrate a level-up. */
+  onBadge?: (badge: string) => void;
 }
 
-export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }: Props) {
+export default function FyncScoreCard({ userId, isOwner = false, onRecalculate, onBadge }: Props) {
   const [score, setScore] = useState<FyncScoreData | null>(null);
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
@@ -67,6 +70,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
   };
 
   useEffect(() => { fetchScore(); }, [userId]);
+  useEffect(() => { if (score) onBadge?.(score.badge || 'Newcomer'); }, [score?.badge]);
 
   const handleRecalculate = async () => {
     setRecalculating(true);
@@ -110,7 +114,7 @@ export default function FyncScoreCard({ userId, isOwner = false, onRecalculate }
 
         <View className="flex-1" style={{ minWidth: 0 }}>
           <View className="flex-row items-baseline" style={{ gap: 6 }}>
-            <Num style={{ fontSize: 24, lineHeight: 28 }}>{String(score.totalScore)}</Num>
+            <AnimatedCount value={score.totalScore} format={String} style={{ fontFamily: 'SpaceGrotesk_700Bold', color: C.ink, fontSize: 34, lineHeight: 38, letterSpacing: -1, fontVariant: ['tabular-nums'] }} />
             <Text className="text-ink-3 font-sans text-sm">/ 1000 pts</Text>
           </View>
           <Text className="font-semibold text-sm mt-0.5" style={{ color: cfg.color }}>{badge}</Text>

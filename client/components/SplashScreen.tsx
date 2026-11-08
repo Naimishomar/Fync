@@ -2,6 +2,22 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, View, Text, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { C } from '../constants/colors';
+import Reanimated, { FadeOut, withTiming } from 'react-native-reanimated';
+
+// On unmount (auth resolved) the page fades and the logo zooms past the
+// viewer instead of a hard cut. Exit animations run on the UI thread while the
+// next screen mounts, so app start is not delayed. Reduce-motion skips them.
+const PAGE_EXIT = FadeOut.duration(260);
+const logoExit = () => {
+  'worklet';
+  return {
+    initialValues: { opacity: 1, transform: [{ scale: 1 }] },
+    animations: {
+      opacity: withTiming(0, { duration: 240 }),
+      transform: [{ scale: withTiming(1.6, { duration: 260 }) }],
+    },
+  };
+};
 
 /**
  * Backdrop is set type rather than imagery: a dozen fragments of campus life at
@@ -75,7 +91,7 @@ export default function SplashScreen({ navigation }: any) {
   }, []);
 
   return (
-    <View className="flex-1 bg-paper">
+    <Reanimated.View exiting={PAGE_EXIT} style={{ flex: 1, backgroundColor: C.paper }}>
       <SafeAreaView className="flex-1">
         {/* Type field sits behind everything and never intercepts touches */}
         <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
@@ -106,6 +122,7 @@ export default function SplashScreen({ navigation }: any) {
         {/* zIndex is explicit: the backdrop is absolutely positioned, and without
             it the centre block's stacking against that layer is left to chance. */}
         <View className="flex-1 justify-center items-center px-gutter" style={{ zIndex: 1 }}>
+          <Reanimated.View exiting={logoExit}>
           <Animated.View
             style={{
               opacity: logo,
@@ -118,6 +135,7 @@ export default function SplashScreen({ navigation }: any) {
               accessibilityLabel="Fync"
             />
           </Animated.View>
+          </Reanimated.View>
 
           <Animated.View
             className="items-center mt-7 w-full"
@@ -158,6 +176,6 @@ export default function SplashScreen({ navigation }: any) {
           </Text>
         </View>
       </SafeAreaView>
-    </View>
+    </Reanimated.View>
   );
 }

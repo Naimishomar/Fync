@@ -6,6 +6,10 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C, themed } from '../../constants/colors';
+import Animated, { SlideInDown } from 'react-native-reanimated';
+
+/** Rises on a soft spring, barely any overshoot; the scrim fades in under it. */
+const RISE = SlideInDown.springify().damping(22).stiffness(240).mass(0.8);
 
 /**
  * Height to lift a bottom sheet by while the keyboard is up (0 when down).
@@ -71,10 +75,10 @@ export function Sheet({
 
   const bodyPad = [s.body, !footer && { paddingBottom: bottom }, contentStyle];
   return (
-    <Modal visible={visible} transparent statusBarTranslucent animationType="slide" onRequestClose={close ?? (() => {})}>
+    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={close ?? (() => {})}>
       <View style={s.root}>
         <Pressable style={s.scrimTap} onPress={close} accessibilityLabel={closeLabel} />
-        <View style={[s.sheet, fixed && { height }, { marginBottom: lift }]}>
+        <Animated.View entering={RISE} style={[s.sheet, fixed && { height }, { marginBottom: lift }]}>
           <View style={s.handleWrap}><View style={s.handle} /></View>
           {title || header ? (
             <View style={s.header}>
@@ -115,7 +119,7 @@ export function Sheet({
           )}
 
           {footer ? <View style={[s.footer, { paddingBottom: bottom }]}>{footer}</View> : null}
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );

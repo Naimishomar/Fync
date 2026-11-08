@@ -4,18 +4,54 @@
  * cell and the titled about cards.
  */
 import React, { memo } from 'react';
-import { View, Text, Pressable, Dimensions } from 'react-native';
+import { View, Text, Pressable, Dimensions, type TextStyle } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Video, ResizeMode } from 'expo-av';
 import Avatar from '../Avatar';
 import AvatarZoom from '../ui/AvatarZoom';
-import { Card } from '../ui/kit';
-import { getFullUrl, getThumbUrl } from '../../utils/imageUtils';
+import { Card, Num } from '../ui/kit';
+import { AnimatedCount } from '../ui/motion';
+import { ProgressiveImage } from '../ui/ProgressiveImage';
+import { ScoreRing } from '../ui-extra/ScoreRing';
+import { getFullUrl } from '../../utils/imageUtils';
 import { C } from '../../constants/colors';
+import { formatCount } from '../../utils/format';
 
-const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000';
+// Warm, brand-adjacent triples: saturated mid-tones so white text and the dark
+// scrim read on them in both themes.
+const BANNER_PALETTES: [string, string, string][] = [
+  ['#F97316', '#FB923C', '#F5B700'],
+  ['#EA580C', '#DB2777', '#F472B6'],
+  ['#C2410C', '#F97316', '#FDBA74'],
+  ['#9A3412', '#EA580C', '#F5B700'],
+  ['#7C3AED', '#DB2777', '#F97316'],
+  ['#B45309', '#F59E0B', '#FB923C'],
+  ['#0F766E', '#0EA5E9', '#F97316'],
+  ['#4F46E5', '#7C3AED', '#FB923C'],
+];
+
+const hashOf = (str: string) => {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+  return h >>> 0;
+};
+
+/** No banner: a gradient picked from the user's id, so it's stable per person and costs no request. */
+export const GeneratedBanner = memo(function GeneratedBanner({ seed }: { seed: string }) {
+  const h = hashOf(seed || 'fync');
+  const colors = BANNER_PALETTES[h % BANNER_PALETTES.length];
+  const tilt = ((h >> 4) % 100) / 100;
+  // Two soft discs as a quiet pattern, placed by the hash too.
+  const a = 10 + ((h >> 8) % 60), b = 30 + ((h >> 14) % 60);
+  return (
+    <View style={{ flex: 1, overflow: 'hidden' }}>
+      <LinearGradient colors={colors} start={{ x: 0, y: tilt }} end={{ x: 1, y: 1 - tilt }} style={{ flex: 1 }} />
+      <View className="absolute rounded-full bg-white/10" style={{ width: 260, height: 260, left: `${a}%`, top: -120 }} />
+      <View className="absolute rounded-full bg-white/10" style={{ width: 180, height: 180, left: `${b - 40}%`, top: 90 }} />
+    </View>
+  );
+});
 
 /** Banner, zoomable avatar, name, handle, bio, college; `children` go under it (stats, actions). */
 export function ProfileHero({
@@ -26,17 +62,27 @@ export function ProfileHero({
   return (
     <View className="bg-card">
       <View className="h-64 w-full">
-        <ExpoImage
-          source={{ uri: getFullUrl(banner) || DEFAULT_BANNER }}
-          style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="disk" />
+        {banner ? (
+          <ProgressiveImage path={banner} style={{ width: '100%', height: '100%' }} />
+        ) : (
+          <GeneratedBanner seed={user?._id || user?.username || user?.name || ''} />
+        )}
         <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
       </View>
 
       <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12">
         <AvatarZoom avatar={user?.avatar} className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
-          <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
-            <Avatar user={user} size={110} />
-          </View>
+          {typeof user?.fyncScore === 'number' ? (
+            <ScoreRing score={user.fyncScore} size={128} stroke={5} level={user.fyncBadge || 'Newcomer'}>
+              <View className="rounded-full overflow-hidden">
+                <Avatar user={user} size={110} />
+              </View>
+            </ScoreRing>
+          ) : (
+            <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
+              <Avatar user={user} size={110} />
+            </View>
+          )}
         </AvatarZoom>
 
         <Text className="font-display text-ink text-h1 text-center mt-4" numberOfLines={2}>{user?.name || user?.username}</Text>
@@ -59,6 +105,8 @@ export function ProfileHero({
   );
 }
 
+const STAT_NUM: TextStyle = { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 26, lineHeight: 30, letterSpacing: -0.8, fontVariant: ['tabular-nums'] };
+
 export type Stat = { label: string; value: number | string; onPress?: () => void };
 
 /** Light card of 2-3 numbers split by hairlines. Tappable ones open their list. */
@@ -73,9 +121,11 @@ export function StatsCard({ items, style }: { items: Stat[]; style?: any }) {
             onPress={s.onPress}
             disabled={!s.onPress}
             accessibilityRole={s.onPress ? 'button' : 'text'}
-            accessibilityLabel={`${s.value} ${s.label}`}
+            accessibilityLabel={`${typeof s.value === 'number' ? formatCount(s.value) : s.value} ${s.label}`}
           >
-            <Text className="text-xl font-display text-ink">{s.value}</Text>
+            {typeof s.value === 'number'
+              ? <AnimatedCount value={s.value} style={[STAT_NUM, { color: C.ink }]} />
+              : <Num style={STAT_NUM}>{s.value}</Num>}
             <Text className="text-ink-3 text-xs font-medium mt-0.5">{s.label}</Text>
           </Pressable>
         </React.Fragment>
@@ -131,20 +181,6 @@ export function ProfileSection({
 // ─── Grid cell ───────────────────────────────────────────────────────────────
 const COL = Dimensions.get('window').width / 3;
 
-/** Small variant first, full file only if the twin is missing. */
-function GridImage({ path }: { path: string }) {
-  const [src, setSrc] = React.useState(getThumbUrl(path) || '');
-  return (
-    <ExpoImage
-      source={{ uri: src }}
-      style={{ width: '100%', height: '100%' }}
-      contentFit="cover"
-      cachePolicy="disk"
-      onError={() => { const full = getFullUrl(path); if (full && src !== full) setSrc(full); }}
-    />
-  );
-}
-
 /** One post / short tile. Callbacks get the item back so they can stay stable. */
 export const GridCell = memo(function GridCell({
   item, isShort, onOpen, onLongPress,
@@ -168,8 +204,7 @@ export const GridCell = memo(function GridCell({
           {/* A still, not a decoder: a <Video> per cell meant a dozen hardware
               decoders. Shorts from before the thumbnail field fall back. */}
           {item.thumbnail ? (
-            <ExpoImage source={{ uri: getFullUrl(item.thumbnail) || '' }} style={{ width: '100%', height: '100%' }}
-              contentFit="cover" cachePolicy="disk" transition={120} />
+            <ProgressiveImage thumbOnly path={item.thumbnail} style={{ width: '100%', height: '100%' }} />
           ) : (
             <Video source={{ uri: getFullUrl(item.video) || '' }} style={{ width: '100%', height: '100%' }}
               resizeMode={ResizeMode.COVER} shouldPlay={false} positionMillis={100} />
@@ -178,12 +213,12 @@ export const GridCell = memo(function GridCell({
           <View className="absolute bottom-2 left-2 right-2 flex-row items-center" style={{ gap: 4 }}>
             <Ionicons name="play" size={12} color="white" />
             <Text className="text-white text-xs font-semibold flex-shrink" numberOfLines={1}>
-              {typeof item.views === 'number' ? item.views : item.title}
+              {typeof item.views === 'number' ? formatCount(item.views) : item.title}
             </Text>
           </View>
         </View>
       ) : item.image?.length > 0 ? (
-        <GridImage path={item.image[0]} />
+        <ProgressiveImage thumbOnly path={item.image[0]} style={{ width: '100%', height: '100%' }} />
       ) : (
         // Text-only post: an empty image source drew a blank tile.
         <View className="w-full h-full items-center justify-center p-3">

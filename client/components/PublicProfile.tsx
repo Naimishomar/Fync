@@ -11,11 +11,11 @@ import AvatarZoom from './ui/AvatarZoom';
 import { ProfileSkeleton } from './Skeleton';
 import { Image as ExpoImage } from 'expo-image';
 import { FlashList } from '@shopify/flash-list';
-import { getFullUrl } from '../utils/imageUtils';
 import GitHubStatsCard from './profile/GitHubStatsCard';
 import { C } from '../constants/colors';
 import { AppBar, Button, Card, Empty, IconBtn, IconTile, ListRow, Tag, TagRow } from './ui/kit';
-import { ProfileHero, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab } from './profile-shared/ProfileHeader';
+import { ProgressiveImage } from './ui/ProgressiveImage';
+import { ProfileHero, GeneratedBanner, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab } from './profile-shared/ProfileHeader';
 import { Alert } from './ui/AlertModal';
 import { confirmBlock, report } from '../utils/safety';
 import { tapHaptic } from '../utils/haptics';
@@ -397,12 +397,9 @@ const PublicProfile = () => {
             <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 bg-paper" showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
                 <View className="h-48 w-full">
-                    <ExpoImage
-                        source={{ uri: getFullUrl(p?.banner) || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000' }}
-                        style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }}
-                        contentFit="cover"
-                        cachePolicy="disk"
-                    />
+                    {p?.banner
+                        ? <ProgressiveImage path={p.banner} style={{ width: '100%', height: '100%' }} />
+                        : <GeneratedBanner seed={p?._id || p?.username || p?.name || ''} />}
                     <View className="absolute inset-0 bg-black/30" />
                 </View>
 

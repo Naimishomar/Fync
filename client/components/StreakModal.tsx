@@ -1,11 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Modal, Animated, Dimensions } from 'react-native';
+import { View, Text, Modal, Animated, AccessibilityInfo } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { C } from '../constants/colors';
-
-const { width } = Dimensions.get('window');
+import { formatCount } from '../utils/format';
 
 interface StreakModalProps {
   visible: boolean;
@@ -16,6 +15,23 @@ interface StreakModalProps {
 const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  // Gentle breathing on the flame while the modal is up; skipped for reduce-motion.
+  useEffect(() => {
+    if (!visible) return;
+    let loop: Animated.CompositeAnimation | undefined;
+    let alive = true;
+    AccessibilityInfo.isReduceMotionEnabled().then(reduce => {
+      if (!alive || reduce) return;
+      loop = Animated.loop(Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.08, duration: 600, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 600, useNativeDriver: true }),
+      ]));
+      loop.start();
+    }).catch(() => {});
+    return () => { alive = false; loop?.stop(); pulse.setValue(1); };
+  }, [visible, pulse]);
 
   useEffect(() => {
     if (visible) {
@@ -80,24 +96,29 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
               className="p-card-pad items-center"
             >
               <View className="mb-5">
-                <View className="w-[110px] h-[110px] rounded-full bg-brand-500/20 justify-center items-center p-[5px]">
+                <Animated.View className="w-[110px] h-[110px] rounded-full bg-brand-500/20 justify-center items-center p-[5px]" style={{ transform: [{ scale: pulse }] }}>
                   <View
                     className="w-[100px] h-[100px] rounded-full justify-center items-center shadow-hair"
                    style={{ backgroundColor: '#F5B700' }}>
                     <Ionicons name="flame" size={60} color={C.night} />
                   </View>
-                </View>
+                </Animated.View>
               </View>
 
-              <Text 
-                className="text-6xl font-display text-warning"
+              <Text
+                className="text-warning"
                 style={{
+                  fontFamily: 'SpaceGrotesk_700Bold',
+                  fontSize: 84,
+                  lineHeight: 88,
+                  letterSpacing: -2.5,
+                  fontVariant: ['tabular-nums'],
                   textShadowColor: 'rgba(0, 0, 0, 0.5)',
                   textShadowOffset: { width: 0, height: 2 },
                   textShadowRadius: 10,
                 }}
               >
-                {streakCount}
+                {formatCount(streakCount)}
               </Text>
               <Text className="text-2xl font-display text-white -mt-1">
                 day streak

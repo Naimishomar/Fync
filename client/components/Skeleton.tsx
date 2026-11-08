@@ -1,5 +1,9 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Animated, Dimensions, ViewStyle, StyleProp } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Animated, Dimensions, ViewStyle, StyleProp, StyleSheet } from 'react-native';
+import Reanimated, {
+  useAnimatedStyle, useSharedValue, withRepeat, withTiming, cancelAnimation, Easing, useReducedMotion,
+} from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { C } from '../constants/colors';
 
 interface SkeletonProps {
@@ -12,10 +16,11 @@ interface SkeletonProps {
   lightMode?: boolean;
 }
 
-/** A soft block that gently pulses. Give it the footprint of the real content. */
-const Skeleton = ({ width, height, borderRadius = 8, style, className, lightMode = false }: SkeletonProps) => {
-  const pulse = useRef(new Animated.Value(0)).current;
+const SWEEP_MS = 1300;
 
+/** Reduce-motion fallback: the old gentle opacity pulse. */
+const Pulse = ({ style, className }: { style: StyleProp<ViewStyle>; className?: string }) => {
+  const pulse = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const animation = Animated.loop(
       Animated.sequence([
@@ -28,22 +33,59 @@ const Skeleton = ({ width, height, borderRadius = 8, style, className, lightMode
     // native side after the real content replaces it.
     return () => animation.stop();
   }, [pulse]);
-
   const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 0.55] });
-
   return (
-    <Animated.View
-      style={[{
-        width: width as any,
-        height: height as any,
-        borderRadius,
-        backgroundColor: lightMode ? C.paper2 : C.night2,
-        opacity,
-      }, style]}
+    <Animated.View style={[style, { opacity }]} className={className}
+      accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
+  );
+};
+
+/** A soft block with a highlight sweeping across it. Give it the footprint of the real content. */
+const Skeleton = ({ width, height, borderRadius = 8, style, className, lightMode = false }: SkeletonProps) => {
+  const reduce = useReducedMotion();
+  const [w, setW] = useState(0);
+  const x = useSharedValue(0);
+
+  useEffect(() => {
+    if (reduce || !w) return;
+    x.value = 0;
+    x.value = withRepeat(withTiming(1, { duration: SWEEP_MS, easing: Easing.inOut(Easing.quad) }), -1, false);
+    return () => cancelAnimation(x);
+  }, [reduce, w, x]);
+
+  const sweep = useAnimatedStyle(() => ({ transform: [{ translateX: -w + x.value * 2 * w }] }));
+
+  const block: StyleProp<ViewStyle> = [{
+    width: width as any,
+    height: height as any,
+    borderRadius,
+    backgroundColor: lightMode ? C.paper2 : C.night2,
+    overflow: 'hidden',
+  }, style];
+
+  if (reduce) return <Pulse style={block} className={className} />;
+
+  // Brighter sweep on light paper; a faint one on dark surfaces.
+  const peak = lightMode && C.statusStyle === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.07)';
+  return (
+    <View
+      style={block}
       className={className}
+      onLayout={(e) => setW(e.nativeEvent.layout.width)}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-    />
+    >
+      {w ? (
+        <Reanimated.View style={[StyleSheet.absoluteFill, sweep]} pointerEvents="none">
+          <LinearGradient
+            colors={['rgba(255,255,255,0)', peak, 'rgba(255,255,255,0)']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </Reanimated.View>
+      ) : null}
+    </View>
   );
 };
 

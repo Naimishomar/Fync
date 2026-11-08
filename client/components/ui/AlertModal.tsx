@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, Modal, Animated, Easing, ScrollView } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../../constants/colors';
+import { tick } from './motion';
 
 /**
  * In-app replacement for React Native's `Alert`.
@@ -119,17 +120,15 @@ export const AlertHost = () => {
 
   useEffect(() => {
     if (!request) return;
-    scale.setValue(0.96);
+    scale.setValue(0.92);
     opacity.setValue(0);
     Animated.parallel([
-      Animated.timing(opacity, { toValue: 1, duration: 140, useNativeDriver: true }),
-      Animated.timing(scale, {
-        toValue: 1,
-        duration: 180,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
+      Animated.timing(opacity, { toValue: 1, duration: 140, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      // Soft spring, minimal overshoot.
+      Animated.spring(scale, { toValue: 1, damping: 16, stiffness: 260, mass: 0.7, useNativeDriver: true }),
     ]).start();
+    // A tick so a destructive confirm is felt, not just seen.
+    if (request.buttons.some((b) => b.style === 'destructive')) tick();
   }, [request, scale, opacity]);
 
   const close = useCallback(

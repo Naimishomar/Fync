@@ -12,7 +12,7 @@
  *   - Role colour is never the only signal: `Avatar` rings, and callers pair it
  *     with a <RoleSticker> carrying the word.
  */
-import React, { memo } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import {
   View, Text, Pressable, ScrollView, StyleSheet, ActivityIndicator,
   type ViewProps, type TextProps,
@@ -21,6 +21,34 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomInset } from '../../constants/layout';
 import { C as P, themed } from '../../constants/colors';
+import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { Image } from 'expo-image';
+import { tick } from './motion';
+import { artUrl } from '../../constants/features';
+
+/* ------------------------------------------------------------ press feel */
+// Same feel as motion.tsx's PressScale, but the style stays on the Pressable
+// itself: PressScale puts it on an inner view, which would strand callers'
+// flex/margin/absolute styles (Button style={{ flex: 1 }}, etc.) off-layout.
+// Haptic fires on the press, not press-in, so starting a scroll on a row is silent.
+const APressable = Animated.createAnimatedComponent(Pressable);
+const PRESS_SPRING = { damping: 18, stiffness: 320, mass: 0.6 };
+function Press({
+  scale = 0.97, haptic = true, onPress, style, ...rest
+}: React.ComponentProps<typeof Pressable> & { scale?: number; haptic?: boolean; style?: any }) {
+  const v = useSharedValue(1);
+  const anim = useAnimatedStyle(() => ({ transform: [{ scale: v.value }] }));
+  const press = useCallback((e: any) => { if (haptic) tick(); onPress?.(e); }, [haptic, onPress]);
+  return (
+    <APressable
+      {...rest}
+      onPress={onPress ? press : undefined}
+      onPressIn={() => { v.value = withTiming(scale, { duration: 90 }); }}
+      onPressOut={() => { v.value = withSpring(1, PRESS_SPRING); }}
+      style={[style, anim]}
+    />
+  );
+}
 
 /* ------------------------------------------------------------------ tokens */
 // The kit's short names for the live palette in constants/colors.ts. Every
@@ -141,20 +169,20 @@ export function IconBtn({
   accessibilityLabel?: string; disabled?: boolean;
 }) {
   return (
-    <Pressable
+    <Press
+      scale={0.9}
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? labelFromIcon(String(name))}
       accessibilityState={disabled ? { disabled } : undefined}
       hitSlop={4}
-      className="active:opacity-60"
       // Static style: NativeWind's Pressable wrapper can drop a style *function*.
       style={[s.iconbtn, boxed && s.iconbtnBoxed, overlay && s.iconbtnOverlay, disabled && s.disabled, style]}
     >
       <Ionicons name={name} size={size} color={color ?? (overlay ? C.nightInk : C.ink)} />
       {badge != null && badge !== 0 ? <Badge value={badge} /> : null}
-    </Pressable>
+    </Press>
   );
 }
 
@@ -328,14 +356,13 @@ export function Button({
     C.ink;
   const off = disabled || loading;
   return (
-    <Pressable
+    <Press
       onPress={onPress}
       disabled={off}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityState={{ disabled: !!off, busy: !!loading }}
       hitSlop={small ? SMALL_SLOP : undefined}
-      className="active:opacity-70"
       style={[s.btn, small && s.btnSm, s[`btn_${v}`], block && s.btnBlock, disabled && s.disabled, style]}
     >
       <View style={[s.btnInner, loading && s.hidden]}>
@@ -343,7 +370,7 @@ export function Button({
         <Text style={[s.btnText, small && s.btnTextSm, { color: fg }]} numberOfLines={1}>{title}</Text>
       </View>
       {loading ? <ActivityIndicator size="small" color={fg} style={s.btnSpinner} /> : null}
-    </Pressable>
+    </Press>
   );
 }
 
@@ -357,18 +384,18 @@ export const Chip = memo(function Chip({
 }) {
   const fg = active ? C.paper : C.ink2;
   return (
-    <Pressable
+    <Press
+      scale={0.95}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected: !!active }}
       hitSlop={SMALL_SLOP}
-      className="active:opacity-70"
       style={[s.chip, active && s.chipOn, style]}
     >
       {icon ? <Ionicons name={icon} size={16} color={fg} /> : null}
       {label ? <Text style={[s.chipText, { color: fg }]} numberOfLines={1}>{label}</Text> : null}
-    </Pressable>
+    </Press>
   );
 });
 
@@ -513,17 +540,17 @@ export const ListRow = memo(function ListRow({
   );
   if (!onPress && !onLongPress) return <View style={[s.listRow, style]}>{body}</View>;
   return (
-    <Pressable
+    <Press
+      scale={0.98}
       onPress={onPress}
       onLongPress={onLongPress}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? (subtitle ? `${title}, ${subtitle}` : title)}
-      className="active:opacity-70"
       style={[s.listRow, disabled && s.disabled, style]}
     >
       {body}
-    </Pressable>
+    </Press>
   );
 });
 
@@ -599,16 +626,16 @@ export const Tile = memo(function Tile({
   return (
     // Width on a plain View: NativeWind's Pressable can drop style functions.
     <View style={{ width: `${100 / columns}%`, paddingHorizontal: 4 }}>
-      <Pressable
+      <Press
+        scale={0.94}
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={hint ? `${label}. ${hint}` : label}
-        className="active:opacity-60"
         style={s.tile}
       >
         <IconTile icon={icon} size={56} iconSize={26} color={tint} />
         <Text numberOfLines={2} style={s.tileLabel}>{label}</Text>
-      </Pressable>
+      </Press>
     </View>
   );
 });
@@ -626,20 +653,54 @@ export function BottomBar({ children, style }: { children: React.ReactNode; styl
 }
 
 /* ------------------------------------------------------------ empty states */
-/** Round icon, semibold title, ink-3 hint, optional action (a <Button>). */
+const F = (name: string) => `assets/${name}/3D/${name.toLowerCase().replace(/ /g, '_')}_3d.png`;
+/** Ionicons name stem -> Fluent 3D emoji. Unmapped icons get sparkles. */
+const EMPTY_ART: Record<string, string> = {
+  chatbubble: F('Speech balloon'), chatbubbles: F('Speech balloon'), chatbox: F('Speech balloon'),
+  search: F('Magnifying glass tilted left'), notifications: F('Bell'), 'notifications-off': F('Bell with slash'),
+  people: F('Busts in silhouette'), person: F('Busts in silhouette'), briefcase: F('Briefcase'),
+  calendar: F('Spiral calendar'), 'cloud-offline': F('Cloud'), cloud: F('Cloud'), gift: F('Wrapped gift'),
+  school: F('Graduation cap'), rocket: F('Rocket'), document: F('Page facing up'), 'document-text': F('Page facing up'),
+  compass: F('Compass'), trophy: F('Trophy'), ribbon: F('Trophy'), time: F('Alarm clock'), ticket: F('Admission tickets'),
+  'lock-closed': F('Locked'), flame: F('Fire'), heart: F('Red heart'), images: F('Framed picture'), image: F('Framed picture'),
+  videocam: F('Video camera'), film: F('Video camera'), 'mail-open': F('Envelope'), mail: F('Envelope'),
+  'bag-handle': F('Shopping bags'), basket: F('Shopping bags'), storefront: F('Shopping bags'), cube: F('Package'),
+  clipboard: F('Clipboard'), mic: F('Studio microphone'),
+};
+const SPARKLES = F('Sparkles');
+
+/**
+ * 3D emoji (from the icon, or `art`: a Fluent path / URL), semibold title,
+ * ink-3 hint, optional action (a <Button>). `art={false}`: the round icon only.
+ * The round icon is also the fallback while offline / if the image fails.
+ */
 export function Empty({
-  title, hint, icon, action,
+  title, hint, icon, action, art,
 }: {
   title: string; hint?: string; action?: React.ReactNode;
   icon?: IconName;
+  art?: string | false;
 }) {
+  const [failed, setFailed] = useState(false);
+  const src = art === false || failed ? undefined
+    : artUrl(art || (icon ? EMPTY_ART[String(icon).replace(/-(outline|sharp)$/, '')] ?? SPARKLES : undefined));
   return (
-    <View style={s.empty}>
-      {icon ? <IconTile icon={icon} size={56} iconSize={24} color={C.ink3} style={{ marginBottom: 4 }} /> : null}
+    <Animated.View style={s.empty} entering={FadeInDown.duration(320).springify().damping(18)}>
+      {src ? (
+        <Image
+          source={{ uri: src }}
+          style={{ width: 88, height: 88, marginBottom: 4 }}
+          contentFit="contain"
+          cachePolicy="disk"
+          transition={200}
+          onError={() => setFailed(true)}
+          accessible={false}
+        />
+      ) : icon ? <IconTile icon={icon} size={56} iconSize={24} color={C.ink3} style={{ marginBottom: 4 }} /> : null}
       <Text style={s.emptyTitle} accessibilityRole="header">{title}</Text>
       {hint ? <Text style={s.emptyHint}>{hint}</Text> : null}
       {action ? <View style={{ marginTop: 8 }}>{action}</View> : null}
-    </View>
+    </Animated.View>
   );
 }
 

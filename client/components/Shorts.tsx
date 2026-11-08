@@ -139,11 +139,19 @@ const SingleShort = React.memo(({
 
   // Single tap pauses/plays; double tap likes (never unlikes) with a heart burst.
   const [burst, setBurst] = useState(0);
-  const onVideoPress = useDoubleTap(togglePlay, () => {
+  // The heart pops where the second tap landed.
+  const tapAt = useRef({ x: SCREEN_WIDTH / 2, y: height / 2 });
+  const [burstAt, setBurstAt] = useState(tapAt.current);
+  const doubleTap = useDoubleTap(togglePlay, () => {
+    setBurstAt(tapAt.current);
     setBurst(n => n + 1);
     if (isLiked) tapHaptic();
-    else onLike(item);
+    else onLike(item); // toggleLike already ticks
   });
+  const onVideoPress = (e: any) => {
+    tapAt.current = { x: e.nativeEvent.locationX, y: e.nativeEvent.locationY };
+    doubleTap();
+  };
 
   const handleShare = async () => {
     try {
@@ -183,7 +191,9 @@ const SingleShort = React.memo(({
         </View>
       )}
 
-      <HeartBurst trigger={burst} size={110} />
+      <View pointerEvents="none" style={{ position: 'absolute', left: burstAt.x - 80, top: burstAt.y - 80, width: 160, height: 160 }}>
+        <HeartBurst trigger={burst} size={110} />
+      </View>
 
       {/* -------- BOTTOM OVERLAY -------- */}
       <View className="absolute left-4 right-4 flex-row justify-between items-end" style={{ bottom: overlayBottom }}>

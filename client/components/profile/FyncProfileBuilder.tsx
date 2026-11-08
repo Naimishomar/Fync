@@ -21,7 +21,9 @@ import EducationCard, { EducationEntry } from './EducationCard';
 import AddEducationModal from './AddEducationModal';
 import { Alert } from '../ui/AlertModal';
 
-import { AppBar, Card, SectionHeader, Button, SegmentedTabs, Empty, IconTile, Num } from '../ui/kit';
+import { AppBar, Card, SectionHeader, Button, SegmentedTabs, Empty, IconTile } from '../ui/kit';
+import { AnimatedCount } from '../ui/motion';
+import { LevelUpCelebration } from '../ui-extra/Confetti';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
 
@@ -110,6 +112,7 @@ export default function FyncProfileBuilder() {
   };
 
   const [profile, setProfile] = useState<any>(null);
+  const [badge, setBadge] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'experience' | 'certs'>('overview');
@@ -358,7 +361,9 @@ export default function FyncProfileBuilder() {
             <View className="flex-row mx-4 mb-3" style={{ gap: 12 }}>
               <Card style={{ flex: 1, alignItems: 'center' }}>
                 <IconTile icon="flame-outline" size={44} color={C.accentText} />
-                <Num style={{ fontSize: 24, lineHeight: 28, marginTop: 8 }}>{String(profile?.user?.highestStreak || 0)}</Num>
+                <View style={{ marginTop: 8 }}>
+                  <AnimatedCount value={profile?.user?.highestStreak || 0} style={{ fontFamily: 'SpaceGrotesk_700Bold', color: C.ink, fontSize: 32, lineHeight: 36, letterSpacing: -1, fontVariant: ['tabular-nums'] }} />
+                </View>
                 <Text className="text-ink-3 text-xs font-sans mt-1">Max streak</Text>
               </Card>
 
@@ -374,7 +379,7 @@ export default function FyncProfileBuilder() {
               </Pressable>
             </View>
 
-            <FyncScoreCard userId={user?._id!} isOwner onRecalculate={fetchProfile} />
+            <FyncScoreCard userId={user?._id!} isOwner onRecalculate={fetchProfile} onBadge={setBadge} />
 
             <Card style={{ marginHorizontal: 16, marginBottom: 12 }}>
               <View className="flex-row items-center mb-3" style={{ gap: 12 }}>
@@ -568,6 +573,7 @@ export default function FyncProfileBuilder() {
           onSuccess={() => { setShowCodingModal(false); fetchProfile(); }}
         />
       </View>
+      <LevelUpCelebration userId={user?._id} level={badge} />
     </View>
   );
 }

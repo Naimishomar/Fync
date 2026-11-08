@@ -20,6 +20,9 @@ import { ProfileHero, StatsCard, ProfileTabs, GridCell, ProfileSection, type Pro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
+import { AnimatedCount } from './ui/motion';
+import { LevelUpCelebration } from './ui-extra/Confetti';
+import { LEVEL_ICON } from './ui-extra/ScoreRing';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type UserType = {
@@ -88,9 +91,7 @@ function ProfileStrength({ user }: { user: UserType }) {
 
 // ─── FYNC SCORE MINI BADGE ────────────────────────────────────────────────────
 // Ionicons names, not emoji — rendered through <Ionicons>, never as text.
-const BADGE_ICON: Record<string, any> = {
-  Newcomer: 'leaf', Explorer: 'compass', Builder: 'hammer', Innovator: 'bulb', Pioneer: 'rocket', Legend: 'star'
-};
+const BADGE_ICON = LEVEL_ICON;
 
 // ─── CODING STAT CARD ─────────────────────────────────────────────────────────
 const CodingPlatformCard = ({ icon, name, color, username, solved, rating, profileUrl }: any) => {
@@ -216,9 +217,7 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
         >
           <Card padded>
             <Text className="font-semibold text-sm text-ink-3">Fync score</Text>
-            <Text className="font-display text-ink" style={{ fontSize: 40, lineHeight: 44, letterSpacing: -1.2 }}>
-              {score}
-            </Text>
+            <AnimatedCount value={score} format={String} style={{ fontFamily: 'SpaceGrotesk_700Bold', color: C.ink, fontSize: 52, lineHeight: 56, letterSpacing: -1.6, fontVariant: ['tabular-nums'] }} />
             <Text className="font-sans text-sm text-ink-2 mt-1">Level {user.fyncBadge || 'Newcomer'}</Text>
 
             <View className="h-2 bg-paper-2 rounded-full overflow-hidden mt-4">
@@ -693,6 +692,7 @@ function Profile() {
         )}
         contentContainerStyle={{ paddingBottom: tabBarClearance }}
       />
+      <LevelUpCelebration userId={user?._id} level={user?.fyncBadge} />
     </View>
   );
 }

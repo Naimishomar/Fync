@@ -10,12 +10,14 @@ import HomeScreen from "./home-screen";
 import CreateShorts from "./CreateShorts";
 import Profile from "./profile";
 import { useAuth } from "context/auth.context";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getFullUrl, getThumbUrl } from "../utils/imageUtils";
 import { TAB_BAR_HEIGHT, useTabBarOffset } from "../constants/layout";
 import SlidingTabBar from "./ui/SlidingTabBar";
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
+import Reanimated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { PressScale } from './ui/motion';
 
 const { width } = Dimensions.get('window');
 const Tab = createBottomTabNavigator();
@@ -161,41 +163,53 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
 
       {/* Main Center Button — raised into the bar's notch, half above the bar. */}
-      <View
+      <PressScale
+        onPress={toggleMenu}
+        scale={0.9}
+        accessibilityRole="button"
+        accessibilityLabel="Create"
+        accessibilityState={{ expanded: opened }}
         style={{
           width: FAB,
           height: FAB,
           borderRadius: FAB / 2,
           backgroundColor: C.brand[500],
+          alignItems: 'center', justifyContent: 'center',
           shadowColor: C.brand[500], shadowOffset: { width: 0, height: 6 },
           shadowOpacity: 0.45, shadowRadius: 14, elevation: 8,
         }}
       >
-        <TouchableOpacity
-          onPress={toggleMenu}
-          activeOpacity={0.85}
-          className="flex-1 rounded-full items-center justify-center"
-          accessibilityRole="button"
-          accessibilityLabel="Create"
-        >
-          <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-            <Ionicons name="add" size={32} color={C.white} />
-          </Animated.View>
-        </TouchableOpacity>
-      </View>
+        <Animated.View style={{ transform: [{ rotate: rotation }] }}>
+          <Ionicons name="add" size={32} color={C.white} />
+        </Animated.View>
+      </PressScale>
     </View>
   );
 };
 
+/** Pops 1 -> 1.15 -> 1 each time its tab becomes focused (not on first mount). */
+const Bounce = ({ focused, children }: { focused: boolean; children: React.ReactNode }) => {
+  const s = useSharedValue(1);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    if (focused) s.value = withSequence(withTiming(1.15, { duration: 110 }), withSpring(1, { damping: 14, stiffness: 300, mass: 0.6 }));
+  }, [focused, s]);
+  const anim = useAnimatedStyle(() => ({ transform: [{ scale: s.value }] }));
+  return <Reanimated.View style={anim}>{children}</Reanimated.View>;
+};
+
 /** Line icon, centred; the active tab fills in and turns brand orange. */
 const TabIcon = ({ name, focused }: { name: any; focused: boolean }) => (
-  <View className="items-center justify-center">
-    <Ionicons
-      name={focused ? String(name).replace('-outline', '') as any : name}
-      size={28}
-      color={focused ? C.accentText : C.ink3}
-    />
-  </View>
+  <Bounce focused={focused}>
+    <View className="items-center justify-center">
+      <Ionicons
+        name={focused ? String(name).replace('-outline', '') as any : name}
+        size={28}
+        color={focused ? C.accentText : C.ink3}
+      />
+    </View>
+  </Bounce>
 );
 
 const FAB = 60;
@@ -322,6 +336,7 @@ export default function TabLayout() {
             tabBarAccessibilityLabel: 'You, profile tab',
             tabBarIcon: ({ focused }) => (
               user?.avatar ? (
+                <Bounce focused={focused}>
                 <View style={{
                   width: 32,
                   height: 32,
@@ -332,6 +347,7 @@ export default function TabLayout() {
                 }}>
                   <TabAvatar key={user.avatar} path={user.avatar} />
                 </View>
+                </Bounce>
               ) : (
                 <TabIcon name="person-outline" focused={focused} />
               )

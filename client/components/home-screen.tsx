@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, RefreshControl, ViewToken, TouchableOpacity, Share, DeviceEventEmitter, ScrollView, Animated, Easing, useWindowDimensions, StatusBar} from 'react-native'
+import {View, Text, Pressable, Image, Dimensions, FlatList, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, RefreshControl, ViewToken, TouchableOpacity, Share, DeviceEventEmitter, ScrollView, useWindowDimensions, StatusBar} from 'react-native'
 import { FlashList, useRecyclingState } from '@shopify/flash-list';
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -28,9 +28,8 @@ import {
 } from '../utils/feedSession';
 import { BlurView } from 'expo-blur';
 import StreakLeaderboardModal from './StreakLeaderboardModal';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { getFullUrl } from '../utils/imageUtils';
-import { prefetchPostImages, POST_PLACEHOLDER } from '../utils/imageWarm';
+import { prefetchPostImages } from '../utils/imageWarm';
 import { useTabBarClearance, useBottomInset, useTabBarAutoHide } from '../constants/layout';
 import { fetchUnreadCounts } from '../utils/supabase';
 
@@ -41,16 +40,16 @@ import { Alert } from './ui/AlertModal';
 import CommentsSheet from './ui/CommentsSheet';
 import RepostModal from './ui/RepostModal';
 import { C } from '../constants/colors';
+import Reanimated from 'react-native-reanimated';
+import { PressScale, AnimatedCount, enterAt, buzz } from './ui/motion';
+import { ProgressiveImage } from './ui/ProgressiveImage';
+import { formatCount } from '../utils/format';
+import { GreetingCard, Flame } from './home/GreetingCard';
 
 const FEED_TABS = ['For you', 'Following'];
 
 // --- TYPES ---
 // --- HELPERS ---
-const formatCount = (num: number) => {
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-  return num > 0 ? num.toString() : '0';
-};
 
 interface Post {
   /** A place name like "Library", never coordinates. */
@@ -113,8 +112,6 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost, o
   idRef.current = item._id;
 const MAX_CHAR_LIMIT = 150;
 
-  const springValue = useRef(new Animated.Value(1)).current;
-
   const navigation = useNavigation<any>();
 
   const displayCommentCount = item.commentCount ?? item.comments?.length ?? 0;
@@ -122,13 +119,6 @@ const MAX_CHAR_LIMIT = 150;
   // still a bare ObjectId, which has no text to show.
   const topComment = item.comments?.find((c: any) => c && typeof c === 'object' && c.text);
   const images = item.image || [];
-
-  const animatePress = () => {
-    Animated.sequence([
-      Animated.timing(springValue, { toValue: 0.9, duration: 100, useNativeDriver: true, easing: Easing.out(Easing.quad) }),
-      Animated.spring(springValue, { toValue: 1, friction: 4, tension: 40, useNativeDriver: true })
-    ]).start();
-  };
 
   /**
    * Like, one tap, LinkedIn style.
@@ -138,10 +128,9 @@ const MAX_CHAR_LIMIT = 150;
    * from the membership it is meant to describe.
    */
   const handleLike = async () => {
-    animatePress();
-    tapHaptic();
     const id = item._id;
     const prevLiked = liked;
+    if (!prevLiked) buzz();
     const prevCount = likeCount;
     setLiked(!prevLiked);
     setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
@@ -228,17 +217,12 @@ const MAX_CHAR_LIMIT = 150;
   const renderImage = ({ item: imageUrl }: { item: string }) => (
     <View style={{ width: mediaWidth }}>
       <Pressable onPress={onMediaPress}>
-        <ExpoImage
-          source={{ uri: getFullUrl(imageUrl) || '' }}
+        {/* recyclingKey is tied to the URL inside ProgressiveImage, so a
+            recycled row never flashes the previous post's photo. */}
+        <ProgressiveImage
+          path={imageUrl}
           style={{ width: mediaWidth, height: mediaWidth }}
           contentFit={resizeMode ? "contain" : "cover"}
-          cachePolicy="memory-disk"
-          // Tied to the URL so a recycled row never shows the previous
-          // post's photo for a frame while the new one decodes.
-          recyclingKey={imageUrl}
-          placeholder={{ blurhash: POST_PLACEHOLDER }}
-          placeholderContentFit="cover"
-          transition={120}
           priority={index === 0 ? "high" : "normal"}
         />
       </Pressable>
@@ -257,7 +241,7 @@ const MAX_CHAR_LIMIT = 150;
   };
 
   return (
-    <View className="py-4">
+    <Reanimated.View entering={enterAt(index)} style={{ paddingVertical: 16 }}>
       {/* Why this post is in the feed at all: someone you follow shared it. */}
       {!!item.repostMeta && (
         <View className="flex-row items-center mb-2 px-gutter">
@@ -409,29 +393,26 @@ const MAX_CHAR_LIMIT = 150;
       {/* Negative top margin: the 44pt touch targets centre a 22pt icon, which
           left ~11pt of empty box above the icons on top of the caption gap. */}
       <View className="flex-row items-center gap-2 px-gutter" style={{ marginLeft: -8, marginTop: item.description ? -6 : 0 }}>
-        <Animated.View style={{ transform: [{ scale: springValue }] }}>
-          <Pressable
-            onPress={handleLike}
-            className="flex-row items-center rounded-full px-2 active:opacity-70"
-            style={{ minHeight: 44 }}
-            accessibilityRole="button"
-            accessibilityState={{ selected: liked }}
-            accessibilityLabel={liked ? 'Unlike this post' : 'Like this post'}
-          >
-            <Ionicons
-              name={liked ? 'thumbs-up' : 'thumbs-up-outline'}
-              size={20}
-              color={liked ? C.brand[500] : C.ink}
-            />
-            {likeCount > 0 && (
-              <Text
-                className={`font-semibold text-xs ml-1.5 ${liked ? 'text-accent-text' : 'text-ink'}`}
-              >
-                {formatCount(likeCount)}
-              </Text>
-            )}
-          </Pressable>
-        </Animated.View>
+        {/* PressScale ticks on press-in; handleLike adds the success buzz on a like. */}
+        <PressScale
+          onPress={handleLike}
+          scale={0.85}
+          style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, minHeight: 44 }}
+          accessibilityRole="button"
+          accessibilityState={{ selected: liked }}
+          accessibilityLabel={liked ? 'Unlike this post' : 'Like this post'}
+        >
+          <Ionicons
+            name={liked ? 'thumbs-up' : 'thumbs-up-outline'}
+            size={20}
+            color={liked ? C.brand[500] : C.ink}
+          />
+          {likeCount > 0 && (
+            <View style={{ marginLeft: 6 }}>
+              <AnimatedCount value={likeCount} style={{ fontFamily: 'Inter_600SemiBold', fontSize: 12, color: liked ? C.accentText : C.ink }} />
+            </View>
+          )}
+        </PressScale>
 
         <Pressable
           onPress={() => openComments(item._id)}
@@ -441,9 +422,9 @@ const MAX_CHAR_LIMIT = 150;
           accessibilityLabel={`${displayCommentCount} comments`}
         >
           <Ionicons name="chatbubble-outline" size={20} color={C.ink} />
-          <Text className="font-semibold text-xs text-ink ml-1.5">
-            {formatCount(displayCommentCount)}
-          </Text>
+          <View style={{ marginLeft: 6 }}>
+            <AnimatedCount value={displayCommentCount} style={{ fontFamily: 'Inter_600SemiBold', fontSize: 12, color: C.ink }} />
+          </View>
         </Pressable>
 
         {/* Hidden on your own posts: the endpoint refuses them, so offering
@@ -500,7 +481,7 @@ const MAX_CHAR_LIMIT = 150;
           )}
         </Pressable>
       )}
-    </View>
+    </Reanimated.View>
   );
 });
 
@@ -877,7 +858,7 @@ export default function HomeScreen() {
         accessibilityRole="button"
         accessibilityLabel={`Streak, ${(user as any)?.streakCount || 0} days. Open leaderboard`}
       >
-        <MaterialCommunityIcons name="fire" size={16} color={C.brand[500]} />
+        <Flame active={((user as any)?.streakCount || 0) > 0} />
         <Text className="font-semibold text-xs ml-0.5 text-ink">
           {(user as any)?.streakCount || 0}
         </Text>
@@ -914,6 +895,7 @@ export default function HomeScreen() {
     <View>
       {renderTabBar()}
       <View className="bg-transparent">
+        <GreetingCard name={user?.name} streak={(user as any)?.streakCount || 0} unread={unreadCount} />
         <AdCarousel />
         {/* <CreatePost /> */}
         {showSkeleton && (
@@ -924,7 +906,7 @@ export default function HomeScreen() {
       </View>
     </View>
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [activeTab, showSkeleton]);
+  ), [activeTab, showSkeleton, user?.name, (user as any)?.streakCount, unreadCount]);
 
   return (
     <View className="flex-1 bg-paper">
