@@ -32,6 +32,9 @@ type Game = {
 };
 
 const GAMES: Game[] = [
+  { key: 'ludo', flag: 'ludo', route: 'LudoGame', title: 'Ludo', hint: 'Online, with friends or against the computer.', glyph: () => <Ionicons name="dice-outline" size={24} color={C.success} /> },
+  { key: 'spy', flag: 'spy', route: 'SpyGame', title: "Who's the Spy", hint: 'Find the spy among you. 4 to 8 players.', glyph: () => <Ionicons name="eye-outline" size={24} color={C.fam.study} /> },
+  { key: 'wordDuel', flag: 'wordDuel', route: 'WordDuel', title: 'Word Duel', hint: 'Daily word, endless mode or a 1v1 race.', glyph: () => <Ionicons name="text-outline" size={24} color={C.info} /> },
   { key: 'trivia', title: 'Trivia Survival', hint: 'Health drains quickly. Answer right to survive.', glyph: () => <Ionicons name="skull-outline" size={24} color={C.danger} /> },
   { key: 'bottle', title: 'Bottle Spin', hint: "Who's next? Truth or dare for groups up to 20.", glyph: () => <MaterialCommunityIcons name="bottle-wine-outline" size={24} color={C.brand[500]} /> },
   { key: 'chess', title: 'Fync Chess', hint: 'Challenge your friends or the AI to a rapid match.', glyph: () => <FontAwesome5 name="chess-knight" size={22} color={C.ink} /> },
