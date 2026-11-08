@@ -26,7 +26,7 @@ import Toast from 'react-native-toast-message';
 
 const PUBLIC_TABS: ProfileTab<'posts' | 'shorts' | 'tags'>[] = [
     { key: 'posts', icon: 'grid-outline', activeIcon: 'grid', label: 'Posts' },
-    { key: 'shorts', icon: 'videocam-outline', activeIcon: 'videocam', label: 'Shorts' },
+    { key: 'shorts', icon: 'play-circle-outline', activeIcon: 'play-circle', label: 'Shorts' },
     { key: 'tags', icon: 'person-outline', activeIcon: 'person', label: 'About' },
 ];
 interface User {
@@ -293,6 +293,7 @@ const PublicProfile = () => {
         <IconBtn
             name="ellipsis-vertical"
             overlay
+            accessibilityLabel="Profile options"
             onPress={() => Alert.alert(profileUser.name || 'Options', undefined, [
                 { text: 'Report user', onPress: () => report({ targetType: 'user', targetId: profileUser._id }) },
                 { text: 'Block user', style: 'destructive', onPress: () => confirmBlock(profileUser._id, profileUser.name, () => navigation.goBack()) },
@@ -578,7 +579,7 @@ const PublicProfile = () => {
                         title={activeTab === 'shorts' ? "No shorts yet" : "No posts yet"}
                         hint={`${profileUser?.name?.split(' ')[0] || 'They'} hasn't shared anything here yet.`} />
                 )}
-                contentContainerStyle={{ paddingBottom: insets.bottom }}
+                contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
             />
         </View>
     );

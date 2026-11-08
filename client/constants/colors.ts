@@ -66,7 +66,9 @@ const light = {
 
   success: '#047857',
   warning: '#B45309',
-  danger: '#DC2626',
+  /** Couples pink for text/icons on cards (readable on paper). */
+  pinkInk: '#be185d',
+  danger: '#C81E1E',
   info: '#2563EB',
 
   night: '#0D0B12',
@@ -126,6 +128,7 @@ const dark: Palette = {
 
   success: '#34D399',
   warning: '#FBBF24',
+  pinkInk: '#f472b6',
   danger: '#F87171',
   info: '#60A5FA',
 

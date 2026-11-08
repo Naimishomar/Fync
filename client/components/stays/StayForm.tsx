@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,7 +9,8 @@ import Toast from 'react-native-toast-message';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
 import { compressImage } from '../../utils/mediaUpload';
-import { AppBar, BottomBar, Button, Chip, FilterChips, Screen, SegmentedTabs, TagRow } from '../ui/kit';
+import { AppBar, BottomBar, Button, Chip, FilterChips, Label, Screen, SegmentedTabs, TagRow } from '../ui/kit';
+import Skeleton from '../Skeleton';
 import { FormField } from '../ui/Field';
 import { ProgressiveImage } from '../ui/ProgressiveImage';
 import { buzz } from '../ui/motion';
@@ -43,6 +44,17 @@ const validate = (f: typeof BLANK) => {
   }
   return e;
 };
+
+const FormSkeleton = () => (
+  <View style={{ paddingHorizontal: 20, gap: 12 }}>
+    <Skeleton lightMode width={160} height={14} />
+    <Skeleton lightMode height={44} borderRadius={22} />
+    <View style={{ flexDirection: 'row', gap: 8 }}>
+      {[0, 1, 2, 3].map((i) => <Skeleton key={i} lightMode height={76} borderRadius={12} style={{ flex: 1 }} />)}
+    </View>
+    {[0, 1, 2].map((i) => <Skeleton key={i} lightMode height={48} borderRadius={16} style={{ marginTop: 12 }} />)}
+  </View>
+);
 
 export default function StayForm() {
   const navigation = useNavigation<any>();
@@ -118,12 +130,14 @@ export default function StayForm() {
     }
   };
 
-  const label = (t: string) => <Text className="text-ink-3 font-semibold" style={{ fontSize: 13, marginBottom: 8 }}>{t}</Text>;
+  const label = (t: string) => <Label style={{ marginBottom: 8 }}>{t}</Label>;
 
   return (
     <Screen>
       <AppBar title={id ? 'Edit listing' : 'List a place'} onBack={() => navigation.goBack()} />
-      {loading ? <ActivityIndicator color={C.brand[500]} style={{ marginTop: 40 }} /> : (
+      {/* iOS only: Android resizes the window for the keyboard (softwareKeyboardLayoutMode: resize). */}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {loading ? <FormSkeleton /> : (
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
           {label('What are you listing?')}
           <SegmentedTabs items={KINDS} value={form.kind} onChange={(k) => set({ kind: k })} labels={KIND_LABEL} style={{ marginBottom: 16 }} />
@@ -131,7 +145,7 @@ export default function StayForm() {
           {label(`Photos · ${photos.length}/${MAX_PHOTOS}`)}
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
             {photos.map((p, i) => (
-              <View key={p.url || p.uri} style={{ flex: 1, aspectRatio: 1, borderRadius: 12, overflow: 'hidden' }}>
+              <View key={p.url || p.uri} style={{ flex: 1, aspectRatio: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: C.paper2 }}>
                 {p.url
                   ? <ProgressiveImage path={p.url} thumbOnly style={{ width: '100%', height: '100%' }} accessible={false} />
                   : <Image source={{ uri: p.uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" accessible={false} />}
@@ -208,6 +222,7 @@ export default function StayForm() {
       <BottomBar>
         <Button title={id ? 'Save changes' : 'Post listing'} variant="primary" block loading={saving} disabled={loading} onPress={submit} />
       </BottomBar>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

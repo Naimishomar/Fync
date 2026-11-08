@@ -90,7 +90,7 @@ const StatusTicks = ({ status }: { status: Status }) => {
   const read = status === 'read';
   return (
     <Animated.View style={s} className="ml-1.5 flex-row items-center">
-      <Ionicons name={STATUS[status].icon} size={12} color={read ? C.brand[500] : C.ink4} />
+      <Ionicons name={STATUS[status].icon} size={12} color={read ? C.brand[500] : C.ink3} />
       <Text className={`text-xs ml-0.5 ${read ? 'text-accent-text' : 'text-ink-3'}`}>{STATUS[status].label}</Text>
     </Animated.View>
   );
@@ -154,7 +154,7 @@ export const MessageRow = memo(function MessageRow({
   return (
     <View className={last ? 'mb-3' : 'mb-0.5'}>
       {day && (
-        <View className="items-center my-3">
+        <View className="items-center my-3" accessibilityRole="header">
           <View className="bg-paper-2 border border-line rounded-full px-3 py-1">
             <Text className="text-xs font-semibold text-ink-3">{day}</Text>
           </View>
@@ -178,6 +178,7 @@ export const MessageRow = memo(function MessageRow({
                   activeOpacity={0.85}
                   onLongPress={() => onLongPress(item, isMe)}
                   delayLongPress={500}
+                  accessibilityHint="Long press for message options"
                   style={{
                     borderRadius: 20,
                     ...(last ? (isMe ? { borderBottomRightRadius: 6 } : { borderBottomLeftRadius: 6 }) : null),

@@ -83,9 +83,10 @@ function ProfileStrength({ user }: { user: UserType }) {
             hitSlop={6}
             style={{ minHeight: 32 }}
             accessibilityRole="button"
+            accessibilityLabel={i.label}
           >
             <Ionicons name="add" size={14} color={C.accentText} />
-            <Text className="font-semibold text-label text-accent-text ml-1">{i.label}</Text>
+            <Text className="font-semibold text-xs text-accent-text ml-1" numberOfLines={1}>{i.label}</Text>
           </Pressable>
         ))}
       </View>

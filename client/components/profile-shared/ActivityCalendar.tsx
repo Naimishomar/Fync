@@ -75,7 +75,7 @@ export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak 
         <Text className="text-ink font-semibold text-base" accessibilityRole="header">Activity</Text>
         <View className="flex-row items-center" style={{ gap: 4 }}>
           <Ionicons name="flame" size={14} color={fill} />
-          <Text className="text-ink-2 text-xs">
+          <Text className="text-ink-2 text-xs" numberOfLines={1}>
             {streak} day streak · Best {highest}
           </Text>
         </View>
@@ -92,7 +92,7 @@ export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak 
         <View>
           <View style={{ height: 16, width: grid.weeks.length * STEP }}>
             {grid.months.map((m) => (
-              <Text key={m.col} className="text-ink-3 text-[10px]" style={{ position: 'absolute', left: m.col * STEP }}>
+              <Text key={m.col} className="text-ink-3" style={{ position: 'absolute', left: m.col * STEP, fontSize: 11, lineHeight: 14 }}>
                 {m.text}
               </Text>
             ))}
@@ -106,6 +106,7 @@ export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak 
                     onPress={() => setPicked((p) => (p?.date === day.date ? null : day))}
                     accessibilityRole="button"
                     accessibilityLabel={`${postsText(day.count)}, ${label(day.date)}`}
+                    accessibilityState={{ selected: picked?.date === day.date }}
                     style={{
                       width: CELL, height: CELL, borderRadius: 3,
                       backgroundColor: colors[levelOf(day.count, grid.max)],
@@ -121,7 +122,7 @@ export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak 
       </ScrollView>
 
       <View className="flex-row items-center justify-between mt-3">
-        <Text className="text-ink-2 text-xs" accessibilityLiveRegion="polite">
+        <Text className="text-ink-2 text-xs" accessibilityLiveRegion="polite" numberOfLines={1} style={{ flexShrink: 1, marginRight: 8 }}>
           {picked ? `${postsText(picked.count)} · ${label(picked.date)}` : `${postsText(grid.total)} in 16 weeks`}
         </Text>
         <View className="flex-row items-center" style={{ gap: 3 }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

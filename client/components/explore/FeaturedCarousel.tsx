@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, FlatList, Pressable, AppState, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useReducedMotion } from 'react-native-reanimated';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
@@ -108,6 +109,8 @@ const FeaturedCarousel = () => {
   const listRef = useRef<FlatList<FeaturedItem>>(null);
 
   const isFocused = useIsFocused();
+  // Auto-advancing content is motion the user didn't ask for; reduce-motion keeps it still.
+  const reduceMotion = useReducedMotion();
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
   useEffect(() => {
     const sub = AppState.addEventListener('change', (st) => setAppActive(st === 'active'));
@@ -138,7 +141,7 @@ const FeaturedCarousel = () => {
 
   // One timeout per state change; cleared on any change, blur, background or unmount.
   useEffect(() => {
-    if (last === 0 || touching || !isFocused || !appActive) return;
+    if (last === 0 || reduceMotion || touching || !isFocused || !appActive) return;
     const delay = Math.max(ADVANCE_MS, holdUntil - Date.now());
     const t = setTimeout(() => {
       const next = index + 1 > last ? 0 : index + 1;
@@ -146,7 +149,7 @@ const FeaturedCarousel = () => {
       setIndex(next);
     }, delay);
     return () => clearTimeout(t);
-  }, [index, last, touching, isFocused, appActive, holdUntil, step]);
+  }, [index, last, reduceMotion, touching, isFocused, appActive, holdUntil, step]);
 
   const release = () => {
     setTouching(false);
@@ -218,13 +221,13 @@ const FeaturedCarousel = () => {
               <Poster item={item} w={cardW} h={cardH} />
             </View>
             {item.pay ? (
-              <Text className="font-semibold text-ink mt-1.5" style={{ fontSize: 13 }} numberOfLines={1}>
+              <Text className="font-semibold text-sm text-ink mt-1.5" numberOfLines={1}>
                 💰 {item.pay}
               </Text>
             ) : null}
             {due || item.chips[0] ? (
               <View className={`self-start mt-1.5 rounded-full px-2 py-0.5 border ${due?.urgent ? 'bg-brand-50 border-brand-500/30' : 'border-line'}`}>
-                <Text className={`font-sans text-[11px] ${due ? 'text-accent-text' : 'text-ink-2'}`} numberOfLines={1}>
+                <Text className={`font-sans text-2xs ${due ? 'text-accent-text' : 'text-ink-2'}`} numberOfLines={1}>
                   {due ? `⏳ ${due.label}` : item.chips[0]}
                 </Text>
               </View>
@@ -234,7 +237,7 @@ const FeaturedCarousel = () => {
         }}
       />
       {last > 0 ? (
-        <View className="flex-row justify-center mt-3" style={{ gap: 6 }}>
+        <View className="flex-row justify-center mt-3" style={{ gap: 6 }} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
           {items.slice(0, last + 1).map((i, n) => (
             <View key={`${i.type}:${i.id}`} className={`h-1.5 rounded-full ${n === index ? 'w-4 bg-brand-500' : 'w-1.5 bg-ink/20'}`} />
           ))}

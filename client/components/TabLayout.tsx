@@ -132,28 +132,30 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
         <Pressable
           onPress={toggleMenu}
           className="absolute -top-[1000] -left-[1000] -right-[1000] -bottom-[1000]"
+          accessibilityRole="button"
+          accessibilityLabel="Close create menu"
         />
       )}
 
       {/* Sub Button 2 (e.g., Create Post) */}
-      <Animated.View style={[item1Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreatePost'); }}>
+      <Animated.View style={[item1Style]} className="absolute items-center" pointerEvents={opened ? 'box-none' : 'none'} importantForAccessibility={opened ? 'auto' : 'no-hide-descendants'} accessibilityElementsHidden={!opened}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" accessibilityRole="button" accessibilityLabel="Add Post" onPress={() => { toggleMenu(); navigation.navigate('CreatePost'); }}>
           <Ionicons name="aperture-outline" size={20} color={C.brand[500]} />
         </TouchableOpacity>
         <Text className="text-white text-xs font-semibold mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", overflow: "hidden" }}>Add Post</Text>
       </Animated.View>
 
       {/* Sub Button 1 (e.g., Create Video) */}
-      <Animated.View style={[item2Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateShorts'); }}>
+      <Animated.View style={[item2Style]} className="absolute items-center" pointerEvents={opened ? 'box-none' : 'none'} importantForAccessibility={opened ? 'auto' : 'no-hide-descendants'} accessibilityElementsHidden={!opened}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" accessibilityRole="button" accessibilityLabel="Add Shorts" onPress={() => { toggleMenu(); navigation.navigate('CreateShorts'); }}>
           <Ionicons name="videocam" size={20} color={C.brand[500]} />
         </TouchableOpacity>
         <Text className="text-white text-xs font-semibold mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", overflow: "hidden" }}>Add Shorts</Text>
       </Animated.View>
 
       {startupArm && (
-      <Animated.View style={[item3Style]} className="absolute items-center">
-        <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
+      <Animated.View style={[item3Style]} className="absolute items-center" pointerEvents={opened ? 'box-none' : 'none'} importantForAccessibility={opened ? 'auto' : 'no-hide-descendants'} accessibilityElementsHidden={!opened}>
+        <TouchableOpacity className="w-12 h-12 rounded-full bg-night items-center justify-center border border-white/10 shadow-hair" accessibilityRole="button" accessibilityLabel="Add Startup" onPress={() => { toggleMenu(); navigation.navigate('CreateFundingFeed'); }}>
           <Ionicons name="bulb-outline" size={20} color={C.brand[500]} />
         </TouchableOpacity>
         <Text className="text-white text-xs font-semibold mt-2 px-3 py-1 rounded-md overflow-hidden" numberOfLines={1} style={{ backgroundColor: "rgba(18,16,14,0.85)", overflow: "hidden" }}>Add Startup</Text>

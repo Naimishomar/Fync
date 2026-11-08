@@ -359,14 +359,14 @@ const MAX_CHAR_LIMIT = 150;
         
         {/* Image Counter (Top Right) */}
         {(item.image?.length || 0) > 1 && (
-          <View className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-full">
+          <View className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-full" accessibilityLabel={`Photo ${activeIndex + 1} of ${item.image?.length || 0}`}>
             <Text className="text-white text-xs font-semibold">
               {activeIndex + 1}/{(item.image?.length || 0)}
             </Text>
           </View>
         )}
         {(item.image?.length || 0) > 1 && (
-          <View className="flex-row justify-center gap-1.5 absolute bottom-4 w-full">
+          <View className="flex-row justify-center gap-1.5 absolute bottom-4 w-full" pointerEvents="none" importantForAccessibility="no-hide-descendants">
             {(item.image || []).map((_, i) => (
               <View key={i} className={`h-1.5 rounded-full ${activeIndex === i ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`} />
             ))}
@@ -841,7 +841,7 @@ export default function HomeScreen() {
   // Drawer avatar sits beside the title, inside the AppBar row.
   const appBarTitle = (
     <View className="flex-row items-center gap-2">
-      <Pressable onPress={() => navigation.openDrawer()} accessibilityRole="button" accessibilityLabel="Open menu">
+      <Pressable onPress={() => navigation.openDrawer()} hitSlop={4} className="active:opacity-85" accessibilityRole="button" accessibilityLabel="Open menu">
         {/* mockup .av.ring-student: box-shadow 0 0 0 2px card, 0 0 0 4px student.
             RN has no spread shadow, so the two rings are a 2px card-coloured
             pad inside a 2px brand border. */}
@@ -858,8 +858,8 @@ export default function HomeScreen() {
   );
 
   // Narrower than IconBtn's 44pt box so the four header actions sit closer;
-  // hitSlop keeps the tap target full size.
-  const HEADER_ICON = { width: 34 };
+  // IconBtn's 4pt hitSlop brings 36 back to a 44pt tap target.
+  const HEADER_ICON = { width: 36 };
   const appBarRight = (
     <>
       {/* Streak Display */}
@@ -875,9 +875,9 @@ export default function HomeScreen() {
           {(user as any)?.streakCount || 0}
         </Text>
       </Pressable>
-      <IconBtn style={HEADER_ICON} name="search-outline" onPress={() => navigation.navigate('SearchScreen')} />
-      <IconBtn style={HEADER_ICON} name="heart-outline" badge={unreadCount} onPress={() => navigation.navigate('Notification')} />
-      <IconBtn style={HEADER_ICON} name="chatbubble-ellipses-outline" badge={chatUnreadCount} onPress={() => navigation.navigate('ChatList')} />
+      <IconBtn style={HEADER_ICON} name="search-outline" accessibilityLabel="Search people" onPress={() => navigation.navigate('SearchScreen')} />
+      <IconBtn style={HEADER_ICON} name="heart-outline" badge={unreadCount} accessibilityLabel={unreadCount ? `Notifications, ${unreadCount} new` : 'Notifications'} onPress={() => navigation.navigate('Notification')} />
+      <IconBtn style={HEADER_ICON} name="chatbubble-ellipses-outline" badge={chatUnreadCount} accessibilityLabel={chatUnreadCount ? `Messages, ${chatUnreadCount} unread` : 'Messages'} onPress={() => navigation.navigate('ChatList')} />
     </>
   );
 

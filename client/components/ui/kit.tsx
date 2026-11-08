@@ -394,7 +394,7 @@ export function Button({
 }
 
 /* -------------------------------------------------------------------- chip */
-/** Interactive filter pill, 36px visual / 44px touch. Selected = ink fill. */
+/** Interactive filter pill, 36px visual / 44px touch. Selected = brand fill, on-brand text. */
 export const Chip = memo(function Chip({
   label, active, icon, onPress, style, accessibilityLabel,
 }: {

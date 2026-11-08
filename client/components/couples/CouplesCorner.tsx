@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator, Animated, Share, Easing } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Animated, Share, Easing } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -12,6 +13,8 @@ import { tapHaptic, selectHaptic } from '../../utils/haptics';
 import { AppBar, Button, Card, FormField, IconBtn, Label, ListRow, Screen } from '../ui/kit';
 import { Alert } from '../ui/AlertModal';
 import Avatar from '../Avatar';
+import { PressScale } from '../ui/motion';
+import { TYPE } from '../../constants/type';
 
 /**
  * Couples Corner: two-player tap games. Pair up with your partner by code, or
@@ -30,6 +33,18 @@ const GAMES: Array<{ id: GameId; title: string; hint: string; art: string; tint:
   { id: 'knowMe', title: 'How Well Do You Know Me', hint: 'Take turns: one answers, one guesses.', art: 'assets/Heart with ribbon/3D/heart_with_ribbon_3d.png', tint: '#f43f5e' },
   { id: 'neverHaveI', title: 'Never Have I Ever', hint: 'Confess with a tap. No typing.', art: 'assets/See-no-evil monkey/3D/see-no-evil_monkey_3d.png', tint: '#f59e0b' },
 ];
+const PINK = '#db2777';
+// Pink as text/icon on card: deeper on light, lighter on dark so it keeps AA contrast.
+const pinkInk = () => C.pinkInk;
+const SHORTCUTS = [
+  { title: 'Couple Space', sub: 'Streak, daily question, notes', art: 'assets/Heart with ribbon/3D/heart_with_ribbon_3d.png', route: 'CoupleSpace' },
+  { title: 'Gift Shop', sub: 'Custom albums, mugs & more', art: 'assets/Wrapped gift/3D/wrapped_gift_3d.png', route: 'GiftShop' },
+];
+const FEATURES = [
+  { title: 'Dil Se · Secret crush', sub: "Pick 3 people secretly. It's a match only if they pick you too.", art: 'assets/Heart with arrow/3D/heart_with_arrow_3d.png', route: 'CrushMatch' },
+  { title: 'Sunday Match · Weekly', sub: 'Meet one new person from your college every Sunday at 7 PM.', art: 'assets/Two hearts/3D/two_hearts_3d.png', route: 'SundayMatch' },
+];
+const CARD = { borderRadius: 16, borderWidth: 1, padding: 16 } as const;
 const gameOf = (id?: string) => GAMES.find((g) => g.id === id) ?? GAMES[0];
 const ROUND_MS = 20000;
 
@@ -233,16 +248,16 @@ const CouplesCorner = () => {
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
           {phase === 'searching' || phase === 'code' ? (
             <View className="rounded-2xl border border-line bg-card p-6 items-center mb-6">
-              <Image source={{ uri: artUrl(g.art) }} style={{ width: 72, height: 72 }} contentFit="contain" />
-              <Text className="font-semibold text-ink text-lg mt-3 text-center">{g.title}</Text>
+              <Image source={{ uri: artUrl(g.art) }} style={{ width: 72, height: 72 }} contentFit="contain" cachePolicy="disk" accessible={false} />
+              <Text className="text-ink mt-3 text-center" style={TYPE.heading}>{g.title}</Text>
               {phase === 'searching' ? (
                 <>
                   <ActivityIndicator color={C.brand[500]} style={{ marginTop: 16 }} />
-                  <Text className="font-sans text-ink-2 mt-3 text-center">Finding someone to play with…</Text>
+                  <Text className="text-ink-2 mt-3 text-center" style={TYPE.body} accessibilityLiveRegion="polite">Finding someone to play with…</Text>
                 </>
               ) : (
                 <>
-                  <Text className="font-sans text-ink-2 mt-3 text-center">Send this code to your partner</Text>
+                  <Text className="text-ink-2 mt-3 text-center" style={TYPE.body}>Send this code to your partner</Text>
                   <Text selectable className="font-display text-ink mt-2" style={{ fontSize: 34, letterSpacing: 6 }} accessibilityLabel={`Code ${code.split('').join(' ')}`}>{code}</Text>
                   <Button
                     title="Share code"
@@ -251,7 +266,7 @@ const CouplesCorner = () => {
                     style={{ marginTop: 16 }}
                     onPress={() => Share.share({ message: `Play "${g.title}" with me on Fync 💕 Open Couples Corner and enter code ${code}` }).catch(() => {})}
                   />
-                  <Text className="font-sans text-ink-3 text-xs mt-3">
+                  <Text className="text-ink-3 mt-3 text-center" style={TYPE.caption}>
                     Waiting for them to join · expires in {Math.floor(codeLeft / 60)}:{String(codeLeft % 60).padStart(2, '0')}
                   </Text>
                 </>
@@ -260,67 +275,54 @@ const CouplesCorner = () => {
             </View>
           ) : (
             <>
-              <View className="rounded-2xl overflow-hidden mb-6" style={{ backgroundColor: '#db2777' }}>
+              <View className="rounded-2xl overflow-hidden mb-6" style={{ backgroundColor: PINK }}>
                 <View className="p-5 flex-row items-center">
                   <View className="flex-1 pr-3">
-                    <Text className="font-display" style={{ color: '#FFFFFF', fontSize: 24, lineHeight: 30 }}>Play together 💕</Text>
-                    <Text className="font-sans mt-1.5" style={{ color: 'rgba(255,255,255,0.88)', fontSize: 13 }}>
+                    <Text style={[TYPE.title, { color: '#FFFFFF' }]} accessibilityRole="header">Play together 💕</Text>
+                    <Text style={[TYPE.sm, { color: 'rgba(255,255,255,0.92)', marginTop: 4 }]}>
                       Invite your partner with a code, or get matched with someone new.
                     </Text>
                   </View>
-                  <Image source={{ uri: artUrl('assets/Two hearts/3D/two_hearts_3d.png') }} style={{ width: 76, height: 76 }} contentFit="contain" />
+                  <Image source={{ uri: artUrl('assets/Two hearts/3D/two_hearts_3d.png') }} style={{ width: 72, height: 72 }} contentFit="contain" cachePolicy="disk" accessible={false} />
                 </View>
               </View>
 
               <View className="flex-row mb-6" style={{ gap: 12 }}>
-                {[
-                  { title: 'Couple Space', sub: 'Streak, daily question, notes', art: 'assets/Heart with ribbon/3D/heart_with_ribbon_3d.png', route: 'CoupleSpace' },
-                  { title: 'Gift Shop', sub: 'Custom albums, mugs & more', art: 'assets/Wrapped gift/3D/wrapped_gift_3d.png', route: 'GiftShop' },
-                ].map((x) => (
-                  <Pressable
+                {SHORTCUTS.map((x) => (
+                  <PressScale
                     key={x.route}
                     onPress={() => navigation.navigate(x.route)}
                     accessibilityRole="button"
-                    className="flex-1 rounded-2xl border border-line bg-card p-4 active:opacity-85"
+                    accessibilityLabel={`${x.title}. ${x.sub}`}
+                    style={[CARD, { flex: 1, borderColor: C.line, backgroundColor: C.card }]}
                   >
-                    <Image source={{ uri: artUrl(x.art) }} style={{ width: 44, height: 44 }} contentFit="contain" cachePolicy="disk" />
-                    <Text className="font-semibold text-ink mt-2" style={{ fontSize: 15 }}>{x.title}</Text>
-                    <Text className="font-sans text-ink-3 text-xs mt-0.5" numberOfLines={2}>{x.sub}</Text>
-                  </Pressable>
+                    <Image source={{ uri: artUrl(x.art) }} style={{ width: 44, height: 44 }} contentFit="contain" cachePolicy="disk" accessible={false} />
+                    <Text className="text-ink" style={[TYPE.heading, { marginTop: 8 }]} numberOfLines={1}>{x.title}</Text>
+                    <Text className="text-ink-3" style={[TYPE.caption, { marginTop: 2 }]} numberOfLines={2}>{x.sub}</Text>
+                  </PressScale>
                 ))}
               </View>
 
-              <Pressable
-                onPress={() => navigation.navigate('CrushMatch')}
-                accessibilityRole="button"
-                className="rounded-2xl border bg-card p-4 mb-3 flex-row items-center active:opacity-85"
-                style={{ borderColor: '#db2777', gap: 12 }}
-              >
-                <Image source={{ uri: artUrl('assets/Heart with arrow/3D/heart_with_arrow_3d.png') }} style={{ width: 44, height: 44 }} contentFit="contain" cachePolicy="disk" />
-                <View style={{ flex: 1 }}>
-                  <Text className="font-semibold text-ink" style={{ fontSize: 15 }}>Dil Se · Secret crush</Text>
-                  <Text className="font-sans text-ink-3 text-xs mt-0.5" numberOfLines={2}>Pick 3 people secretly. It&apos;s a match only if they pick you too.</Text>
-                </View>
-                <Text style={{ color: '#db2777', fontSize: 20 }}>›</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => navigation.navigate('SundayMatch')}
-                accessibilityRole="button"
-                className="rounded-2xl border bg-card p-4 mb-3 flex-row items-center active:opacity-85"
-                style={{ borderColor: '#db2777', gap: 12 }}
-              >
-                <Image source={{ uri: artUrl('assets/Two hearts/3D/two_hearts_3d.png') }} style={{ width: 44, height: 44 }} contentFit="contain" cachePolicy="disk" />
-                <View style={{ flex: 1 }}>
-                  <Text className="font-semibold text-ink" style={{ fontSize: 15 }}>Sunday Match · Weekly</Text>
-                  <Text className="font-sans text-ink-3 text-xs mt-0.5" numberOfLines={2}>Meet one new person from your college every Sunday at 7 PM.</Text>
-                </View>
-                <Text style={{ color: '#db2777', fontSize: 20 }}>›</Text>
-              </Pressable>
+              {FEATURES.map((x) => (
+                <PressScale
+                  key={x.route}
+                  onPress={() => navigation.navigate(x.route)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${x.title}. ${x.sub}`}
+                  style={[CARD, { borderColor: PINK, backgroundColor: C.card, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }]}
+                >
+                  <Image source={{ uri: artUrl(x.art) }} style={{ width: 44, height: 44 }} contentFit="contain" cachePolicy="disk" accessible={false} />
+                  <View style={{ flex: 1 }}>
+                    <Text className="text-ink" style={TYPE.heading} numberOfLines={1}>{x.title}</Text>
+                    <Text className="text-ink-3" style={[TYPE.caption, { marginTop: 2 }]} numberOfLines={2}>{x.sub}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={pinkInk()} />
+                </PressScale>
+              ))}
 
               <Card style={{ paddingHorizontal: 16, marginBottom: 24 }}>
                 <ListRow
-                  leading={<Text style={{ fontSize: 22 }}>🏆</Text>}
+                  leading={<Text style={{ fontSize: 22 }} accessible={false}>🏆</Text>}
                   title="Top couples leaderboard"
                   chevron
                   onPress={() => navigation.navigate('CoupleLeaderboard')}
@@ -346,19 +348,21 @@ const CouplesCorner = () => {
               {GAMES.map((x) => (
                 <View key={x.id} className="rounded-2xl border border-line bg-card mb-3 overflow-hidden">
                   <View className="flex-row items-center p-4" style={{ backgroundColor: `${x.tint}${C.scheme === 'dark' ? '26' : '12'}` }}>
-                    <Image source={{ uri: artUrl(x.art) }} style={{ width: 52, height: 52 }} contentFit="contain" cachePolicy="disk" />
+                    <Image source={{ uri: artUrl(x.art) }} style={{ width: 52, height: 52 }} contentFit="contain" cachePolicy="disk" accessible={false} />
                     <View className="flex-1 ml-3">
-                      <Text className="font-semibold text-ink" style={{ fontSize: 16 }}>{x.title}</Text>
-                      <Text className="font-sans text-ink-2 text-sm mt-0.5">{x.hint}</Text>
+                      <Text className="text-ink" style={TYPE.heading} numberOfLines={1} accessibilityRole="header">{x.title}</Text>
+                      <Text className="text-ink-2" style={[TYPE.sm, { marginTop: 2 }]} numberOfLines={2}>{x.hint}</Text>
                     </View>
                   </View>
                   <View className="flex-row p-3" style={{ gap: 12 }}>
-                    <Button title="Invite partner" icon="heart-outline" small variant="primary" style={{ flex: 1 }} onPress={() => createCode(x.id)} />
-                    <Button title="Random match" icon="shuffle" small style={{ flex: 1 }} onPress={() => findRandom(x.id)} />
+                    <Button title="Invite partner" icon="heart-outline" small variant="primary" style={{ flex: 1 }} onPress={() => createCode(x.id)}
+                      accessibilityLabel={`Invite partner to ${x.title}`} />
+                    <Button title="Random match" icon="shuffle" small style={{ flex: 1 }} onPress={() => findRandom(x.id)}
+                      accessibilityLabel={`Random match for ${x.title}`} />
                   </View>
                 </View>
               ))}
-              <Text className="font-sans text-ink-3 text-xs mt-2 text-center">
+              <Text className="text-ink-3 mt-2 text-center" style={TYPE.caption}>
                 Random matches only see your name and photo. Tap the flag in a game to report or block.
               </Text>
             </>
@@ -381,8 +385,8 @@ const Playing = ({
     return (
       <View className="flex-1 items-center justify-center p-8">
         <Avatar user={partner} size={72} showBadge={false} />
-        <Text className="font-semibold text-ink text-lg mt-4">Matched with {nameOf(partner)} 💕</Text>
-        <Text className="font-sans text-ink-2 mt-1">Get ready…</Text>
+        <Text className="text-ink mt-4 text-center" style={TYPE.heading} numberOfLines={2}>Matched with {nameOf(partner)} 💕</Text>
+        <Text className="text-ink-2 mt-1" style={TYPE.body}>Get ready…</Text>
       </View>
     );
   }
@@ -423,33 +427,35 @@ const Playing = ({
         const mine = myPick === i;
         const theirs = theirPick === i;
         return (
-          <Pressable
+          <PressScale
             key={i}
+            haptic={false}
             onPress={() => onPick(i)}
             disabled={myPick != null || !!reveal}
             accessibilityRole="button"
-            accessibilityState={{ selected: mine }}
-            className="rounded-2xl border mb-3 px-5 justify-center active:opacity-85"
+            accessibilityLabel={`${labels[i]}${mine ? ', your pick' : ''}${theirs ? `, ${nameOf(partner)}'s pick` : ''}`}
+            accessibilityState={{ selected: mine, disabled: myPick != null || !!reveal }}
             style={{
+              borderRadius: 16, borderWidth: mine ? 2 : 1, marginBottom: 12, paddingHorizontal: 20, justifyContent: 'center',
               minHeight: 92,
               borderColor: mine ? g.tint : C.line,
               backgroundColor: mine ? `${g.tint}${C.scheme === 'dark' ? '33' : '18'}` : C.card,
             }}
           >
-            <Text className="font-semibold text-lg text-ink text-center">{labels[i]}</Text>
+            <Text className="text-ink text-center" style={TYPE.heading} numberOfLines={3}>{labels[i]}</Text>
             {reveal ? (
               <View className="flex-row justify-center mt-2" style={{ gap: 6 }}>
-                {mine ? <Text className="font-sans text-xs text-ink-2">You</Text> : null}
-                {theirs ? <Text className="font-sans text-xs text-ink-2">{nameOf(partner)}</Text> : null}
+                {mine ? <Text className="text-ink-2" style={TYPE.caption}>You</Text> : null}
+                {theirs ? <Text className="text-ink-2" style={TYPE.caption}>{nameOf(partner)}</Text> : null}
               </View>
             ) : mine ? (
-              <Text className="font-sans text-xs text-ink-2 text-center mt-2">Your pick</Text>
+              <Text className="text-ink-2 text-center mt-2" style={TYPE.caption}>Your pick</Text>
             ) : null}
-          </Pressable>
+          </PressScale>
         );
       })}
 
-      <Text className="font-sans text-ink-2 text-center mt-3">
+      <Text className="text-ink-2 text-center mt-3" style={TYPE.body} accessibilityLiveRegion="polite">
         {reveal
           ? reveal.match ? 'It’s a match! ❤️' : theirPick == null ? `${nameOf(partner)} ran out of time ⏳` : 'Different picks 😅'
           : myPick == null
@@ -467,10 +473,10 @@ const Over = ({ g, partner, final, onAgain }: {
   const line = pct >= 80 ? 'Basically the same person 😍' : pct >= 50 ? 'Pretty in sync 💕' : pct >= 30 ? 'Opposites attract? 😄' : 'Lots to learn about each other 😅';
   return (
     <View className="flex-1 items-center justify-center p-8">
-      <Image source={{ uri: artUrl(g.art) }} style={{ width: 96, height: 96 }} contentFit="contain" />
-      <Text className="font-display text-ink mt-4" style={{ fontSize: 44 }}>{pct}%</Text>
-      <Text className="font-sans text-ink-2 mt-1">match with {nameOf(partner)} · {final.score}/{final.total}</Text>
-      <Text className="font-semibold text-ink text-lg mt-4 text-center">{line}</Text>
+      <Image source={{ uri: artUrl(g.art) }} style={{ width: 96, height: 96 }} contentFit="contain" cachePolicy="disk" accessible={false} />
+      <Text className="text-ink mt-4" style={[TYPE.display, { fontSize: 44, lineHeight: 50 }]}>{pct}%</Text>
+      <Text className="text-ink-2 mt-1 text-center" style={TYPE.body}>match with {nameOf(partner)} · {final.score}/{final.total}</Text>
+      <Text className="text-ink mt-4 text-center" style={TYPE.heading}>{line}</Text>
       <Button title="Play another game" variant="primary" icon="heart" style={{ marginTop: 24 }} onPress={onAgain} />
     </View>
   );

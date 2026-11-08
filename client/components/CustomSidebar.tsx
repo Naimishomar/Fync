@@ -7,6 +7,7 @@ import { C } from '../constants/colors';
 import { getFullUrl } from '../utils/imageUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ProfileQRCard from './ui/ProfileQR';
+import { LEVEL_ICON } from './ui-extra/ScoreRing';
 
 /**
  * The drawer used to be the app's only feature menu: ~35 rows across seven
@@ -35,19 +36,13 @@ export default function CustomSidebar(props: any) {
     };
 
     const badge = user?.fyncBadge || 'Newcomer';
-    const badgeIcon =
-        badge === 'Legend' ? 'star'
-        : badge === 'Pioneer' ? 'rocket'
-        : badge === 'Innovator' ? 'bulb'
-        : badge === 'Builder' ? 'hammer'
-        : badge === 'Explorer' ? 'compass'
-        : 'leaf';
+    const badgeIcon = LEVEL_ICON[badge] || 'leaf';
 
     return (
         <View className="flex-1 bg-paper">
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 24 + insets.bottom }} showsVerticalScrollIndicator={false} bounces={false}>
                 {/* Inset-based top so the header clears any status bar / notch. */}
-                <View className="px-5 pb-4" style={{ paddingTop: insets.top + 16 }}>
+                <View className="px-5 pb-3" style={{ paddingTop: insets.top + 16 }}>
                     <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
                         <Pressable
                             onPress={() => go('Profile')}

@@ -9,8 +9,8 @@ import {
   StatusBar,
   TouchableOpacity,
   Platform,
-  Alert,
-  } from "react-native";
+} from "react-native";
+import { Alert } from './ui/AlertModal';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
@@ -32,7 +32,7 @@ const OnlineAvatar = React.memo(({ user, online }: { user: any; online: boolean 
     <Avatar user={user as any} size={44} />
     {online && (
       <View
-        className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-card"
+        className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-success rounded-full border-2 border-paper"
         accessibilityLabel="Online"
       />
     )}

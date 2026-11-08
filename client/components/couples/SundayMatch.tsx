@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -9,7 +9,9 @@ import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
 import { artUrl } from '../../constants/features';
 import Avatar from '../Avatar';
-import { AppBar, Button, Card, Chip, Label, Screen, Tag, TagRow } from '../ui/kit';
+import { AppBar, Button, Card, Chip, Empty, Label, Screen, Tag, TagRow } from '../ui/kit';
+import Skeleton from '../Skeleton';
+import { TYPE } from '../../constants/type';
 import { Sheet } from '../ui/Sheet';
 import { Alert } from '../ui/AlertModal';
 import { buzz, tick } from '../ui/motion';
@@ -21,6 +23,8 @@ type Options = { interests: string[]; maxInterests: number; vibes: { q: string; 
 type State = { profile: Profile | null; match: MatchCard | null; nextAt: string; options: Options };
 
 const PINK = '#db2777';
+// Pink as text on card/paper: deeper on light, lighter on dark so it keeps AA contrast.
+const pinkInk = () => C.pinkInk;
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const HEARTS = artUrl('assets/Two hearts/3D/two_hearts_3d.png');
 
@@ -33,17 +37,28 @@ const Countdown = memo(function Countdown({ to }: { to: string }) {
     [Math.floor(ms / 60000) % 60, 'min'], [Math.floor(ms / 1000) % 60, 'sec'],
   ] as const;
   return (
-    <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'center' }} accessible
+    <View style={{ flexDirection: 'row', gap: 8 }} accessible
       accessibilityLabel={`Next match in ${parts[0][0]} days ${parts[1][0]} hours ${parts[2][0]} minutes`}>
       {parts.map(([n, l]) => (
-        <View key={l} className="bg-card border border-line rounded-2xl" style={{ width: 70, paddingVertical: 12, alignItems: 'center' }}>
-          <Text className="font-display text-ink" style={{ fontSize: 28 }}>{String(n).padStart(2, '0')}</Text>
-          <Text className="text-ink-3" style={{ fontSize: 12 }}>{l}</Text>
+        <View key={l} className="bg-card border border-line rounded-2xl" style={{ flex: 1, paddingVertical: 12, alignItems: 'center' }}>
+          <Text className="text-ink" style={[TYPE.title, { fontVariant: ['tabular-nums'] }]}>{String(n).padStart(2, '0')}</Text>
+          <Text className="text-ink-3" style={TYPE.caption}>{l}</Text>
         </View>
       ))}
     </View>
   );
 });
+
+/** First-load placeholder: hero + countdown footprint. */
+const SundaySkeleton = () => (
+  <View style={{ paddingHorizontal: 20 }}>
+    <Skeleton lightMode height={132} borderRadius={16} />
+    <Skeleton lightMode width={180} height={16} style={{ alignSelf: 'center', marginTop: 24 }} />
+    <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+      {[0, 1, 2, 3].map((i) => <Skeleton key={i} lightMode height={76} borderRadius={16} style={{ flex: 1 }} />)}
+    </View>
+  </View>
+);
 
 /**
  * Sunday Match: opt in with a short quiz, get paired with one person from your
@@ -62,12 +77,14 @@ export default function SundayMatch() {
   const [adult, setAdult] = useState(false);
   const [busy, setBusy] = useState(false);
   const [reporting, setReporting] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const load = useCallback(async () => {
     try {
       const res = await axios.get('/couple/sunday', { params: { noCache: true } });
-      if (res.data?.success) setData(res.data);
+      if (res.data?.success) { setData(res.data); setFailed(false); }
     } catch {
+      setFailed(true);
       Toast.show({ type: 'error', text1: 'Could not load Sunday Match' });
     }
   }, []);
@@ -141,7 +158,7 @@ export default function SundayMatch() {
       <Label style={{ marginBottom: 12 }}>Step {step + 1} of 3</Label>
       {step === 0 ? (
         <>
-          <Text className="text-ink font-semibold" style={{ fontSize: 18, marginBottom: 12 }}>What are you looking for?</Text>
+          <Text className="text-ink" style={[TYPE.subtitle, { marginBottom: 12 }]} accessibilityRole="header">What are you looking for?</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {(['friendship', 'dating'] as const).map((i) => (
               <Chip key={i} label={i === 'friendship' ? 'Friendship 🤝' : 'Dating 💘'} active={intent === i} onPress={() => { tick(); setIntent(i); }} />
@@ -149,20 +166,20 @@ export default function SundayMatch() {
           </View>
           {intent === 'dating' ? (
             <>
-              <Text className="text-ink font-semibold" style={{ fontSize: 16, marginTop: 20, marginBottom: 12 }}>Interested in</Text>
+              <Text className="text-ink" style={[TYPE.heading, { marginTop: 20, marginBottom: 12 }]}>Interested in</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {['men', 'women', 'everyone'].map((g) => (
                   <Chip key={g} label={cap(g)} active={interestedIn === g} onPress={() => { tick(); setInterestedIn(g); }} />
                 ))}
               </View>
-              <Text className="text-ink-3" style={{ fontSize: 12, marginTop: 8 }}>We use the gender on your profile to match both ways.</Text>
+              <Text className="text-ink-3" style={[TYPE.caption, { marginTop: 8 }]}>We use the gender on your profile to match both ways.</Text>
             </>
           ) : null}
         </>
       ) : step === 1 ? (
         <>
-          <Text className="text-ink font-semibold" style={{ fontSize: 18, marginBottom: 4 }}>Pick your interests</Text>
-          <Text className="text-ink-3" style={{ fontSize: 13, marginBottom: 12 }}>{interests.length}/{o.maxInterests} selected</Text>
+          <Text className="text-ink" style={[TYPE.subtitle, { marginBottom: 4 }]} accessibilityRole="header">Pick your interests</Text>
+          <Text className="text-ink-3" style={[TYPE.sm, { marginBottom: 12 }]}>{interests.length}/{o.maxInterests} selected</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {o.interests.map((t) => <Chip key={t} label={cap(t)} active={interests.includes(t)} onPress={() => toggleInterest(t)} />)}
           </View>
@@ -171,7 +188,7 @@ export default function SundayMatch() {
         <>
           {o.vibes.map((v, qi) => (
             <View key={v.q} style={{ marginBottom: 20 }}>
-              <Text className="text-ink font-semibold" style={{ fontSize: 16, marginBottom: 10 }}>{v.q}</Text>
+              <Text className="text-ink" style={[TYPE.heading, { marginBottom: 12 }]}>{v.q}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {v.options.map((label, oi) => (
                   <Chip key={label} label={label} active={vibes[qi] === oi}
@@ -180,10 +197,10 @@ export default function SundayMatch() {
               </View>
             </View>
           ))}
-          <Pressable onPress={() => setAdult((a) => !a)} accessibilityRole="checkbox" accessibilityState={{ checked: adult }}
+          <Pressable onPress={() => { tick(); setAdult((a) => !a); }} accessibilityRole="checkbox" accessibilityState={{ checked: adult }}
             className="active:opacity-85" style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44 }}>
-            <Ionicons name={adult ? 'checkbox' : 'square-outline'} size={24} color={adult ? PINK : C.ink3} />
-            <Text className="text-ink" style={{ flex: 1, fontSize: 14 }}>I confirm I am 18 or older</Text>
+            <Ionicons name={adult ? 'checkbox' : 'square-outline'} size={24} color={adult ? pinkInk() : C.ink3} />
+            <Text className="text-ink" style={[TYPE.body, { flex: 1 }]}>I confirm I am 18 or older</Text>
           </Pressable>
         </>
       )}
@@ -203,57 +220,60 @@ export default function SundayMatch() {
     <Screen>
       <AppBar title="Sunday Match" onBack={() => navigation.goBack()} />
       {!data ? (
-        <ActivityIndicator color={PINK} style={{ marginTop: 40 }} />
+        failed ? (
+          <Empty icon="cloud-offline-outline" title="Couldn't load Sunday Match" hint="Check your connection and try again"
+            action={<Button title="Retry" variant="primary" onPress={() => { setFailed(false); load(); }} />} />
+        ) : <SundaySkeleton />
       ) : (
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
           <View className="rounded-2xl overflow-hidden mb-5" style={{ backgroundColor: PINK }}>
             <View className="p-5 flex-row items-center">
               <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text className="font-display" style={{ color: '#fff', fontSize: 24, lineHeight: 30 }}>Sunday Match 💞</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, lineHeight: 18, marginTop: 6 }}>
+                <Text style={[TYPE.title, { color: '#fff' }]} accessibilityRole="header">Sunday Match 💞</Text>
+                <Text style={[TYPE.sm, { color: 'rgba(255,255,255,0.92)', marginTop: 4 }]}>
                   One new person from your college, every Sunday at 7 PM. Friendship or dating, your call.
                 </Text>
               </View>
-              <Image source={{ uri: HEARTS }} style={{ width: 72, height: 72 }} contentFit="contain" cachePolicy="disk" />
+              <Image source={{ uri: HEARTS }} style={{ width: 72, height: 72 }} contentFit="contain" cachePolicy="disk" accessible={false} />
             </View>
           </View>
 
           {showQuiz ? quiz : m ? (
             <Animated.View entering={reduceMotion ? undefined : ZoomIn.duration(320)}>
               <Card style={{ alignItems: 'center', borderColor: PINK, paddingVertical: 24 }}>
-                <Text className="text-ink-3" style={{ fontSize: 13, marginBottom: 12 }}>This week&apos;s match</Text>
+                <Text className="text-ink-3" style={[TYPE.sm, { marginBottom: 12 }]}>This week&apos;s match</Text>
                 <Avatar user={m.user} size={96} />
-                <Text className="font-display text-ink" style={{ fontSize: 22, marginTop: 12 }}>{m.user.name}</Text>
-                <Text className="text-ink-3" style={{ fontSize: 13, marginTop: 2 }}>
+                <Text className="text-ink" style={[TYPE.subtitle, { marginTop: 12, textAlign: 'center' }]} numberOfLines={2}>{m.user.name}</Text>
+                <Text className="text-ink-3" style={[TYPE.sm, { marginTop: 4 }]}>
                   {m.user.year ? `Year ${m.user.year} · ` : ''}{m.intent === 'dating' ? 'Dating 💘' : 'Friendship 🤝'}
                 </Text>
                 {m.sharedInterests.length ? (
                   <>
-                    <Text className="text-ink-2 font-semibold" style={{ fontSize: 13, marginTop: 16, marginBottom: 8 }}>You both like</Text>
+                    <Text className="text-ink-2 font-semibold" style={[TYPE.sm, { marginTop: 16, marginBottom: 8 }]}>You both like</Text>
                     <TagRow style={{ justifyContent: 'center' }}>
-                      {m.sharedInterests.map((t) => <Tag key={t} label={cap(t)} tone={{ fg: PINK, border: PINK }} />)}
+                      {m.sharedInterests.map((t) => <Tag key={t} label={cap(t)} tone={{ fg: pinkInk(), border: PINK }} />)}
                     </TagRow>
                   </>
                 ) : null}
                 <Button title="Say hi" variant="primary" icon="chatbubble-ellipses-outline" block style={{ marginTop: 20 }}
-                  onPress={() => navigation.navigate('PublicProfile', { userId: m.user._id })} />
+                  onPress={() => { tick(); navigation.navigate('PublicProfile', { userId: m.user._id }); }} />
                 <View style={{ flexDirection: 'row', gap: 12, marginTop: 12, alignSelf: 'stretch' }}>
                   <Button title="Unmatch" style={{ flex: 1 }} onPress={unmatch} disabled={busy} />
                   <Button title="Report" variant="danger" style={{ flex: 1 }} onPress={() => setReporting(true)} disabled={busy} />
                 </View>
               </Card>
-              <Text className="text-ink-3" style={{ fontSize: 12, lineHeight: 17, marginTop: 12, textAlign: 'center' }}>
+              <Text className="text-ink-3" style={[TYPE.caption, { marginTop: 12, textAlign: 'center' }]}>
                 Match ends {new Date(m.expiresAt).toDateString()}. Only the two of you can see it.
               </Text>
             </Animated.View>
           ) : (
             <>
-              <Text className="text-ink font-semibold" style={{ fontSize: 16, textAlign: 'center', marginBottom: 12 }}>Your next match drops in</Text>
+              <Text className="text-ink" style={[TYPE.heading, { textAlign: 'center', marginBottom: 12 }]}>Your next match drops in</Text>
               <Countdown to={data.nextAt} />
               {data.profile?.priority ? (
                 <Card style={{ marginTop: 20 }}>
-                  <Text className="text-ink font-semibold">No match last week</Text>
-                  <Text className="text-ink-3" style={{ fontSize: 13, marginTop: 2 }}>You&apos;re first in line this Sunday.</Text>
+                  <Text className="text-ink" style={TYPE.heading}>No match last week</Text>
+                  <Text className="text-ink-3" style={[TYPE.sm, { marginTop: 2 }]}>You&apos;re first in line this Sunday.</Text>
                 </Card>
               ) : null}
               <View style={{ flexDirection: 'row', gap: 12, marginTop: 24 }}>

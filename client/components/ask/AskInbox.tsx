@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, Share, Switch, Text, View } from 'react-native';
+import { FlatList, Share, Switch, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
@@ -11,7 +12,9 @@ import { AppBar, Button, Card, Empty, IconBtn, Screen } from '../ui/kit';
 import { Sheet } from '../ui/Sheet';
 import { FormField } from '../ui/Field';
 import { Alert } from '../ui/AlertModal';
-import { buzz, tick } from '../ui/motion';
+import { buzz, enterAt, tick } from '../ui/motion';
+import Skeleton from '../Skeleton';
+import { TYPE } from '../../constants/type';
 import { shareImageUrl } from '../../utils/shareCard';
 
 type Msg = { _id: string; text: string; answer: string | null; createdAt: string; expiresAt: string; cardUrl: string | null };
@@ -35,29 +38,45 @@ const shareAnswer = (m: Msg, link: string) => {
     Share.share({ message: `Q: ${m.text}\nA: ${m.answer}\n\nAsk me anything 👉 ${link}` }));
 };
 
-const Row = memo(function Row({ m, isNew, onAnswer, onShare, onMore }: {
-  m: Msg; isNew: boolean; onAnswer: (m: Msg) => void; onShare: (m: Msg) => void; onMore: (m: Msg) => void;
+const InboxSkeleton = () => (
+  <View style={{ paddingHorizontal: 20 }}>
+    <Skeleton lightMode height={168} borderRadius={16} />
+    <Skeleton lightMode width="70%" height={12} style={{ marginTop: 12 }} />
+    {[0, 1].map((i) => <Skeleton key={i} lightMode height={132} borderRadius={16} style={{ marginTop: 16 }} />)}
+  </View>
+);
+
+const Row = memo(function Row({ m, index, isNew, onAnswer, onShare, onMore }: {
+  m: Msg; index: number; isNew: boolean; onAnswer: (m: Msg) => void; onShare: (m: Msg) => void; onMore: (m: Msg) => void;
 }) {
   return (
-    <Card style={{ marginBottom: 12, borderColor: isNew ? C.brand[500] : C.line }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <Text className="text-ink-3" style={{ fontSize: 12, flex: 1 }}>
-          {isNew ? 'New · ' : ''}disappears in {timeLeft(m.expiresAt)}
-        </Text>
-        <IconBtn name="ellipsis-horizontal" onPress={() => onMore(m)} accessibilityLabel="More actions" />
-      </View>
-      <Text className="text-ink font-semibold" style={{ fontSize: 16, lineHeight: 22 }}>{m.text}</Text>
-      {m.answer ? (
-        <View className="bg-paper-2 rounded-2xl" style={{ padding: 12, marginTop: 10 }}>
-          <Text className="text-ink-3" style={{ fontSize: 12, marginBottom: 2 }}>Your answer</Text>
-          <Text className="text-ink" style={{ fontSize: 14, lineHeight: 20 }}>{m.answer}</Text>
+    <Animated.View entering={enterAt(index)}>
+      <Card style={{ marginBottom: 12, borderColor: isNew ? C.brand[500] : C.line }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          {isNew ? (
+            <View style={{ backgroundColor: C.brand[500], borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
+              <Text style={[TYPE.micro, { color: C.onBrand }]}>New</Text>
+            </View>
+          ) : null}
+          <Text className="text-ink-3" style={[TYPE.caption, { flex: 1 }]} numberOfLines={1}>
+            Disappears in {timeLeft(m.expiresAt)}
+          </Text>
+          <IconBtn name="ellipsis-horizontal" onPress={() => onMore(m)} accessibilityLabel="Message options" />
         </View>
-      ) : null}
-      <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
-        <Button small title={m.answer ? 'Edit answer' : 'Answer'} variant={m.answer ? 'secondary' : 'primary'} onPress={() => onAnswer(m)} />
-        {m.answer ? <Button small title="Share card" icon="share-social-outline" variant="primary" onPress={() => onShare(m)} /> : null}
-      </View>
-    </Card>
+        <Text className="text-ink" style={TYPE.heading}>{m.text}</Text>
+        {m.answer ? (
+          <View className="bg-paper-2 rounded-2xl" style={{ padding: 12, marginTop: 12 }}>
+            <Text className="text-ink-3" style={[TYPE.caption, { marginBottom: 2 }]}>Your answer</Text>
+            <Text className="text-ink" style={TYPE.body}>{m.answer}</Text>
+          </View>
+        ) : null}
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+          {/* One primary per card: Answer until answered, then Share. */}
+          <Button small title={m.answer ? 'Edit answer' : 'Answer'} variant={m.answer ? 'secondary' : 'primary'} onPress={() => onAnswer(m)} />
+          {m.answer ? <Button small title="Share card" icon="share-social-outline" variant="primary" onPress={() => onShare(m)} /> : null}
+        </View>
+      </Card>
+    </Animated.View>
   );
 });
 
@@ -75,6 +94,7 @@ export default function AskInbox() {
   const [answering, setAnswering] = useState<Msg | null>(null);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -88,7 +108,9 @@ export default function AskInbox() {
         setHasMore(inbox.data.hasMore);
         setSeenAt(inbox.data.lastSeenAt);
       }
+      setFailed(false);
     } catch {
+      setFailed(true);
       Toast.show({ type: 'error', text1: 'Could not load your messages' });
     } finally {
       setLoading(false);
@@ -171,18 +193,18 @@ export default function AskInbox() {
     ]);
   }, [act]);
 
-  const renderItem = useCallback(({ item }: { item: Msg }) => (
-    <Row m={item} isNew={!seenAt || item.createdAt > seenAt} onAnswer={openAnswer} onShare={onShare} onMore={onMore} />
+  const renderItem = useCallback(({ item, index }: { item: Msg; index: number }) => (
+    <Row m={item} index={index} isNew={!seenAt || item.createdAt > seenAt} onAnswer={openAnswer} onShare={onShare} onMore={onMore} />
   ), [seenAt, openAnswer, onShare, onMore]);
 
   const header = me ? (
     <View>
       <Card style={{ marginBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Image source={{ uri: artUrl(ART) }} style={{ width: 48, height: 48 }} contentFit="contain" />
+          <Image source={{ uri: artUrl(ART) }} style={{ width: 48, height: 48 }} contentFit="contain" cachePolicy="disk" accessible={false} />
           <View style={{ flex: 1 }}>
-            <Text className="text-ink font-semibold" style={{ fontSize: 16 }}>Your link</Text>
-            <Text className="text-ink-3" style={{ fontSize: 13 }} numberOfLines={1} selectable>{link}</Text>
+            <Text className="text-ink" style={TYPE.heading} accessibilityRole="header">Your link</Text>
+            <Text className="text-ink-3" style={TYPE.sm} numberOfLines={1} ellipsizeMode="middle" selectable>{link}</Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
@@ -191,14 +213,14 @@ export default function AskInbox() {
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, minHeight: 44 }}>
           <View style={{ flex: 1 }}>
-            <Text className="text-ink font-semibold" style={{ fontSize: 14 }}>Pause my link</Text>
-            <Text className="text-ink-3" style={{ fontSize: 12 }}>{me.paused ? 'Nobody can send you messages' : 'Anyone with the link can ask you'}</Text>
+            <Text className="text-ink font-semibold" style={TYPE.body}>Pause my link</Text>
+            <Text className="text-ink-3" style={TYPE.caption}>{me.paused ? 'Nobody can send you messages' : 'Anyone with the link can ask you'}</Text>
           </View>
           <Switch value={me.paused} onValueChange={togglePause} trackColor={{ true: C.brand[500], false: C.line }} thumbColor="#FFFFFF"
             accessibilityLabel="Pause my link" />
         </View>
       </Card>
-      <Text className="text-ink-3" style={{ fontSize: 12, marginBottom: 12 }}>
+      <Text className="text-ink-3" style={[TYPE.caption, { marginBottom: 12 }]}>
         🔒 Senders stay anonymous. Messages disappear after 7 days.
       </Text>
     </View>
@@ -208,7 +230,10 @@ export default function AskInbox() {
     <Screen>
       <AppBar title="Ask me anything" onBack={() => navigation.goBack()} />
       {loading && !me ? (
-        <ActivityIndicator color={C.brand[500]} style={{ marginTop: 40 }} />
+        <InboxSkeleton />
+      ) : failed && !me ? (
+        <Empty icon="cloud-offline-outline" title="Couldn't load your messages" hint="Check your connection and try again"
+          action={<Button title="Retry" variant="primary" onPress={() => { setLoading(true); load(); }} />} />
       ) : (
         <FlatList
           data={msgs}

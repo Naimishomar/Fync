@@ -7,7 +7,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Avatar from "./Avatar";
 import { C } from '../constants/colors';
-import { AppBar, Button, Empty, ListRow, SearchField, SectionHeader } from './ui/kit';
+import { AppBar, Button, Empty, IconTile, ListRow, SearchField, SectionHeader } from './ui/kit';
 import FollowSuggestions from './FollowSuggestions';
 
 const RECENT_KEY = 'fync:recentSearches';
@@ -235,7 +235,8 @@ const QueryRow = memo(function QueryRow({ item, onPress, onRemove }: {
   return (
     <ListRow
       onPress={() => onPress(item.query)}
-      icon="time-outline"
+      // 44, not IconTile's default 40: titles line up with the avatar rows around it.
+      leading={<IconTile icon="time-outline" size={44} />}
       title={item.query}
       right={<RemoveBtn label={item.query} onPress={() => onRemove(item._id)} />}
     />

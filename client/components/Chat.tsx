@@ -8,7 +8,6 @@ import { useAuth } from "../context/auth.context";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChatSkeleton } from "./Skeleton";
 import socket from "../utils/socket";
-import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { Video, ResizeMode } from "expo-av";
@@ -581,18 +580,6 @@ const Chat = ({ route, navigation }: any) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.paper }}>
-      {/* HEADER DECORATION (SOLAR GLOW) */}
-      <View 
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300, zIndex: -1 }}
-        pointerEvents="none"
-      >
-        <LinearGradient
-          // Softer in dark so the cream AppBar title stays readable over it.
-          colors={[C.scheme === 'dark' ? C.brand[500] + '40' : '#F97316', 'rgba(241, 148, 34, 0)']}
-          style={{ flex: 1 }}
-        />
-      </View>
-
       {/* FIXED HEADER */}
       <AppBar
         onBack={() => navigation.goBack()}
@@ -623,7 +610,7 @@ const Chat = ({ route, navigation }: any) => {
                 <View className="relative">
                   <Avatar user={otherUser} size={36} showBadge={false} />
                   {onlineUsers.has(otherUser?._id) && (
-                    <View className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-success rounded-full border-2 border-card" />
+                    <View className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-success rounded-full border-2 border-paper" accessibilityLabel="Online" />
                   )}
                 </View>
 
@@ -656,7 +643,7 @@ const Chat = ({ route, navigation }: any) => {
             {/* MESSAGE CONTAINER (ROUNDED CARD) */}
           <View className="flex-1 bg-paper overflow-hidden border-t border-line">
             {loading ? (
-              <View className="flex-1 p-6">
+              <View className="flex-1 px-gutter py-3">
                 {[1, 2, 3, 4, 5, 6].map(i => <ChatSkeleton key={i} isMe={i % 2 === 0} />)}
               </View>
             ) : (
@@ -746,6 +733,7 @@ const Chat = ({ route, navigation }: any) => {
                   className="w-11 h-11 bg-brand-500 rounded-full items-center justify-center"
                   accessibilityRole="button"
                   accessibilityLabel="Send"
+                  accessibilityState={{ disabled: !otherUser }}
                 >
                   <Ionicons name="paper-plane" size={18} color={C.onBrand} />
                 </TouchableOpacity>

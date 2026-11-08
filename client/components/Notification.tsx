@@ -251,7 +251,7 @@ const describe = (item: NotificationItem): string => {
     case 'tag': return item.confession ? 'Someone confessed about you' : 'tagged you in a post.';
     case 'like': return 'liked your post.';
     case 'comment': return `commented: "${item.commentText || 'Nice!'}"`;
-    case 'story_comment': return `commented: "${item.commentText || 'Nice!'} on your shorts"`;
+    case 'story_comment': return `commented on your shorts: "${item.commentText || 'Nice!'}"`;
     case 'story_like': return 'liked your shorts.';
     case 'split_request': return item.commentText || 'requested a split payment.';
     case 'split_paid': return item.commentText || 'paid their debt.';
@@ -333,7 +333,7 @@ const NotificationRow = React.memo(function NotificationRow({
           <Avatar user={item.sender as any} size={AVATAR} showBadge={false} />
         )}
         {unread && (
-          <View className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-brand-500 rounded-full border-2 border-paper" style={{ zIndex: 5 }} />
+          <View className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-brand-500 rounded-full border-2 border-paper-2" style={{ zIndex: 5 }} />
         )}
       </View>
 

@@ -19,6 +19,8 @@ import Avatar from '../Avatar';
 import { Sheet, useKeyboardLift } from '../ui/Sheet';
 import { Alert } from '../ui/AlertModal';
 import { tick } from '../ui/motion';
+import Skeleton from '../Skeleton';
+import { TYPE } from '../../constants/type';
 
 type Story = {
   _id: string; image?: string | null; video?: string | null; text?: string; bg?: string;
@@ -36,6 +38,9 @@ const DURATION = 5000;
 /** Longest video story; the picker trims to this too. */
 const MAX_VIDEO_MS = 30000;
 const BGS = ['#F97316', '#DB2777', '#7C3AED', '#2563EB', '#0891B2', '#047857', '#12100E'];
+const BG_NAMES: Record<string, string> = {
+  '#F97316': 'Orange', '#DB2777': 'Pink', '#7C3AED': 'Purple', '#2563EB': 'Blue', '#0891B2': 'Teal', '#047857': 'Green', '#12100E': 'Black',
+};
 const RING = 68;
 const AV = 60;
 
@@ -58,7 +63,8 @@ const Bubble = memo(function Bubble({
     </View>
   );
   return (
-    <Pressable onPress={onPress} className="active:opacity-85 items-center" style={{ width: RING + 8 }} accessibilityRole="button" accessibilityLabel={label}>
+    <Pressable onPress={onPress} className="active:opacity-85 items-center" style={{ width: RING + 8 }} accessibilityRole="button"
+      accessibilityLabel={ring === 'new' ? `${label}, new story` : ring === 'none' && add ? 'Add to your story' : label}>
       {ring === 'new' ? (
         <LinearGradient colors={[C.brand[600], C.brand[400], '#FBBF24']} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }}
           style={{ width: RING, height: RING, borderRadius: RING / 2, alignItems: 'center', justifyContent: 'center' }}>
@@ -70,15 +76,42 @@ const Bubble = memo(function Bubble({
         </View>
       )}
       {add ? (
-        <Pressable onPress={onAdd ?? onPress} hitSlop={8} accessibilityLabel="Add to your story"
+        <Pressable onPress={onAdd ?? onPress} hitSlop={10} accessibilityRole="button" accessibilityLabel="Add to your story"
           style={{ position: 'absolute', top: RING - 22, right: 4, width: 24, height: 24, borderRadius: 12, backgroundColor: C.brand[500], borderWidth: 2, borderColor: C.paper, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="add" size={16} color={C.onBrand} />
         </Pressable>
       ) : null}
-      <Text numberOfLines={1} className="text-ink-2" style={{ fontSize: 12, marginTop: 6, maxWidth: RING + 8, textAlign: 'center' }}>{label}</Text>
+      <Text numberOfLines={1} className="text-ink-2" style={[TYPE.caption, { marginTop: 4, maxWidth: RING + 8, textAlign: 'center' }]}>{label}</Text>
     </Pressable>
   );
 });
+
+const ViewerRow = memo(function ViewerRow({ v }: { v: any }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56 }}>
+      <Avatar user={v} size={40} />
+      <View style={{ flex: 1 }}>
+        <Text className="text-ink" style={TYPE.heading} numberOfLines={1}>{v.name}</Text>
+        <Text className="text-ink-3" style={TYPE.sm} numberOfLines={1}>@{v.username}</Text>
+      </View>
+    </View>
+  );
+});
+const renderViewer = ({ item }: { item: any }) => <ViewerRow v={item} />;
+
+const ViewersSkeleton = () => (
+  <View style={{ gap: 16, paddingTop: 8 }}>
+    {[0, 1, 2].map((i) => (
+      <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Skeleton lightMode width={40} height={40} borderRadius={20} />
+        <View style={{ flex: 1, gap: 6 }}>
+          <Skeleton lightMode width="55%" height={14} />
+          <Skeleton lightMode width="35%" height={12} />
+        </View>
+      </View>
+    ))}
+  </View>
+);
 
 /** Instagram-style stories strip for the home feed: own bubble first, then the college. */
 export function StoriesRow() {
@@ -114,6 +147,14 @@ export function StoriesRow() {
 
   const mine = groups.find((g) => g.isMine);
   const others = groups.filter((g) => !g.isMine);
+  const renderItem = useCallback(({ item }: { item: Group }) => (
+    <Bubble
+      label={item.user.name?.split(' ')[0] || item.user.username || 'Story'}
+      user={item.user}
+      ring={item.allSeen ? 'seen' : 'new'}
+      onPress={() => setOpen(groups.indexOf(item))}
+    />
+  ), [groups]);
 
   return (
     <View style={{ paddingTop: 12, paddingBottom: 8 }}>
@@ -133,14 +174,7 @@ export function StoriesRow() {
             onAdd={() => setComposing(true)}
           />
         }
-        renderItem={({ item }) => (
-          <Bubble
-            label={item.user.name?.split(' ')[0] || item.user.username || 'Story'}
-            user={item.user}
-            ring={item.allSeen ? 'seen' : 'new'}
-            onPress={() => setOpen(groups.indexOf(item))}
-          />
-        )}
+        renderItem={renderItem}
       />
       {open != null && groups[open] ? (
         <StoryViewer groups={groups} start={open} onClose={() => setOpen(null)} onSeen={markSeen} onDeleted={removeStory} />
@@ -169,6 +203,7 @@ function StoryViewer({
   const [dur, setDur] = useState(DURATION);
   const [holding, setHolding] = useState(false);
   const [viewers, setViewers] = useState<any[] | null>(null);
+  const [viewersLoading, setViewersLoading] = useState(false);
   const progress = useSharedValue(0);
   const paused = useRef(false);
 
@@ -224,10 +259,12 @@ function StoryViewer({
   const showViewers = async () => {
     if (!story) return;
     setViewers([]);
+    setViewersLoading(true);
     try {
       const res = await axios.get(`/story/${story._id}/viewers`);
       setViewers(res.data?.viewers || []);
     } catch { setViewers([]); }
+    setViewersLoading(false);
   };
 
   const remove = () => {
@@ -316,12 +353,12 @@ function StoryViewer({
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 10 }}>
             <Avatar user={group.user} size={34} showBadge={false} />
-            <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold', fontSize: 14 }} numberOfLines={1}>
+            <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold', fontSize: 14, flexShrink: 1 }} numberOfLines={1}>
               {group.isMine ? 'Your story' : group.user.name}
             </Text>
             <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>{ago(story.createdAt)}</Text>
             <View style={{ flex: 1 }} />
-            <Pressable onPress={onClose} hitSlop={12} accessibilityLabel="Close" className="active:opacity-85">
+            <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close story" className="active:opacity-85">
               <Ionicons name="close" size={28} color="#fff" />
             </Pressable>
           </View>
@@ -329,12 +366,13 @@ function StoryViewer({
 
         {group.isMine ? (
           <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' }}>
-            <Pressable onPress={() => { hold(true); showViewers(); }} className="active:opacity-85" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 }} accessibilityRole="button">
+            <Pressable onPress={() => { hold(true); showViewers(); }} className="active:opacity-85" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 }}
+              accessibilityRole="button" accessibilityLabel={`${story.viewCount ?? 0} views. See who viewed`}>
               <Ionicons name="eye-outline" size={22} color="#fff" />
               <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>{story.viewCount ?? 0} views</Text>
             </Pressable>
             <View style={{ flex: 1 }} />
-            <Pressable onPress={remove} hitSlop={10} className="active:opacity-85" accessibilityLabel="Delete story" style={{ minHeight: 44, justifyContent: 'center' }}>
+            <Pressable onPress={remove} hitSlop={10} className="active:opacity-85" accessibilityRole="button" accessibilityLabel="Delete story" style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="trash-outline" size={22} color="#fff" />
             </Pressable>
           </View>
@@ -346,16 +384,9 @@ function StoryViewer({
           data={viewers || []}
           keyExtractor={(v) => v._id}
           contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 8 }}
-          ListEmptyComponent={<Text className="text-ink-3" style={{ textAlign: 'center', marginTop: 24 }}>No views yet</Text>}
-          renderItem={({ item }) => (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56 }}>
-              <Avatar user={item} size={40} />
-              <View style={{ flex: 1 }}>
-                <Text className="text-ink font-semibold" numberOfLines={1}>{item.name}</Text>
-                <Text className="text-ink-3" style={{ fontSize: 13 }} numberOfLines={1}>@{item.username}</Text>
-              </View>
-            </View>
-          )}
+          ListEmptyComponent={viewersLoading ? <ViewersSkeleton />
+            : <Text className="text-ink-3" style={[TYPE.sm, { textAlign: 'center', marginTop: 24 }]}>No views yet</Text>}
+          renderItem={renderViewer}
         />
       </Sheet>
     </Modal>
@@ -448,31 +479,33 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
 
         {/* Top: close, and (text mode) colour swatches. */}
         <View style={{ position: 'absolute', top: insets.top + 10, left: 14, right: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Pressable onPress={close} hitSlop={10} accessibilityLabel="Close" className="active:opacity-85"
+          <Pressable onPress={close} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close" className="active:opacity-85"
             style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name="close" size={24} color="#fff" />
           </Pressable>
           <View style={{ flex: 1 }} />
           {image ? (
-            <Pressable onPress={() => setMedia(null)} hitSlop={10} accessibilityLabel="Remove photo or video" className="active:opacity-85"
+            <Pressable onPress={() => setMedia(null)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Remove photo or video" className="active:opacity-85"
               style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="trash-outline" size={20} color="#fff" />
             </Pressable>
           ) : BGS.map((c) => (
-            <Pressable key={c} onPress={() => setBg(c)} accessibilityLabel={`Background ${c}`} accessibilityState={{ selected: bg === c }}
+            <Pressable key={c} onPress={() => { tick(); setBg(c); }} hitSlop={9} accessibilityRole="button"
+              accessibilityLabel={`${BG_NAMES[c] ?? c} background`} accessibilityState={{ selected: bg === c }}
               style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: c, borderWidth: bg === c ? 3 : 1.5, borderColor: '#fff' }} />
           ))}
         </View>
 
         {/* Bottom: gallery + share. */}
         <View style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 20, flexDirection: 'row', alignItems: 'center' }}>
-          <Pressable onPress={pick} className="active:opacity-85" accessibilityRole="button"
+          <Pressable onPress={pick} className="active:opacity-85" accessibilityRole="button" accessibilityLabel={image ? 'Change photo or video' : 'Add photo or video'}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 48, paddingHorizontal: 18, borderRadius: 24, backgroundColor: 'rgba(0,0,0,0.35)' }}>
             <Ionicons name="images-outline" size={20} color="#fff" />
             <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>{image ? 'Change' : 'Photo / video'}</Text>
           </Pressable>
           <View style={{ flex: 1 }} />
           <Pressable onPress={share} disabled={!canShare || posting} className="active:opacity-85" accessibilityRole="button"
+            accessibilityLabel="Share to your story" accessibilityState={{ disabled: !canShare || posting, busy: posting }}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 48, paddingHorizontal: 20, borderRadius: 24, backgroundColor: '#fff', opacity: canShare ? 1 : 0.5 }}>
             {posting ? <ActivityIndicator color="#12100E" /> : (
               <>

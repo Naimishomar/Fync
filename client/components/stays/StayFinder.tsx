@@ -7,7 +7,9 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { C } from '../../constants/colors';
 import { useBottomInset } from '../../constants/layout';
-import { AppBar, Button, Chip, ChipRow, Empty, FilterChips, IconBtn, Screen, SegmentedTabs, Tag, TagRow } from '../ui/kit';
+import { AppBar, Button, Chip, ChipRow, Empty, FilterChips, IconBtn, Label, Screen, SegmentedTabs, Tag, TagRow } from '../ui/kit';
+import Skeleton from '../Skeleton';
+import { TYPE } from '../../constants/type';
 import { Sheet } from '../ui/Sheet';
 import { Alert } from '../ui/AlertModal';
 import { ProgressiveImage } from '../ui/ProgressiveImage';
@@ -53,23 +55,34 @@ export const StayRow = memo(function StayRow({ stay, index, onOpen }: { stay: St
         style={{ backgroundColor: C.card, borderColor: C.line, borderWidth: 1, borderRadius: 16, marginBottom: 12, overflow: 'hidden', flexDirection: 'row' }}>
         <ProgressiveImage path={stay.photo} thumbOnly style={{ width: 104, minHeight: 112 }} accessible={false} />
         <View style={{ flex: 1, padding: 12, gap: 4 }}>
-          <Text className="text-ink-3 font-semibold" style={{ fontSize: 12 }}>
+          <Text className="text-ink-3 font-semibold" style={TYPE.caption} numberOfLines={1}>
             {KIND_LABEL[stay.kind]} · {GENDER_LABEL[stay.forGender]}{stay.status === 'filled' ? ' · Filled' : ''}
           </Text>
-          <Text className="text-ink font-semibold" style={{ fontSize: 15 }} numberOfLines={1}>{stay.title}</Text>
-          <Text className="text-ink-2" style={{ fontSize: 13 }} numberOfLines={1}>
+          <Text className="text-ink" style={TYPE.heading} numberOfLines={1}>{stay.title}</Text>
+          <Text className="text-ink-2" style={TYPE.sm} numberOfLines={1}>
             📍 {stay.area}{stay.distanceKm != null ? ` · ${stay.distanceKm} km` : ''}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 'auto' }}>
-            <Text className="text-ink font-display" style={{ fontSize: 17 }}>{rupees(stay.rent)}<Text className="text-ink-3" style={{ fontSize: 12 }}>/mo</Text></Text>
-            <View style={{ flex: 1 }} />
-            <Text className="text-ink-3" style={{ fontSize: 11 }}>{expiresText(stay.expiresAt)}</Text>
+            <Text className="text-ink font-display" style={{ fontSize: 17 }} numberOfLines={1}>{rupees(stay.rent)}<Text className="text-ink-3" style={TYPE.caption}>/mo</Text></Text>
+            <View style={{ flex: 1, minWidth: 8 }} />
+            <Text className="text-ink-3" style={TYPE.micro} numberOfLines={1}>{expiresText(stay.expiresAt)}</Text>
           </View>
         </View>
       </PressScale>
     </Animated.View>
   );
 });
+
+/** First-load placeholder in the footprint of the tabs, chips and StayRow cards. */
+const StaySkeleton = () => (
+  <View style={{ paddingHorizontal: 20 }}>
+    <Skeleton lightMode height={44} borderRadius={22} />
+    <View style={{ flexDirection: 'row', gap: 8, marginTop: 12, marginBottom: 12 }}>
+      {[96, 80, 88].map((w) => <Skeleton key={w} lightMode width={w} height={36} borderRadius={18} />)}
+    </View>
+    {[0, 1, 2, 3].map((i) => <Skeleton key={i} lightMode height={112} borderRadius={16} style={{ marginBottom: 12 }} />)}
+  </View>
+);
 
 /** PG & Roommates: students list PGs, flats and roommate spots near their own college. */
 export default function StayFinder() {
@@ -85,6 +98,7 @@ export default function StayFinder() {
   const [next, setNext] = useState<string | null>(null);
   const [mine, setMine] = useState<StayCard[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [failed, setFailed] = useState(false);
   const loadingMore = useRef(false);
   const college = user?.college || 'your college';
 
@@ -106,7 +120,9 @@ export default function StayFinder() {
       setStays(res.data?.stays || []);
       setNext(res.data?.next ?? null);
       if (my) setMine(my.data?.stays || []);
+      setFailed(false);
     } catch {
+      setFailed(true);
       setStays((s) => s ?? []);
     }
   }, [params]);
@@ -124,6 +140,7 @@ export default function StayFinder() {
   };
 
   const open = useCallback((id: string) => navigation.navigate('StayDetail', { id }), [navigation]);
+  const renderItem = useCallback(({ item, index }: { item: StayCard; index: number }) => <StayRow stay={item} index={index} onOpen={open} />, [open]);
   const create = () => navigation.navigate('StayForm', {});
   const activeFilters = (filters.budget !== 'any' ? 1 : 0) + (filters.gender !== 'any' ? 1 : 0) + (filters.food !== 'any' ? 1 : 0) + filters.amenities.length;
 
@@ -151,18 +168,18 @@ export default function StayFinder() {
     <View>
       {mine.length ? (
         <View style={{ marginBottom: 16 }}>
-          <Text className="text-ink font-semibold" style={{ fontSize: 16, marginBottom: 8 }}>My listings · {mine.length}</Text>
+          <Text className="text-ink" style={[TYPE.heading, { marginBottom: 8 }]} accessibilityRole="header">My listings · {mine.length}</Text>
           {mine.map((s) => (
             <PressScale key={s._id} onPress={() => manage(s)} accessibilityRole="button" accessibilityLabel={`Manage ${s.title}`}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingHorizontal: 12, marginBottom: 8,
                 borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: C.card }}>
               <View style={{ flex: 1 }}>
                 <Text className="text-ink font-semibold" numberOfLines={1}>{s.title}</Text>
-                <Text className="text-ink-3" style={{ fontSize: 12 }}>
+                <Text className="text-ink-3" style={TYPE.caption} numberOfLines={1}>
                   {s.status === 'filled' ? 'Filled' : 'Live'} · {expiresText(s.expiresAt)}{s.renewed ? ' · renewed' : ''}
                 </Text>
               </View>
-              <IconBtn name="ellipsis-horizontal" accessibilityLabel={`Manage ${s.title}`} onPress={() => manage(s)} />
+              <IconBtn name="ellipsis-horizontal" accessibilityLabel={`Options for ${s.title}`} onPress={() => manage(s)} />
             </PressScale>
           ))}
         </View>
@@ -171,8 +188,8 @@ export default function StayFinder() {
       <ChipRow style={{ marginBottom: 12 }}>
         <Chip icon="options-outline" label={activeFilters ? `Filters · ${activeFilters}` : 'Filters'} active={activeFilters > 0}
           onPress={() => { setDraft(filters); setSheet(true); }} />
-        <Chip label="Newest" active={sort === 'newest'} onPress={() => setSort('newest')} />
-        <Chip label="Cheapest" active={sort === 'cheapest'} onPress={() => setSort('cheapest')} />
+        <Chip label="Newest" active={sort === 'newest'} onPress={() => { tick(); setSort('newest'); }} />
+        <Chip label="Cheapest" active={sort === 'cheapest'} onPress={() => { tick(); setSort('cheapest'); }} />
       </ChipRow>
     </View>
   );
@@ -184,21 +201,24 @@ export default function StayFinder() {
     <Screen>
       <AppBar title="PG & Roommates" onBack={() => navigation.goBack()} />
       {!stays ? (
-        <ActivityIndicator color={C.brand[500]} style={{ marginTop: 40 }} />
+        <StaySkeleton />
       ) : (
         <FlatList
           data={stays}
           keyExtractor={(s) => s._id}
-          renderItem={({ item, index }) => <StayRow stay={item} index={index} onOpen={open} />}
+          renderItem={renderItem}
           ListHeaderComponent={header}
-          ListEmptyComponent={
+          ListEmptyComponent={failed ? (
+            <Empty icon="cloud-offline-outline" title="Couldn't load listings" hint="Check your connection and try again"
+              action={<Button title="Retry" variant="primary" onPress={load} />} />
+          ) : (
             <Empty art="assets/House with garden/3D/house_with_garden_3d.png"
               title={kind === 'all' && !activeFilters ? `Be the first to list a PG near ${college}` : 'Nothing matches these filters'}
               hint={kind === 'all' && !activeFilters ? 'Rooms, flats and roommate spots from students at your college' : 'Try a higher budget or fewer filters'}
               action={kind === 'all' && !activeFilters
                 ? <Button title="List a place" variant="primary" onPress={create} />
                 : <Button title="Clear filters" onPress={() => { setKind('all'); setFilters(NO_FILTERS); }} />} />
-          }
+          )}
           onEndReached={more}
           onEndReachedThreshold={0.5}
           ListFooterComponent={next ? <ActivityIndicator color={C.brand[500]} style={{ marginVertical: 16 }} /> : null}
@@ -219,13 +239,13 @@ export default function StayFinder() {
           <Button title="Reset" style={{ flex: 1 }} onPress={() => setDraft(NO_FILTERS)} />
           <Button title="Show places" variant="primary" style={{ flex: 2 }} onPress={() => { setFilters(draft); setSheet(false); }} />
         </View>}>
-        <Text className="text-ink-3 font-semibold" style={{ fontSize: 13, marginBottom: 8 }}>Budget per month</Text>
+        <Label style={{ marginBottom: 8 }}>Budget per month</Label>
         <FilterChips items={BUDGETS} value={draft.budget} onChange={(v) => setD({ budget: v })} labels={BUDGET_LABEL} style={{ marginBottom: 16 }} />
-        <Text className="text-ink-3 font-semibold" style={{ fontSize: 13, marginBottom: 8 }}>For</Text>
+        <Label style={{ marginBottom: 8 }}>For</Label>
         <FilterChips items={GENDERS} value={draft.gender} onChange={(v) => setD({ gender: v })} labels={GENDER_LABEL} style={{ marginBottom: 16 }} />
-        <Text className="text-ink-3 font-semibold" style={{ fontSize: 13, marginBottom: 8 }}>Food</Text>
+        <Label style={{ marginBottom: 8 }}>Food</Label>
         <FilterChips items={FOODS} value={draft.food} onChange={(v) => setD({ food: v })} labels={{ any: 'Any', veg: 'Veg', nonveg: 'Non-veg' }} style={{ marginBottom: 16 }} />
-        <Text className="text-ink-3 font-semibold" style={{ fontSize: 13, marginBottom: 8 }}>Must have</Text>
+        <Label style={{ marginBottom: 8 }}>Must have</Label>
         <TagRow>
           {Object.keys(AMENITY_LABEL).map((a) => (
             <Chip key={a} label={AMENITY_LABEL[a]} active={draft.amenities.includes(a)} onPress={() => toggleAmenity(a)} />
