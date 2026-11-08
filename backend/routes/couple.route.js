@@ -5,11 +5,18 @@ import {
     addBucket, toggleBucket, deleteBucket, nudge, listNotes, sendNote, markNotesRead,
     leaderboard, setBoardOptIn,
 } from "../controllers/couple.controller.js";
+import { getCrush, searchCollege, pickCrush, removeCrush } from "../controllers/crush.controller.js";
 
 const router = express.Router();
 router.use(authMiddleware);
 
 router.get("/", getSpace);
+
+// Dil Se (crush match). Before "/:x" style routes so "crush" isn't read as an id.
+router.get("/crush", getCrush);
+router.get("/crush/search", searchCollege);
+router.post("/crush", pickCrush);
+router.delete("/crush/:userId", removeCrush);
 router.get("/leaderboard", leaderboard);
 router.patch("/leaderboard", setBoardOptIn);
 router.post("/code", createCode);

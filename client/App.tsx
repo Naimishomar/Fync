@@ -193,6 +193,7 @@ export type RootStackParamList = {
   CouplesCorner: undefined;
   CoupleSpace: undefined;
   CoupleLeaderboard: undefined;
+  CrushMatch: undefined;
   GiftShop: undefined;
   GiftProduct: { id: string };
   GiftCheckout: { product: any; customization: any };
@@ -410,6 +411,7 @@ function AppStack() {
       <Stack.Screen name="CouplesCorner" getComponent={() => require('./components/couples/CouplesCorner').default} />
       <Stack.Screen name="CoupleSpace" getComponent={() => require('./components/couples/CoupleSpace').default} />
       <Stack.Screen name="CoupleLeaderboard" getComponent={() => require('./components/couples/CoupleLeaderboard').default} />
+      <Stack.Screen name="CrushMatch" getComponent={() => require('./components/couples/CrushMatch').default} />
       <Stack.Screen name="GiftShop" getComponent={() => require('./components/gifts/GiftShop').default} />
       <Stack.Screen name="GiftProduct" getComponent={() => require('./components/gifts/GiftProduct').default} />
       <Stack.Screen name="GiftCheckout" getComponent={() => require('./components/gifts/GiftCheckout').default} />

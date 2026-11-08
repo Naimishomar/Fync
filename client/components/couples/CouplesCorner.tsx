@@ -290,6 +290,20 @@ const CouplesCorner = () => {
                 ))}
               </View>
 
+              <Pressable
+                onPress={() => navigation.navigate('CrushMatch')}
+                accessibilityRole="button"
+                className="rounded-2xl border bg-card p-4 mb-3 flex-row items-center active:opacity-85"
+                style={{ borderColor: '#db2777', gap: 12 }}
+              >
+                <Image source={{ uri: artUrl('assets/Heart with arrow/3D/heart_with_arrow_3d.png') }} style={{ width: 44, height: 44 }} contentFit="contain" cachePolicy="disk" />
+                <View style={{ flex: 1 }}>
+                  <Text className="font-semibold text-ink" style={{ fontSize: 15 }}>Dil Se · Secret crush</Text>
+                  <Text className="font-sans text-ink-3 text-xs mt-0.5" numberOfLines={2}>Pick 3 people secretly. It&apos;s a match only if they pick you too.</Text>
+                </View>
+                <Text style={{ color: '#db2777', fontSize: 20 }}>›</Text>
+              </Pressable>
+
               <Card style={{ paddingHorizontal: 16, marginBottom: 24 }}>
                 <ListRow
                   leading={<Text style={{ fontSize: 22 }}>🏆</Text>}
