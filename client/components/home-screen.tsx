@@ -43,7 +43,8 @@ import Reanimated from 'react-native-reanimated';
 import { PressScale, AnimatedCount, enterAt, buzz, usePop } from './ui/motion';
 import { ProgressiveImage } from './ui/ProgressiveImage';
 import { formatCount } from '../utils/format';
-import { GreetingCard, Flame } from './home/GreetingCard';
+import { Flame } from './home/GreetingCard';
+import { StoriesRow, STORIES_REFRESH } from './stories/Stories';
 
 import FyncRefreshControl from './ui/FyncRefreshControl';
 const FEED_TABS = ['For you', 'Following'];
@@ -668,6 +669,7 @@ export default function HomeScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    DeviceEventEmitter.emit(STORIES_REFRESH);
     setPage(1);
     setHasMore(true);
     await Promise.all([
@@ -899,7 +901,7 @@ export default function HomeScreen() {
     <View>
       {renderTabBar()}
       <View className="bg-transparent">
-        <GreetingCard name={user?.name} streak={(user as any)?.streakCount || 0} unread={unreadCount} />
+        <StoriesRow />
         <AdCarousel />
         {/* <CreatePost /> */}
         {showSkeleton && (

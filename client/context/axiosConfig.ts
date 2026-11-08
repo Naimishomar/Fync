@@ -41,6 +41,8 @@ const NO_CACHE_PREFIXES = [
   "/announcements",
   "/scores",
   "/hackathon-leaderboard",
+  // Stories expire and get seen; a cached strip shows dead or stale rings.
+  "/story",
 ];
 
 function isNoCacheUrl(url: string): boolean {
