@@ -9,6 +9,7 @@ import axios from '../../context/axiosConfig';
 import { Alert } from './AlertModal';
 import { getFullUrl } from '../../utils/imageUtils';
 import { useBottomInset } from '../../constants/layout';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../../constants/colors';
 import { Button, Empty } from './kit';
 
@@ -249,6 +250,7 @@ export default function CommentsSheet({
   const inputRef = useRef<TextInput>(null);
   const bottomInset = useBottomInset();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const navBarInset = useSafeAreaInsets().bottom;
   const keyboardUp = keyboardHeight > 0;
 
   /**
@@ -260,14 +262,18 @@ export default function CommentsSheet({
   useEffect(() => {
     const show = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => setKeyboardHeight(e.endCoordinates.height),
+      // Android reports the keyboard height with the nav bar subtracted
+      // (ime - systemBars insets), but this edge-to-edge modal reaches under the
+      // nav bar, so lifting by that height alone left the composer hidden
+      // behind exactly the nav bar's height. iOS reports the full height.
+      (e) => setKeyboardHeight(e.endCoordinates.height + (Platform.OS === 'android' ? navBarInset : 0)),
     );
     const hide = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
       () => setKeyboardHeight(0),
     );
     return () => { show.remove(); hide.remove(); };
-  }, []);
+  }, [navBarInset]);
 
   const currentUserId = String(currentUser?._id ?? currentUser?.id ?? '');
 
