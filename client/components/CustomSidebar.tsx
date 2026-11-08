@@ -6,6 +6,7 @@ import { visibleFeatures } from '../constants/features';
 import { C } from '../constants/colors';
 import { getFullUrl } from '../utils/imageUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ProfileQRCard from './ui/ProfileQR';
 
 /**
  * The drawer used to be the app's only feature menu: ~35 rows across seven
@@ -66,6 +67,11 @@ export default function CustomSidebar(props: any) {
                             </View>
                         </Pressable>
                         <IconBtn name="close" boxed onPress={() => props.navigation.closeDrawer()} accessibilityLabel="Close menu" style={{ marginRight: -4 }} />
+                    </View>
+
+                    {/* Paytm-style: your scannable profile code, right under your name. */}
+                    <View className="mb-3">
+                        <ProfileQRCard user={user as any} onNavigate={() => props.navigation.closeDrawer()} />
                     </View>
 
                     <Card padded={false} style={{ paddingHorizontal: 16 }}>

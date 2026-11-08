@@ -313,10 +313,12 @@ function HomeDrawer() {
         drawerStyle: {
           // Paper, not black: the drawer edge flashed black in light mode while sliding.
           backgroundColor: C.paper,
-          width: '75%',
+          // Full screen, sliding in from the left (Shahparpay-style); the
+          // sidebar carries its own close button.
+          width: '100%',
         },
         drawerType: 'front',
-        overlayColor: 'rgba(0,0,0,0.7)',
+        overlayColor: 'transparent',
       }}
     >
       <Drawer.Screen name="TabNavigator" component={TabLayout} />
@@ -571,6 +573,10 @@ const linking = {
       },
       ShareLinkResolver: {
         path: 's/:code',
+      },
+      // Profile QR codes (components/ui/ProfileQR.tsx) encode /u/<userId>.
+      PublicProfile: {
+        path: 'u/:userId',
       },
     },
   },

@@ -485,12 +485,33 @@ app.get('/.well-known/apple-app-site-association', (req, res) => {
 app.get('/privacy', (req, res) => res.type('html').send(privacyPage));
 app.get('/delete-account', (req, res) => res.type('html').send(deleteAccountPage));
 
+// Profile QR codes encode https://<api>/u/<userId>. Android only opens the app
+// straight from an https link when App Links are verified (assetlinks.json still
+// has a placeholder fingerprint), so a camera scan usually lands here in the
+// browser. Hand off to the app through an intent:// URL (Chrome) / fync://
+// scheme, falling back to the Play Store when the app is not installed.
+const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.naimishomar.fync';
+app.get('/u/:id', (req, res) => {
+  const id = String(req.params.id);
+  if (!/^[a-f0-9]{24}$/i.test(id)) return res.status(404).type('html').send('Profile not found');
+  const intent = `intent://u/${id}#Intent;scheme=fync;package=com.naimishomar.fync;S.browser_fallback_url=${encodeURIComponent(PLAY_URL)};end`;
+  res.type('html').send(`<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Open in Fync</title>
+<style>body{font-family:system-ui,sans-serif;background:#F5F2EC;color:#12100E;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0}
+main{text-align:center;padding:24px}a{display:inline-block;margin-top:16px;padding:14px 28px;border-radius:999px;background:#F97316;color:#12100E;font-weight:600;text-decoration:none}</style>
+</head><body><main><h2>Opening Fync…</h2><p>If nothing happens, tap below.</p>
+<a id="open" href="fync://u/${id}">Open profile in Fync</a>
+<p><a href="${PLAY_URL}" style="background:none;color:#57534E;padding:0">Get the app</a></p></main>
+<script>var a=/android/i.test(navigator.userAgent);var u=a?${JSON.stringify(intent)}:"fync://u/${id}";document.getElementById('open').href=u;location.href=u;</script>
+</body></html>`);
+});
+
 // Sharing Redirect Routes (Handles cases where app is not installed)
 const SHARING_PATHS = ['/view', '/movie', '/community', '/club', '/product', '/fync-media'];
 SHARING_PATHS.forEach(path => {
   app.get(path, (req, res) => {
     // Redirect to Play Store or a landing page
-    res.redirect('https://play.google.com/store/apps/details?id=com.fync.app');
+    res.redirect(PLAY_URL);
   });
 });
 

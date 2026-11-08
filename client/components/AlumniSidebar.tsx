@@ -4,10 +4,11 @@ import { DrawerContentScrollView } from '@react-navigation/drawer';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
 import { Alert } from './ui/AlertModal';
-import { Avatar, C, Card, IconTile, ListRow, Tag } from './ui/kit';
+import { Avatar, C, Card, IconBtn, IconTile, ListRow, Tag } from './ui/kit';
 import { isFeatureOn } from '../constants/features';
 import { getFullUrl } from '../utils/imageUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ProfileQRCard from './ui/ProfileQR';
 
 // Enable LayoutAnimation for Android
 if (
@@ -59,9 +60,10 @@ export default function AlumniSidebar(props: any) {
             <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0, paddingBottom: insets.bottom + 16 }}>
                 {/* Inset-based top so the avatar clears tall status bars / notches. */}
                 <View className="px-5 pb-4" style={{ paddingTop: insets.top + 16 }}>
+                    <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
                     <Pressable
                         onPress={() => go('Profile')}
-                        className="flex-row items-center mb-4 active:opacity-70"
+                        className="flex-row items-center flex-1 active:opacity-70"
                         style={{ gap: 12 }}
                         accessibilityRole="button"
                         accessibilityLabel="Open your profile"
@@ -72,6 +74,13 @@ export default function AlumniSidebar(props: any) {
                             <Text className="text-ink-3 text-sm" numberOfLines={1}>@{user?.username || 'username'}</Text>
                         </View>
                     </Pressable>
+                        <IconBtn name="close" boxed onPress={() => props.navigation.closeDrawer()} accessibilityLabel="Close menu" style={{ marginRight: -4 }} />
+                    </View>
+
+                    {/* Paytm-style: your scannable profile code, right under your name. */}
+                    <View className="mb-3">
+                        <ProfileQRCard user={user as any} onNavigate={() => props.navigation.closeDrawer()} />
+                    </View>
                     <Card padded={false} style={{ paddingHorizontal: 16 }}>
                         <ListRow
                             leading={<IconTile icon="star" color={C.alumni} />}
