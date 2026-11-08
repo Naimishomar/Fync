@@ -881,6 +881,7 @@ export default function HomeScreen() {
       items={FEED_TABS}
       value={activeTab === 'forYou' ? 'For you' : 'Following'}
       onChange={(t) => setActiveTab(t === 'For you' ? 'forYou' : 'following')}
+      style={{ marginTop: -10 }}
     />
   );
 
@@ -901,8 +902,8 @@ export default function HomeScreen() {
     <View>
       {renderTabBar()}
       <View className="bg-transparent">
-        <StoriesRow />
         <AdCarousel />
+        <StoriesRow />
         {/* <CreatePost /> */}
         {showSkeleton && (
           <View>

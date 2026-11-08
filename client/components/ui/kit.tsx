@@ -575,10 +575,10 @@ export const ListRow = memo(function ListRow({
 /* -------------------------------------------------------------------- tabs */
 /** Underline tabs: semibold labels, 2px brand underline on the selected one. */
 export function Tabs({
-  items, value, onChange, fill,
-}: { items: string[]; value: string; onChange: (v: string) => void; fill?: boolean }) {
+  items, value, onChange, fill, style,
+}: { items: string[]; value: string; onChange: (v: string) => void; fill?: boolean; style?: any }) {
   return (
-    <View style={[s.tabs, fill && { gap: 0 }]} accessibilityRole="tablist">
+    <View style={[s.tabs, fill && { gap: 0 }, style]} accessibilityRole="tablist">
       {items.map((t) => {
         const on = t === value;
         return (

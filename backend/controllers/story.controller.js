@@ -8,27 +8,30 @@ const HEX = /^#[0-9a-f]{6}$/i;
 const live = () => ({ expiresAt: { $gt: new Date() } });
 
 export const createStory = async (req, res) => {
-    const image = req.file?.path || null;
+    const image = req.files?.image?.[0]?.path || null;
+    const video = req.files?.video?.[0]?.path || null;
+    const dropUploads = () => { if (image) deleteFromR2(image); if (video) deleteFromR2(video); };
     try {
         const text = String(req.body.text || "").trim().slice(0, 300);
-        if (!image && !text) {
-            return res.status(400).json({ success: false, message: "Add a photo or some text" });
+        if (!image && !video && !text) {
+            return res.status(400).json({ success: false, message: "Add a photo, a video or some text" });
         }
         const active = await Story.countDocuments({ user: req.user._id, ...live() });
         if (active >= MAX_ACTIVE) {
-            if (image) deleteFromR2(image);
+            dropUploads();
             return res.status(429).json({ success: false, message: `You can have up to ${MAX_ACTIVE} stories at a time` });
         }
         const story = await Story.create({
             user: req.user._id,
             college: req.user.college || null,
             image,
+            video,
             text,
             bg: HEX.test(req.body.bg) ? req.body.bg : undefined,
         });
         res.status(201).json({ success: true, story });
     } catch (error) {
-        if (image) deleteFromR2(image);
+        dropUploads();
         console.error("createStory:", error.message);
         res.status(500).json({ success: false, message: "Could not post story" });
     }
@@ -69,6 +72,7 @@ export const getStoryFeed = async (req, res) => {
             groups.get(aid).stories.push({
                 _id: s._id,
                 image: s.image,
+                video: s.video,
                 text: s.text,
                 bg: s.bg,
                 createdAt: s.createdAt,
@@ -130,7 +134,7 @@ export const deleteStory = async (req, res) => {
         if (!mongoose.isValidObjectId(id)) return res.status(400).json({ success: false, message: "Invalid id" });
         const story = await Story.findOneAndDelete({ _id: id, user: req.user._id });
         if (!story) return res.status(404).json({ success: false, message: "Story not found" });
-        if (story.image) await deleteFromR2(story.image);
+        await Promise.all([story.image, story.video].filter(Boolean).map(deleteFromR2));
         res.json({ success: true });
     } catch (error) {
         console.error("deleteStory:", error.message);

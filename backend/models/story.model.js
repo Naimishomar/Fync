@@ -10,6 +10,7 @@ const storySchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     college: { type: String, default: null },
     image: { type: String, default: null },
+    video: { type: String, default: null },
     text: { type: String, trim: true, maxlength: 300, default: "" },
     bg: { type: String, default: "#F97316" },
     viewers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

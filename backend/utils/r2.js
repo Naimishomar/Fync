@@ -216,6 +216,15 @@ export const upload = multer({
   },
 });
 
+/** A story: one photo or one mp4 (client caps video at 30s and compresses) — 20 MB. */
+export const storyUpload = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 1024 * 1024 * 20, files: 1 },
+  fileFilter: (_req, file, cb) => {
+    cb(null, ["image/jpeg", "image/png", "image/jpg", "image/webp", "video/mp4"].includes(file.mimetype));
+  },
+});
+
 /** One full-resolution print photo per request — 25 MB (nginx allows more). */
 export const printPhotoUpload = multer({
   storage: memoryStorage,

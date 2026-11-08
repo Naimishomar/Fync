@@ -3,6 +3,7 @@ import {
   ActivityIndicator, DeviceEventEmitter, FlatList, Modal, Pressable, StatusBar, Text, TextInput, View, useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { Video, ResizeMode } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -12,7 +13,7 @@ import Toast from 'react-native-toast-message';
 import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { C } from '../../constants/colors';
-import { compressImage } from '../../utils/mediaUpload';
+import { compressImage, compressVideo } from '../../utils/mediaUpload';
 import { getFullUrl } from '../../utils/imageUtils';
 import Avatar from '../Avatar';
 import { Sheet, useKeyboardLift } from '../ui/Sheet';
@@ -20,7 +21,7 @@ import { Alert } from '../ui/AlertModal';
 import { tick } from '../ui/motion';
 
 type Story = {
-  _id: string; image?: string | null; text?: string; bg?: string;
+  _id: string; image?: string | null; video?: string | null; text?: string; bg?: string;
   createdAt: string; seen: boolean; viewCount?: number;
 };
 type Group = {
@@ -32,6 +33,8 @@ type Group = {
 export const STORIES_REFRESH = 'stories:refresh';
 
 const DURATION = 5000;
+/** Longest video story; the picker trims to this too. */
+const MAX_VIDEO_MS = 30000;
 const BGS = ['#F97316', '#DB2777', '#7C3AED', '#2563EB', '#0891B2', '#047857', '#12100E'];
 const RING = 68;
 const AV = 60;
@@ -162,6 +165,9 @@ function StoryViewer({
   const [gi, setGi] = useState(start);
   const [si, setSi] = useState(() => firstUnseen(groups[start]));
   const [ready, setReady] = useState(false);
+  // How long the current story's bar runs: 5s, or the video's own length.
+  const [dur, setDur] = useState(DURATION);
+  const [holding, setHolding] = useState(false);
   const [viewers, setViewers] = useState<any[] | null>(null);
   const progress = useSharedValue(0);
   const paused = useRef(false);
@@ -183,16 +189,17 @@ function StoryViewer({
   const prev = useCallback(() => {
     if (si > 0) setSi(si - 1);
     else if (gi > 0) { setGi(gi - 1); setSi(0); }
-    else { progress.value = 0; run(DURATION); }
-  }, [gi, si, progress, run]);
+    else { progress.value = 0; run(dur); }
+  }, [gi, si, progress, run, dur]);
 
 
-  // New story: reset the bar, wait for the image, mark seen.
+  // New story: reset the bar, wait for the media, mark seen.
   useEffect(() => {
     if (!story) return;
     cancelAnimation(progress);
     progress.value = 0;
-    setReady(!story.image);
+    setReady(!story.image && !story.video);
+    setDur(DURATION);
     if (!story.seen && !group.isMine) {
       onSeen(story._id);
       axios.post(`/story/${story._id}/view`).catch(() => {});
@@ -201,14 +208,15 @@ function StoryViewer({
   }, [story?._id]);
 
   useEffect(() => {
-    if (story && ready && !paused.current && viewers == null) run(DURATION * (1 - progress.value));
+    if (story && ready && !paused.current && viewers == null) run(dur * (1 - progress.value));
     return () => cancelAnimation(progress);
-  }, [story, ready, run, progress, viewers]);
+  }, [story, ready, run, progress, viewers, dur]);
 
   const hold = (on: boolean) => {
     paused.current = on;
+    setHolding(on);
     if (on) cancelAnimation(progress);
-    else if (ready) run(DURATION * (1 - progress.value));
+    else if (ready) run(dur * (1 - progress.value));
   };
 
   const barStyle = useAnimatedStyle(() => ({ width: `${progress.value * 100}%` }));
@@ -250,7 +258,25 @@ function StoryViewer({
     <Modal visible animationType="fade" statusBarTranslucent onRequestClose={onClose}>
       <StatusBar barStyle="light-content" />
       <View style={{ flex: 1, backgroundColor: '#000' }}>
-        {story.image ? (
+        {story.video ? (
+          // ponytail: the bar runs on a timer set to the video's length, so a
+          // long buffering stall can end the story early; sync to playback
+          // status if that shows up.
+          <Video
+            key={story._id}
+            source={{ uri: getFullUrl(story.video) ?? story.video }}
+            style={{ flex: 1 }}
+            resizeMode={ResizeMode.CONTAIN}
+            shouldPlay={ready && !holding && viewers == null}
+            onPlaybackStatusUpdate={(st: any) => {
+              if (st.isLoaded && !ready) {
+                setDur(Math.min(st.durationMillis || DURATION, MAX_VIDEO_MS));
+                setReady(true);
+              }
+            }}
+            onError={() => setReady(true)}
+          />
+        ) : story.image ? (
           <Image
             source={{ uri: getFullUrl(story.image) ?? undefined }}
             style={{ flex: 1 }}
@@ -264,7 +290,7 @@ function StoryViewer({
             <Text style={{ color: '#fff', fontSize: 28, lineHeight: 36, fontFamily: 'Inter_600SemiBold', textAlign: 'center' }}>{story.text}</Text>
           </View>
         )}
-        {story.image && story.text ? (
+        {(story.image || story.video) && story.text ? (
           <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 90, alignItems: 'center', paddingHorizontal: 24 }}>
             <Text style={{ color: '#fff', fontSize: 17, lineHeight: 24, textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.45)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, overflow: 'hidden' }}>{story.text}</Text>
           </View>
@@ -340,18 +366,29 @@ function StoryViewer({
 
 function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClose: () => void; onPosted: () => void }) {
   const insets = useSafeAreaInsets();
-  const [image, setImage] = useState<string | null>(null);
+  const [media, setMedia] = useState<{ uri: string; video: boolean } | null>(null);
+  const image = media?.uri ?? null;
   const [text, setText] = useState('');
   const [bg, setBg] = useState(BGS[0]);
   const [posting, setPosting] = useState(false);
   const lift = useKeyboardLift(visible);
 
-  const reset = () => { setImage(null); setText(''); setBg(BGS[0]); };
+  const reset = () => { setMedia(null); setText(''); setBg(BGS[0]); };
   const close = () => { if (!posting) { reset(); onClose(); } };
 
   const pick = async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.9 });
-    if (!res.canceled && res.assets[0]) setImage(res.assets[0].uri);
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      quality: 0.9,
+      videoMaxDuration: MAX_VIDEO_MS / 1000,
+    });
+    const a = res.canceled ? null : res.assets[0];
+    if (!a) return;
+    if (a.type === 'video' && (a.duration ?? 0) > MAX_VIDEO_MS + 500) {
+      Toast.show({ type: 'error', text1: 'Pick a video up to 30 seconds' });
+      return;
+    }
+    setMedia({ uri: a.uri, video: a.type === 'video' });
   };
 
   const share = async () => {
@@ -361,7 +398,10 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
       const form = new FormData();
       form.append('text', text.trim());
       form.append('bg', bg);
-      if (image) {
+      if (media?.video) {
+        const uri = await compressVideo(media.uri);
+        form.append('video', { uri, name: 'story.mp4', type: 'video/mp4' } as any);
+      } else if (image) {
         const uri = await compressImage(image);
         form.append('image', { uri, name: uri.split('/').pop() || 'story.jpg', type: uri.endsWith('.png') ? 'image/png' : 'image/jpeg' } as any);
       }
@@ -385,7 +425,9 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
     <Modal visible={visible} animationType="slide" statusBarTranslucent onRequestClose={close}>
       <StatusBar barStyle="light-content" />
       <View style={{ flex: 1, backgroundColor: image ? '#000' : bg }}>
-        {image ? <Image source={{ uri: image }} style={{ flex: 1 }} contentFit="contain" /> : null}
+        {media?.video ? (
+          <Video source={{ uri: media.uri }} style={{ flex: 1 }} resizeMode={ResizeMode.CONTAIN} shouldPlay isLooping />
+        ) : image ? <Image source={{ uri: image }} style={{ flex: 1 }} contentFit="contain" /> : null}
 
         <View style={[{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 }, image
           ? { position: 'absolute', left: 0, right: 0, bottom: (lift || insets.bottom) + 90 }
@@ -412,7 +454,7 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
           </Pressable>
           <View style={{ flex: 1 }} />
           {image ? (
-            <Pressable onPress={() => setImage(null)} hitSlop={10} accessibilityLabel="Remove photo" className="active:opacity-70"
+            <Pressable onPress={() => setMedia(null)} hitSlop={10} accessibilityLabel="Remove photo or video" className="active:opacity-70"
               style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name="trash-outline" size={20} color="#fff" />
             </Pressable>
@@ -427,7 +469,7 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
           <Pressable onPress={pick} className="active:opacity-70" accessibilityRole="button"
             style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 48, paddingHorizontal: 18, borderRadius: 24, backgroundColor: 'rgba(0,0,0,0.35)' }}>
             <Ionicons name="images-outline" size={20} color="#fff" />
-            <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>{image ? 'Change photo' : 'Photo'}</Text>
+            <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>{image ? 'Change' : 'Photo / video'}</Text>
           </Pressable>
           <View style={{ flex: 1 }} />
           <Pressable onPress={share} disabled={!canShare || posting} className="active:opacity-70" accessibilityRole="button"
