@@ -52,7 +52,7 @@ const Item = ({ feature, columns, onOpen }: { feature: Feature; columns: number;
 /** A titled card of features, a grid of round icons inside it. */
 const Group = ({ title, items, columns, onOpen }: { title: string; items: Feature[]; columns: number; onOpen: (f: Feature) => void }) => (
   <View className="bg-card border border-line rounded-2xl p-4 mb-3">
-    <Text className="font-semibold text-ink mb-4" style={{ fontSize: 16 }} accessibilityRole="header">
+    <Text className="font-semibold text-accent-text mb-4" style={{ fontSize: 16 }} accessibilityRole="header">
       {title}
     </Text>
     <View className="flex-row flex-wrap" style={{ rowGap: 20, marginHorizontal: -4 }}>
