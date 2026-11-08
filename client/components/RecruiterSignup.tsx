@@ -13,7 +13,7 @@ import Checkbox from 'expo-checkbox';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
-import AuthPoster from './ui/AuthPoster';
+import AuthHeader from './onboarding/AuthHeader';
 import { C } from '../constants/colors';
 import { Button, FormField } from './ui/kit';
 import { useBottomInset } from '../constants/layout';
@@ -128,32 +128,12 @@ export default function RecruiterSignup() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View className="flex-1 bg-night">
-
-            {/* The recruiter cut of the masthead. Same structure as the student
-                screens, different pitch and audience colour — a recruiter has no
-                use for "your campus, your craft". */}
-            <AuthPoster mode="recruiter" grow />
-
-            <View
-              className="bg-paper rounded-t-sheet px-gutter"
-              style={{ marginTop: -22, paddingTop: 8, paddingBottom: bottomInset }}
-            >
-              <Image
-                source={require('../assets/fync-logo.jpg')}
-                style={{ width: 72, height: 72, borderRadius: 36, alignSelf: 'center', marginTop: 16 }}
-                resizeMode="cover"
-                accessibilityLabel="Fync"
-              />
-
-              <Text className="font-display text-ink text-center mt-4" style={{ fontSize: 22 }} accessibilityRole="header">Join as a recruiter</Text>
-              <Text className="font-sans text-sm text-ink-2 text-center mt-2 mb-6">
-                Hire top talent and host internships.
-              </Text>
-
+          <View className="flex-1 bg-paper">
+            <AuthHeader title="Join as a recruiter" sub="Hire top talent and host internships." />
+            <View className="px-gutter" style={{ paddingBottom: bottomInset }}>
               {!otpSent ? (
                 <>
-                  <View className="bg-card border border-line rounded-2xl p-4 mb-4" style={{ gap: 16 }}>
+                  <View className="mb-6" style={{ gap: 16 }}>
                     <FormField label="Work email" placeholder="you@company.com" value={email} onChangeText={setEmail}
                       keyboardType="email-address" autoCapitalize="none" />
                     <FormField label="Username" placeholder="How you appear to students" value={username}
@@ -173,7 +153,7 @@ export default function RecruiterSignup() {
                 </>
               ) : (
                 <>
-                  <View className="bg-card border border-line rounded-2xl p-4 mb-6">
+                  <View className="mb-6">
                     <FormField
                       label="Verification code"
                       hint={`Sent to ${email || 'your inbox'}`}

@@ -18,6 +18,8 @@ import { useBottomInset } from '../constants/layout';
 import CommentsSheet from './ui/CommentsSheet';
 import { AppBar, IconBtn, Empty, Button, ListRow, IconTile, Sheet, FormField } from './ui/kit';
 import RepostModal from './ui/RepostModal';
+import { HeartBurst, useDoubleTap } from './ui/HeartBurst';
+import ZoomableImage from './ui-extra/ZoomableImage';
 import Reanimated, { Easing, Keyframe } from 'react-native-reanimated';
 import { tick, usePop } from './ui/motion';
 import { PostSkeleton, ShortsSkeleton } from './Skeleton';
@@ -384,6 +386,18 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         }
     }, [isLiked, likeCount, endpoints.like, popLike]);
 
+    // Single tap keeps the fit/fill toggle; double tap likes (never unlikes).
+    // handleLike ticks itself, so only an already-liked post ticks here.
+    const [burst, setBurst] = useState(0);
+    const onPhotoPress = useDoubleTap(
+        () => setResizeMode(prev => !prev),
+        () => {
+            setBurst(n => n + 1);
+            if (isLiked) tick();
+            else handleLike();
+        },
+    );
+
     /**
      * Repost, one tap. Optimistic, then reconciled from the count the server
      * settled on, so two devices sharing at once cannot leave a number here
@@ -635,7 +649,8 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                     </AppBar>
 
                     <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                        <Reanimated.View entering={IMAGE_ENTER} style={{ position: 'relative' }}>
+                        {/* zIndex: a pinch-zoomed photo draws over the actions below. */}
+                        <Reanimated.View entering={IMAGE_ENTER} style={{ position: 'relative', zIndex: 10 }}>
                             <FlatList keyboardShouldPersistTaps="handled"
                                 data={data.image || []}
                                 horizontal pagingEnabled showsHorizontalScrollIndicator={false}
@@ -643,11 +658,14 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 // Settled page only: setting state on every scroll frame re-rendered the whole screen mid-swipe.
                                 onMomentumScrollEnd={(e) => setCurrentImageIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
                                 renderItem={({ item }) => (
-                                    <Pressable onPress={() => setResizeMode(prev => !prev)}>
-                                        <ExpoImage source={{ uri: getFullUrl(item) || '' }} style={{ width: width, height: width, backgroundColor: C.paper2 }} contentFit={resizeMode ? "contain" : "cover"} cachePolicy="disk" transition={300} />
-                                    </Pressable>
+                                    <ZoomableImage>
+                                        <Pressable onPress={onPhotoPress}>
+                                            <ExpoImage source={{ uri: getFullUrl(item) || '' }} style={{ width: width, height: width, backgroundColor: C.paper2 }} contentFit={resizeMode ? "contain" : "cover"} cachePolicy="disk" transition={300} />
+                                        </Pressable>
+                                    </ZoomableImage>
                                 )}
                             />
+                            <HeartBurst trigger={burst} />
                             {data.image?.length > 1 && (
                                 <View className="absolute top-3 right-3 bg-black/50 px-2 py-1 rounded-lg">
                                     <Text className="text-white text-label font-semibold">

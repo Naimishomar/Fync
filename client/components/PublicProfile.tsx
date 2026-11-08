@@ -14,6 +14,7 @@ import GitHubStatsCard from './profile/GitHubStatsCard';
 import { C } from '../constants/colors';
 import { AppBar, Button, Card, Empty, IconBtn, IconTile, ListRow, Tag, TagRow } from './ui/kit';
 import { ProgressiveImage } from './ui/ProgressiveImage';
+import { ActivityCalendar } from './profile-shared/ActivityCalendar';
 import { ProfileHero, GeneratedBanner, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab, AnimatedFlashList, useProfileScroll, CompactProfileBar } from './profile-shared/ProfileHeader';
 import Reanimated from 'react-native-reanimated';
 import { usePop } from './ui/motion';
@@ -545,6 +546,7 @@ const PublicProfile = () => {
                                     <Button title="Message" icon="chatbubble-ellipses-outline" style={{ flex: 1 }} onPress={startChat} />
                                 </View>
                             )}
+                            <ActivityCalendar userId={profileUser._id} streak={(profileUser as any).streakCount} highest={(profileUser as any).highestStreak} />
                         </ProfileHero>
 
                         <ProfileTabs items={PUBLIC_TABS} value={activeTab} onChange={setActiveTab} />

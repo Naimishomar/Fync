@@ -8,6 +8,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Avatar from "./Avatar";
 import { C } from '../constants/colors';
 import { AppBar, Button, Empty, ListRow, SearchField, SectionHeader } from './ui/kit';
+import FollowSuggestions from './FollowSuggestions';
+
+const RECENT_KEY = 'fync:recentSearches';
+const RECENT_MAX = 8;
 
 interface User {
   _id: string;
@@ -17,6 +21,10 @@ interface User {
   user_access?: 'admin' | 'user' | 'alumni';
 }
 
+// A recent is either a person that was opened or a query that was submitted.
+type Recent = User | { _id: string; query: string };
+const isQuery = (r: Recent): r is { _id: string; query: string } => 'query' in r;
+
 const SearchScreen = () => {
   const autoHideTabBar = useTabBarAutoHide();
   // Also mounted as the recruiter "Find Talent" tab, under the floating bar.
@@ -24,7 +32,7 @@ const SearchScreen = () => {
   const navigation = useNavigation<any>();
   const [query, setQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [recentSearches, setRecentSearches] = useState<User[]>([]);
+  const [recentSearches, setRecentSearches] = useState<Recent[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchError, setSearchError] = useState(false);
 
@@ -72,26 +80,35 @@ const SearchScreen = () => {
 
   // Navigate first: waiting on storage delayed the tap, and a storage error
   // swallowed it entirely.
-  const handleUserPress = useCallback((user: User) => {
-    navigation.navigate("PublicProfile", { userId: user._id, user });
+  const pushRecent = useCallback((entry: Recent) => {
     setRecentSearches((prev) => {
-      const updated = [user, ...prev.filter((item) => item._id !== user._id)].slice(0, 10);
-      AsyncStorage.setItem("recentSearches", JSON.stringify(updated)).catch(() => {});
+      const updated = [entry, ...prev.filter((item) => item._id !== entry._id)].slice(0, RECENT_MAX);
+      AsyncStorage.setItem(RECENT_KEY, JSON.stringify(updated)).catch(() => {});
       return updated;
     });
-  }, [navigation]);
+  }, []);
+
+  const handleUserPress = useCallback((user: User) => {
+    navigation.navigate("PublicProfile", { userId: user._id, user });
+    pushRecent(user);
+  }, [navigation, pushRecent]);
+
+  const onSubmit = () => {
+    const q = query.trim();
+    if (q) pushRecent({ _id: `q:${q.toLowerCase()}`, query: q });
+  };
 
   const removeItem = useCallback((userId: string) => {
     setRecentSearches((prev) => {
       const updated = prev.filter((i) => i._id !== userId);
-      AsyncStorage.setItem("recentSearches", JSON.stringify(updated)).catch(() => {});
+      AsyncStorage.setItem(RECENT_KEY, JSON.stringify(updated)).catch(() => {});
       return updated;
     });
   }, []);
 
   const clearAll = () => {
     setRecentSearches([]);
-    AsyncStorage.removeItem("recentSearches").catch(() => {});
+    AsyncStorage.removeItem(RECENT_KEY).catch(() => {});
   };
 
   useFocusEffect(
@@ -102,9 +119,10 @@ const SearchScreen = () => {
 
   const loadRecentSearches = async () => {
     try {
-      const stored = await AsyncStorage.getItem("recentSearches");
+      // Old key held people only; read it once so nobody loses their history.
+      const stored = (await AsyncStorage.getItem(RECENT_KEY)) ?? (await AsyncStorage.getItem("recentSearches"));
       if (stored) {
-        setRecentSearches(JSON.parse(stored));
+        setRecentSearches((JSON.parse(stored) as Recent[]).slice(0, RECENT_MAX));
       }
     } catch (err) {
       console.log("Failed to load recent searches", err);
@@ -114,8 +132,10 @@ const SearchScreen = () => {
   const renderResult = useCallback(({ item }: { item: User }) => (
     <UserRow item={item} onPress={handleUserPress} />
   ), [handleUserPress]);
-  const renderRecent = useCallback(({ item }: { item: User }) => (
-    <UserRow item={item} onPress={handleUserPress} onRemove={removeItem} />
+  const renderRecent = useCallback(({ item }: { item: Recent }) => (
+    isQuery(item)
+      ? <QueryRow item={item} onPress={setQuery} onRemove={removeItem} />
+      : <UserRow item={item} onPress={handleUserPress} onRemove={removeItem} />
   ), [handleUserPress, removeItem]);
 
   return (
@@ -129,6 +149,7 @@ const SearchScreen = () => {
             placeholder="Search people"
             value={query}
             onChangeText={setQuery}
+            onSubmitEditing={onSubmit}
           />
         </View>
 
@@ -160,7 +181,7 @@ const SearchScreen = () => {
                 </View>
               ) : !loading && searchResults.length === 0 ? (
                 <View className="mt-10">
-                  <Empty icon="search-outline" title="No users found" hint="Try a different name or username." />
+                  <Empty icon="search-outline" title="No results" hint={`Nobody matches "${query.trim()}". Try a different name or username.`} />
                 </View>
               ) : null
             }
@@ -183,16 +204,43 @@ const SearchScreen = () => {
               />
             }
             ListEmptyComponent={
-              <View className="mt-10">
+              <View className="mt-6">
                 <Empty icon="time-outline" title="No recent searches" hint="People you look up will show here." />
               </View>
             }
+            // Same endpoint and card row the feed uses (/user/suggestions).
+            ListFooterComponent={<View style={{ marginTop: 16, marginHorizontal: -20 }}><FollowSuggestions /></View>}
           />
         )}
       </View>
     </View>
   );
 };
+
+const RemoveBtn = ({ label, onPress }: { label: string; onPress: () => void }) => (
+  <Pressable
+    onPress={onPress}
+    className="w-8 h-8 rounded-full bg-paper-2 items-center justify-center active:opacity-85"
+    hitSlop={8}
+    accessibilityRole="button"
+    accessibilityLabel={`Remove ${label} from recent`}
+  >
+    <Ionicons name="close" size={14} color={C.ink3} />
+  </Pressable>
+);
+
+const QueryRow = memo(function QueryRow({ item, onPress, onRemove }: {
+  item: { _id: string; query: string }; onPress: (q: string) => void; onRemove: (id: string) => void;
+}) {
+  return (
+    <ListRow
+      onPress={() => onPress(item.query)}
+      icon="time-outline"
+      title={item.query}
+      right={<RemoveBtn label={item.query} onPress={() => onRemove(item._id)} />}
+    />
+  );
+});
 
 const UserRow = memo(function UserRow({ item, onPress, onRemove }: {
   item: User; onPress: (u: User) => void; onRemove?: (id: string) => void;
@@ -203,17 +251,7 @@ const UserRow = memo(function UserRow({ item, onPress, onRemove }: {
       leading={<Avatar user={item as any} size={44} />}
       title={item.username}
       subtitle={item.name}
-      right={onRemove ? (
-        <Pressable
-          onPress={() => onRemove(item._id)}
-          className="w-8 h-8 rounded-full bg-paper-2 items-center justify-center active:opacity-85"
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={`Remove ${item.username} from recent`}
-        >
-          <Ionicons name="close" size={14} color={C.ink3} />
-        </Pressable>
-      ) : undefined}
+      right={onRemove ? <RemoveBtn label={item.username} onPress={() => onRemove(item._id)} /> : undefined}
     />
   );
 });

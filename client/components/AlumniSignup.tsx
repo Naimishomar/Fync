@@ -18,7 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 // @ts-ignore
 import loginImage from '../assets/loginImage.png';
-import AuthPoster from './ui/AuthPoster';
+import AuthHeader from './onboarding/AuthHeader';
 import { C } from '../constants/colors';
 import { Button, FormField } from './ui/kit';
 
@@ -118,29 +118,12 @@ export default function AlumniSignup() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View className="flex-1 bg-night">
-
-            <AuthPoster mode="alumni" grow />
-
-            <View
-              className="bg-paper rounded-t-sheet px-gutter"
-              style={{ marginTop: -22, paddingTop: 8, paddingBottom: 16 + insets.bottom }}
-            >
-              <Image
-                source={require('../assets/fync-logo.jpg')}
-                style={{ width: 72, height: 72, borderRadius: 36, alignSelf: 'center', marginTop: 16 }}
-                resizeMode="cover"
-                accessibilityLabel="Fync"
-              />
-
-              <Text className="font-display text-ink text-center mt-4" style={{ fontSize: 22 }} accessibilityRole="header">Join as alumni</Text>
-              <Text className="font-sans text-sm text-ink-2 text-center mt-2 mb-6">
-                Mentor the juniors who are where you were.
-              </Text>
-
+          <View className="flex-1 bg-paper">
+            <AuthHeader title="Join as alumni" sub="Mentor the juniors who are where you were." />
+            <View className="px-gutter" style={{ paddingBottom: 16 + insets.bottom }}>
               {!otpSent ? (
                 <>
-                  <View className="bg-card border border-line rounded-2xl p-4 mb-4" style={{ gap: 16 }}>
+                  <View className="mb-6" style={{ gap: 16 }}>
                     <FormField label="Work email" placeholder="you@company.com" value={email} onChangeText={setEmail}
                       keyboardType="email-address" autoCapitalize="none" />
                     <FormField label="Mobile number" placeholder="10-digit number" keyboardType="phone-pad"
@@ -158,7 +141,7 @@ export default function AlumniSignup() {
                 </>
               ) : (
                 <>
-                  <View className="bg-card border border-line rounded-2xl p-4 mb-6">
+                  <View className="mb-6">
                     <FormField
                       label="Verification code"
                       hint={`Sent to ${email || 'your inbox'}`}

@@ -13,6 +13,7 @@ import axios from '../context/axiosConfig';
 import { takePrefetchedFeed } from '../utils/feedPrefetch';
 import FollowSuggestions from './FollowSuggestions';
 import { HeartBurst, useDoubleTap } from './ui/HeartBurst';
+import ZoomableImage from './ui-extra/ZoomableImage';
 import { tapHaptic } from '../utils/haptics';
 // @ts-ignore
 import AdCarousel from './AdCarousel';
@@ -218,7 +219,7 @@ const MAX_CHAR_LIMIT = 150;
   );
 
   const renderImage = ({ item: imageUrl }: { item: string }) => (
-    <View style={{ width: mediaWidth }}>
+    <ZoomableImage style={{ width: mediaWidth }}>
       <Pressable onPress={onMediaPress}>
         {/* recyclingKey is tied to the URL inside ProgressiveImage, so a
             recycled row never flashes the previous post's photo. */}
@@ -229,7 +230,7 @@ const MAX_CHAR_LIMIT = 150;
           priority={index === 0 ? "high" : "normal"}
         />
       </Pressable>
-    </View>
+    </ZoomableImage>
   );
 
   const handleShare = async () => {
@@ -334,7 +335,8 @@ const MAX_CHAR_LIMIT = 150;
 
       {/* Media (Full Width) */}
       {!!item.image?.length && (
-      <View className="relative mb-3">
+      // zIndex: a pinch-zoomed photo draws over the caption and actions below.
+      <View className="relative mb-3" style={{ zIndex: 10 }}>
         {/* Most posts carry one photo: skip mounting a nested list for it.
             The carousel is keyed by post so a recycled cell starts on slide 1. */}
         {images.length === 1 ? (

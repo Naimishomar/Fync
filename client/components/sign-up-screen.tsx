@@ -13,7 +13,7 @@ import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 // @ts-ignore
 import axios from '../context/axiosConfig';
-import AuthPoster from './ui/AuthPoster';
+import AuthHeader from './onboarding/AuthHeader';
 import { C } from '../constants/colors';
 import { Button, FormField } from './ui/kit';
 import { useBottomInset } from '../constants/layout';
@@ -140,29 +140,12 @@ export default function SignUpScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 bg-night">
+        <View className="flex-1 bg-paper">
+          <AuthHeader title="Create your account" sub="Notes, placements, contests and the people already doing it." />
+          <View style={{ paddingBottom: bottomInset }}>
 
-          <AuthPoster mode="signup" grow />
-
-          {/* The paper sheet. Rounded at the top and pulled up over the
-              masthead so the content curves away from it, rather than the two
-              meeting on a hard horizontal seam. */}
-          <View
-            className="bg-paper rounded-t-sheet"
-            style={{ marginTop: -22, paddingTop: 8, paddingBottom: bottomInset }}
-          >
-
-          <View className="px-gutter pt-6 pb-2">
-            <Image
-              source={require('../assets/fync-logo.jpg')}
-              style={{ width: 72, height: 72, borderRadius: 36, alignSelf: 'center' }}
-              resizeMode="cover"
-              accessibilityLabel="Fync"
-            />
-          </View>
-
-          <View className="px-gutter mt-5">
-            <View className="bg-card border border-line rounded-2xl p-4" style={{ gap: 16 }}>
+          <View className="px-gutter">
+            <View style={{ gap: 16 }}>
               <FormField label="Email" placeholder="you@college.ac.in"
                 value={email} onChangeText={(v) => { setEmail(v); resetOtp(); }}
                 keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
@@ -205,7 +188,7 @@ export default function SignUpScreen() {
             {/* Step 2 appears in place rather than replacing the form, so the
                 sequence — password first, then the code — stays visible. */}
             {otpSent && (
-              <View className="bg-card border border-line rounded-2xl p-4 mt-3">
+              <View className="mt-4">
                 <FormField
                   label="Enter the code from your email"
                   hint="Step 2 of 2 · code sent"

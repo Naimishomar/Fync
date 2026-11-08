@@ -1,7 +1,7 @@
 import {Image, Keyboard, KeyboardAvoidingView, Pressable, Text, TouchableWithoutFeedback, View} from 'react-native'
 import React, { useCallback, useState } from 'react';
 import { ScrollView } from 'react-native';
-import AuthPoster from './ui/AuthPoster';
+import AuthHeader from './onboarding/AuthHeader';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from '../context/axiosConfig';
 //@ts-ignore
@@ -99,36 +99,15 @@ const ForgotPassword = ({ route, navigation }: any) => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="flex-1 bg-night">
-
-            <AuthPoster mode="login" grow />
-
-            <View
-              className="bg-paper rounded-t-sheet"
-              style={{ marginTop: -22, paddingTop: 8, paddingBottom: bottomInset }}
-            >
-              <View className="px-gutter pt-6 pb-2">
-                <Image
-                  source={require('../assets/fync-logo.jpg')}
-                  style={{ width: 72, height: 72, borderRadius: 36, alignSelf: 'center' }}
-                  resizeMode="cover"
-                  accessibilityLabel="Fync"
-                />
-
-                <Text className="font-display text-ink text-center mt-4" style={{ fontSize: 22 }} accessibilityRole="header">
-                  {isOtpSent ? "Verify and reset" : "Forgot password"}
-                </Text>
-                <Text className="font-sans text-sm text-ink-2 text-center mt-2">
-                  {isOtpSent
-                    ? "Enter the code we sent and choose a new password."
-                    : "We will email you a code to reset it."}
-                </Text>
-              </View>
-
-              <View className="px-gutter pt-4">
+          <View className="flex-1 bg-paper">
+            <AuthHeader inset={false}
+              title={isOtpSent ? "Verify and reset" : "Reset your password"}
+              sub={isOtpSent ? "Enter the code we sent and choose a new password." : "We will email you a code to reset it."} />
+            <View style={{ paddingBottom: bottomInset }}>
+              <View className="px-gutter">
                 {/* One card holding the whole flow, so the screen does not
                     change shape when the OTP and password fields appear. */}
-                <View className="bg-card border border-line rounded-2xl p-4 mb-6" style={{ gap: 16 }}>
+                <View className="mb-6" style={{ gap: 16 }}>
                   <FormField
                     label="Email"
                     placeholder="you@college.ac.in"

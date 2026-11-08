@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import 'react-native-get-random-values';
 import React from "react";
-import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
+import { View, ActivityIndicator, Text, StyleSheet, Dimensions } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import NetInfo from "@react-native-community/netinfo";
 import NoInternetScreen from "./components/NoInternetScreen";
@@ -587,31 +587,36 @@ const linking = {
 // One calm toast shape; the icon (not colour alone) says which kind it is.
 // Module scope: built inside App, every App render made new component types and
 // remounted the visible toast (re-firing its haptic).
-const toast = (icon: React.ComponentProps<typeof Ionicons>["name"], tint: "success" | "ink" | "danger", haptic?: () => void) =>
+const toast = (icon: React.ComponentProps<typeof Ionicons>["name"], tint: "success" | "brand" | "danger", haptic?: () => void) =>
   function ToastView(props: any) {
     // Once per toast: when it shows, or a new one replaces it while visible.
     React.useEffect(() => { if (props.isVisible !== false) haptic?.(); }, [props.isVisible, props.text1, props.text2]);
+    const color = tint === "brand" ? C.accentText : C[tint];
     return (
       <View
-        className="mx-5 my-2 px-4 py-3 bg-card rounded-2xl flex-row items-center border border-line"
-        style={{ gap: 12, minHeight: 56, boxShadow: "0 4px 16px rgba(18,16,14,0.10)" }}
+        className="bg-card border border-line flex-row items-center self-center"
+        style={{
+          width: Dimensions.get("window").width - 32, maxWidth: 480, minHeight: 56, borderRadius: 20, gap: 12,
+          paddingLeft: 10, paddingRight: 16, paddingVertical: 10, boxShadow: "0 8px 24px rgba(18,16,14,0.12)",
+        }}
         accessibilityLiveRegion="polite"
+        accessibilityRole="alert"
       >
-        <View className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center">
-          <Ionicons name={icon} size={20} color={C[tint]} />
+        <View className="w-9 h-9 rounded-full items-center justify-center" style={{ backgroundColor: color + "22" }}>
+          <Ionicons name={icon} size={20} color={color} />
         </View>
         <View className="flex-1 min-w-0">
           <Text className="text-ink font-semibold" style={{ fontSize: 14, lineHeight: 19 }} numberOfLines={2}>{props.text1}</Text>
-          {!!props.text2 && <Text className="text-ink-3 font-sans mt-0.5" style={{ fontSize: 13, lineHeight: 18 }} numberOfLines={3}>{props.text2}</Text>}
+          {!!props.text2 && <Text className="text-ink-3 font-sans" style={{ fontSize: 13, lineHeight: 18 }} numberOfLines={2}>{props.text2}</Text>}
         </View>
       </View>
     );
   };
 const warn = () => { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {}); };
 // Tints are palette keys, read at render so they follow the theme.
-const SuccessToast = toast("checkmark-circle-outline", "success", buzz);
-const InfoToast = toast("information-circle-outline", "ink");
-const ErrorToast = toast("alert-circle-outline", "danger", warn);
+const SuccessToast = toast("checkmark", "success", buzz);
+const InfoToast = toast("information", "brand");
+const ErrorToast = toast("alert", "danger", warn);
 const toastConfig = { success: SuccessToast, info: InfoToast, error: ErrorToast };
 
 export default function App() {

@@ -16,6 +16,7 @@ import { Alert } from './ui/AlertModal';
 
 import { Button, Card, Empty, FormField, IconBtn, IconTile, ListRow, Sheet, Tag, TagRow } from './ui/kit';
 import { ProfileHero, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab, AnimatedFlashList, useProfileScroll, CompactProfileBar } from './profile-shared/ProfileHeader';
+import { ActivityCalendar } from './profile-shared/ActivityCalendar';
 import { GridSkeleton } from './Skeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../constants/colors';
@@ -636,6 +637,7 @@ function Profile() {
       </View>
 
       <ProfileStrength user={user} />
+      <ActivityCalendar userId={user?._id} streak={(user as any)?.streakCount} highest={(user as any)?.highestStreak} refreshKey={postCount} />
     </ProfileHero>
   );
 

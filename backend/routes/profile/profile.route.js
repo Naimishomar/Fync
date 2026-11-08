@@ -8,6 +8,7 @@ import { createCertificate, getUserCertificates, updateCertificate, deleteCertif
 import { getScore, recalculateScore } from "../../controllers/profile/fyncScore.controller.js";
 import { getGitHubOAuthUrl, githubOAuthCallback, syncGitHub, disconnectGitHub } from "../../controllers/profile/github.controller.js";
 import { getFullProfile, updateVisibility } from "../../controllers/profile/profile.controller.js";
+import { getActivity } from "../../controllers/profile/activity.controller.js";
 import { generateResumePDF, uploadResume } from "../../controllers/profile/resume.controller.js";
 import { addEducation, updateEducation, deleteEducation, updateCodingStats } from "../../controllers/profile/education.controller.js";
 import { resumeUpload, upload } from "../../utils/r2.js";
@@ -21,6 +22,8 @@ const router = express.Router();
 // ─── Full Profile ─────────────────────────────────────────────────────────────
 router.get("/full/:userId",        verifyToken, cacheMiddleware(300, { tags: (req) => [`profile:${req.params.userId}`] }), getFullProfile);
 router.patch("/visibility",        verifyToken, updateVisibility);
+// Per-viewer cache (owner sees private posts); new posts/shorts bump these tags, the 5 min TTL covers deletes and midnight.
+router.get("/activity/:userId",    verifyToken, cacheMiddleware(300, { tags: (req) => [`posts:user:${req.params.userId}`, `shorts:user:${req.params.userId}`] }), getActivity);
 
 // ─── Projects ─────────────────────────────────────────────────────────────────
 router.post("/projects",                          verifyToken, upload.array('images', 5), r2UploadMiddleware({ images: 'projects' }), createProject);

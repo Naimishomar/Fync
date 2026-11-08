@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useLayoutEffect, useMemo, useCallback } from "react";
-import {View, Text, TextInput, FlatList, Pressable, KeyboardAvoidingView, Platform, TouchableOpacity, Linking, Keyboard, UIManager, LayoutAnimation, useWindowDimensions} from 'react-native'
+import {View, Text, TextInput, FlatList, KeyboardAvoidingView, Platform, TouchableOpacity, Keyboard, UIManager, LayoutAnimation, useWindowDimensions} from 'react-native'
 import { Image } from 'expo-image';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { supabase } from "../utils/supabase";
@@ -12,17 +12,32 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { Video, ResizeMode } from "expo-av";
-import { ActivityIndicator, Modal } from "react-native";
+import { Modal } from "react-native";
 import { Alert } from './ui/AlertModal';
 import { AppBar, Button, Empty, IconBtn } from './ui/kit';
 import Avatar from './Avatar';
 import { confirmBlock, report } from '../utils/safety';
 import { C } from '../constants/colors';
 import { tapHaptic } from '../utils/haptics';
+import { MessageRow, TypingBubble, dayLabel, isSameDay } from './chat/MessageRow';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
+
+
+/** What a reply stores of the message it quotes: enough to render the quote.
+ *  Storing the whole message nested every earlier quote (and the full sender
+ *  profile) inside each reply, so long reply chains kept growing. */
+const quoteOf = (m: any) => (m ? {
+  _id: m._id,
+  message: m.message,
+  messageType: m.messageType,
+  mediaUrl: m.mediaUrl,
+  sender: m.sender && typeof m.sender === 'object'
+    ? { _id: m.sender._id, name: m.sender.name, username: m.sender.username }
+    : m.sender,
+} : null);
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -306,7 +321,7 @@ const Chat = ({ route, navigation }: any) => {
       sender: user,
       message: text,
       createdAt: new Date().toISOString(),
-      replyTo: replyingTo || null,
+      replyTo: quoteOf(replyingTo),
       optimistic: true,
     };
 
@@ -392,7 +407,7 @@ const Chat = ({ route, navigation }: any) => {
           message: "",
           messageType: type,
           mediaUrl: mediaUrl,
-          replyTo: replyingTo ? replyingTo : null,
+          replyTo: quoteOf(replyingTo),
         }]).select().single();
 
         if (error) throw error;
@@ -518,145 +533,43 @@ const Chat = ({ route, navigation }: any) => {
   };
 
   /* ---------- MESSAGE UI ---------- */
-  const renderItem = useCallback(({ item, index }: any) => {
-    const isMe =
-      item.sender === user._id ||
-      item.sender?._id === user._id;
-
-    const isLastMessage = index === 0;
-
-    return (
-      <View className={`w-full ${isMe ? "items-end" : "items-start"} mb-2`}>
-        <View className={`flex-row items-end ${isMe ? "flex-row-reverse" : "flex-row"} max-w-[85%]`}>
-          {/* AVATAR */}
-          <View className={`${isMe ? "ml-2" : "mr-2"}`}>
-            <Avatar user={isMe ? user : item.sender} size={32} showBadge={false} />
-          </View>
-
-          <View className={`${isMe ? "items-end" : "items-start"} flex-1`}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onLongPress={() => {
-                if (isMe) {
-                  Alert.alert("Message", undefined, [
-                    { text: "Reply", onPress: () => setReplyingTo(item) },
-                    { text: "Delete", style: "destructive", onPress: () => deleteMessage(item._id) },
-                    { text: "Cancel", style: "cancel" }
-                  ]);
-                } else {
-                  setReplyingTo(item);
-                }
-              }}
-              delayLongPress={500}
-              style={{
-                borderTopLeftRadius: 20,
-                borderBottomLeftRadius: isMe ? 20 : 6,
-                borderTopRightRadius: 20,
-                borderBottomRightRadius: isMe ? 6 : 20,
-              }}
-              className={`px-4 py-2.5 ${isMe ? "bg-ink" : "bg-card border border-line" }`}
-            >
-              {/* REPLY PREVIEW */}
-              {item.replyTo && (
-                <View className={`mb-2 p-2 rounded-xl border-l-2 ${isMe ? "bg-paper/10 border-brand-500" : "bg-paper-2 border-brand-500" }`}>
-                  <Text className="text-xs font-semibold text-accent-text">
-                    {item.replyTo.sender?.name || (item.replyTo.sender === user._id ? "You" : "User")}
-                  </Text>
-                  <Text className={`${isMe ? "text-ink-4" : "text-ink-3"} text-xs`} numberOfLines={1}>
-                    {item.replyTo.message}
-                  </Text>
-                </View>
-              )}
-
-              {(item.messageType === "text" || !item.messageType) && item.message ? (
-                <Text className={`text-[15px] leading-5 font-sans ${isMe ? "text-paper" : "text-ink"}`}>
-                  {item.message}
-                </Text>
-              ) : null}
-
-              {item.messageType === "image" && (
-                <TouchableOpacity onPress={() => setSelectedImage(item.mediaUrl)} accessibilityRole="imagebutton" accessibilityLabel="Open photo">
-                  <Image
-                    source={{ uri: item.mediaUrl }}
-                    style={{ width: mediaW, aspectRatio: 1, borderRadius: 12 }}
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                    blurRadius={item.pending ? 10 : 0}
-                  />
-                </TouchableOpacity>
-              )}
-
-              {item.messageType === "video" && (
-                <Pressable 
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    if (!item.pending) setSelectedVideo(item.mediaUrl);
-                  }}
-                  onLongPress={(e) => e.stopPropagation()}
-                  accessibilityRole="button"
-                  accessibilityLabel="Play video"
-                  className="bg-night rounded-xl overflow-hidden shadow-hair items-center justify-center"
-                  style={{ width: mediaW, aspectRatio: 16 / 10 }}
-                >
-                  <Ionicons name="play-circle" size={44} color="white" />
-                  {item.pending && (
-                    <View className="absolute inset-0 bg-black/40 items-center justify-center">
-                      <ActivityIndicator size="small" color="white" />
-                    </View>
-                  )}
-                </Pressable>
-              )}
-
-              {item.messageType === "file" && (
-                <Pressable 
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    Linking.openURL(item.mediaUrl);
-                  }}
-                  onLongPress={(e) => e.stopPropagation()}
-                  className={`flex-row items-center p-3 rounded-xl ${isMe ? 'bg-paper/10' : 'bg-ink/5'}`}
-                >
-                  <View className={`w-10 h-10 rounded-lg items-center justify-center ${isMe ? 'bg-ink' : 'bg-brand-100'}`}>
-                    <Ionicons name="document-text" size={24} color={isMe ? C.paper : C.brand[500]} />
-                  </View>
-                  <View className="ml-3 flex-1">
-                    <Text className={`text-sm font-semibold ${isMe ? "text-paper" : "text-ink"}`} numberOfLines={1}>
-                      {item.message || 'Shared PDF'}
-                    </Text>
-                    <Text className="text-ink-3 text-xs">Tap to view PDF</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color={isMe ? C.paper : C.ink4} />
-                </Pressable>
-              )}
-            </TouchableOpacity>
-
-            {/* TIMESTAMP & STATUS */}
-            <View className={`mt-1.5 ${isMe ? "items-end" : "items-start"}`}>
-              <View className="flex-row items-center">
-                <Text className="text-xs text-ink-3">
-                  {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-                
-                {isMe && (
-                  <View className="ml-1.5 flex-row items-center">
-                    <Ionicons
-                      name={item.seen ? "checkmark-done" : "checkmark"}
-                      size={12}
-                      color={item.seen ? C.brand[500] : C.ink4}
-                    />
-                    <Text className={`text-xs ml-0.5 ${item.seen ? "text-accent-text" : "text-ink-3"}`}>
-                      {item.seen ? "Read" : "Sent"}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
+  const openActions = useCallback((item: any, isMe: boolean) => {
+    if (isMe) {
+      Alert.alert("Message", undefined, [
+        { text: "Reply", onPress: () => setReplyingTo(item) },
+        { text: "Delete", style: "destructive", onPress: () => deleteMessage(item._id) },
+        { text: "Cancel", style: "cancel" }
+      ]);
+    } else {
+      setReplyingTo(item);
+    }
   // conversationId: deleteMessage writes lastMessage to it, and Chat -> Chat reuses this screen.
-  }, [user, conversationId, mediaW]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, conversationId]);
+
+  // Inverted list: index - 1 is the newer neighbour (below), index + 1 the older one (above).
+  const renderItem = useCallback(({ item, index }: any) => {
+    const senderId = (m: any) => m?.sender?._id || m?.sender;
+    const isMe = senderId(item) === user._id;
+    const newer = sortedMessages[index - 1];
+    const older = sortedMessages[index + 1];
+    const last = !newer || senderId(newer) !== senderId(item) || !isSameDay(newer.createdAt, item.createdAt);
+    const day = !older || !isSameDay(older.createdAt, item.createdAt) ? dayLabel(item.createdAt) : null;
+    return (
+      <MessageRow
+        item={item}
+        isMe={isMe}
+        me={user}
+        last={last}
+        day={day}
+        mediaW={mediaW}
+        onReply={setReplyingTo}
+        onLongPress={openActions}
+        onOpenImage={setSelectedImage}
+        onOpenVideo={setSelectedVideo}
+      />
+    );
+  }, [user, mediaW, sortedMessages, openActions]);
 
   if (!conversationId) {
     return (
@@ -753,6 +666,8 @@ const Chat = ({ route, navigation }: any) => {
                 inverted
                 keyExtractor={(item) => item._id}
                 renderItem={renderItem}
+                // Header of an inverted list sits at the bottom, under the newest message.
+                ListHeaderComponent={isTyping && otherUser ? <TypingBubble peer={otherUser} /> : null}
                 onEndReached={loadMessages}
                 contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 }}
                 showsVerticalScrollIndicator={false}
