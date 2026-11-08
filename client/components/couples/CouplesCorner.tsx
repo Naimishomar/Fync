@@ -304,6 +304,20 @@ const CouplesCorner = () => {
                 <Text style={{ color: '#db2777', fontSize: 20 }}>›</Text>
               </Pressable>
 
+              <Pressable
+                onPress={() => navigation.navigate('SundayMatch')}
+                accessibilityRole="button"
+                className="rounded-2xl border bg-card p-4 mb-3 flex-row items-center active:opacity-85"
+                style={{ borderColor: '#db2777', gap: 12 }}
+              >
+                <Image source={{ uri: artUrl('assets/Two hearts/3D/two_hearts_3d.png') }} style={{ width: 44, height: 44 }} contentFit="contain" cachePolicy="disk" />
+                <View style={{ flex: 1 }}>
+                  <Text className="font-semibold text-ink" style={{ fontSize: 15 }}>Sunday Match · Weekly</Text>
+                  <Text className="font-sans text-ink-3 text-xs mt-0.5" numberOfLines={2}>Meet one new person from your college every Sunday at 7 PM.</Text>
+                </View>
+                <Text style={{ color: '#db2777', fontSize: 20 }}>›</Text>
+              </Pressable>
+
               <Card style={{ paddingHorizontal: 16, marginBottom: 24 }}>
                 <ListRow
                   leading={<Text style={{ fontSize: 22 }}>🏆</Text>}

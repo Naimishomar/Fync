@@ -6,6 +6,7 @@ import {
     leaderboard, setBoardOptIn,
 } from "../controllers/couple.controller.js";
 import { getCrush, searchCollege, pickCrush, removeCrush } from "../controllers/crush.controller.js";
+import { getSunday, saveProfile, optOut, unmatch, reportMatch } from "../controllers/sundayMatch.controller.js";
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -17,6 +18,12 @@ router.get("/crush", getCrush);
 router.get("/crush/search", searchCollege);
 router.post("/crush", pickCrush);
 router.delete("/crush/:userId", removeCrush);
+// Sunday Match (weekly opt-in matchmaking).
+router.get("/sunday", getSunday);
+router.put("/sunday/profile", saveProfile);
+router.post("/sunday/optout", optOut);
+router.post("/sunday/unmatch", unmatch);
+router.post("/sunday/report", reportMatch);
 router.get("/leaderboard", leaderboard);
 router.patch("/leaderboard", setBoardOptIn);
 router.post("/code", createCode);
