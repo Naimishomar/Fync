@@ -104,7 +104,7 @@ export const ConfessionSkeleton = () => (
         <Skeleton width="100%" height={20} style={{ marginBottom: 8 }} />
         <Skeleton width="100%" height={20} style={{ marginBottom: 8 }} />
         <Skeleton width="60%" height={20} style={{ marginBottom: 16 }} />
-        <View className="flex-row justify-between items-center border-t border-white/5 pt-4">
+        <View className="flex-row justify-between items-center border-t border-line pt-4">
             <Skeleton width={60} height={10} />
             <View className="flex-row">
                 <Skeleton width={30} height={15} style={{ marginRight: 15 }} />
@@ -166,8 +166,9 @@ export const ProfileSkeleton = () => (
         </View>
 
         <View className="flex-row flex-wrap gap-1 px-1 bg-paper-2">
+            {/* px-1 (8) + two gap-1 (8): (W/3 - 3) x3 overflowed the row and wrapped to two columns. */}
             {[1, 2, 3, 4, 5, 6].map(i => (
-                <Skeleton key={i} width={(Dimensions.get('window').width / 3) - 3} height={(Dimensions.get('window').width / 3) - 3} style={{ marginBottom: 2 }} lightMode />
+                <Skeleton key={i} width={(Dimensions.get('window').width - 16) / 3} height={(Dimensions.get('window').width - 16) / 3} style={{ marginBottom: 2 }} lightMode />
             ))}
         </View>
     </View>
@@ -256,7 +257,8 @@ export const PostSkeleton = () => {
                 <Skeleton width="90%" height={14} style={{ marginBottom: 6 }} lightMode />
                 <Skeleton width="60%" height={14} lightMode />
             </View>
-            <Skeleton width={width - 24} height={width - 24} borderRadius={12} style={{ marginBottom: 16 }} lightMode />
+            {/* Full-bleed square, the same footprint as PostItem's media, so the feed doesn't jump when posts land. */}
+            <Skeleton width={width} height={width} borderRadius={0} style={{ marginHorizontal: -12, marginBottom: 16 }} lightMode />
             <View className="flex-row items-center gap-2">
                 <Skeleton width={70} height={32} borderRadius={16} lightMode />
                 <Skeleton width={60} height={32} borderRadius={16} lightMode />

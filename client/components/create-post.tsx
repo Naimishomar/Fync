@@ -223,9 +223,9 @@ function CreatePost() {
                                 className="flex-row items-center p-4 border-b border-line"
                             >
                                 <Image source={{ uri: getFullUrl(user.avatar) || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name || '') }} className="w-10 h-10 rounded-card bg-paper-2" />
-                                <View className="ml-4">
-                                    <Text className="text-sm font-display text-ink uppercase">{user.name}</Text>
-                                    <Text className="text-label font-display text-accent-text uppercase mt-0.5">@{user.username}</Text>
+                                <View className="ml-4 flex-1 min-w-0">
+                                    <Text className="text-sm font-display text-ink uppercase" numberOfLines={1}>{user.name}</Text>
+                                    <Text className="text-label font-display text-accent-text uppercase mt-0.5" numberOfLines={1}>@{user.username}</Text>
                                 </View>
                             </TouchableOpacity>
                         ))}

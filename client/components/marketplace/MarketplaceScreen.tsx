@@ -152,7 +152,7 @@ const MarketplaceScreen = () => {
                         cachePolicy="memory-disk"
                     />
                     {!item.is_available && (
-                        <View className="absolute inset-0 bg-ink/40 items-center justify-center">
+                        <View className="absolute inset-0 items-center justify-center" style={{ backgroundColor: C.scrim }}>
                             <View className="bg-card border border-line px-2.5 py-1 rounded-full">
                                 <Text className="text-ink font-display text-label uppercase">Stock Out</Text>
                             </View>
@@ -208,7 +208,7 @@ const MarketplaceScreen = () => {
                 </View>
 
                 {loading && !refreshing ? (
-                    <View className="flex-1 px-gutter pt-10">
+                    <View className="flex-1 px-gutter" style={{ paddingTop: 10 }}>
                         <View className="flex-row justify-between mb-4">
                             <ProductSkeleton />
                             <ProductSkeleton />
@@ -241,8 +241,9 @@ const MarketplaceScreen = () => {
                 )}
 
                 {/* Checkout Modal (Bottom Sheet Style) */}
-                <Modal visible={buyModalVisible} animationType="slide" transparent={true} onRequestClose={() => setBuyModalVisible(false)}>
-                    <View className="flex-1 justify-end bg-ink/60">
+                <Modal visible={buyModalVisible} animationType="slide" transparent={true} statusBarTranslucent onRequestClose={() => setBuyModalVisible(false)}>
+                    {/* C.scrim, not bg-ink/60: ink is near-white in dark mode, which turned the backdrop light. */}
+                    <View className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
                         <TouchableOpacity activeOpacity={1} style={{ flex: 1 }} onPress={() => setBuyModalVisible(false)} />
 
                         <View className="bg-paper rounded-t-sheet h-[75%] overflow-hidden shadow-hair">

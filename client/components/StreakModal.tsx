@@ -61,6 +61,7 @@ const StreakModal: React.FC<StreakModalProps> = ({ visible, streakCount, onClose
   return (
     <Modal
       transparent={true}
+      statusBarTranslucent
       visible={visible}
       animationType="fade"
       onRequestClose={onClose}

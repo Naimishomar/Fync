@@ -67,6 +67,7 @@ const EntertainmentHome = () => {
   if (loading) {
     return (
       <View className="flex-1 bg-night justify-center items-center">
+        <StatusBar barStyle="light-content" />
         <ActivityIndicator size="large" color={C.fam.fun} />
       </View>
     );
@@ -149,7 +150,7 @@ const EntertainmentHome = () => {
                   onPress={() => navigation.navigate('TrailerReels', { movies: trending, initialIndex: 0 })}
                   className="flex-1 bg-paper flex-row items-center justify-center py-3 rounded-lg"
                 >
-                  <Ionicons name="play" size={20} color="black" />
+                  <Ionicons name="play" size={20} color={C.ink} />
                   <Text className="text-ink font-semibold ml-2">Watch Trailers</Text>
                 </TouchableOpacity>
               </View>

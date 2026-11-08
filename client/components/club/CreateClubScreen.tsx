@@ -138,6 +138,7 @@ const CreateClubScreen = () => {
                                 className="bg-card p-5 mb-6 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 multiline
                                 numberOfLines={4}
+                                textAlignVertical="top"
                                 value={description}
                                 onChangeText={setDescription}
                             />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import Avatar from '../Avatar';
 import type { CallUser } from '../../services/CallSignalingService';
 import { RTCView } from 'react-native-webrtc';
@@ -59,6 +59,7 @@ export default function ActiveVideoCall({ remoteUser, isCallConnected, onEndCall
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
       {/* REMOTE VIDEO (full screen) */}
       <View style={styles.remoteContainer}>
         {webRTCManager.remoteStream ? (

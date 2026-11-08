@@ -411,7 +411,7 @@ const ConfessionFeed = () => {
                 />
 
                 {/* Post/Edit Modal */}
-                <Modal visible={isPostModalOpen} animationType="slide" transparent={true} onRequestClose={closePostModal}>
+                <Modal visible={isPostModalOpen} animationType="slide" transparent={true} statusBarTranslucent onRequestClose={closePostModal}>
                     <KeyboardAvoidingView behavior="padding" className="flex-1 bg-black/60 justify-end">
                         <View className="bg-paper rounded-t-sheet p-card-pad pb-12 border-t border-line shadow-hair">
                             <View className="flex-row justify-between items-center mb-10">

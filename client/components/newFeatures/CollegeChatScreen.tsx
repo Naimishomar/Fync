@@ -486,7 +486,7 @@ const CollegeChatScreen = ({ navigation }: any) => {
                 </View>
             </KeyboardAvoidingView>
             {/* FULL SCREEN IMAGE MODAL */}
-            <Modal visible={!!selectedImage} transparent={true} animationType="fade" onRequestClose={() => setSelectedImage(null)}>
+            <Modal visible={!!selectedImage} transparent={true} statusBarTranslucent animationType="fade" onRequestClose={() => setSelectedImage(null)}>
                 <View className="flex-1 bg-black/95 justify-center items-center">
                     <TouchableOpacity
                         onPress={() => setSelectedImage(null)}

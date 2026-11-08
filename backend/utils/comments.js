@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Comment from '../models/comment.model.js';
 
 // Six controllers each hand-rolled the same thread fetch: one query for the
@@ -45,7 +46,13 @@ export const getCommentThread = async (postId, postType, { limit = 100 } = {}) =
 export const attachTopComments = async (posts, postType = "Post") => {
   if (!posts?.length) return posts ?? [];
 
-  const ids = posts.map((post) => post._id);
+  // Cast: the smart feed's candidate pool comes back from Redis as JSON, so its
+  // _ids are strings, and aggregate() never casts — $in on strings matched no
+  // comments and every feed card showed 0 until the sheet was opened.
+  const ids = posts
+    .map((post) => String(post._id))
+    .filter((id) => mongoose.isValidObjectId(id))
+    .map((id) => new mongoose.Types.ObjectId(id));
 
   const [counts, newest] = await Promise.all([
     Comment.aggregate([

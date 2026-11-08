@@ -4,7 +4,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { BOLLYWOOD_MOVIES, INDIAN_PERSONALITIES } from './charadesData';
 import { C } from '../../constants/colors';
 
-const { width } = Dimensions.get('window');
 
 const CATEGORIES = {
   BOLLYWOOD: BOLLYWOOD_MOVIES,
@@ -40,7 +39,7 @@ const DesiCharades = () => {
   const toggleTimer = () => setIsTimerRunning(!isTimerRunning);
 
   return (
-    <View className="p-6 bg-card rounded-sheet border border-line shadow-hair items-center" style={{ width: width - 40 }}>
+    <View className="p-6 bg-card rounded-sheet border border-line shadow-hair items-center" style={{ alignSelf: 'stretch' }}>
       <View className="items-center mb-6">
         <Text className="text-2xl font-display text-ink uppercase">DESI <Text className="text-fam-fun">CHARADES</Text></Text>
         <Text className="text-label text-ink-3 font-display uppercase mt-1">Cultural Expression Engine v2.0</Text>

@@ -229,7 +229,7 @@ const ClubListScreen = () => {
                 />
 
                 {/* Join Code Modal */}
-                <Modal visible={showCodeModal} transparent animationType="slide" onRequestClose={() => setShowCodeModal(false)}>
+                <Modal visible={showCodeModal} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowCodeModal(false)}>
                     <KeyboardAvoidingView className="flex-1 bg-black/50 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                         <View className="bg-paper rounded-t-sheet p-card-pad border border-line">
                             <View className="flex-row justify-between items-center mb-10">

@@ -326,7 +326,8 @@ const Dashboard = ({ s, reload, setS }: { s: Space; reload: () => Promise<void>;
         </Pressable>
       </View>
       {pickDate ? (
-        <View className="rounded-2xl bg-card border border-line mt-3 p-2">
+        // Android shows a dialog and renders nothing inline: no empty card behind it.
+        <View className={Platform.OS === 'ios' ? 'rounded-2xl bg-card border border-line mt-3 p-2' : ''}>
           <DateTimePicker
             value={new Date(`${s.couple.since}T12:00:00`)}
             maximumDate={new Date()}

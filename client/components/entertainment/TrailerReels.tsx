@@ -9,6 +9,7 @@ import {
   ScrollView,
   ViewToken,
   Share,
+  StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
@@ -26,6 +27,7 @@ const ReelItem = React.memo(function ReelItem({
   onToggleMute,
   cachedTrailerKey,
   pageHeight,
+  topInset,
 }: { 
   movie: any, 
   isActive: boolean, 
@@ -33,6 +35,7 @@ const ReelItem = React.memo(function ReelItem({
   onToggleMute: () => void,
   cachedTrailerKey?: string | null,
   pageHeight: number,
+  topInset: number,
 }) {
   const [trailerKey, setTrailerKey] = useState<string | null>(cachedTrailerKey || null);
   const [loading, setLoading] = useState(!cachedTrailerKey);
@@ -152,7 +155,8 @@ const ReelItem = React.memo(function ReelItem({
   }), [trailerKey]);
 
   return (
-    <View style={{ width: SCREEN_WIDTH, height: pageHeight }} className="bg-night">
+    // Video starts below the translucent status bar instead of under it.
+    <View style={{ width: SCREEN_WIDTH, height: pageHeight, paddingTop: topInset }} className="bg-night">
       {/* Video Container */}
       <View style={{ width: SCREEN_WIDTH, height: videoHeight }} className="bg-night relative">
         {isActive && trailerKey ? (
@@ -186,7 +190,8 @@ const ReelItem = React.memo(function ReelItem({
       </View>
 
       {/* Content Container */}
-      <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 px-6 pt-8">
+      {/* Vertical scroll inside the vertical pager: Android needs nestedScrollEnabled to scroll it at all. */}
+      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" className="flex-1 px-6 pt-8">
         <View className="flex-row justify-between items-start mb-6">
           <View className="flex-1 mr-4">
             <Text className="text-white text-3xl font-display uppercase mb-2">
@@ -350,6 +355,7 @@ const TrailerReels = () => {
 
   return (
     <View className="flex-1 bg-night" onLayout={(e) => setPageHeight(Math.round(e.nativeEvent.layout.height))}>
+      <StatusBar barStyle="light-content" />
       {pageHeight > 0 && (
       <FlatList keyboardShouldPersistTaps="handled"
         data={movies}
@@ -364,6 +370,7 @@ const TrailerReels = () => {
             onToggleMute={toggleMute}
             cachedTrailerKey={trailerCache[item.id]}
             pageHeight={pageHeight}
+            topInset={insets.top}
           />
         )}
         onViewableItemsChanged={onViewableItemsChanged}

@@ -430,7 +430,7 @@ export default function CodingLeaderboard() {
                 )}
 
                 {/* --- ULTRA DETAILED MODAL --- */}
-                <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>
+                <Modal visible={modalVisible} transparent={true} statusBarTranslucent animationType="slide" onRequestClose={() => setModalVisible(false)}>
                     <BlurView intensity={20} tint={C.scheme === 'dark' ? 'dark' : 'light'} className="flex-1 justify-end">
                         <TouchableOpacity className="absolute inset-0" onPress={() => setModalVisible(false)} />
                         <View className="bg-paper h-[85%] rounded-t-sheet border-t border-line p-card-pad shadow-hair">

@@ -156,10 +156,14 @@ const FeaturedCarousel = () => {
     return (
       <View className="mt-6">
         <Header />
+        {/* Card + the chip line under it, so the row doesn't grow when items land. */}
         <View className="flex-row" style={{ gap: GAP }}>
-          <Skeleton width={cardW} height={cardH} borderRadius={14} lightMode />
-          <Skeleton width={cardW} height={cardH} borderRadius={14} lightMode />
-          <Skeleton width={cardW} height={cardH} borderRadius={14} lightMode />
+          {[0, 1, 2].map((k) => (
+            <View key={k}>
+              <Skeleton width={cardW} height={cardH} borderRadius={14} lightMode />
+              <Skeleton width={cardW * 0.6} height={18} borderRadius={9} lightMode style={{ marginTop: 6 }} />
+            </View>
+          ))}
         </View>
       </View>
     );

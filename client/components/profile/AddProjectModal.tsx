@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { C } from '../../constants/colors';
+import { useBottomInset } from '../../constants/layout';
 
 const { height: screenHeight } = Dimensions.get('window');
 const STATUSES = ['completed', 'in-progress', 'archived'];
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function AddProjectModal({ visible, initial, onClose, onSuccess }: Props) {
+  const bottomInset = useBottomInset();
   const [form, setForm] = useState({
     title: '', tagline: '', description: '', techStack: '',
     githubUrl: '', liveUrl: '', status: 'completed',
@@ -119,7 +121,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 bg-black/60 justify-end">
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView
@@ -231,7 +233,7 @@ export default function AddProjectModal({ visible, initial, onClose, onSuccess }
           </ScrollView>
 
           {/* Footer Action */}
-          <View className="p-card-pad border-t border-line bg-paper">
+          <View className="p-card-pad border-t border-line bg-paper" style={{ paddingBottom: bottomInset }}>
             <Pressable onPress={save} disabled={saving}
               className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
               {saving ? <ActivityIndicator size="small" color={C.brand[500]} />

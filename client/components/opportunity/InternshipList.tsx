@@ -282,6 +282,7 @@ const InternshipList = () => {
         <Modal
           animationType="slide"
           transparent={true}
+          statusBarTranslucent
           visible={applyModalVisible}
           onRequestClose={() => setApplyModalVisible(false)}
         >

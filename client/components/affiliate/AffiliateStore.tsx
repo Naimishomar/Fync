@@ -243,6 +243,7 @@ const styles = themed(() => ({
         width: '100%',
         height: 180,
         position: 'relative',
+        backgroundColor: C.paper2,
     },
     productImage: {
         width: '100%',

@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, IconBtn, Empty, Button } from '../ui/kit';
+import { useBottomInset } from '../../constants/layout';
 
 const { width } = Dimensions.get('window');
 
@@ -37,6 +38,7 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
     const [category, setCategory] = useState('electronics');
     const [images, setImages] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const bottomInset = useBottomInset();
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -82,7 +84,7 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
     };
 
     return (
-        <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
+        <Modal visible={isVisible} animationType="slide" transparent={true} statusBarTranslucent onRequestClose={onClose}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-black/60 justify-end">
                 <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={onClose} />
                 <View className="bg-paper rounded-t-sheet h-[75%] overflow-hidden shadow-hair">
@@ -95,7 +97,7 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
                         </TouchableOpacity>
                     </View>
 
-                    <ScrollView className="p-card-pad" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                    <ScrollView className="p-card-pad" contentContainerStyle={{ paddingBottom: bottomInset }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                         <View className="flex-row items-center mt-6 mb-4" style={{ gap: 12 }}>
                           <Text className="text-ink-3 text-label font-display uppercase">Visual Documentation</Text>
                           <View className="flex-1 bg-ink" style={{ height: 2, opacity: 0.82 }} />
@@ -144,16 +146,17 @@ const SellProductModal = ({ isVisible, onClose, onSuccess }: any) => {
 const ProductDetailsModal = ({ product, isVisible, onClose, currentUserId, onDelete }: any) => {
     const navigation = useNavigation<any>();
     const startingChat = useRef(false);
+    const bottomInset = useBottomInset();
     if (!product) return null;
     const isOwner = !!product.seller?._id && product.seller._id === currentUserId;
 
     return (
-        <Modal visible={isVisible} animationType="slide" transparent={true} onRequestClose={onClose}>
+        <Modal visible={isVisible} animationType="slide" transparent={true} statusBarTranslucent onRequestClose={onClose}>
             <View className="flex-1 bg-black/60 justify-end">
                 <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={onClose} />
                 <View className="bg-paper rounded-t-sheet overflow-hidden max-h-[90%] w-full shadow-hair">
                     <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mt-4 mb-2" />
-                    <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: bottomInset }} showsVerticalScrollIndicator={false}>
                         <View className="relative">
                             <ExpoImage source={{ uri: product.product_image?.[0] }} style={{ width: '100%', height: 384, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
                         </View>

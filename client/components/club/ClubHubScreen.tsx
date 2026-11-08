@@ -154,6 +154,7 @@ const ClubHubScreen = () => {
                     <Image 
                         source={{ uri: club.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} 
                         className="w-full h-full"
+                        style={{ backgroundColor: C.paper2 }}
                     />
                     <LinearGradient 
                         colors={['transparent', 'rgba(0,0,0,0.9)']} 

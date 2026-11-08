@@ -18,7 +18,7 @@ import {
   markShortsAsSeen,
   resetSeenShorts,
 } from "../utils/feedSession";
-import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
+import { useBottomInset } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 import CommentsSheet from './ui/CommentsSheet';
 import RepostModal from './ui/RepostModal';
@@ -97,6 +97,10 @@ const SingleShort = React.memo(({
   }, [item.liked_by, currentUserId]);
 
   const isFocused = useIsFocused();
+  // No tab bar on Shorts, so the caption only clears the gesture / nav bar.
+  const overlayBottom = useBottomInset(16) + 16;
+  const iconTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (iconTimer.current) clearTimeout(iconTimer.current); }, []);
   // A short whose author was deleted arrives with user: null.
   const author = item.user ?? ({} as User);
   const title = item.title || '';
@@ -127,7 +131,9 @@ const SingleShort = React.memo(({
         await videoRef.current.playAsync();
         setShowIcon("pause");
       }
-      setTimeout(() => setShowIcon(null), 600);
+      // One timer: rapid taps no longer hide the newer icon early.
+      if (iconTimer.current) clearTimeout(iconTimer.current);
+      iconTimer.current = setTimeout(() => setShowIcon(null), 600);
     } catch { /* still loading or already unloaded: a tap must not raise */ }
   };
 
@@ -180,7 +186,7 @@ const SingleShort = React.memo(({
       <HeartBurst trigger={burst} size={110} />
 
       {/* -------- BOTTOM OVERLAY -------- */}
-      <View className="absolute bottom-32 left-4 right-4 flex-row justify-between items-end">
+      <View className="absolute left-4 right-4 flex-row justify-between items-end" style={{ bottom: overlayBottom }}>
         {/* LEFT */}
         <View className="flex-1 pr-6">
           <Pressable
@@ -334,8 +340,6 @@ const SingleShort = React.memo(({
 
 
 export default function Shorts() {
-  const tabBarClearance = useTabBarClearance();
-  const autoHideTabBar = useTabBarAutoHide();
   const { user } = useAuth();
   const currentUserId = user?.id || user?._id;
 
@@ -639,6 +643,7 @@ export default function Shorts() {
     <>
       {isFocused && <StatusBar barStyle="light-content" />}
       <FlatList keyboardShouldPersistTaps="handled"
+        style={{ backgroundColor: C.night }}
         data={shorts}
         renderItem={renderItem}
         keyExtractor={item => item._id}
@@ -658,7 +663,6 @@ export default function Shorts() {
         maxToRenderPerBatch={2}
         updateCellsBatchingPeriod={50}
         removeClippedSubviews={Platform.OS === 'android'}
-        {...autoHideTabBar}
         refreshing={refreshing}
         onRefresh={onRefresh}
         onEndReached={loadMore}

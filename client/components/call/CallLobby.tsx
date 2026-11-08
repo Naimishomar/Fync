@@ -397,7 +397,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
 
       {/* Dialling overlay — the caller needs to see who is ringing and be able
           to cancel before the callee picks up. */}
-      <Modal visible={isDialling && !!activeCallUser} transparent animationType="fade" onRequestClose={() => endCall(true)}>
+      <Modal visible={isDialling && !!activeCallUser} transparent statusBarTranslucent animationType="fade" onRequestClose={() => endCall(true)}>
         <View className="flex-1 items-center justify-center px-gutter" style={{ backgroundColor: 'rgba(18, 16, 14,0.85)' }}>
           <Avatar user={activeCallUser as any} size={96} />
           <Text className="text-white text-xl font-display uppercase mt-6" numberOfLines={1}>
@@ -423,7 +423,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
       </Modal>
 
       {/* Incoming call — accept or decline. */}
-      <Modal visible={!!incomingCall} transparent animationType="slide" onRequestClose={rejectCall}>
+      <Modal visible={!!incomingCall} transparent statusBarTranslucent animationType="slide" onRequestClose={rejectCall}>
         <View className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
           <View className="bg-paper rounded-t-sheet px-gutter pt-8" style={{ paddingBottom: bottomInset + 24 }}>
             <View className="items-center">

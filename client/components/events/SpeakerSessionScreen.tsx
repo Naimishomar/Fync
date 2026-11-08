@@ -1112,7 +1112,7 @@ export default function SpeakerSessionScreen() {
             </View>
 
             {/* Speaker Add/Edit Modal */}
-            <Modal visible={speakerModalVisible} transparent animationType="slide" onRequestClose={() => setSpeakerModalVisible(false)}>
+            <Modal visible={speakerModalVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setSpeakerModalVisible(false)}>
                 <View className="flex-1 bg-black/50 justify-end">
                     <KeyboardAvoidingView behavior="padding">
                         <View className="bg-paper rounded-t-sheet p-card-pad">
@@ -1125,7 +1125,7 @@ export default function SpeakerSessionScreen() {
                                         </TouchableOpacity>
                                     )}
                                     <TouchableOpacity onPress={() => setSpeakerModalVisible(false)} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                        <Ionicons name="close" size={24} color="black" />
+                                        <Ionicons name="close" size={24} color={C.ink} />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -1160,7 +1160,7 @@ export default function SpeakerSessionScreen() {
             </Modal>
 
             {/* College Selection Modal */}
-            <Modal visible={collegeModalVisible} transparent animationType="fade" onRequestClose={() => setCollegeModalVisible(false)}>
+            <Modal visible={collegeModalVisible} transparent statusBarTranslucent animationType="fade" onRequestClose={() => setCollegeModalVisible(false)}>
                 <View className="flex-1 bg-black/50 items-center justify-center px-gutter">
                     <View className="bg-card w-full max-h-[70%] rounded-sheet overflow-hidden">
                         <View className="p-card-pad bg-ink">
@@ -1220,7 +1220,7 @@ export default function SpeakerSessionScreen() {
                                             </TouchableOpacity>
                                         )}
                                         <TouchableOpacity onPress={() => { setSessionModalVisible(false); setIsEditingSession(false); setLocalSpeakers([]); }} className="w-14 h-14 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                            <Ionicons name="close" size={28} color="black" />
+                                            <Ionicons name="close" size={28} color={C.ink} />
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -1502,7 +1502,7 @@ export default function SpeakerSessionScreen() {
                                         className={`flex-row items-center gap-4 p-6 rounded-sheet border ${editSessionData.isCommunityActive !== false ? 'bg-paper-2 border-line' : 'bg-paper-2 border-line'}`}
                                     >
                                         <View className={`w-12 h-12 rounded-card items-center justify-center ${editSessionData.isCommunityActive !== false ? 'bg-brand-600' : 'bg-paper-2'}`}>
-                                            <Ionicons name="chatbubbles" size={24} color="white" />
+                                            <Ionicons name="chatbubbles" size={24} color={editSessionData.isCommunityActive !== false ? 'white' : C.ink3} />
                                         </View>
                                         <View className="flex-1">
                                             <Text className={`font-display uppercase text-label ${editSessionData.isCommunityActive !== false ? 'text-accent-text' : 'text-ink-3'}`}>
@@ -1522,7 +1522,7 @@ export default function SpeakerSessionScreen() {
                                         className={`flex-row items-center gap-4 p-6 rounded-sheet border ${editSessionData.isCollegeSpecific ? 'bg-paper-2 border-line' : 'bg-paper-2 border-line'}`}
                                     >
                                         <View className={`w-12 h-12 rounded-card items-center justify-center ${editSessionData.isCollegeSpecific ? 'bg-brand-600' : 'bg-paper-2'}`}>
-                                            <Ionicons name={editSessionData.isCollegeSpecific ? "shield-checkmark" : "globe-outline"} size={24} color="white" />
+                                            <Ionicons name={editSessionData.isCollegeSpecific ? "shield-checkmark" : "globe-outline"} size={24} color={editSessionData.isCollegeSpecific ? 'white' : C.ink3} />
                                         </View>
                                         <View className="flex-1">
                                             <Text className={`font-display uppercase text-label ${editSessionData.isCollegeSpecific ? 'text-accent-text' : 'text-ink-3'}`}>
@@ -1584,7 +1584,7 @@ export default function SpeakerSessionScreen() {
             )}
 
             {/* Attendee List Dashboard */}
-            <Modal visible={attendeeModalVisible} transparent animationType="slide" onRequestClose={() => setAttendeeModalVisible(false)}>
+            <Modal visible={attendeeModalVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setAttendeeModalVisible(false)}>
                 <View className="flex-1 bg-black/50 justify-end">
                     <View className="bg-paper h-[90%] rounded-t-sheet overflow-hidden">
                         <View className="p-card-pad bg-ink flex-row justify-between items-center shadow-hair">
@@ -1675,7 +1675,7 @@ export default function SpeakerSessionScreen() {
             </Modal>
 
             {/* Ticket Dashboard Modal */}
-            <Modal visible={ticketsModalVisible} transparent animationType="slide" onRequestClose={() => setTicketsModalVisible(false)}>
+            <Modal visible={ticketsModalVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setTicketsModalVisible(false)}>
                 <View className="flex-1 bg-black/50 justify-end">
                     <View className="bg-paper h-[75%] rounded-t-sheet overflow-hidden">
                         <View className="flex-1 pt-12">
@@ -1710,7 +1710,7 @@ export default function SpeakerSessionScreen() {
             </Modal>
 
             {/* QR Access Pass Modal */}
-            <Modal visible={qrModalVisible} transparent animationType="fade" onRequestClose={() => setQrModalVisible(false)}>
+            <Modal visible={qrModalVisible} transparent statusBarTranslucent animationType="fade" onRequestClose={() => setQrModalVisible(false)}>
                 <View className="flex-1 bg-black/60 items-center justify-center p-card-pad">
                     <View className="bg-card w-full rounded-sheet overflow-hidden shadow-hair">
                         <View className="p-card-pad items-center border-b border-line">
@@ -1740,7 +1740,7 @@ export default function SpeakerSessionScreen() {
             </Modal>
 
             {/* QR Scanner Modal */}
-            <Modal visible={scannerVisible} transparent animationType="fade" onRequestClose={() => setScannerVisible(false)}>
+            <Modal visible={scannerVisible} transparent statusBarTranslucent animationType="fade" onRequestClose={() => setScannerVisible(false)}>
                 <View className="flex-1 bg-night">
                     <CameraView
                         style={{ flex: 1 }}

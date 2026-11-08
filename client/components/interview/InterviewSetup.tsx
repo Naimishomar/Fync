@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Pressable, Modal} from 'react-native'
+import React, { useCallback, useRef, useState } from 'react';
+import {View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Pressable, Modal, Platform} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import * as DocumentPicker from 'expo-document-picker';
@@ -27,6 +27,8 @@ export default function InterviewSetup() {
   // new payment — this is how a failed /start is retried.
   const [paidDuration, setPaidDuration] = useState<number | null>(null);
   const { user } = useAuth();
+  // A second tap lands before the re-render that disables the button: one order, one checkout.
+  const ordering = useRef(false);
 
   useFocusEffect(useCallback(() => {
     axios.get('/interview/credit')
@@ -64,13 +66,16 @@ export default function InterviewSetup() {
       return;
     }
 
+    if (ordering.current) return;
     if (paidDuration) {
       setLoading(true);
-      await finalSubmit();
+      ordering.current = true;
+      try { await finalSubmit(); } finally { ordering.current = false; }
       return;
     }
 
     setLoading(true);
+    ordering.current = true;
     try {
       // 1. Create Order
       const resOrder = await axios.post('/interview/create-order', {
@@ -127,6 +132,8 @@ export default function InterviewSetup() {
     } catch (err: any) {
       Toast.show({ type: 'error', text1: 'Payment initiation failed', text2: err.message });
       setLoading(false);
+    } finally {
+      ordering.current = false;
     }
   };
 
@@ -207,7 +214,8 @@ export default function InterviewSetup() {
 
       <SafeAreaView className="flex-1" edges={['bottom']}>
         <KeyboardAvoidingView
-          behavior="padding"
+          // Android already resizes the window for the keyboard; padding on top of that doubled the gap.
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           className="flex-1"
         >
           {/* HEADER */}

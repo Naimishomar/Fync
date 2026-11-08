@@ -254,8 +254,11 @@ const PublicProfile = () => {
         }
     };
 
+    // A double tap pushed Chat twice while the first request was in flight.
+    const chatBusy = useRef(false);
     const startChat = async () => {
-        if (!profileUser?._id) return;
+        if (!profileUser?._id || chatBusy.current) return;
+        chatBusy.current = true;
         try {
             const res = await axios.post("/chat/start", { userId: profileUser._id });
             navigation.navigate("Chat", {
@@ -266,6 +269,8 @@ const PublicProfile = () => {
             console.log("Start chat error", err);
             if (err?.response?.status === 403) Alert.alert("Can't message", err.response.data?.message || "You can't message this user");
             else Toast.show({ type: 'error', text1: "Couldn't open chat. Try again." });
+        } finally {
+            chatBusy.current = false;
         }
     };
 
@@ -345,7 +350,7 @@ const PublicProfile = () => {
                         <View className="absolute inset-0 items-center justify-center">
                             <Ionicons name="play-outline" size={28} color="white" style={{ opacity: 0.8 }} />
                         </View>
-                        <Text className="text-white text-label font-semibold absolute bottom-1.5 left-2 truncate w-[90%] z-20 shadow-hair">
+                        <Text numberOfLines={1} className="text-white text-label font-semibold absolute bottom-1.5 left-2 w-[90%] z-20 shadow-hair">
                             {item.title}
                         </Text>
                     </View>
@@ -674,7 +679,7 @@ const PublicProfile = () => {
                         <View className="h-64 w-full relative">
                             <ExpoImage
                                 source={{ uri: getFullUrl((profileUser as any)?.banner) || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000' }}
-                                style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" 
+                                style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="disk" 
                             />
                             <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
                         </View>

@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { C } from '../../constants/colors';
+import { useBottomInset } from '../../constants/layout';
 
 const { height: screenHeight } = Dimensions.get('window');
 const CATEGORIES = ['coding', 'design', 'cloud', 'ai-ml', 'cybersecurity', 'management', 'data-science', 'other'];
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function AddCertificateModal({ visible, initial, onClose, onSuccess }: Props) {
+  const bottomInset = useBottomInset();
   const [form, setForm] = useState({
     title: '', issuer: '', issueDate: '', expiryDate: '',
     credentialUrl: '', credentialId: '', category: 'other',
@@ -101,7 +103,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 bg-black/60 justify-end">
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView
@@ -207,7 +209,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
           </ScrollView>
 
           {/* Footer Action */}
-          <View className="p-card-pad border-t border-line bg-paper">
+          <View className="p-card-pad border-t border-line bg-paper" style={{ paddingBottom: bottomInset }}>
             <Pressable onPress={save} disabled={saving}
               className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
               {saving ? <ActivityIndicator size="small" color={C.brand[500]} />

@@ -221,7 +221,7 @@ const ProductForm = ({ product, onClose, onSaved }: { product: GiftProduct | nul
   };
 
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
+    <Modal visible animationType="slide" statusBarTranslucent onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: C.paper }}>
         <AppBar title={product ? 'Edit gift' : 'New gift'} onBack={onClose} />
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

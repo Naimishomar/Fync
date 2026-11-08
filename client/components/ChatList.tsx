@@ -467,7 +467,7 @@ const ChatList = () => {
                           <Ionicons name="school" size={24} color={C.brand[500]} />
                         </View>
                         <View className="flex-1">
-                          <Text className="font-semibold text-base text-ink">{user.college} Area</Text>
+                          <Text className="font-semibold text-base text-ink" numberOfLines={1}>{user.college} Area</Text>
                           <Text className="text-ink-3 text-label font-semibold mt-1">24hr Expiring Zone</Text>
                         </View>
                         <View className="bg-brand-500 w-2 h-2 rounded-full" />

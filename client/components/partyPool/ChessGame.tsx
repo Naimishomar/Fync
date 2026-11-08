@@ -312,7 +312,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ socket, matchDetails, gameMode, o
                                 </View>
                                 
                                 {isMyTurn && gameMode === 'pvp' && (
-                                    <View className="absolute left-1/2 -ml-6 bg-danger/15 px-4 py-2 rounded-xl border border-danger/25 shadow-hair">
+                                    <View className="bg-danger/15 px-4 py-2 rounded-xl border border-danger/25 shadow-hair">
                                         <Text className={`font-semibold text-lg ${timeLeft <= 10 ? 'text-danger' : 'text-danger'}`}>{timeLeft}s</Text>
                                     </View>
                                 )}

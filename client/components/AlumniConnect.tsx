@@ -329,7 +329,7 @@ const AlumniConnect = ({ navigation }: any) => {
                         )}
                         {item.messageType === 'image' && (
                             <Pressable onPress={() => { }}>
-                                <Image source={{ uri: item.fileUrl }} style={{ width: 192, height: 192, borderRadius: 8 }} contentFit="cover" cachePolicy="memory-disk" />
+                                <Image source={{ uri: item.fileUrl }} style={{ width: 192, height: 192, borderRadius: 8, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
                             </Pressable>
                         )}
                         {item.messageType === 'file' && (

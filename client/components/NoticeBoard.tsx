@@ -553,7 +553,7 @@ const NoticeBoard = () => {
             <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
             <StatusBar barStyle={C.barStyle} />
             <AppBar
-              inset={false}
+              inset={Platform.OS === 'android'}
               title={activeTab === 'global' ? 'New Global Intel' : 'New Campus Intel'}
               right={<IconBtn name="close" onPress={() => setCreateModalVisible(false)} />}
             />
@@ -641,7 +641,7 @@ const NoticeBoard = () => {
         />
 
         {/* FULL SCREEN IMAGE PREVIEW MODAL */}
-        <Modal visible={previewVisible} transparent={true} animationType="fade" onRequestClose={() => setPreviewVisible(false)}>
+        <Modal visible={previewVisible} transparent={true} statusBarTranslucent animationType="fade" onRequestClose={() => setPreviewVisible(false)}>
           <View style={styles.previewContainer}>
             <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setPreviewVisible(false)} />
             <TouchableOpacity onPress={() => setPreviewVisible(false)} className="absolute top-12 right-8 z-50 w-12 h-12 bg-black/50 rounded-card items-center justify-center border border-white/20">

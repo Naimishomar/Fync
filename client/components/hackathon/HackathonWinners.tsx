@@ -143,7 +143,7 @@ const StudentPicker = ({
   }, [visible]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
       <View className="flex-1 bg-black/50 justify-end">
         <View className="bg-paper rounded-t-sheet border-t-2 border-ink" style={{ height: '72%' }}>
           <View className="flex-row items-center justify-between px-gutter pt-4 pb-3 border-b border-line">

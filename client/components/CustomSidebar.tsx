@@ -5,6 +5,7 @@ import { useAuth } from '../context/auth.context';
 import { visibleFeatures } from '../constants/features';
 import { C } from '../constants/colors';
 import { getFullUrl } from '../utils/imageUtils';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * The drawer used to be the app's only feature menu: ~35 rows across seven
@@ -15,6 +16,7 @@ import { getFullUrl } from '../utils/imageUtils';
  */
 export default function CustomSidebar(props: any) {
     const { user } = useAuth();
+    const insets = useSafeAreaInsets();
 
     // Sourced from the same registry Explore uses, so an access-gated item such
     // as Admin Portal cannot fall out of sync between the two surfaces.
@@ -33,8 +35,9 @@ export default function CustomSidebar(props: any) {
 
     return (
         <View className="flex-1 bg-paper">
-            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false} bounces={false}>
-                <View className="pt-16 pb-6 px-6 w-full">
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 24 + insets.bottom }} showsVerticalScrollIndicator={false} bounces={false}>
+                {/* Inset-based top (was a fixed pt-16) so the header clears any status bar / notch. */}
+                <View className="pb-6 px-6 w-full" style={{ paddingTop: Math.max(64, insets.top + 24) }}>
                     <View className="flex-row justify-between items-start mb-5">
                         <Pressable
                             onPress={() => go('Profile')}

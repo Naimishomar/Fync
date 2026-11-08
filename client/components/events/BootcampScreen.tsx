@@ -738,7 +738,7 @@ export default function BootcampScreen() {
                 />
 
                 {/* MODALS (Simplified for now, can expand UI same as Speaker) */}
-                <Modal visible={attendeeModalVisible} transparent animationType="slide" onRequestClose={() => setAttendeeModalVisible(false)}>
+                <Modal visible={attendeeModalVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setAttendeeModalVisible(false)}>
                     <View className="flex-1 bg-black/50 justify-end">
                         <View className="bg-paper h-[90%] rounded-t-sheet overflow-hidden">
                             <View className="p-card-pad bg-ink h-48">
@@ -854,13 +854,14 @@ export default function BootcampScreen() {
                                         </View>
                                     );
                                 }}
+                                contentContainerStyle={{ paddingBottom: 50 }}
                             />
                         </View>
                     </View>
                 </Modal>
 
                 {/* Creation Modal and Scanner Modal (UI similar to Speaker) */}
-                <Modal visible={scannerVisible} transparent animationType="fade" onRequestClose={() => setScannerVisible(false)}>
+                <Modal visible={scannerVisible} transparent statusBarTranslucent animationType="fade" onRequestClose={() => setScannerVisible(false)}>
                     <View style={{ flex: 1, backgroundColor: 'black' }}>
                         <CameraView
                             style={{ flex: 1 }}
@@ -891,7 +892,7 @@ export default function BootcampScreen() {
                     </View>
                 </Modal>
 
-                <Modal visible={sessionModalVisible} transparent animationType="slide" onRequestClose={() => setSessionModalVisible(false)}>
+                <Modal visible={sessionModalVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setSessionModalVisible(false)}>
                     <KeyboardAvoidingView className="flex-1 bg-black/50 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                         <View className="bg-paper h-[80%] rounded-t-sheet overflow-hidden">
                             <View className="p-card-pad flex-row justify-between items-center">
@@ -1230,7 +1231,7 @@ export default function BootcampScreen() {
                                     className={`flex-row items-center gap-4 p-6 rounded-card mb-8 border ${editData.isCommunityActive !== false ? 'bg-recruiter/10 border-recruiter/15' : 'bg-paper-2 border-line'}`}
                                 >
                                     <View className={`w-12 h-12 rounded-card items-center justify-center ${editData.isCommunityActive !== false ? 'bg-recruiter' : 'bg-paper-2'}`}>
-                                        <Ionicons name="people" size={24} color="white" />
+                                        <Ionicons name="people" size={24} color={editData.isCommunityActive !== false ? 'white' : C.ink3} />
                                     </View>
                                     <View className="flex-1">
                                         <Text className={`font-display uppercase text-sm ${editData.isCommunityActive !== false ? 'text-recruiter' : 'text-ink-2'}`}>
@@ -1247,7 +1248,7 @@ export default function BootcampScreen() {
                                     className={`flex-row items-center gap-4 p-6 rounded-card mb-8 border ${editData.isCollegeSpecific ? 'bg-recruiter/10 border-recruiter/15' : 'bg-paper-2 border-line'}`}
                                 >
                                     <View className={`w-12 h-12 rounded-card items-center justify-center ${editData.isCollegeSpecific ? 'bg-recruiter' : 'bg-paper-2'}`}>
-                                        <Ionicons name={editData.isCollegeSpecific ? "shield-checkmark" : "globe-outline"} size={24} color="white" />
+                                        <Ionicons name={editData.isCollegeSpecific ? "shield-checkmark" : "globe-outline"} size={24} color={editData.isCollegeSpecific ? 'white' : C.ink3} />
                                     </View>
                                     <View className="flex-1">
                                         <Text className={`font-display uppercase text-sm ${editData.isCollegeSpecific ? 'text-recruiter' : 'text-ink-2'}`}>
@@ -1286,7 +1287,7 @@ export default function BootcampScreen() {
                 </Modal>
 
                 {/* My Tickets Dashboard Modal */}
-                <Modal visible={ticketsModalVisible} transparent animationType="slide" onRequestClose={() => setTicketsModalVisible(false)}>
+                <Modal visible={ticketsModalVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setTicketsModalVisible(false)}>
                     <View className="flex-1 bg-black/50 justify-end">
                         <View className="bg-paper h-[70%] rounded-t-sheet overflow-hidden">
                             <View className="p-1 pt-12 flex-1">
@@ -1296,7 +1297,7 @@ export default function BootcampScreen() {
                                         <Text className="text-ink-3 text-xs font-semibold uppercase mt-1">{userRegistrations.length} Active Tickets</Text>
                                     </View>
                                     <TouchableOpacity onPress={() => setTicketsModalVisible(false)} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                        <Ionicons name="close" size={24} color="black" />
+                                        <Ionicons name="close" size={24} color={C.ink} />
                                     </TouchableOpacity>
                                 </View>
 
@@ -1326,7 +1327,7 @@ export default function BootcampScreen() {
                 </Modal>
 
                 {/* Entry Pass Modal */}
-                <Modal visible={qrModalVisible} transparent onRequestClose={() => setQrModalVisible(false)}>
+                <Modal visible={qrModalVisible} transparent statusBarTranslucent onRequestClose={() => setQrModalVisible(false)}>
                     <View className="flex-1 bg-black/80 justify-center items-center px-gutter">
                         <View className="bg-card w-full rounded-sheet overflow-hidden">
                             <View className="p-card-pad items-center flex-row justify-center" style={{ backgroundColor: C.recruiter }}>
@@ -1338,7 +1339,7 @@ export default function BootcampScreen() {
                                         {selectedReg?.qrCode && <Image source={{ uri: selectedReg.qrCode }} style={{ width: 140, height: 140 }} resizeMode="contain" />}
                                     </View>
                                 </View>
-                                <Text className='font-semibold mt-2'>{user?.name}</Text>
+                                <Text className='font-semibold mt-2 text-ink'>{user?.name}</Text>
                                 <TouchableOpacity onPress={() => setQrModalVisible(false)} className="mt-8 bg-ink w-full py-5 rounded-xl items-center shadow-hair">
                                     <Text className="text-paper font-display text-xs uppercase">CLOSE TICKET</Text>
                                 </TouchableOpacity>
@@ -1347,7 +1348,7 @@ export default function BootcampScreen() {
                     </View>
                 </Modal>
 
-                <Modal visible={collegeModalVisible} transparent animationType="fade" onRequestClose={() => setCollegeModalVisible(false)}>
+                <Modal visible={collegeModalVisible} transparent statusBarTranslucent animationType="fade" onRequestClose={() => setCollegeModalVisible(false)}>
                     <View className="flex-1 bg-black/50 items-center justify-center px-gutter">
                         <View className="bg-card w-full max-h-[70%] rounded-sheet overflow-hidden">
                             <View className="p-6 bg-ink">

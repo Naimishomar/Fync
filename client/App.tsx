@@ -42,6 +42,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { setupBackgroundHandler } from './services/NotificationService';
 // Initialize background push handler early
@@ -656,6 +657,10 @@ export default function App() {
   };
 
   return (
+    // Gesture handler needs one root: without it the drawer swipe, Swipeable rows
+    // and pan gestures outside the few screens that mount their own go dead.
+    // Paper behind it so nothing flashes white between screens.
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: C.paper }}>
     <ErrorBoundary>
       <AuthProvider>
         <SafeAreaProvider>
@@ -682,5 +687,6 @@ export default function App() {
         </SafeAreaProvider>
       </AuthProvider>
     </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }

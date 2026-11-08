@@ -282,7 +282,7 @@ const Notification = () => {
             source={{
               uri: getFullUrl(item.sender?.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.sender?.username || 'Fync')}`
             }}
-            style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line }}
+            style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2 }}
             cachePolicy="memory-disk"
           />
           )}
@@ -396,7 +396,7 @@ const Notification = () => {
   );
 };
 
-const s = themed(() => ({ thumb: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: C.line, marginLeft: 8 } }));
+const s = themed(() => ({ thumb: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: C.line, marginLeft: 8, backgroundColor: C.paper2 } }));
 
 // --- HELPER FUNCTION: Time Ago ---
 const getTimeAgo = (dateString: string) => {

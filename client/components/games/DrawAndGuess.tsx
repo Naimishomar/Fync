@@ -255,11 +255,11 @@ const DrawAndGuess = () => {
             
             {matchData.role === "guesser" && (
               <View className="flex-row items-center">
-                <TextInput
+                <TextInput placeholderTextColor={C.ink4}
                   value={guess}
                   onChangeText={setGuess}
                   placeholder="Type your guess..."
-                  className="flex-1 bg-paper border border-line rounded-full px-5 py-3 shadow-hair mr-2"
+                  className="flex-1 bg-paper border border-line rounded-full px-5 py-3 shadow-hair mr-2 text-ink"
                   onSubmitEditing={sendGuess}
                 />
                 <TouchableOpacity onPress={sendGuess} className="bg-fam-career w-12 h-12 rounded-full items-center justify-center shadow-hair">

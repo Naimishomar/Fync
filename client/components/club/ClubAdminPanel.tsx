@@ -524,6 +524,7 @@ const ClubAdminPanel = () => {
                                     value={editDesc}
                                     onChangeText={setEditDesc}
                                     multiline
+                                    textAlignVertical="top"
                                 />
                                 <TouchableOpacity 
                                     onPress={handleUpdateClub}

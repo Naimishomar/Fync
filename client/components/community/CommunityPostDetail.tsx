@@ -81,8 +81,11 @@ export default function CommunityPostDetail() {
 
     if (loading) {
         return (
-            <View className="flex-1 bg-paper items-center justify-center">
-                <ActivityIndicator size="large" color={C.brand[500]} />
+            <View className="flex-1 bg-paper">
+                <AppBar title={subName} onBack={() => navigation.goBack()} />
+                <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color={C.brand[500]} />
+                </View>
             </View>
         );
     }
@@ -99,13 +102,13 @@ export default function CommunityPostDetail() {
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchPost(); }} tintColor={C.brand[500]} />}
                     >
                         <View className="bg-card mx-5 p-6 rounded-card border border-line shadow-hair">
-                            <Text className="text-ink-3 font-display text-label uppercase mb-2">
+                            <Text className="text-ink-3 font-display text-label uppercase mb-2" numberOfLines={1}>
                                 {post?.author?.username || 'unknown'} · {post ? ago(post.createdAt) : ''}
                             </Text>
                             <Text className="text-ink text-xl font-display leading-snug">{post?.title}</Text>
                             {!!post?.body && <Text className="text-ink-2 text-base mt-3 leading-relaxed">{post.body}</Text>}
                             {post?.image?.map((url: string) => (
-                                <Image key={url} source={{ uri: url }} className="w-full h-56 rounded-card mt-4" resizeMode="cover" />
+                                <Image key={url} source={{ uri: url }} className="w-full h-56 rounded-card mt-4 bg-paper-2" resizeMode="cover" />
                             ))}
 
                             <View className="flex-row items-center mt-5 gap-5">

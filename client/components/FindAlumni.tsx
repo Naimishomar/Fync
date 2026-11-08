@@ -12,10 +12,12 @@ import { TeammateSkeleton } from "./Skeleton";
 
 import { RoleSticker, AppBar, IconBtn } from './ui/kit';
 import { C } from '../constants/colors';
+import { useBottomInset } from '../constants/layout';
 const { width } = Dimensions.get("window");
 
 const FindAlumni = ({ navigation }: any) => {
     const { user } = useAuth();
+    const bottomInset = useBottomInset();
     const [alumni, setAlumni] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -60,7 +62,8 @@ const FindAlumni = ({ navigation }: any) => {
             if (res.data.success) {
                 const newData = res.data.alumni || [];
                 if (shouldAppend) {
-                    setAlumni(prev => [...prev, ...newData]);
+                    // onEndReached can fire twice before loadingMore commits; dedupe so the page never repeats.
+                    setAlumni(prev => { const seen = new Set(prev.map(a => a._id)); return [...prev, ...newData.filter((a: any) => !seen.has(a._id))]; });
                 } else {
                     setAlumni(newData);
                 }
@@ -264,6 +267,7 @@ const FindAlumni = ({ navigation }: any) => {
             <Modal
                 animationType="slide"
                 transparent={true}
+                statusBarTranslucent
                 visible={isFilterVisible}
                 onRequestClose={() => setIsFilterVisible(false)}
             >
@@ -273,7 +277,7 @@ const FindAlumni = ({ navigation }: any) => {
                         activeOpacity={1}
                         onPress={() => setIsFilterVisible(false)}
                     />
-                    <View className="bg-paper rounded-t-sheet px-gutter pt-10 pb-12 shadow-hair border-t border-line">
+                    <View className="bg-paper rounded-t-sheet px-gutter pt-10 shadow-hair border-t border-line" style={{ paddingBottom: bottomInset + 32 }}>
                         <View className="w-12 h-1.5 bg-ink-4 rounded-full self-center mb-10" />
 
                         <View className="flex-row items-center justify-between mb-8">

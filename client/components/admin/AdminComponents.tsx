@@ -9,7 +9,7 @@ export const AdItem = ({ item, onEdit, onDelete }: any) => (
     <View className="bg-card rounded-card mb-4 border border-line overflow-hidden">
         <Image
             source={{ uri: item.imageUrl }}
-            className="w-full h-36"
+            className="w-full h-36 bg-paper-2"
             resizeMode="cover"
         />
         <View className="p-4">
@@ -43,11 +43,11 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
     return (
         <View className="bg-card rounded-card mb-4 p-4 border border-line">
             <View className="flex-row items-center justify-between mb-4">
-                <View className="flex-row items-center gap-3">
+                <View className="flex-row items-center gap-3 flex-1 mr-2">
                     <Image source={{ uri: item.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png' }} className="w-10 h-10 rounded-full bg-paper-2" />
-                    <View>
-                        <Text className="text-ink font-semibold text-base">{item.name}</Text>
-                        <Text className="text-ink-3 text-xs font-semibold">@{item.username}</Text>
+                    <View className="flex-1">
+                        <Text className="text-ink font-semibold text-base" numberOfLines={1}>{item.name}</Text>
+                        <Text className="text-ink-3 text-xs font-semibold" numberOfLines={1}>@{item.username}</Text>
                     </View>
                 </View>
                 <TouchableOpacity
@@ -64,7 +64,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                     <View key={idx} className="mb-4 last:mb-0 border-b border-line pb-3 last:border-0 last:pb-0">
                         <View className="flex-row items-center gap-2 mb-2">
                             <Ionicons name="gift-outline" size={14} color={C.brand[500]} />
-                            <Text className="text-ink font-semibold text-sm">{prod.product_name}</Text>
+                            <Text className="text-ink font-semibold text-sm flex-shrink" numberOfLines={1}>{prod.product_name}</Text>
                             <View className="ml-auto bg-warning/15 px-2 py-0.5 rounded-full">
                                 <Text className="text-label text-warning font-semibold">{prod.coins_required}</Text>
                             </View>
@@ -129,7 +129,7 @@ export const MarketPlaceItem = ({ item, onEdit, onDelete }: any) => (
             <View className="flex-row justify-between items-start">
                 <View className="flex-1">
                     <View className="flex-row items-center gap-2 mb-1">
-                        <Text className="text-ink font-semibold text-base">{item.product_name}</Text>
+                        <Text className="text-ink font-semibold text-base flex-shrink" numberOfLines={1}>{item.product_name}</Text>
                         {!item.is_available && (
                             <View className="bg-danger/15 px-2 py-0.5 rounded-md">
                                 <Text className="text-danger text-label font-display">Hidden</Text>
@@ -192,14 +192,14 @@ export const ReportItem = ({ item, onDelete, onResolve }: any) => {
         {isPost ? (
         <View className="bg-paper-2 rounded-xl p-3 mb-3 border border-line">
             <View className="flex-row items-center gap-2 mb-2">
-                <Image source={{ uri: item.post?.user?.avatar }} className="w-6 h-6 rounded-full" />
+                <Image source={{ uri: item.post?.user?.avatar }} className="w-6 h-6 rounded-full bg-paper-2" />
                 <Text className="text-ink font-semibold text-xs">@{item.post?.user?.username || 'unknown'}</Text>
             </View>
             <Text className="text-ink text-sm leading-5" numberOfLines={3}>{item.post?.description}</Text>
             {item.post?.image && item.post.image.length > 0 && (
                 <ScrollView keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} className="mt-3">
                     {item.post.image.map((img: string, i: number) => (
-                        <Image key={i} source={{ uri: img }} className="w-20 h-20 rounded-lg mr-2" />
+                        <Image key={i} source={{ uri: img }} className="w-20 h-20 rounded-lg mr-2 bg-paper-2" />
                     ))}
                 </ScrollView>
             )}
@@ -293,13 +293,13 @@ export const ContactMessageItem = ({ item, onDelete, onToggleRead }: any) => (
 export const UserItem = ({ item, onToggleBan }: any) => (
     <View className="bg-card rounded-sheet mb-4 p-5 border border-line shadow-hair">
         <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-3">
+            <View className="flex-row items-center gap-3 flex-1 mr-2">
                 <View className="w-14 h-14 rounded-card bg-paper-2 overflow-hidden">
                     <Image source={{ uri: item.avatar || 'https://cdn-icons-png.freepik.com/512/219/219988.png' }} className="w-full h-full" />
                 </View>
-                <View>
-                    <Text className="text-ink font-display text-sm">{item.name}</Text>
-                    <Text className="text-ink-3 text-label font-semibold">@{item.username}</Text>
+                <View className="flex-1">
+                    <Text className="text-ink font-display text-sm" numberOfLines={1}>{item.name}</Text>
+                    <Text className="text-ink-3 text-label font-semibold" numberOfLines={1}>@{item.username}</Text>
                     <View className="bg-paper-2 self-start mt-1.5 px-2.5 py-1 rounded-full">
                         <Text className="text-ink-3 text-label font-display">{item.user_access}</Text>
                     </View>
@@ -317,9 +317,9 @@ export const UserItem = ({ item, onToggleBan }: any) => (
             </View>
         </View>
         <View className="mt-4 flex-row items-center justify-between border-t border-paper pt-4">
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center gap-2 flex-1 mr-2">
                 <Ionicons name="mail-outline" size={12} color={C.ink3} />
-                <Text className="text-ink-3 text-label font-medium">{item.email}</Text>
+                <Text className="text-ink-3 text-label font-medium flex-shrink" numberOfLines={1}>{item.email}</Text>
             </View>
             <Text className="text-ink-3 text-label font-display">Joined {new Date(item.createdAt).toLocaleDateString()}</Text>
         </View>

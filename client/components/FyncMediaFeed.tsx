@@ -387,7 +387,8 @@ const YouTubeVideoPlayer = ({
           </View>
 
           {/* Bottom Seek Bar */}
-          <View pointerEvents="box-none" className="absolute inset-x-0 p-4" style={{ bottom: bottomInset }}>
+          {/* Gesture-bar inset only when fullscreen; inline, the 16:9 box is mid-screen and it floated the bar up. */}
+          <View pointerEvents="box-none" className="absolute inset-x-0 p-4" style={{ bottom: isFullscreen ? bottomInset : 0 }}>
             <View pointerEvents="box-none" className="flex-row justify-between mb-2">
               <Text className="text-white text-label font-semibold">
                 {status ? `${Math.floor(status.positionMillis / 60000)}:${String(Math.floor((status.positionMillis % 60000) / 1000)).padStart(2, '0')}` : '0:00'}
@@ -981,6 +982,7 @@ export default function FyncMediaFeed() {
           visible={uploadModalVisible}
           animationType="slide"
           transparent={true}
+          statusBarTranslucent
           onRequestClose={handleCloseModal}
         >
           <View className="flex-1 justify-end bg-black/40">
@@ -1010,6 +1012,7 @@ export default function FyncMediaFeed() {
                       multiline
                       onChangeText={setUploadTitle}
                       placeholder="Enter title..."
+                      placeholderTextColor={C.ink4}
                       className="bg-card px-4 py-2.5 border-[1.5px] border-ink font-medium text-ink rounded-md"
                     />
                   </View>
@@ -1020,6 +1023,7 @@ export default function FyncMediaFeed() {
                       value={uploadDescription}
                       onChangeText={setUploadDescription}
                       placeholder="Write a description..."
+                      placeholderTextColor={C.ink4}
                       multiline
                       numberOfLines={3}
                       className="bg-card px-4 py-2.5 border-[1.5px] border-ink font-medium text-ink h-28 rounded-md"
@@ -1033,6 +1037,7 @@ export default function FyncMediaFeed() {
                       value={uploadTags}
                       onChangeText={setUploadTags}
                       placeholder="tech, events, fync (comma separated)"
+                      placeholderTextColor={C.ink4}
                       className="bg-card px-4 py-2.5 border-[1.5px] border-ink font-medium text-ink rounded-md"
                     />
                   </View>

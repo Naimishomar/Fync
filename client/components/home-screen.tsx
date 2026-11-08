@@ -4,7 +4,6 @@ import { FlashList, useRecyclingState } from '@shopify/flash-list';
 import { PostSkeleton } from "./Skeleton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppBar, H2, IconBtn, Button } from './ui/kit';
-import Reanimated, { Layout, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../context/auth.context';
@@ -34,15 +33,7 @@ import { getFullUrl } from '../utils/imageUtils';
 import { prefetchPostImages, POST_PLACEHOLDER } from '../utils/imageWarm';
 import { useTabBarClearance, useBottomInset, useTabBarAutoHide } from '../constants/layout';
 import { fetchUnreadCounts } from '../utils/supabase';
-import { readRecentFeatureIds, recordFeatureUse } from '../utils/recentFeatures';
-import { visibleFeatures, artUrl, type Feature } from '../constants/features';
 
-// One colour per family rather than forty, matching ExploreHub.
-const fam = (k: string): string | undefined =>
-  k === 'account' ? C.fam.campus : (C.fam as Record<string, string>)[k];
-
-/** Shown until this user has opened anything; a first-run grid, not a fixed one. */
-const DEFAULT_QUICK = ['academy', 'jobs', 'utilities', 'techPulse'];
 
 import { dedupedGet } from '../utils/batchRequest';
 import socket from '../utils/socket';
@@ -933,87 +924,12 @@ export default function HomeScreen() {
       </View>
     );
   }, [loadingMore]);
-  // The home grid is sourced from constants/features.ts now, so there is one
-  // registry instead of a second hand-maintained copy that drifted from it.
-  // The four features this user actually opens, newest first. Shared with
-  // Explore, so using something in either place reorders both. Until there is
-  // any history, fall back to a sensible starting set rather than an empty row.
-  const [recentIds, setRecentIds] = useState<string[]>([]);
-  useFocusEffect(
-    useCallback(() => {
-      readRecentFeatureIds().then(setRecentIds).catch(() => setRecentIds([]));
-    }, [])
-  );
-
-  const quickFeatures = useMemo(() => {
-    const registry: Feature[] = visibleFeatures(user);
-    const byId = new Map(registry.map((f: Feature) => [f.id, f]));
-    const ordered = recentIds.map((id) => byId.get(id)).filter(Boolean) as Feature[];
-    const fallback = registry.filter((f: Feature) => DEFAULT_QUICK.includes(f.id));
-    const seen = new Set(ordered.map((f: Feature) => f.id));
-    return [...ordered, ...fallback.filter((f: Feature) => !seen.has(f.id))].slice(0, 4);
-  }, [recentIds, user]);
-
-  const openQuick = useCallback((f: any) => {
-    navigation.navigate(f.route, f.params);
-    recordFeatureUse(f.id).then(setRecentIds).catch(() => {});
-  }, [navigation]);
-  
-  const renderFeatureStories = () => {
-  return (
-    <View className="bg-transparent py-2 px-2 w-full">
-      {/* Grid Container */}
-      <View className="flex-row flex-wrap">
-        {quickFeatures.map((item: any, index: number) => (
-          <Reanimated.View
-            key={item.id}
-            entering={FadeIn.delay(index * 50).duration(500)}
-            className="w-1/4 p-1.5"
-          >
-            <Pressable
-              onPress={() => openQuick(item)}
-              accessibilityRole="button"
-              accessibilityLabel={`${item.label}. ${item.hint}`}
-              className="w-full bg-card p-1.5 flex flex-col items-center justify-between border-[1.5px] border-line rounded-md"
-              style={{
-                shadowColor: "#12100E",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 2,
-                elevation: 2,
-                aspectRatio: 1
-              }}
-            >
-              {/* One colour per family, the same mapping Explore uses */}
-              <View className="w-full flex-1 rounded-xl overflow-hidden mb-1 justify-center items-center"
-                style={{ backgroundColor: (fam(item.category) ?? item.tint) + '1A' }}>
-                {artUrl(item.art) ? (
-                  <ExpoImage source={{ uri: artUrl(item.art) }} style={{ width: 34, height: 34 }} contentFit="contain" cachePolicy="disk" transition={120} />
-                ) : (
-                  <Ionicons name={item.icon} size={24} color={fam(item.category) ?? item.tint} />
-                )}
-              </View>
-
-              {/* Title below icon */}
-              <Text className="font-display text-ink text-label text-center px-0.5 leading-tight" numberOfLines={2}>
-                {item.label}
-              </Text>
-            </Pressable>
-          </Reanimated.View>
-        ))}
-      </View>
-    </View>
-  );
-}
-
-
   const showSkeleton = loading && feed.length === 0;
   const listHeader = useMemo(() => (
     <View>
       {renderTabBar()}
       <View className="bg-transparent">
         <AdCarousel />
-        {renderFeatureStories()}
         {/* <CreatePost /> */}
         {showSkeleton && (
           <View>
@@ -1023,7 +939,7 @@ export default function HomeScreen() {
       </View>
     </View>
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [activeTab, quickFeatures, openQuick, showSkeleton]);
+  ), [activeTab, showSkeleton]);
 
   return (
     <View className="flex-1 bg-paper">

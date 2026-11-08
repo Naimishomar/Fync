@@ -14,6 +14,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
+import { getFullUrl } from '../utils/imageUtils';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Enable LayoutAnimation for Android
 if (
@@ -27,6 +29,7 @@ if (
 
 export default function AlumniSidebar(props: any) {
     const { user, logout } = useAuth();
+    const insets = useSafeAreaInsets();
 
     // State for dropdowns
     const [showOpportunities, setShowOpportunities] = useState(false);
@@ -59,14 +62,15 @@ export default function AlumniSidebar(props: any) {
 
     return (
         <View className="flex-1 bg-night">
-            <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0 }}>
+            <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0, paddingBottom: insets.bottom + 16 }}>
                 {/* Header Profile Section */}
-                <View className="bg-night px-5 pt-12 pb-6 border-b border-night">
+                {/* Inset-based top: a fixed pt-12 put the avatar under tall status bars/notches. */}
+                <View className="bg-night px-5 pb-6 border-b border-night" style={{ paddingTop: insets.top + 16 }}>
                     <Pressable onPress={() => go('Profile')}
                         className="flex-row items-center gap-4 mb-3">
                         <Image
-                            source={{ uri: user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'User')}` }}
-                            className="h-16 w-16 rounded-full border-2 border-recruiter"
+                            source={{ uri: getFullUrl(user?.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.username || 'User')}` }}
+                            className="h-16 w-16 rounded-full border-2 border-recruiter bg-night-2"
                         />
                         <View className="flex-1">
                             <Text className="text-white text-lg font-display" numberOfLines={1}>{user?.name || user?.username || 'Fync Alumni'}</Text>

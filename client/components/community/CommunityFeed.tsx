@@ -181,7 +181,7 @@ export default function CommunityFeed() {
             </View>
 
             <View className="flex-1 p-5">
-                <Text className="text-ink-3 font-display text-label uppercase mb-1">
+                <Text className="text-ink-3 font-display text-label uppercase mb-1" numberOfLines={1}>
                     {item.author?.username || 'unknown'} · {ago(item.createdAt)}
                 </Text>
                 <Text className="text-ink font-semibold text-base leading-snug">{item.title}</Text>
@@ -189,7 +189,7 @@ export default function CommunityFeed() {
                     <Text numberOfLines={3} className="text-ink-2 text-sm mt-2 leading-snug">{item.body}</Text>
                 )}
                 {!!item.image?.length && (
-                    <Image source={{ uri: item.image[0] }} style={{ width: '100%', height: 176, borderRadius: 20, marginTop: 12 }} contentFit="cover" cachePolicy="memory-disk" />
+                    <Image source={{ uri: item.image[0] }} style={{ width: '100%', height: 176, borderRadius: 20, marginTop: 12, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
                 )}
                 <View className="flex-row items-center mt-3">
                     <Feather name="message-circle" size={14} color={C.ink3} />
@@ -263,7 +263,7 @@ export default function CommunityFeed() {
                                 className={`px-5 h-10 rounded-xl items-center justify-center ${posting || !title.trim() ? 'bg-paper-2' : 'bg-ink'}`}
                             >
                                 {posting
-                                    ? <ActivityIndicator color={C.paper} size="small" />
+                                    ? <ActivityIndicator color={C.ink} size="small" />
                                     : <Text className="text-paper font-display uppercase text-label">Post</Text>}
                             </TouchableOpacity>}
                         />

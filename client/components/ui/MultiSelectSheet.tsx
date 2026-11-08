@@ -69,7 +69,7 @@ const MultiSelectSheet = ({
     );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
       <Pressable className="flex-1 bg-ink/50 justify-end" onPress={onClose}>
         {/* The sheet swallows taps so only the scrim dismisses. */}
         <Pressable

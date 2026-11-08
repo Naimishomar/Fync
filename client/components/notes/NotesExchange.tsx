@@ -268,6 +268,7 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
   const [semester, setSemester] = useState('');
   const [kind, setKind] = useState<'notes' | 'pyq' | 'lab' | 'syllabus'>('notes');
   const [busy, setBusy] = useState(false);
+  const bottomInset = useBottomInset();
 
   const pick = async () => {
     const res = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
@@ -317,11 +318,11 @@ function UploadSheet({ visible, onClose, onDone }: { visible: boolean; onClose: 
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
       {/* The fields sit at the bottom of the screen, right where the keyboard opens. */}
       <KeyboardAvoidingView behavior="padding" className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
         <Pressable className="flex-1" onPress={onClose} />
-        <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-8">
+        <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: bottomInset + 16 }}>
           <View className="items-center mb-4">
             <View className="h-1 w-10 bg-ink-3 rounded-full" />
           </View>

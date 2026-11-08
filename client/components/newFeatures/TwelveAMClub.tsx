@@ -14,6 +14,7 @@ import { checkClubStatus } from '../../utils/nightClub';
 import axios from '../../context/axiosConfig';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
+import { useBottomInset } from '../../constants/layout';
 import { AppBar, IconBtn } from '../ui/kit';
 import { pickReportReason } from '../../utils/safety';
 
@@ -65,6 +66,7 @@ export default function TwelveAMClub() {
 
   const { user } = useAuth();
   const navigation = useNavigation();
+  const bottomInset = useBottomInset(32);
   const CURRENT_USER_ID = user?._id || user?.id; 
   const myIdentity = getNightIdentity(myNightId ?? undefined);
   const flatListRef = useRef<FlatList>(null);
@@ -517,7 +519,7 @@ export default function TwelveAMClub() {
 
                 {/* Hide input if searching or no match in private mode */}
                 {!(mode === 'private' && (isSearching || !matchRoomId)) && (
-                  <View className="bg-night/80 px-5 pt-4 pb-8 border-t border-white/5">
+                  <View className="bg-night/80 px-5 pt-4 border-t border-white/5" style={{ paddingBottom: bottomInset }}>
                       <View className="flex-row items-end gap-3">
                           {mode === 'global' && (
                               <TouchableOpacity 

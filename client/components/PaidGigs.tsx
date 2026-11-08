@@ -483,7 +483,7 @@ export default function PaidGigs({ navigation }: any) {
             <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeModal}>
                 <View className="flex-1 bg-paper">
                     <StatusBar barStyle={C.barStyle} />
-                    <AppBar inset={false} title={editMode ? 'Edit Gig' : 'New Gig'} right={<IconBtn name="close" onPress={closeModal} />} />
+                    <AppBar inset={Platform.OS === 'android'} title={editMode ? 'Edit Gig' : 'New Gig'} right={<IconBtn name="close" onPress={closeModal} />} />
 
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
                         <ScrollView className="p-card-pad" contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">

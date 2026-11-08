@@ -154,7 +154,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
 
           {mode === '1v1' && opponent && (
             <View className="flex-row items-center justify-between mb-8 bg-paper-2 p-4 rounded-card border border-line shadow-hair">
-              <View className="flex-row items-center gap-3">
+              <View className="flex-row items-center gap-3 flex-1 mr-3">
                 <View className="w-12 h-12 bg-card rounded-card border border-line overflow-hidden items-center justify-center shadow-hair">
                   {opponent.avatar ? (
                     <Image source={{ uri: opponent.avatar }} className="w-full h-full" />
@@ -162,9 +162,9 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                     <Text className="font-display text-ink-4 text-xl">{opponent.username?.[0]?.toUpperCase()}</Text>
                   )}
                 </View>
-                <View>
+                <View className="flex-1">
                   <Text className="text-label text-ink-3 font-display uppercase">Global Opponent</Text>
-                  <Text className="font-display text-ink uppercase">{opponent.name || opponent.username}</Text>
+                  <Text className="font-display text-ink uppercase" numberOfLines={1}>{opponent.name || opponent.username}</Text>
                 </View>
               </View>
               <View className="bg-brand-500 px-2.5 py-1 rounded-full">
@@ -270,6 +270,7 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
         <Modal
           visible={showConfirmModal}
           transparent={true}
+          statusBarTranslucent
           animationType="fade"
           onRequestClose={() => setShowConfirmModal(false)}
         >

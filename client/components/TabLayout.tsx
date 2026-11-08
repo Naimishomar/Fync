@@ -1,8 +1,8 @@
-import { TouchableOpacity, View, Dimensions, Animated, Pressable, Text, Image, Platform, StyleSheet, BackHandler } from "react-native";
+import { TouchableOpacity, View, Dimensions, Animated, Pressable, Text, Platform, StyleSheet, BackHandler } from "react-native";
 import { Image as ExpoImage } from 'expo-image';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { BlurView } from 'expo-blur';
+import Svg, { Path } from "react-native-svg";
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Shorts from "./Shorts";
 import ExploreHub from "./ExploreHub";
@@ -26,7 +26,7 @@ const TabAvatar = ({ path }: { path: string }) => {
   return (
     <ExpoImage
       source={{ uri: src }}
-      style={{ width: 28, height: 28, borderRadius: 14 }}
+      style={{ width: '100%', height: '100%' }}
       contentFit="cover"
       cachePolicy="disk"
       onError={() => { const full = getFullUrl(path); if (full && src !== full) setSrc(full); }}
@@ -124,7 +124,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
   });
 
   return (
-    <View className="flex-1 items-center justify-center">
+    <View className="flex-1 items-center justify-center" style={{ transform: [{ translateY: FAB_LIFT }] }}>
       {/* Background Overlay to close menu when clicking outside */}
       {opened && (
         <Pressable
@@ -160,29 +160,26 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
 
 
 
-      {/* Main Center Button */}
-      {/* The wrapper carries the button's own colour, not just a radius.
-          Android elevation draws from the view's background, so an elevated
-          view with none renders a dark artifact behind the shape — the same
-          fault that was blackening the bar. */}
+      {/* Main Center Button — raised into the bar's notch, half above the bar. */}
       <View
         style={{
+          width: FAB,
+          height: FAB,
+          borderRadius: FAB / 2,
           backgroundColor: C.brand[500],
-          borderRadius: 999,
           shadowColor: C.brand[500], shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.5, shadowRadius: 16, elevation: 8
+          shadowOpacity: 0.45, shadowRadius: 14, elevation: 8,
         }}
       >
         <TouchableOpacity
           onPress={toggleMenu}
-          activeOpacity={0.9}
-          className="w-14 h-14 rounded-full items-center justify-center border-2 border-ink"
-          style={{ backgroundColor: C.brand[500] }}
+          activeOpacity={0.85}
+          className="flex-1 rounded-full items-center justify-center"
           accessibilityRole="button"
           accessibilityLabel="Create"
         >
           <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-            <Ionicons name="add" size={28} color={C.onBrand} />
+            <Ionicons name="add" size={32} color={C.white} />
           </Animated.View>
         </TouchableOpacity>
       </View>
@@ -190,70 +187,38 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
   );
 };
 
+/** Line icon, centred; the active tab fills in and turns brand orange. */
+const TabIcon = ({ name, focused }: { name: any; focused: boolean }) => (
+  <View className="items-center justify-center">
+    <Ionicons
+      name={focused ? String(name).replace('-outline', '') as any : name}
+      size={28}
+      color={focused ? C.accentText : C.ink3}
+    />
+  </View>
+);
+
+const FAB = 60;
+/** Raises the create button clear of the bar: its centre sits 8pt above the top
+ *  edge, so the notch shows a ring of space under it and it reads as floating. */
+const FAB_LIFT = -(TAB_BAR_HEIGHT / 2 + 8);
+const CORNER = 26;
+
 /**
- * A tab icon that survives a transparent bar.
- *
- * Low-opacity glass means the bar takes the colour of whatever is behind it:
- * near-white over the feed, near-black over Shorts. No single icon colour reads
- * on both, so the active tab brings its own ground — a filled brand circle,
- * which is legible against anything and states the current tab more plainly
- * than a tint ever did.
- *
- * Inactive icons stay ink and take a soft light halo, the same trick a camera
- * UI uses to keep controls readable over an unpredictable photo.
+ * Bar outline: fully rounded (it floats), with a round notch in the top middle
+ * where the create button sits. Inset by half the stroke so the hairline is not
+ * clipped at the edges.
  */
-const TabIcon = ({ name, focused }: { name: any; focused: boolean }) => {
-  if (focused) {
-    return (
-      <View
-        className="items-center justify-center rounded-full"
-        style={{
-          width: 40,
-          height: 40,
-          // Darker than the glass, as in the reference — the selected segment
-          // there is a deeper pane inside the panel, not a brighter one. A
-          // solid accent chip would read as a button sitting on the glass
-          // rather than as part of it.
-          backgroundColor: 'rgba(18, 16, 14, 0.45)',
-          borderWidth: 1,
-          borderColor: 'rgba(255, 255, 255, 0.22)',
-        }}
-      >
-        <Ionicons
-          name={String(name).replace('-outline', '') as any}
-          size={22}
-          color={C.white}
-          style={{
-            textShadowColor: 'rgba(0,0,0,0.4)',
-            textShadowOffset: { width: 0, height: 1 },
-            textShadowRadius: 3,
-          }}
-        />
-      </View>
-    );
-  }
-  return (
-    <View className="items-center justify-center" style={{ width: 40, height: 40 }}>
-      {/* A dark halo, not a heavier tint.
-          Glass this transparent takes the colour of whatever is behind it, so a
-          white glyph measures 2.04:1 over the paper feed and vanishes. Raising
-          the tint would fix that by making the bar opaque — which is the thing
-          being asked for here. The shadow gives the glyph its own edge instead,
-          so the panel stays see-through and the icon reads on either backdrop.
-          It is what a camera UI does with controls over an arbitrary photo. */}
-      <Ionicons
-        name={name}
-        size={24}
-        color="rgba(255, 255, 255, 0.92)"
-        style={{
-          textShadowColor: 'rgba(0,0,0,0.55)',
-          textShadowOffset: { width: 0, height: 1 },
-          textShadowRadius: 4,
-        }}
-      />
-    </View>
-  );
+const barPath = (w: number, h: number) => {
+  const i = 0.75;
+  const r = CORNER;
+  const cx = w / 2;
+  const n = FAB / 2 + 7;
+  const notch = `L ${cx - n - 10} ${i} Q ${cx - n} ${i} ${cx - n + 2} ${i + 6} A ${n} ${n} 0 0 0 ${cx + n - 2} ${i + 6} Q ${cx + n} ${i} ${cx + n + 10} ${i}`;
+  return `M ${i} ${r} Q ${i} ${i} ${r} ${i} ${notch} L ${w - r} ${i} Q ${w - i} ${i} ${w - i} ${r} L ${w - i} ${h - r} Q ${w - i} ${h - i} ${w - r} ${h - i} L ${r} ${h - i} Q ${i} ${h - i} ${i} ${h - r} Z`;
 };
+
+const BAR_WIDTH = width * 0.9;
 
 export default function TabLayout() {
   const { user } = useAuth();
@@ -287,66 +252,12 @@ export default function TabLayout() {
             paddingVertical: 0,
             justifyContent: 'center',
           },
-          // The blur has to draw behind the items, so the bar itself becomes
-          // transparent and a BlurView is laid in as the background. Leaving the
-          // solid colour here would sit on top of the blur and cancel it.
+          // Drawn as one SVG shape so the notch for the create button can be cut
+          // out of it; a View can't have a concave edge.
           tabBarBackground: () => (
-            <View style={{ ...StyleSheet.absoluteFillObject, borderRadius: TAB_BAR_HEIGHT / 2, overflow: 'hidden' }}>
-              {/* experimentalBlurMethod is required on Android.
-                  It defaults to 'none', which means BlurView does not blur at
-                  all there — it renders a flat semi-opaque fill, which is why
-                  the bar looked like a black slab rather than glass. iOS blurs
-                  natively and ignores this. */}
-              {/* Android skips the live blur: dimezisBlurView re-blurs every
-                  frame behind a bar that is always on screen. The darker
-                  fill below carries the glass there instead. */}
-              {Platform.OS === 'ios' && (
-                <BlurView
-                  intensity={100}
-                  tint="dark"
-                  style={StyleSheet.absoluteFillObject}
-                />
-              )}
-
-              {/* Smoked, not frosted white. In the reference the panel is
-                  darker than its backdrop and you read the background straight
-                  through it — that is what makes light glyphs legible on glass
-                  this transparent. Lowered to 0.34 now that Android actually
-                  blurs: the tint was carrying the whole effect while the blur
-                  was a no-op there. */}
-              <View
-                style={{
-                  ...StyleSheet.absoluteFillObject,
-                  backgroundColor: Platform.OS === 'ios' ? 'rgba(18, 16, 14, 0.34)' : 'rgba(18, 16, 14, 0.6)',
-                }}
-              />
-
-              {/* The rim is the whole effect. A crisp bright line following the
-                  full curve is light refracting through a bevelled edge; it is
-                  what separates a pane of glass from a translucent rectangle. */}
-              <View
-                style={{
-                  ...StyleSheet.absoluteFillObject,
-                  borderRadius: TAB_BAR_HEIGHT / 2,
-                  borderWidth: 1.5,
-                  borderColor: 'rgba(255, 255, 255, 0.42)',
-                }}
-              />
-
-              {/* Brighter along the top, where a real bevel catches the most
-                  light, fading before the corners so it reads as a highlight
-                  rather than a second border. */}
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 1.5,
-                  left: TAB_BAR_HEIGHT * 0.55,
-                  right: TAB_BAR_HEIGHT * 0.55,
-                  height: 1,
-                  backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                }}
-              />
-            </View>
+            <Svg width={BAR_WIDTH} height={TAB_BAR_HEIGHT} style={StyleSheet.absoluteFillObject} pointerEvents="none">
+              <Path d={barPath(BAR_WIDTH, TAB_BAR_HEIGHT)} fill={C.card} stroke={C.line} strokeWidth={1.5} />
+            </Svg>
           ),
           tabBarStyle: {
             position: "absolute",
@@ -361,6 +272,10 @@ export default function TabLayout() {
             borderRadius: TAB_BAR_HEIGHT / 2,
             height: TAB_BAR_HEIGHT,
             borderWidth: 0,
+            // React Navigation draws a hairline top border and an Android
+            // elevation shadow by default; both showed as a dark line across the notch.
+            borderTopWidth: 0,
+            elevation: 0,
             // No elevation here.
             //
             // On Android, elevation makes the view draw a background layer to
@@ -388,7 +303,7 @@ export default function TabLayout() {
         {/* Screens stay the same */}
         <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarAccessibilityLabel: "Home tab", tabBarIcon: ({ focused }) => <TabIcon name="home-outline" focused={focused} /> }} />
 
-        <Tab.Screen name="Shorts" component={Shorts} options={{ tabBarAccessibilityLabel: "Shorts tab", tabBarIcon: ({ focused }) => <TabIcon name="play-outline" focused={focused} /> }} />
+        <Tab.Screen name="Shorts" component={Shorts} options={{ tabBarAccessibilityLabel: "Shorts tab", tabBarStyle: { display: 'none' }, tabBarIcon: ({ focused }) => <TabIcon name="play-outline" focused={focused} /> }} />
 
         <Tab.Screen
           name="Create"
@@ -407,19 +322,17 @@ export default function TabLayout() {
             tabBarAccessibilityLabel: 'You, profile tab',
             tabBarIcon: ({ focused }) => (
               user?.avatar ? (
-                <View style={{ 
-                  width: 28, 
-                  height: 28, 
-                  borderRadius: 14, 
-                  borderWidth: focused ? 1.5 : 0, 
-                  borderColor: C.brand[500],
-                  justifyContent: 'center',
-                  alignItems: 'center'
+                <View style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  borderWidth: 1.5,
+                  borderColor: focused ? C.accentText : 'transparent',
+                  overflow: 'hidden',
                 }}>
                   <TabAvatar key={user.avatar} path={user.avatar} />
                 </View>
               ) : (
-                // TabIcon, not the bar's ink tint: an ink glyph vanished on the dark glass.
                 <TabIcon name="person-outline" focused={focused} />
               )
             ) 

@@ -19,6 +19,37 @@ import { AppBar, IconBtn } from '../ui/kit';
 const { height: screenHeight } = Dimensions.get('window');
 const KAV_BEHAVIOR = Platform.OS === 'ios' ? 'padding' : 'height';
 
+// Module scope: defined inside the screen it was a new component type every
+// render, so it remounted (and restarted its pulse) on each state change.
+const CommunityHubSkeleton = () => {
+    const pulseAnim = useRef(new Animated.Value(0.3)).current;
+    useEffect(() => {
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
+                Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+            ])
+        );
+        loop.start();
+        return () => loop.stop();
+    }, []);
+
+    return (
+        <Animated.View style={{ opacity: pulseAnim }} className="flex-1 bg-paper">
+            <View className="h-72 bg-paper-2" />
+            <View className="px-gutter pt-10">
+                <View className="flex-row gap-4 mb-8">
+                    <View className="flex-1 h-14 bg-paper-2 rounded-card" />
+                    <View className="w-14 h-14 bg-paper-2 rounded-card" />
+                </View>
+                <View className="h-4 bg-paper-2 rounded-full w-24 mb-4" />
+                <View className="h-3 bg-paper-2 rounded-full w-full mb-2" />
+                <View className="h-3 bg-paper-2 rounded-full w-4/5" />
+            </View>
+        </Animated.View>
+    );
+};
+
 const CommunityHubScreen = ({ navigation, route }: any) => {
     const { communityId } = route.params ?? {};
     const { user } = useAuth();
@@ -394,35 +425,6 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
         ]);
     };
 
-    const CommunityHubSkeleton = () => {
-        const pulseAnim = useRef(new Animated.Value(0.3)).current;
-        useEffect(() => {
-            const loop = Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, { toValue: 0.6, duration: 1000, useNativeDriver: true }),
-                    Animated.timing(pulseAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-                ])
-            );
-            loop.start();
-            return () => loop.stop();
-        }, []);
-
-        return (
-            <Animated.View style={{ opacity: pulseAnim }} className="flex-1 bg-paper">
-                <View className="h-64 bg-paper-2" />
-                <View className="px-gutter pt-10">
-                    <View className="flex-row gap-4 mb-8">
-                        <View className="flex-1 h-14 bg-paper-2 rounded-card" />
-                        <View className="w-14 h-14 bg-paper-2 rounded-card" />
-                    </View>
-                    <View className="h-4 bg-paper-2 rounded-full w-24 mb-4" />
-                    <View className="h-3 bg-paper-2 rounded-full w-full mb-2" />
-                    <View className="h-3 bg-paper-2 rounded-full w-4/5" />
-                </View>
-            </Animated.View>
-        );
-    };
-
     if (loading) return <CommunityHubSkeleton />;
     if (!data) return (
         <View className="flex-1 bg-paper">
@@ -448,7 +450,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 {/* Cinematic Header */}
                 <View className="h-72 w-full relative">
-                    <Image source={{ uri: community.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} className="w-full h-full" resizeMode="cover" />
+                    <Image source={{ uri: community.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} className="w-full h-full bg-paper-2" resizeMode="cover" />
                     <LinearGradient colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.9)']} style={StyleSheet.absoluteFill} />
                     
                     <View className="absolute top-0 left-0 right-0">
@@ -676,7 +678,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                     <View className="w-24 h-24 bg-danger/10 rounded-sheet items-center justify-center mb-8 border border-danger/15 shadow-hair">
                         <Feather name="zap-off" size={40} color={C.danger} />
                     </View>
-                    <Text className="text-ink text-3xl font-display uppercase text-center leading-tight">Spark<Text className="text-danger">\n</Text>Exhausted</Text>
+                    <Text className="text-ink text-3xl font-display uppercase text-center leading-tight">Spark<Text className="text-danger">{'\n'}</Text>Exhausted</Text>
                     <Text className="font-sans text-sm text-ink-3 text-center mt-4 mb-12 px-gutter">
                         Sector frequency is offline. {isCreator ? "Re-ignite the ecosystem spark to restore connectivity." : "Awaiting guardian activation protocol."}
                     </Text>
@@ -704,7 +706,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
             )}
 
             {/* Sub-Community Creation Modal */}
-            <Modal visible={subModalVisible} transparent animationType="slide" onRequestClose={() => setSubModalVisible(false)}>
+            <Modal visible={subModalVisible} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setSubModalVisible(false)}>
                 <View className="flex-1" style={{ backgroundColor: C.scrim }}>
                     <TouchableOpacity activeOpacity={1} onPress={() => setSubModalVisible(false)} className="flex-1" />
                     <KeyboardAvoidingView 
@@ -773,7 +775,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
             </Modal>
 
             {/* Sub-Community Update Modal */}
-            <Modal visible={editSubModal} transparent animationType="slide" onRequestClose={() => setEditSubModal(false)}>
+            <Modal visible={editSubModal} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setEditSubModal(false)}>
                 <View className="flex-1" style={{ backgroundColor: C.scrim }}>
                     <TouchableOpacity activeOpacity={1} onPress={() => setEditSubModal(false)} className="flex-1" />
                     <KeyboardAvoidingView 
@@ -826,7 +828,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
             </Modal>
 
             {/* Configuration Suite */}
-            <Modal visible={editHubModal} transparent animationType="slide" onRequestClose={() => setEditHubModal(false)}>
+            <Modal visible={editHubModal} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setEditHubModal(false)}>
                 <View className="flex-1" style={{ backgroundColor: C.scrim }}>
                     <TouchableOpacity activeOpacity={1} onPress={() => setEditHubModal(false)} className="flex-1" />
                     <KeyboardAvoidingView 

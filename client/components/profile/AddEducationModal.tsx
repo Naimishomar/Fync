@@ -7,6 +7,7 @@ import Toast from 'react-native-toast-message';
 import { EducationEntry } from './EducationCard';
 import { useAuth } from '../../context/auth.context';
 import { C } from '../../constants/colors';
+import { useBottomInset } from '../../constants/layout';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -14,6 +15,7 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
   visible: boolean; initial?: EducationEntry; onClose: () => void; onSuccess: () => void;
 }) {
   const { user } = useAuth();
+  const bottomInset = useBottomInset();
   const [form, setForm] = useState({
     institution: user?.college || '', degree: '', field: '', grade: '',
     startYear: '', endYear: '', isCurrent: false, description: ''
@@ -53,7 +55,7 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 bg-black/60 justify-end">
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView
@@ -142,7 +144,7 @@ export default function AddEducationModal({ visible, initial, onClose, onSuccess
           </ScrollView>
 
           {/* Footer Action */}
-          <View className="p-card-pad border-t border-line bg-paper">
+          <View className="p-card-pad border-t border-line bg-paper" style={{ paddingBottom: bottomInset }}>
             <Pressable onPress={save} disabled={saving}
               className="bg-ink py-5 flex-row items-center justify-center border-2 border-ink rounded-md">
               {saving ? <ActivityIndicator size="small" color={C.brand[500]} />

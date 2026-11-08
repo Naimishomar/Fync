@@ -93,7 +93,7 @@ export default function AlumniProfileSetup() {
         />
         
         <View className="mt-8 bg-card rounded-sheet px-6 pt-8 pb-10 shadow-hair">
-          <Text className="text-3xl font-display mb-2">Professional Info</Text>
+          <Text className="text-3xl font-display text-ink mb-2">Professional Info</Text>
           <Text className="text-ink-3 mb-6">Step 2: Tell us about your career</Text>
 
           <Text className="text-ink-2 font-semibold mb-2">Basic Details</Text>
@@ -242,7 +242,7 @@ export default function AlumniProfileSetup() {
         <View className="flex-1 bg-black/50 justify-end">
           <View className="bg-paper rounded-t-sheet h-[80%] px-6 pt-8">
             <View className="flex-row justify-between items-center mb-6">
-              <Text className="font-display text-h1">Select College</Text>
+              <Text className="font-display text-h1 text-ink">Select College</Text>
               <Pressable onPress={() => setShowCollegeModal(false)} hitSlop={8}>
                 <Ionicons name="close-circle" size={32} color={C.ink} />
               </Pressable>
@@ -263,6 +263,9 @@ export default function AlumniProfileSetup() {
               data={filteredColleges}
               keyExtractor={(item) => item}
               keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              // Last college sat under the gesture bar.
+              contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) }}
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() => {

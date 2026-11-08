@@ -498,9 +498,9 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                         <View className="flex-1 pr-6">
                             <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data.user })} className="flex-row items-center mb-3">
                                 <Avatar user={data.user as any} size={40} />
-                                <View className="ml-2">
-                                    <Text className="text-white font-semibold text-base shadow-hair">{data.user?.name || data.user?.username}</Text>
-                                    <Text className="text-white/70 text-xs shadow-hair">@{data.user?.username}</Text>
+                                <View className="ml-2 flex-1 min-w-0">
+                                    <Text className="text-white font-semibold text-base shadow-hair" numberOfLines={1}>{data.user?.name || data.user?.username}</Text>
+                                    <Text className="text-white/70 text-xs shadow-hair" numberOfLines={1}>@{data.user?.username}</Text>
                                 </View>
                             </Pressable>
                             {/* Truncated Title & Description */}
@@ -607,7 +607,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                 onMomentumScrollEnd={(e) => setCurrentImageIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
                                 renderItem={({ item }) => (
                                     <Pressable onPress={() => setResizeMode(prev => !prev)}>
-                                        <ExpoImage source={{ uri: getFullUrl(item) || '' }} style={{ width: width, height: width }} contentFit={resizeMode ? "contain" : "cover"} cachePolicy="disk" transition={300} />
+                                        <ExpoImage source={{ uri: getFullUrl(item) || '' }} style={{ width: width, height: width, backgroundColor: C.paper2 }} contentFit={resizeMode ? "contain" : "cover"} cachePolicy="disk" transition={300} />
                                     </Pressable>
                                 )}
                             />
@@ -740,7 +740,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             )}
 
             {/* --- MODALS --- */}
-            <Modal visible={menuVisible} transparent animationType="slide" onRequestClose={() => setMenuVisible(false)}>
+            <Modal visible={menuVisible} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setMenuVisible(false)}>
                 <View className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
                     <Pressable className="flex-1" onPress={() => setMenuVisible(false)} />
 
@@ -861,12 +861,15 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             <Modal
                 visible={isEditing}
                 transparent
+                statusBarTranslucent
                 animationType="slide"
                 onRequestClose={() => { if (!isUpdating) { setIsEditing(false); setNewVideo(null); setNewImages([]); } }}
             >
                 <KeyboardAvoidingView behavior="padding" className="flex-1" style={{ backgroundColor: C.scrim }}>
                     <View className="flex-1" />
-                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: bottomInset + 8 }}>
+                    {/* Capped + scrollable: preview + textarea + keyboard pushed the header off-screen on small phones. */}
+                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: bottomInset + 8, maxHeight: '92%' }}>
+                        <ScrollView keyboardShouldPersistTaps="handled" bounces={false} showsVerticalScrollIndicator={false}>
                             <View className="items-center mb-3">
                                 <View className="h-1 w-10 bg-ink-3 rounded-full" />
                             </View>
@@ -961,6 +964,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                             >
                                 {isUpdating ? <ActivityIndicator color={C.onBrand} /> : <Text className="text-on-brand font-display text-lg">Save changes</Text>}
                             </Pressable>
+                        </ScrollView>
                     </View>
                 </KeyboardAvoidingView>
             </Modal>

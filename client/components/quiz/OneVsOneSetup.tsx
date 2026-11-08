@@ -234,7 +234,7 @@ const OneVsOneSetup = () => {
                         {leaderboard.slice(0, 5).map((player, index) => (
                             <View key={player._id ?? index} className="bg-card p-4 rounded-card border border-line flex-row items-center mb-2 shadow-hair">
                                 <Text className={`w-8 font-display text-xs ${index === 0 ? 'text-warning' : 'text-ink-3'}`}>#{index + 1}</Text>
-                                <Image source={{ uri: player.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(player.username || '')}` }} style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12, borderWidth: 1, borderColor: C.line }} cachePolicy="memory-disk" />
+                                <Image source={{ uri: player.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(player.username || '')}` }} style={{ width: 40, height: 40, borderRadius: 12, marginRight: 12, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
                                 <View className="flex-1" style={{ minWidth: 0 }}>
                                     <Text className="font-semibold text-base text-ink" numberOfLines={1}>{player.name || player.username}</Text>
                                     <Text className="text-ink-3 text-label font-semibold uppercase" numberOfLines={1}>@{player.username}</Text>

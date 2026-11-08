@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {View, Text, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Image, TouchableOpacity, Switch, Dimensions} from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -77,7 +77,9 @@ export default function ShadowRival() {
     const [refreshing, setRefreshing] = useState(false);
     const [busy, setBusy] = useState(false);
     const [celebrate, setCelebrate] = useState(false);
-    const chartWidth = useRef(Dimensions.get('window').width - 96).current;
+    // Measured from the card, not guessed from the screen: a guess overflowed or
+    // fell short of the padding on some widths.
+    const [chartWidth, setChartWidth] = useState(0);
 
     const fetchRival = useCallback(async () => {
         try {
@@ -233,7 +235,9 @@ export default function ShadowRival() {
                                             </View>
                                         </View>
                                     </View>
-                                    <RaceChart history={data.history!} width={chartWidth} />
+                                    <View style={{ height: CHART_HEIGHT }} onLayout={(e) => setChartWidth(Math.floor(e.nativeEvent.layout.width))}>
+                                        {chartWidth > 0 && <RaceChart history={data.history!} width={chartWidth} />}
+                                    </View>
                                     <Text className="text-ink-3 font-display text-label uppercase mt-3">
                                         {data.history!.length} days tracked
                                     </Text>

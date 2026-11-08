@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, Modal, FlatList, TextInput, Pressable, TouchableOpacity,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Keyboard,
+  ActivityIndicator, Platform, Keyboard,
 } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -156,24 +156,24 @@ const CommentRow = React.memo(function CommentRow({
                 onChangeText={ctx.setEditingText}
                 multiline
                 autoFocus
-                className="bg-card border-2 border-ink rounded-xl px-3 py-2 text-ink"
+                className="bg-paper-2 rounded-2xl px-3 py-2 text-ink"
                 style={{ fontSize: 13 }}
               />
               <View className="flex-row mt-2">
                 <TouchableOpacity
                   onPress={() => ctx.onSave(comment._id)}
                   disabled={ctx.busyId === comment._id}
-                  className="bg-brand-500 border-2 border-ink rounded-xl px-4 items-center justify-center mr-2"
-                  style={{ minHeight: 36 }}
+                  className="bg-brand-500 rounded-full px-4 items-center justify-center mr-2"
+                  style={{ minHeight: 34 }}
                 >
-                  <Text className="font-display text-on-brand" style={{ fontSize: 11 }}>SAVE</Text>
+                  <Text className="font-semibold text-on-brand" style={{ fontSize: 12 }}>Save</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={ctx.onCancelEdit}
-                  className="bg-card border-2 border-ink rounded-xl px-4 items-center justify-center"
-                  style={{ minHeight: 36 }}
+                  className="bg-paper-2 rounded-full px-4 items-center justify-center"
+                  style={{ minHeight: 34 }}
                 >
-                  <Text className="font-display text-ink" style={{ fontSize: 11 }}>CANCEL</Text>
+                  <Text className="font-semibold text-ink" style={{ fontSize: 12 }}>Cancel</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -248,21 +248,23 @@ export default function CommentsSheet({
   const [busyId, setBusyId] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
   const bottomInset = useBottomInset();
-  const [keyboardUp, setKeyboardUp] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardUp = keyboardHeight > 0;
 
   /**
-   * The composer needs the navigation-bar inset only while the keyboard is
-   * down. With the keyboard up the composer already sits above it, and keeping
-   * the inset would leave a band of dead white between the input and the keys.
+   * The sheet lifts by the keyboard's own height. A KeyboardAvoidingView inside
+   * a Modal does nothing on Android edge-to-edge (the modal window never
+   * resizes), which left the composer under the keys. With the keyboard up the
+   * composer also drops the nav-bar inset, or a dead band sits above the keys.
    */
   useEffect(() => {
     const show = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => setKeyboardUp(true),
+      (e) => setKeyboardHeight(e.endCoordinates.height),
     );
     const hide = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardUp(false),
+      () => setKeyboardHeight(0),
     );
     return () => { show.remove(); hide.remove(); };
   }, []);
@@ -482,31 +484,38 @@ export default function CommentsSheet({
   );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      {/* 'padding' on both platforms: targetSdk 35 puts the app in Android 15's
-          enforced edge-to-edge mode, where the window no longer resizes for the
-          keyboard and an undefined behavior means no avoidance at all. */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1 justify-end"
-        style={{ backgroundColor: 'rgba(18,16,14,0.6)' }}
-      >
-        <Pressable className="flex-1" onPress={onClose} />
+    <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
+      <View className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
+        <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close comments" />
 
-        {/* A shrinkable column with the composer as a normal sibling. Pinned
-            absolutely inside a fixed-height sheet it could never rise, whatever
-            the keyboard did. */}
+        {/* Bottom sheet, Shahparpay-style: handle, a header row with a close
+            button, the list, and the composer pinned under a hairline. */}
         <View
-          className="bg-paper rounded-t-sheet pt-4 border-t-2 border-x-2 border-ink"
-          style={{ height: '50%', flexShrink: 1 }}
+          className="bg-card rounded-t-3xl border-t border-line"
+          style={{ height: '72%', maxHeight: '92%', marginBottom: keyboardHeight, flexShrink: 1 }}
         >
-          <View className="items-center mb-3">
-            <View className="h-1 w-10 bg-ink-3 rounded-full" />
+          <View className="items-center pt-3">
+            <View className="h-1 w-10 bg-line rounded-full" />
           </View>
 
-          <View className="px-5 mb-3">
-            <Text className="font-display text-xl text-ink">{title}</Text>
-            <View className="h-[2px] bg-ink mt-1" style={{ width: 44 }} />
+          <View className="flex-row items-center px-5 py-3 border-b border-line" style={{ gap: 12 }}>
+            <View className="flex-1 min-w-0">
+              <Text className="font-semibold text-ink" style={{ fontSize: 17 }} accessibilityRole="header">{title}</Text>
+              {!loading && comments.length > 0 && (
+                <Text className="font-sans text-ink-3 text-xs mt-0.5">
+                  {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
+                </Text>
+              )}
+            </View>
+            <Pressable
+              onPress={onClose}
+              hitSlop={8}
+              className="w-10 h-10 rounded-full bg-paper-2 items-center justify-center active:opacity-60"
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
+              <Ionicons name="close" size={20} color={C.ink2} />
+            </Pressable>
           </View>
 
           {loading ? (
@@ -520,7 +529,7 @@ export default function CommentsSheet({
               renderItem={renderComment}
               className="flex-1"
               keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16, flexGrow: 1 }}
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={loadFailed ? (
                 <View className="mt-10">
@@ -531,11 +540,13 @@ export default function CommentsSheet({
                   />
                 </View>
               ) : (
-                <View className="items-center mt-16 px-10">
-                  <Ionicons name="chatbubble-ellipses-outline" size={44} color={C.ink4} />
-                  <Text className="font-display text-base text-ink mt-3">No comments yet</Text>
-                  <Text className="font-sans text-ink-2 mt-1 text-center" style={{ fontSize: 12 }}>
-                    Say the first thing.
+                <View className="flex-1 items-center justify-center px-10" style={{ gap: 8 }}>
+                  <View className="w-14 h-14 rounded-full bg-paper-2 items-center justify-center">
+                    <Ionicons name="chatbubble-outline" size={24} color={C.ink3} />
+                  </View>
+                  <Text className="font-semibold text-base text-ink">No comments yet</Text>
+                  <Text className="font-sans text-ink-3 text-center" style={{ fontSize: 13 }}>
+                    Start the conversation.
                   </Text>
                 </View>
               )}
@@ -543,38 +554,36 @@ export default function CommentsSheet({
           )}
 
           <View
-            className="border-t-2 border-ink bg-card px-3 pt-2"
-            style={{ paddingBottom: keyboardUp ? 8 : bottomInset }}
+            className="border-t border-line bg-card px-4 pt-3"
+            style={{ paddingBottom: keyboardUp ? 10 : bottomInset }}
           >
             {replyingTo && (
-              <View className="flex-row items-center justify-between bg-paper px-3 py-2 mb-2 rounded-xl mx-2 border-2 border-ink">
-                <Text className="font-sans text-ink-2" style={{ fontSize: 12 }}>
-                  Replying to <Text className="font-display text-ink">@{replyingTo.commentor?.username}</Text>
+              <View className="flex-row items-center justify-between bg-paper-2 px-3 py-2 mb-2 rounded-full">
+                <Text className="font-sans text-ink-2 flex-1" style={{ fontSize: 12 }} numberOfLines={1}>
+                  Replying to <Text className="font-semibold text-ink">@{replyingTo.commentor?.username}</Text>
                 </Text>
-                <Pressable onPress={() => { setReplyingTo(null); setReplyRoot(null); }} hitSlop={8}>
+                <Pressable onPress={() => { setReplyingTo(null); setReplyRoot(null); }} hitSlop={8} accessibilityLabel="Cancel reply">
                   <Ionicons name="close-circle" size={18} color={C.ink3} />
                 </Pressable>
               </View>
             )}
 
-            <View className="flex-row items-center px-2">
+            <View className="flex-row items-end" style={{ gap: 8 }}>
               <TextInput
                 ref={inputRef}
                 value={text}
                 onChangeText={setText}
-                placeholder={replyingTo ? 'Add a reply...' : 'Add a comment...'}
+                placeholder={replyingTo ? 'Add a reply…' : 'Add a comment…'}
                 placeholderTextColor={C.ink3}
-                className="flex-1 text-ink bg-paper border-2 border-ink rounded-xl px-4 mr-2"
-                style={{ minHeight: 46, maxHeight: 110, paddingTop: 12, paddingBottom: 12 }}
+                className="flex-1 text-ink bg-paper-2 rounded-3xl px-4 font-sans"
+                style={{ minHeight: 44, maxHeight: 110, paddingTop: 11, paddingBottom: 11, fontSize: 15 }}
                 multiline
               />
-              {/* 52x46, not a bare text label — the old ones were roughly a
-                  20px tap target, well under the 44pt minimum. */}
               <TouchableOpacity
                 onPress={post}
                 disabled={posting || !text.trim()}
-                className={`items-center justify-center rounded-xl border-2 border-ink ${!text.trim() ? 'bg-paper' : 'bg-brand-500'}`}
-                style={{ width: 52, height: 46, opacity: posting ? 0.6 : 1 }}
+                className={`items-center justify-center rounded-full ${!text.trim() ? 'bg-paper-2' : 'bg-brand-500'}`}
+                style={{ width: 44, height: 44, opacity: posting ? 0.6 : 1 }}
                 accessibilityRole="button"
                 accessibilityLabel={replyingTo ? 'Post reply' : 'Post comment'}
               >
@@ -585,7 +594,7 @@ export default function CommentsSheet({
             </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

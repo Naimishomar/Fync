@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableWithoutFeedback, Dimensions, TouchableOpacity } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from '../../context/axiosConfig';
 
@@ -16,6 +17,7 @@ const BIRD_X = 50;
 
 const FlappyBird = () => {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const [birdY, setBirdY] = useState(SCREEN_HEIGHT / 2);
   const [velocity, setVelocity] = useState(0);
   const [pipes, setPipes] = useState<any[]>([]);
@@ -136,7 +138,7 @@ const FlappyBird = () => {
     <TouchableWithoutFeedback onPress={jump}>
       <View className="flex-1 bg-fam-social overflow-hidden relative">
         {/* Header */}
-        <View className="absolute top-12 left-5 z-10">
+        <View className="absolute left-5 z-10" style={{ top: Math.max(insets.top, 24) + 8 }}>
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-11 h-11 items-center justify-center rounded-xl"
             accessibilityRole="button"
             accessibilityLabel="Go back"
@@ -146,7 +148,7 @@ const FlappyBird = () => {
         </View>
 
         {/* Score */}
-        <View className="absolute top-20 w-full items-center z-10">
+        <View className="absolute w-full items-center z-10" style={{ top: Math.max(insets.top, 24) + 40 }}>
           <Text className="text-white text-5xl font-display shadow-hair">{score}</Text>
         </View>
 

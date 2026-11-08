@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, IconBtn } from '../ui/kit';
+import { useBottomInset } from '../../constants/layout';
 
 const { width, height } = Dimensions.get('window');
 
@@ -53,6 +54,7 @@ export default function FocusProductivity() {
     const appState = useRef(AppState.currentState);
     const lastDistractionTime = useRef<number | null>(null);
     const fadeAnim = useRef(new Animated.Value(1)).current;
+    const bottomInset = useBottomInset();
 
     useEffect(() => {
         loadHistory();
@@ -256,8 +258,10 @@ export default function FocusProductivity() {
                 activeOpacity={0.85}
                 onPress={startSession}
                 accessibilityRole="button"
-                className="mt-auto mb-10 rounded-card border-2 border-ink bg-brand-500"
+                className="mt-auto rounded-card border-2 border-ink bg-brand-500"
                 style={{
+                    // Clears a 3-button nav bar / gesture pill, not a fixed 40.
+                    marginBottom: Math.max(40, bottomInset + 16),
                     shadowColor: '#12100E', shadowOpacity: 1, shadowRadius: 0,
                     shadowOffset: { width: 4, height: 4 }, elevation: 0,
                 }}
@@ -279,7 +283,7 @@ export default function FocusProductivity() {
             </View>
 
             <AnimatedCircularProgress
-                size={340}
+                size={Math.min(340, width - 40)}
                 width={8}
                 fill={((initialSeconds - seconds) / initialSeconds) * 100}
                 tintColor={SESSION_THEMES[sessionType].colors[0]}
@@ -361,7 +365,7 @@ export default function FocusProductivity() {
                             <Text className="font-sans text-sm text-ink-3 mt-2">Complete a focus session to plant a tree.</Text>
                         </View>
                     }
-                    ListFooterComponent={<View className="h-10" />}
+                    ListFooterComponent={<View style={{ height: 40 + bottomInset }} />}
                     renderItem={({ item }) => (
                         <View className="flex-row items-center justify-between bg-card p-4 rounded-card mb-3 border border-line">
                             <View className="flex-row items-center">

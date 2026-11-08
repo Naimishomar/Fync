@@ -179,7 +179,7 @@ export default function StudyAssistant() {
                                             <Ionicons name="flash" size={18} color={C.onBrand} />
                                             <Text className="text-on-brand font-display ml-4 text-label uppercase">Generate Protocol Guide</Text>
                                         </View>
-                                        <Ionicons name="arrow-forward" size={18} color="white" />
+                                        <Ionicons name="arrow-forward" size={18} color={C.onBrand} />
                                     </View>
                                 </TouchableOpacity>
                             </View>

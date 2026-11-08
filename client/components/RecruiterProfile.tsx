@@ -11,6 +11,7 @@ import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
+import { getFullUrl } from '../utils/imageUtils';
 import { AppBar, IconBtn } from './ui/kit';
 import { useTabBarAutoHide, useTabBarClearance } from '../constants/layout';
 
@@ -80,8 +81,9 @@ const RecruiterProfile = () => {
             {/* Banner */}
             <View className="h-44 w-full relative">
                 <ExpoImage
-                    source={{ uri: user?.banner || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000' }}
-                    style={{ width: '100%', height: '100%' }}
+                    // getFullUrl: an uploaded banner is a relative path, which rendered blank.
+                    source={{ uri: getFullUrl(user?.banner) || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000' }}
+                    style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }}
                     contentFit="cover"
                 />
                 <View className="absolute inset-0 bg-black/20" />
@@ -113,7 +115,7 @@ const RecruiterProfile = () => {
                         </View>
                         {user?.companyWebsite && (
                             <TouchableOpacity
-                                onPress={() => Linking.openURL(user.companyWebsite)}
+                                onPress={() => Linking.openURL(user.companyWebsite).catch(() => {})}
                                 className="flex-row items-center gap-1.5 bg-recruiter/10 px-3 py-1.5 rounded-full"
                             >
                                 <Ionicons name="globe-outline" size={14} color={C.recruiter} />
@@ -202,7 +204,7 @@ const RecruiterProfile = () => {
                     </View>
                     <View className="flex-row items-center justify-between py-3">
                         <Text className="text-ink-3 text-label font-display uppercase">LinkedIn Profile</Text>
-                        <TouchableOpacity onPress={() => user?.linkedIn_id && Linking.openURL(user.linkedIn_id)}>
+                        <TouchableOpacity onPress={() => user?.linkedIn_id && Linking.openURL(user.linkedIn_id).catch(() => {})}>
                             <Text className="text-recruiter font-semibold text-sm">View Profile</Text>
                         </TouchableOpacity>
                     </View>

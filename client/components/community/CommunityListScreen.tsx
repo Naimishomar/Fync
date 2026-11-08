@@ -29,7 +29,7 @@ const CommunitySkeleton = () => {
     }, [pulseAnim]);
 
     return (
-        <Animated.View style={{ opacity: pulseAnim }} className="mx-gutter mb-6 bg-card rounded-sheet border border-line h-64 shadow-hair" />
+        <Animated.View style={{ opacity: pulseAnim }} className="mx-gutter mb-6 bg-card rounded-sheet border border-line h-80 shadow-hair" />
     );
 };
 
@@ -49,7 +49,7 @@ const CommunityItem = React.memo(({ item, userId, handleJoin, navigation, stampe
             <View className="h-44 w-full relative">
                 <Image 
                     source={{ uri: item.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070' }} 
-                    style={{ width: '100%', height: '100%' }}
+                    style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }}
                     contentFit="cover"
                     cachePolicy="memory-disk"
                 />
@@ -74,7 +74,7 @@ const CommunityItem = React.memo(({ item, userId, handleJoin, navigation, stampe
                     </View>
                     <View className="flex-1">
                         <Text className="text-white text-lg font-display uppercase leading-tight" numberOfLines={1}>{item.name}</Text>
-                        <Text className="text-white/60 text-label uppercase font-display">By {item.creator?.username || item.creator?.name}</Text>
+                        <Text className="text-white/60 text-label uppercase font-display" numberOfLines={1}>By {item.creator?.username || item.creator?.name}</Text>
                     </View>
                 </View>
             </View>

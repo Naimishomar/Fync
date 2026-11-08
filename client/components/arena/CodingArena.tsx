@@ -311,7 +311,7 @@ export default function CodingArena() {
       <View className={`flex-row items-center mx-5 mb-2 px-4 py-3 rounded-card border-2 border-ink ${isMe ? 'bg-brand-100' : 'bg-card'}`}>
         <Text className="font-display text-ink" style={{ fontSize: 15, width: 34 }}>#{item.rank}</Text>
         {item.avatar ? (
-          <Image source={{ uri: item.avatar }} style={{ width: 32, height: 32, borderRadius: 16 }} cachePolicy="memory-disk" />
+          <Image source={{ uri: item.avatar }} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
         ) : (
           <View className="items-center justify-center rounded-full bg-paper-2" style={{ width: 32, height: 32 }}>
             <Text className="font-display text-ink-2" style={{ fontSize: 12 }}>

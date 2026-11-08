@@ -21,7 +21,8 @@ import EducationCard, { EducationEntry } from './profile/EducationCard';
 import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 
-import { AppBar, StampCard, StampNumber } from './ui/kit';
+import { StampCard, StampNumber } from './ui/kit';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 const { width } = Dimensions.get('window');
@@ -73,10 +74,10 @@ function ProfileStrength({ user }: { user: UserType }) {
   if (!missing.length) return null;
   const pct = Math.round(((STRENGTH_ITEMS.length - missing.length) / STRENGTH_ITEMS.length) * 100);
   return (
-    <View className="w-full mt-4 bg-card border border-line rounded-card p-4">
+    <View className="w-full mt-3 bg-card border border-line rounded-2xl p-4">
       <View className="flex-row items-center justify-between">
-        <Text className="font-display text-label text-ink-3 uppercase">Profile strength</Text>
-        <Text className="font-display text-label text-accent-text">{pct}%</Text>
+        <Text className="font-semibold text-sm text-ink">Profile strength</Text>
+        <Text className="font-semibold text-sm text-accent-text">{pct}%</Text>
       </View>
       <View
         className="h-2 bg-paper-2 rounded-full overflow-hidden mt-3"
@@ -468,6 +469,7 @@ function Profile() {
   const { user, logout, setUser } = useAuth();
   const navigation = useNavigation<any>();
 
+  const [avatarOpen, setAvatarOpen] = useState(false);
   const [posts, setPosts] = useState<any[]>([]);
   const [shorts, setShorts] = useState<any[]>([]);
   const [reposts, setReposts] = useState<any[]>([]);
@@ -699,45 +701,52 @@ function Profile() {
       <View className="h-64 w-full relative">
         <ExpoImage
           source={{ uri: getFullUrl(user?.banner) || 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1000' }}
-          style={{ width: '100%', height: '100%' }} contentFit="cover" cachePolicy="disk" />
+          style={{ width: '100%', height: '100%', backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="disk" />
         <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
         
       </View>
 
       <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
-        <View className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
+        <Pressable
+          onPress={() => user?.avatar && setAvatarOpen(true)}
+          className="-mt-14 p-1.5 bg-card rounded-full shadow-hair active:opacity-80"
+          accessibilityRole="imagebutton"
+          accessibilityLabel="View profile photo"
+        >
           <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
             <Avatar user={user as any} size={110} />
           </View>
-        </View>
+        </Pressable>
 
-        {/* Name + badge */}
-        <View className="flex-row items-center mt-4 gap-2">
-          <Text className="font-display text-ink text-h1">{user?.name || user?.username}</Text>
-        </View>
-        <Text className="text-accent-text font-display text-sm mt-1">@{user?.username}</Text>
+        {/* Name, handle, bio, college: one centred block, tight rhythm. */}
+        <Text className="font-display text-ink text-h1 text-center mt-4" numberOfLines={2}>{user?.name || user?.username}</Text>
+        <Text className="text-accent-text font-semibold text-sm mt-1">@{user?.username}</Text>
 
-        <Text className="text-ink-3 text-center mt-4 px-6 text-sm leading-[22px] font-medium">
-          {user?.about || "Elevating the future of networking at Fync"}
-        </Text>
+        {!!user?.about?.trim() && (
+          <Text className="text-ink-2 text-center mt-3 px-6 text-sm leading-[21px]" numberOfLines={3}>
+            {user.about}
+          </Text>
+        )}
 
-        <View className="flex-row items-center mt-4 px-4 py-2 bg-paper-2 rounded-card border border-line gap-2">
-          <Ionicons name="location" size={16} color={C.brand[500]} />
-          <Text className="font-semibold text-base text-ink">{user?.college || 'Earth'}</Text>
-        </View>
+        {!!user?.college && (
+          <View className="flex-row items-center mt-3 px-3 py-1.5 bg-paper-2 rounded-full" style={{ gap: 6, maxWidth: '100%' }}>
+            <Ionicons name="school-outline" size={14} color={C.ink2} />
+            <Text className="font-medium text-sm text-ink-2 flex-shrink" numberOfLines={1}>{user.college}</Text>
+          </View>
+        )}
 
-        {/* Stats Dashboard */}
-        <View className="flex-row w-full bg-ink rounded-sheet mt-6 p-6 shadow-hair">
+        {/* Stats: a light card like every other card on the page, not a black slab. */}
+        <View className="flex-row w-full bg-card border border-line rounded-2xl mt-5 py-4">
           {[
             { label: 'Posts', value: postCount ?? posts.length },
             { label: 'Followers', value: user?.followers?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'followers' }) },
             { label: 'Following', value: user?.following?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'following' }) },
           ].map((s, i) => (
             <React.Fragment key={i}>
-              {i > 0 && <View className="w-[1px] h-8 self-center bg-card/10" />}
-              <Pressable className="items-center flex-1" onPress={s.onPress}>
-                <Text className="text-xl font-display text-paper">{s.value}</Text>
-                <Text className="text-ink-3 text-label font-display uppercase mt-1">{s.label}</Text>
+              {i > 0 && <View className="w-px self-stretch bg-line my-1" />}
+              <Pressable className="items-center flex-1 active:opacity-60" onPress={s.onPress} disabled={!s.onPress}>
+                <Text className="text-xl font-display text-ink">{s.value}</Text>
+                <Text className="text-ink-3 text-xs font-medium mt-0.5">{s.label}</Text>
               </Pressable>
             </React.Fragment>
           ))}
@@ -745,26 +754,24 @@ function Profile() {
 
         {/* Subscription Status Bar */}
         {subscription?.status === 'active' && (
-          <View className="w-full mt-4 bg-paper-2 border border-line px-5 py-3 flex-row items-center justify-between rounded-md">
-            <View className="flex-row items-center">
-              <View className="w-8 h-8 bg-brand-500 rounded-xl items-center justify-center mr-3">
-                <Ionicons name="flash" size={16} color={C.onBrand} />
-              </View>
-              <View>
-                <Text className="text-brand-900 font-display text-label uppercase">
-                  {subscription.isLifetime ? "Lifetime Access" : "Premium Member"}
-                </Text>
-                <Text className="text-accent-text font-semibold text-label mt-0.5">
-                  {subscription.isLifetime ? "Infinite Protocol Active" : `${subscription.daysRemaining} Days remaining`}
-                </Text>
-              </View>
+          <View className="w-full mt-3 bg-card border border-line px-4 py-3 flex-row items-center rounded-2xl" style={{ gap: 12 }}>
+            <View className="w-9 h-9 bg-brand-500 rounded-full items-center justify-center">
+              <Ionicons name="flash" size={16} color={C.onBrand} />
+            </View>
+            <View className="flex-1 min-w-0">
+              <Text className="text-ink font-semibold text-sm">
+                {subscription.isLifetime ? 'Lifetime access' : 'Premium member'}
+              </Text>
+              <Text className="text-ink-3 text-xs mt-0.5" numberOfLines={1}>
+                {subscription.isLifetime ? 'Fync Pro, active forever' : `${subscription.daysRemaining} days remaining`}
+              </Text>
             </View>
             {!subscription.isLifetime && isFeatureOn('fyncProPaid') && (
-              <Pressable 
+              <Pressable
                 onPress={() => navigation.navigate('SubscriptionScreen')}
-                className="bg-card border border-line px-2.5 py-1 rounded-full"
+                className="bg-brand-50 px-3 py-1.5 rounded-full active:opacity-70"
               >
-                <Text className="text-accent-text font-display text-label uppercase">Extend</Text>
+                <Text className="text-accent-text font-semibold text-xs">Extend</Text>
               </Pressable>
             )}
           </View>
@@ -788,15 +795,19 @@ function Profile() {
           </Pressable>
         )}
 
-        {/* Action buttons */}
-        <View className="flex-row gap-4 mt-6 w-full">
+        {/* Action buttons: same height, shape and type, so they read as a pair. */}
+        <View className="flex-row mt-3 w-full" style={{ gap: 12 }}>
           <Pressable onPress={() => navigation.navigate('EditProfile')}
-            className="flex-1 bg-paper border-2 border-line py-4 items-center shadow-hair rounded-md">
-            <Text className="font-semibold text-base text-ink">Edit Profile</Text>
+            className="flex-1 h-12 bg-card border border-line rounded-full flex-row items-center justify-center active:opacity-70"
+            style={{ gap: 6 }}>
+            <Ionicons name="create-outline" size={18} color={C.ink} />
+            <Text className="font-semibold text-sm text-ink" style={{ includeFontPadding: false }}>Edit profile</Text>
           </Pressable>
           <Pressable onPress={() => navigation.navigate('FyncProfileBuilder')}
-            className="flex-1 bg-brand-500 py-4 rounded-card items-center shadow-hair">
-            <Text className="text-on-brand font-display uppercase text-sm">Portfolio</Text>
+            className="flex-1 h-12 bg-brand-500 rounded-full flex-row items-center justify-center active:opacity-80"
+            style={{ gap: 6 }}>
+            <Ionicons name="briefcase-outline" size={18} color={C.onBrand} />
+            <Text className="font-semibold text-sm text-on-brand" style={{ includeFontPadding: false }}>Portfolio</Text>
           </Pressable>
         </View>
 
@@ -841,7 +852,7 @@ function Profile() {
         isShort ? 'Delete Short' : 'Delete Post', 'Are you sure?',
         [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => isShort ? deleteRef.current.deleteShort(item._id) : deleteRef.current.deletePost(item._id) }]
       ) : undefined}
-      className="m-[1px] rounded-lg overflow-hidden"
+      className="m-[1px] rounded-lg overflow-hidden bg-paper-2"
       style={{ width: (width / 3) - 2, height: isShort ? (width / 1.8) : (width / 3) }}>
       {isShort ? (
         <View className="w-full h-full bg-paper-2 overflow-hidden">
@@ -886,12 +897,33 @@ function Profile() {
     return null;
   }, [activeTab, user, renderGridItem]);
 
+  const insets = useSafeAreaInsets();
   return (
     // Plain View: tabBarClearance already includes the bottom inset, and a
     // bottom SafeAreaView counted it a second time.
     <View className="flex-1 bg-paper">
       <StatusBar style={C.statusStyle} />
-      <AppBar title="Profile" />
+      {/* Tap the avatar: the photo opens large over a dimmed screen, Instagram-style.
+          Tap anywhere or press back to close. */}
+      <Modal visible={avatarOpen} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setAvatarOpen(false)}>
+        <Pressable
+          onPress={() => setAvatarOpen(false)}
+          className="flex-1 items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
+          accessibilityRole="button"
+          accessibilityLabel="Close photo"
+        >
+          <ExpoImage
+            source={{ uri: getFullUrl(user?.avatar) ?? undefined }}
+            style={{ width: width * 0.78, height: width * 0.78, borderRadius: width * 0.39, backgroundColor: C.paper2 }}
+            contentFit="cover"
+            cachePolicy="disk"
+            transition={150}
+          />
+        </Pressable>
+      </Modal>
+      {/* No title bar: just clear the status bar. */}
+      <View style={{ height: insets.top }} />
       {/* key={activeTab} forces a remount when the column count changes,
           which both list implementations require. */}
       <FlashList keyboardShouldPersistTaps="handled"

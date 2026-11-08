@@ -130,7 +130,7 @@ export default function AlumniAvatarSetup() {
         />
 
         <View className="mt-8 bg-card rounded-sheet px-6 pt-8 pb-10 shadow-hair">
-          <Text className="text-3xl font-display mb-2">Profile Photo</Text>
+          <Text className="text-3xl font-display text-ink mb-2">Profile Photo</Text>
           <Text className="text-ink-3 mb-6">Step 3: Add a face to your professional profile</Text>
 
           <View className="items-center mb-8">

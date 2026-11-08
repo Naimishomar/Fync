@@ -30,7 +30,7 @@ const SkeletonItem = () => {
             style={{ opacity: pulseAnim }}
             className="flex-row items-center p-5 mx-gutter mb-4 bg-card rounded-card border border-line"
         >
-            <View className="w-12 h-12 bg-paper-2 rounded-card" />
+            <View className="w-14 h-14 bg-paper-2 rounded-card" />
             <View className="ml-4 flex-1">
                 <View className="h-4 bg-paper-2 rounded w-3/4 mb-2" />
                 <View className="h-3 bg-paper-2 rounded w-1/2" />

@@ -248,14 +248,14 @@ export default function AlumniJobs() {
                 />
 
                 {/* --- POST JOB MODAL --- */}
-                <Modal visible={isPostModalVisible} animationType="slide" transparent onRequestClose={() => setPostModalVisible(false)}>
+                <Modal visible={isPostModalVisible} animationType="slide" transparent statusBarTranslucent onRequestClose={() => setPostModalVisible(false)}>
                     <View className="flex-1 bg-black/50 justify-end">
                         <KeyboardAvoidingView behavior="padding">
                             <View className="bg-paper rounded-t-sheet p-card-pad">
                                 <View className="flex-row justify-between items-center mb-10">
                                     <Text className="text-ink font-display uppercase text-h1">Initialize Post</Text>
                                     <TouchableOpacity onPress={() => setPostModalVisible(false)} className="w-12 h-12 bg-paper-2 rounded-card items-center justify-center border border-line">
-                                        <Ionicons name="close" size={24} color="black" />
+                                        <Ionicons name="close" size={24} color={C.ink} />
                                     </TouchableOpacity>
                                 </View>
 

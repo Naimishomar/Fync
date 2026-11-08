@@ -3,7 +3,6 @@ import { View, Text, Animated, TouchableOpacity, Dimensions } from 'react-native
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../../constants/colors';
 
-const { width } = Dimensions.get('window');
 
 const CoinToss = () => {
   const [result, setResult] = useState<'Heads' | 'Tails' | null>(null);
@@ -32,7 +31,7 @@ const CoinToss = () => {
   });
 
   return (
-    <View className="p-card-pad bg-card rounded-sheet border border-line shadow-hair items-center" style={{ width: width - 40 }}>
+    <View className="p-card-pad bg-card rounded-sheet border border-line shadow-hair items-center" style={{ alignSelf: 'stretch' }}>
       {/* Header */}
       <View className="items-center mb-[50px]">
         <Text className="text-2xl font-display text-ink uppercase">COIN <Text className="text-brand-500">TOSS</Text></Text>

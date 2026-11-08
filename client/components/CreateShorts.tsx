@@ -21,7 +21,8 @@ import { useBottomInset } from '../constants/layout';
 
 const { width, height } = Dimensions.get("window");
 const COLUMN_COUNT = 3;
-const ITEM_SIZE = width / COLUMN_COUNT;
+// The gallery sits inside px-4 (32px): width/3 overflowed and clipped the right column.
+const ITEM_SIZE = (width - 32) / COLUMN_COUNT;
 
 const VideoItem = React.memo(({ item, isSelected, onSelect }: { 
   item: MediaLibrary.Asset, 

@@ -121,7 +121,7 @@ export const ListingSwitcher = ({ current }: { current: 'internships' | 'jobs' |
     .filter((l) => l.f);
   if (items.length < 2) return null;
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingHorizontal: 20, paddingVertical: 8 }}>
+    <ScrollView horizontal style={{ flexGrow: 0 }} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingHorizontal: 20, paddingVertical: 8 }}>
       {items.map(({ id, route, f }) => {
         const on = id === current;
         return (

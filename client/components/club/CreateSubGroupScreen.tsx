@@ -114,6 +114,7 @@ const CreateSubGroupScreen = () => {
                                 className="bg-card p-5 mb-10 font-semibold border-[1.5px] border-ink text-ink rounded-md"
                                 multiline
                                 numberOfLines={4}
+                                textAlignVertical="top"
                                 value={description}
                                 onChangeText={setDescription}
                             />

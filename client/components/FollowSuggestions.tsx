@@ -26,17 +26,22 @@ interface Suggestion {
  * endpoint repeatedly for a list that barely changes. The offset means each
  * card shows different people.
  */
+// Module cache: the feed recycles these rows, and every remount refetched and
+// flashed a spinner, resizing the row under the user's scroll.
+let cachedPeople: Suggestion[] | null = null;
+
 export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
   const navigation = useNavigation<any>();
-  const [people, setPeople] = useState<Suggestion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [people, setPeople] = useState<Suggestion[]>(cachedPeople ?? []);
+  const [loading, setLoading] = useState(!cachedPeople);
   const [followed, setFollowed] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
+    if (cachedPeople) return;
     let alive = true;
     axios.get('/user/suggestions', { params: { limit: 12 } })
-      .then((res) => { if (alive && res.data.success) setPeople(res.data.suggestions ?? []); })
+      .then((res) => { if (res.data.success) cachedPeople = res.data.suggestions ?? []; if (alive && cachedPeople) setPeople(cachedPeople); })
       .catch(() => { /* the feed is the point; a failed row just renders nothing */ })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
@@ -50,6 +55,8 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
     setFollowed((f) => ({ ...f, [id]: true }));
     try {
       await axios.post(`/user/follow/${id}`);
+      // Next mount shouldn't offer someone already followed.
+      if (cachedPeople) cachedPeople = cachedPeople.filter((x) => x._id !== id);
     } catch {
       setFollowed((f) => ({ ...f, [id]: false }));
     } finally {

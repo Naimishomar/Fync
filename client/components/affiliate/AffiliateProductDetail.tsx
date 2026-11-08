@@ -104,11 +104,7 @@ const AffiliateProductDetail = () => {
         return (
             <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>Product not found</Text>
-                <TouchableOpacity onPress={() => navigation.goBack()}
-            className="w-11 h-11 items-center justify-center rounded-xl"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            style={{ marginLeft: -11 }}>
+                <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" hitSlop={12}>
                     <Text style={styles.goBackText}>Go Back</Text>
                 </TouchableOpacity>
             </View>
@@ -177,7 +173,7 @@ const AffiliateProductDetail = () => {
                         </Text>
                     </View>
 
-                    <View style={{ height: 100 }} />
+                    <View style={{ height: 100 + bottomInset }} />
                 </View>
             </ScrollView>
 
@@ -232,7 +228,7 @@ const styles = themed(() => ({
     imageContainer: {
         width: '100%',
         height: 400,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: C.paper2,
     },
     productImage: {
         width: '100%',

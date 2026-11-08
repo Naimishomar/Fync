@@ -342,6 +342,7 @@ const CreateCommunityScreen = () => {
             <Modal
                 visible={showWebView}
                 animationType="slide"
+                statusBarTranslucent
                 onRequestClose={() => { setShowWebView(false); setLoading(false); }}
             >
                 <SafeAreaView className="flex-1 bg-paper">

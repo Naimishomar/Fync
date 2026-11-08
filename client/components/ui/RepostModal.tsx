@@ -53,7 +53,7 @@ export default function RepostModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={close}>
+    <Modal visible={visible} transparent statusBarTranslucent animationType="slide" onRequestClose={close}>
       <Pressable className="flex-1 justify-end" style={{ backgroundColor: C.scrim }} onPress={close}>
         <KeyboardAvoidingView behavior="padding">
           {/* Stops a tap inside the sheet from closing it. */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, FlatList, useWindowDimensions, ActivityIndicator, TouchableOpacity, Linking, AppState } from "react-native";
+import { View, FlatList, useWindowDimensions, TouchableOpacity, Linking, AppState } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { Image } from "expo-image";
 import axios from "../context/axiosConfig";
@@ -65,9 +65,8 @@ const AdCarousel = () => {
 
   if (loading) {
     return (
-      <View style={{ height: imageHeight }} className="items-center justify-center bg-paper-2">
-        <ActivityIndicator color={C.brand[500]} />
-      </View>
+      // Plain banner-sized block, same footprint as the poster: no spinner flashing in the feed header.
+      <View style={{ height: imageHeight, backgroundColor: C.paper2 }} />
     );
   }
 

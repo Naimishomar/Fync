@@ -279,10 +279,14 @@ const AdminPortal = ({ navigation }: any) => {
         }
     }, [paymentCursor, paymentFilter]);
 
+    // Ref, not state: onEndReached can fire twice before the re-render that
+    // would flip paymentsLoadingMore, appending the same page twice (dup keys).
+    const paymentsPaging = useRef(false);
     const loadMorePayments = useCallback(() => {
         // No cursor means the server already served the last page.
-        if (!paymentCursor || paymentsLoadingMore || loading) return;
-        fetchPayments();
+        if (!paymentCursor || paymentsLoadingMore || loading || paymentsPaging.current) return;
+        paymentsPaging.current = true;
+        fetchPayments().finally(() => { paymentsPaging.current = false; });
     }, [paymentCursor, paymentsLoadingMore, loading, fetchPayments]);
 
     const fetchPaymentStats = async () => {
@@ -1099,7 +1103,7 @@ const AdminPortal = ({ navigation }: any) => {
                             <Text className="text-ink-3 text-label font-display uppercase mb-2">Configure New Rate (INR)</Text>
                             <View className="flex-row items-center">
                                 <Text className="text-ink text-2xl font-display mr-2">₹</Text>
-                                <TextInput 
+                                <TextInput placeholderTextColor={C.ink4} 
                                     className="flex-1 text-3xl font-display text-ink"
                                     value={subscriptionPrice}
                                     onChangeText={setSubscriptionPrice}
@@ -1169,7 +1173,7 @@ const AdminPortal = ({ navigation }: any) => {
 
                     <View className="bg-paper-2 p-4 rounded-card border border-line mb-4">
                         <Text className="text-ink-3 text-label font-display uppercase mb-2">Notification Title</Text>
-                        <TextInput 
+                        <TextInput placeholderTextColor={C.ink4} 
                             className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink font-semibold rounded-md"
                             value={broadcastTitle}
                             onChangeText={setBroadcastTitle}
@@ -1179,7 +1183,7 @@ const AdminPortal = ({ navigation }: any) => {
 
                     <View className="bg-paper-2 p-4 rounded-card border border-line mb-6">
                         <Text className="text-ink-3 text-label font-display uppercase mb-2">Message Body</Text>
-                        <TextInput 
+                        <TextInput placeholderTextColor={C.ink4} 
                             className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink min-h-[100px] rounded-md"
                             value={broadcastBody}
                             onChangeText={setBroadcastBody}
@@ -1191,7 +1195,7 @@ const AdminPortal = ({ navigation }: any) => {
 
                     <View className="bg-paper-2 p-4 rounded-card border border-line mb-6">
                         <Text className="text-ink-3 text-label font-display uppercase mb-2">Image URL (optional)</Text>
-                        <TextInput
+                        <TextInput placeholderTextColor={C.ink4}
                             className="bg-card border-[1.5px] border-ink px-4 py-3 text-ink font-semibold rounded-md"
                             value={broadcastImage}
                             onChangeText={setBroadcastImage}
@@ -1364,10 +1368,10 @@ const AdminPortal = ({ navigation }: any) => {
                 )
             )}
 
-            <Modal visible={modalVisible} animationType="slide" transparent onRequestClose={() => { setModalVisible(false); resetForm(); }}>
+            <Modal visible={modalVisible} animationType="slide" transparent statusBarTranslucent onRequestClose={() => { setModalVisible(false); resetForm(); }}>
                 <View className="flex-1 bg-black/50 justify-end">
-                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                        <View className="bg-paper rounded-t-sheet p-6 pb-10 border-t border-line">
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ maxHeight: '92%' }}>
+                        <View className="bg-paper rounded-t-sheet p-6 pb-10 border-t border-line" style={{ flexShrink: 1 }}>
                             <View className="flex-row justify-between items-center mb-6">
                                 <Text className="text-ink font-display text-h1">{editingAd || editingProduct ? 'Edit Item' : activeTab === 'ads' ? 'New Ad Banner' : activeTab === 'media' ? 'Publish Fync Media' : 'New Reward Item'}</Text>
                                 <TouchableOpacity onPress={() => { setModalVisible(false); resetForm(); }} hitSlop={8} className="w-8 h-8 bg-paper-2 rounded-full items-center justify-center">
@@ -1408,13 +1412,13 @@ const AdminPortal = ({ navigation }: any) => {
                                     </TouchableOpacity>
                                 )}
 
-                                <TextInput
+                                <TextInput placeholderTextColor={C.ink4}
                                     value={imageUrl}
                                     onChangeText={t => { setImageUrl(t); setImageUri(null); }}
                                     placeholder="Or paste image URL"
                                     className="bg-paper-2 border border-line rounded-xl px-4 py-3 mb-4"
                                 />
-                                <TextInput
+                                <TextInput placeholderTextColor={C.ink4}
                                     value={title}
                                     onChangeText={setTitle}
                                     placeholder={activeTab === 'ads' ? "Ad Title" : activeTab === 'media' ? "Video Title" : "Product Name"}
@@ -1423,7 +1427,7 @@ const AdminPortal = ({ navigation }: any) => {
 
                                 {activeTab === 'marketplace' && (
                                     <>
-                                        <TextInput
+                                        <TextInput placeholderTextColor={C.ink4}
                                             value={description}
                                             onChangeText={setDescription}
                                             placeholder="Product Description"
@@ -1431,7 +1435,7 @@ const AdminPortal = ({ navigation }: any) => {
                                             className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 min-h-[100px] rounded-md"
                                             textAlignVertical="top"
                                         />
-                                        <TextInput
+                                        <TextInput placeholderTextColor={C.ink4}
                                             value={coins}
                                             onChangeText={setCoins}
                                             placeholder="Coins Required"
@@ -1443,7 +1447,7 @@ const AdminPortal = ({ navigation }: any) => {
 
                                 {activeTab === 'media' && (
                                     <>
-                                        <TextInput
+                                        <TextInput placeholderTextColor={C.ink4}
                                             value={description}
                                             onChangeText={setDescription}
                                             placeholder="Video Description"
@@ -1451,7 +1455,7 @@ const AdminPortal = ({ navigation }: any) => {
                                             className="bg-card border-[1.5px] border-ink px-4 py-3 mb-4 min-h-[100px] rounded-md"
                                             textAlignVertical="top"
                                         />
-                                        <TextInput
+                                        <TextInput placeholderTextColor={C.ink4}
                                             value={tags}
                                             onChangeText={setTags}
                                             placeholder="Tags (comma separated)"
@@ -1461,7 +1465,7 @@ const AdminPortal = ({ navigation }: any) => {
                                 )}
 
                                 {activeTab === 'ads' && (
-                                    <TextInput
+                                    <TextInput placeholderTextColor={C.ink4}
                                         value={linkUrl}
                                         onChangeText={setLinkUrl}
                                         placeholder="Link URL"
@@ -1498,9 +1502,9 @@ const AdminPortal = ({ navigation }: any) => {
             </Modal>
             </View>
             {/* Subscription Confirmation Modal */}
-            <Modal visible={subConfirmModalVisible} animationType="fade" transparent onRequestClose={() => !submittingPrice && setSubConfirmModalVisible(false)}>
+            <Modal visible={subConfirmModalVisible} animationType="fade" transparent statusBarTranslucent onRequestClose={() => !submittingPrice && setSubConfirmModalVisible(false)}>
                 <View className="flex-1 bg-ink/80 justify-center px-6">
-                    <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => setSubConfirmModalVisible(false)} />
+                    <TouchableOpacity activeOpacity={1} className="absolute inset-0" onPress={() => !submittingPrice && setSubConfirmModalVisible(false)} />
                     <View className="bg-card rounded-sheet p-card-pad shadow-hair overflow-hidden border border-line">
                         <View className="w-16 h-16 bg-danger/10 rounded-card items-center justify-center mb-6 border border-danger/15">
                             <Ionicons name="warning" size={32} color={C.danger} />

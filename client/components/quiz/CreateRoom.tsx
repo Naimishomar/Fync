@@ -217,7 +217,7 @@ const CreateRoom = () => {
                   display="spinner"
                   onChange={onIOSChange}
                   textColor={C.ink}
-                  themeVariant="light"
+                  themeVariant={C.scheme === "dark" ? "dark" : "light"}
                 />
               </View>
             )}

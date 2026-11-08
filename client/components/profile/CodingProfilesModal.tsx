@@ -8,6 +8,7 @@ import Feather from '@expo/vector-icons/Feather';
 import axios from '../../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { C } from '../../constants/colors';
+import { useBottomInset } from '../../constants/layout';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -44,6 +45,7 @@ const ProfileInput = ({ label, value, onChange, icon, logo }: any) => (
 );
 
 const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: CodingProfilesModalProps) => {
+  const bottomInset = useBottomInset();
   const [loading, setLoading] = useState(false);
   const [leetcode, setLeetcode] = useState(initialData?.leetcode || '');
   const [gfg, setGfg] = useState(initialData?.gfg || '');
@@ -89,7 +91,7 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
 
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 bg-black/60 justify-end">
         <Pressable className="absolute inset-0" onPress={onClose} />
         <KeyboardAvoidingView 
@@ -150,7 +152,7 @@ const CodingProfilesModal = ({ visible, onClose, onSuccess, initialData }: Codin
           </ScrollView>
 
           {/* Footer Action */}
-          <View className="p-card-pad border-t border-line bg-card shadow-hair">
+          <View className="p-card-pad border-t border-line bg-card shadow-hair" style={{ paddingBottom: bottomInset }}>
             <Pressable
               onPress={handleSave}
               disabled={loading}

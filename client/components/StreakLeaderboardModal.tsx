@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, Modal, TouchableOpacity, FlatList, ActivityIndicator, Dimensions} from 'react-native'
+import {View, Text, Modal, TouchableOpacity, FlatList, ActivityIndicator, Dimensions, Pressable} from 'react-native'
+import { useBottomInset } from '../constants/layout';
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -26,6 +27,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
   const [userRank, setUserRank] = useState(-1);
   const [userStreak, setUserStreak] = useState(0);
   const [completedToday, setCompletedToday] = useState(false);
+  const bottomInset = useBottomInset();
 
   useEffect(() => {
     if (isVisible) {
@@ -54,11 +56,14 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
     <Modal
       animationType="slide"
       transparent={true}
+      statusBarTranslucent
       visible={isVisible}
       onRequestClose={onClose}
     >
       <View className="flex-1 justify-end">
         <BlurView intensity={80} tint="dark" className="absolute inset-0" />
+        {/* Tapping the dimmed area above the sheet closes it, like every other sheet. */}
+        <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Close leaderboard" />
         
         <View className="bg-paper rounded-t-sheet h-[80%] border-t border-line">
 
@@ -191,7 +196,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                       <Text className="text-ink font-display text-sm uppercase" numberOfLines={1}>
                         {item.name}
                       </Text>
-                      <Text className="text-ink-3 text-label font-semibold uppercase">
+                      <Text className="text-ink-3 text-label font-semibold uppercase" numberOfLines={1}>
                         {item.college || 'Fync Student'}
                       </Text>
                     </View>
@@ -204,7 +209,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
                 )}
                 keyExtractor={(item) => item._id}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 60, paddingTop: 10 }}
+                contentContainerStyle={{ paddingBottom: 60 + bottomInset, paddingTop: 10 }}
                 ListEmptyComponent={() => (
                   <View className="items-center mt-20 px-gutter">
                     <View className="bg-paper-2 p-card-pad rounded-full mb-6">

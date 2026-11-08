@@ -815,7 +815,8 @@ const Chat = ({ route, navigation }: any) => {
           )}
 
           {/* INPUT AREA */}
-          <View style={{ paddingBottom: isKeyboardVisible ? 20 : (insets.bottom > 0 ? insets.bottom : 12) }}>
+          {/* Card ground on the inset strip too, so the composer doesn't sit on a two-tone band. */}
+          <View style={{ backgroundColor: C.card, paddingBottom: isKeyboardVisible ? 20 : (insets.bottom > 0 ? insets.bottom : 12) }}>
             <View className="px-5 pb-2 pt-2 bg-card">
               <View className="flex-row items-center bg-paper-2 p-2 rounded-card border border-line shadow-hair">
                 <TouchableOpacity onPress={handlePickImage} className="w-10 h-10 items-center justify-center" hitSlop={2}>
@@ -850,11 +851,12 @@ const Chat = ({ route, navigation }: any) => {
         </View>
       </KeyboardAvoidingView>
       {/* FULL SCREEN IMAGE MODAL */}
-      <Modal visible={!!selectedImage} transparent={true} animationType="fade" onRequestClose={() => setSelectedImage(null)}>
+      <Modal visible={!!selectedImage} transparent={true} statusBarTranslucent animationType="fade" onRequestClose={() => setSelectedImage(null)}>
         <View className="flex-1 bg-black/95 justify-center items-center">
           <TouchableOpacity
             onPress={() => setSelectedImage(null)}
-            className="absolute top-12 right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
+            className="absolute right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
+            style={{ top: insets.top + 12 }}
           >
             <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>
@@ -869,11 +871,12 @@ const Chat = ({ route, navigation }: any) => {
         </View>
       </Modal>
       {/* FULL SCREEN VIDEO MODAL */}
-      <Modal visible={!!selectedVideo} transparent={true} animationType="fade" onRequestClose={() => setSelectedVideo(null)}>
+      <Modal visible={!!selectedVideo} transparent={true} statusBarTranslucent animationType="fade" onRequestClose={() => setSelectedVideo(null)}>
         <View className="flex-1 bg-black/95 justify-center items-center">
           <TouchableOpacity
             onPress={() => setSelectedVideo(null)}
-            className="absolute top-12 right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
+            className="absolute right-6 w-10 h-10 bg-white/10 rounded-full items-center justify-center z-50"
+            style={{ top: insets.top + 12 }}
           >
             <Ionicons name="close" size={24} color="white" />
           </TouchableOpacity>

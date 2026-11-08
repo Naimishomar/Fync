@@ -11,6 +11,7 @@ import * as Sharing from 'expo-sharing';
 import { Buffer } from 'buffer';
 import Toast from 'react-native-toast-message';
 import { C } from '../../constants/colors';
+import { useBottomInset } from '../../constants/layout';
 import { AppBar, IconBtn, Meta } from '../ui/kit';
 import { useTabBarAutoHide, useTabBarClearance } from '../../constants/layout';
 
@@ -46,6 +47,7 @@ const RecruiterPortal = () => {
     // Composing is scoped to one group at a time. The old single "Email all"
     // could reach anyone in the list, so an interview invite could land on a
     // candidate who had been rejected.
+    const mailBottomInset = useBottomInset(24);
     const [mailTo, setMailTo] = useState<'shortlisted' | 'rejected' | null>(null);
     const [mailSubject, setMailSubject] = useState('');
     const [mailBody, setMailBody] = useState('');
@@ -982,11 +984,11 @@ const RecruiterPortal = () => {
             {/* Compose sheet. The recipient group is stated in the header and
                 cannot be changed from here — switching audience mid-draft is
                 how the wrong message reaches the wrong people. */}
-            <Modal visible={!!mailTo} transparent animationType="slide" onRequestClose={() => setMailTo(null)}>
+            <Modal visible={!!mailTo} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setMailTo(null)}>
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 justify-end" style={{ backgroundColor: C.scrim }}>
                     <Pressable className="flex-1" onPress={() => setMailTo(null)} />
 
-                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4 pb-6">
+                    <View className="bg-paper rounded-t-sheet border-t-2 border-x-2 border-ink px-5 pt-4" style={{ paddingBottom: mailBottomInset }}>
                         <View className="items-center mb-3">
                             <View className="h-1 w-10 bg-ink-3 rounded-full" />
                         </View>

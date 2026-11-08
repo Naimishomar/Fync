@@ -149,7 +149,7 @@ const styles = themed(() => ({
     },
     webview: {
         flex: 1,
-        backgroundColor: '#12100E',
+        backgroundColor: C.paper,
     },
     loadingOverlay: {
         ...StyleSheet.absoluteFillObject,

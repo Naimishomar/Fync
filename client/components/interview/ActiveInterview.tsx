@@ -468,9 +468,12 @@ export default function ActiveInterview() {
         </View>
 
         <View className="bg-paper-2 px-gutter py-6 rounded-card w-full min-h-[140px] justify-center border border-line">
-          <Text className="text-ink text-center text-xl leading-8 font-semibold">
-            "{currentQuestion}"
-          </Text>
+          {/* Capped and scrollable: a long streamed question used to push the card down over the mic controls. */}
+          <ScrollView style={{ maxHeight: 200 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} showsVerticalScrollIndicator={false}>
+            <Text className="text-ink text-center text-xl leading-8 font-semibold">
+              "{currentQuestion}"
+            </Text>
+          </ScrollView>
         </View>
 
         {/* What Whisper heard, shown as soon as it lands. Seeing your own

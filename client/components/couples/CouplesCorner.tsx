@@ -86,7 +86,7 @@ const CouplesCorner = () => {
       setReveal(null);
       // Local clock for the bar: the server's endsAt can be off by the phone's clock skew.
       timer.setValue(1);
-      Animated.timing(timer, { toValue: 0, duration: ROUND_MS, easing: Easing.linear, useNativeDriver: false }).start();
+      Animated.timing(timer, { toValue: 0, duration: ROUND_MS, easing: Easing.linear, useNativeDriver: true }).start();
     };
     const onPartnerPicked = () => setPartnerPicked(true);
     const onReveal = (d: Reveal) => {
@@ -114,7 +114,10 @@ const CouplesCorner = () => {
     ];
     evts.forEach(([e, fn]) => socket.on(e, fn));
     // Detach only this screen's listeners: the socket is shared app-wide.
-    return () => evts.forEach(([e, fn]) => socket.off(e, fn));
+    return () => {
+      evts.forEach(([e, fn]) => socket.off(e, fn));
+      timer.stopAnimation();
+    };
   }, [timer]);
 
   // Invite codes die after 10 min server-side; count down and drop back to the lobby with it.
@@ -372,9 +375,9 @@ const Playing = ({
   return (
     <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 48 }}>
       <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center" style={{ gap: 8 }}>
+        <View className="flex-row items-center" style={{ gap: 8, flexShrink: 1, marginRight: 8 }}>
           <Avatar user={partner} size={32} showBadge={false} />
-          <Text className="font-display text-ink" numberOfLines={1}>{nameOf(partner)}</Text>
+          <Text className="font-display text-ink" style={{ flexShrink: 1 }} numberOfLines={1}>{nameOf(partner)}</Text>
         </View>
         <Text className="font-display text-ink-2">
           {round.round + 1}/{round.total} · ❤️ {reveal?.score ?? '…'}
@@ -383,7 +386,8 @@ const Playing = ({
 
       <View className="h-1.5 rounded-full bg-line overflow-hidden mb-6">
         <Animated.View
-          style={{ height: '100%', backgroundColor: g.tint, width: timer.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }}
+          // scaleX from the left edge: runs on the native driver instead of re-laying out width every frame.
+          style={{ height: '100%', width: '100%', backgroundColor: g.tint, transformOrigin: 'left', transform: [{ scaleX: timer }] }}
         />
       </View>
 

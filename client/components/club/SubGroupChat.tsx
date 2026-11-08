@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {View, Text, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, Modal} from 'react-native'
+import {View, Text, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, Modal, ScrollView} from 'react-native'
 import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import * as DocumentPicker from 'expo-document-picker';
@@ -16,6 +16,7 @@ import Avatar from '../Avatar';
 const SubGroupChat = ({ navigation, route }: any) => {
     const { subGroupId, subGroupName, clubId } = route.params ?? {};
     const { user } = useAuth();
+    const insets = useSafeAreaInsets();
     
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -187,7 +188,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                     {item.fileUrl && (
                         <View className="mb-2">
                             {item.fileType === 'image' ? (
-                                <Image source={{ uri: item.fileUrl }} style={{ width: 192, height: 192, borderRadius: 8 }} cachePolicy="memory-disk" />
+                                <Image source={{ uri: item.fileUrl }} style={{ width: 192, height: 192, borderRadius: 8, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
                             ) : (
                                 <View className="bg-paper-2 p-2 rounded-lg flex-row items-center border border-line">
                                     <Feather name="file" size={20} color={C.ink2} />
@@ -333,9 +334,9 @@ const SubGroupChat = ({ navigation, route }: any) => {
                 </KeyboardAvoidingView>
 
                 {/* Poll Creation Modal */}
-                <Modal visible={showPollModal} animationType="slide" transparent onRequestClose={() => setShowPollModal(false)}>
+                <Modal visible={showPollModal} animationType="slide" transparent statusBarTranslucent onRequestClose={() => setShowPollModal(false)}>
                     <KeyboardAvoidingView className="flex-1 bg-black/60 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                        <View className="bg-paper rounded-t-sheet p-card-pad">
+                        <ScrollView className="bg-paper rounded-t-sheet" style={{ flexGrow: 0, maxHeight: '92%' }} contentContainerStyle={{ padding: 16, paddingBottom: Math.max(insets.bottom, 16) + 8 }} keyboardShouldPersistTaps="handled">
                             <View className="flex-row justify-between items-center mb-6">
                                 <Text className="text-ink font-display uppercase text-h1">Create Poll</Text>
                                 <TouchableOpacity onPress={() => setShowPollModal(false)} hitSlop={10}>
@@ -377,7 +378,7 @@ const SubGroupChat = ({ navigation, route }: any) => {
                             >
                                 <Text className="text-paper font-display uppercase">Post Poll</Text>
                             </TouchableOpacity>
-                        </View>
+                        </ScrollView>
                     </KeyboardAvoidingView>
                 </Modal>
             </SafeAreaView>

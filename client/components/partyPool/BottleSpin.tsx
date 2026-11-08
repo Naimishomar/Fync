@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Animated, TouchableOpacity, TextInput, Dimensions, Image } from 'react-native';
+import { View, Text, Animated, TouchableOpacity, TextInput, Image } from 'react-native';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { C } from '../../constants/colors';
 
-const { width } = Dimensions.get('window');
 
 const BottleSpin = () => {
   const [numPeople, setNumPeople] = useState('4');
@@ -14,6 +13,10 @@ const BottleSpin = () => {
   const lastSegmentRef = useRef(0);
   const soundRef = useRef<Audio.Sound | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+  // The 300px table is wider than the card on small phones; scale it to the
+  // card's own measured inner width (minus p-6 and border) instead of clipping.
+  const [innerW, setInnerW] = useState(300);
+  const boardScale = Math.min(1, innerW / 300);
 
   useEffect(() => {
     // Leaving before the download finishes would otherwise orphan a loaded sound.
@@ -107,7 +110,8 @@ const BottleSpin = () => {
   const people = Array.from({ length: peopleCount });
 
   return (
-    <View className="p-6 bg-card rounded-sheet border border-line shadow-hair items-center" style={{ width: width - 40 }}>
+    <View className="p-6 bg-card rounded-sheet border border-line shadow-hair items-center" style={{ alignSelf: 'stretch' }}
+      onLayout={(e) => setInnerW(e.nativeEvent.layout.width - 50)}>
       {/* Header UI */}
       <View className="items-center mb-[30px]">
         <Text className="text-2xl font-display text-ink uppercase">BOTTLE <Text className="text-brand-500">SPIN</Text></Text>
@@ -141,7 +145,7 @@ const BottleSpin = () => {
         )}
       </View>
 
-      <View className="w-[300px] h-[300px] justify-center items-center">
+      <View className="w-[300px] h-[300px] justify-center items-center" style={{ transform: [{ scale: boardScale }], marginVertical: -150 * (1 - boardScale) }}>
         {/* Table Background */}
         <View className="absolute w-[260px] h-[260px] rounded-sheet overflow-hidden bg-paper-2">
         </View>

@@ -299,7 +299,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                             <Text className={`${isMe ? 'text-paper' : 'text-ink'} text-sm leading-5 font-medium`}>{item.message}</Text>
                         )}
                         {item.messageType === 'image' && (
-                            <Image source={{ uri: item.fileUrl }} style={{ width: 208, height: 208, borderRadius: 8 }} contentFit="cover" cachePolicy="memory-disk" />
+                            <Image source={{ uri: item.fileUrl }} style={{ width: 208, height: 208, borderRadius: 8, backgroundColor: C.paper2 }} contentFit="cover" cachePolicy="memory-disk" />
                         )}
                         {item.messageType === 'file' && (
                             <TouchableOpacity
@@ -405,7 +405,7 @@ const ProfessionalHub = ({ navigation }: any) => {
                                         onPress={() => applyMention(item.username)}
                                         className="flex-row items-center px-4 py-3 border-b border-line active:bg-paper-2"
                                     >
-                                        <Image source={{ uri: item.avatar }} style={{ width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: C.line }} cachePolicy="memory-disk" />
+                                        <Image source={{ uri: item.avatar }} style={{ width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: C.line, backgroundColor: C.paper2 }} cachePolicy="memory-disk" />
                                         <View className="ml-3">
                                             <Text className="text-ink font-semibold text-sm">@{item.username}</Text>
                                             <Text className="text-ink-3 text-label font-medium">{item.name}</Text>
