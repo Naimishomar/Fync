@@ -1,10 +1,9 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, Text, Pressable, Share } from 'react-native';
+import { View, Text, Share, useWindowDimensions } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import { Button, Card } from './kit';
-import { Sheet } from './Sheet';
 import { Alert } from './AlertModal';
 import { ScannerModal } from '../events/EventShared';
 import { C } from '../../constants/colors';
@@ -22,15 +21,15 @@ export const parseProfileLink = (data: string): string | null => {
 
 // QR stays black on white in both themes: scanners read dark-on-light.
 const QR = ({ value, size }: { value: string; size: number }) => (
-  <View className="rounded-2xl" style={{ backgroundColor: '#FFFFFF', padding: 10 }}>
+  <View className="rounded-2xl" style={{ backgroundColor: '#FFFFFF', padding: 12 }}>
     <QRCode value={value} size={size} color="#12100E" backgroundColor="#FFFFFF" />
   </View>
 );
 
 /**
- * The user's own QR, Paytm-style, for the sidebar: scan it to land on their
- * profile. Tap the code for a large version; Share sends the link; Scan opens
- * the camera to read someone else's.
+ * The user's own QR, Paytm/BHIM-style, for the sidebar: one large square code
+ * across the full width, scan it to land on their profile. Share sends the
+ * link; Scan opens the camera to read someone else's.
  */
 export default function ProfileQRCard({ user, onNavigate }: {
   user: { _id?: string; name?: string; username?: string } | null | undefined;
@@ -38,7 +37,7 @@ export default function ProfileQRCard({ user, onNavigate }: {
   onNavigate?: () => void;
 }) {
   const navigation = useNavigation<any>();
-  const [big, setBig] = useState(false);
+  const { width } = useWindowDimensions();
   const [scanning, setScanning] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const handled = useRef(false);
@@ -75,39 +74,25 @@ export default function ProfileQRCard({ user, onNavigate }: {
   if (!user?._id) return null;
   const link = profileLink(user._id);
 
+  // Sidebar gutter 20 + card padding 16 + QR quiet-zone padding 12, each side;
+  // capped so it stays a sensible size on a tablet.
+  const size = Math.min(width - 2 * (20 + 16 + 12), 360);
+
   return (
     <>
-      <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-        <Pressable
-          onPress={() => setBig(true)}
-          className="active:opacity-70"
-          accessibilityRole="imagebutton"
-          accessibilityLabel="Show your profile QR code larger"
-        >
-          <QR value={link} size={92} />
-        </Pressable>
-        <View className="flex-1 min-w-0" style={{ gap: 8 }}>
-          <View>
-            <Text className="font-semibold text-ink" style={{ fontSize: 15 }}>Your Fync QR</Text>
-            <Text className="font-sans text-ink-3" style={{ fontSize: 12, lineHeight: 16 }}>
-              Scan to open your profile
-            </Text>
-          </View>
-          <View className="flex-row" style={{ gap: 8 }}>
-            <Button title="Share" small variant="secondary" onPress={share} />
-            <Button title="Scan" small variant="primary" onPress={openScanner} />
-          </View>
+      <Card style={{ alignItems: 'center', padding: 16, gap: 14 }}>
+        <View className="items-center">
+          <Text className="font-semibold text-ink" style={{ fontSize: 16 }}>Your Fync QR</Text>
+          <Text className="font-sans text-ink-3" style={{ fontSize: 13 }}>Scan to open my profile</Text>
+        </View>
+        <View accessible accessibilityRole="image" accessibilityLabel="Your profile QR code">
+          <QR value={link} size={size} />
+        </View>
+        <View className="flex-row self-stretch" style={{ gap: 12 }}>
+          <View className="flex-1"><Button title="Share" icon="share-social-outline" variant="secondary" block onPress={share} /></View>
+          <View className="flex-1"><Button title="Scan QR" icon="scan-outline" variant="primary" block onPress={openScanner} /></View>
         </View>
       </Card>
-
-      <Sheet visible={big} onClose={() => setBig(false)} title="Your Fync QR" subtitle="Anyone can scan this to open your profile"
-        footer={<Button title="Share link" variant="primary" block onPress={share} />}>
-        <View className="items-center py-4" style={{ gap: 12 }}>
-          <QR value={link} size={220} />
-          <Text className="font-semibold text-ink" style={{ fontSize: 17 }} numberOfLines={1}>{user.name || user.username}</Text>
-          {!!user.username && <Text className="font-sans text-ink-3 text-sm">@{user.username}</Text>}
-        </View>
-      </Sheet>
 
       <ScannerModal
         visible={scanning}
