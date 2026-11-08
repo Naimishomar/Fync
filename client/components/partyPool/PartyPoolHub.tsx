@@ -32,7 +32,6 @@ type Game = {
 };
 
 const GAMES: Game[] = [
-  { key: 'plans', route: 'SundayPlans', title: 'Sunday Plans', hint: 'Host or join a free Sunday hangout in your college.', glyph: () => <Ionicons name="calendar-outline" size={24} color={C.brand[500]} /> },
   { key: 'ludo', flag: 'ludo', route: 'LudoGame', title: 'Ludo', hint: 'Online, with friends or against the computer.', glyph: () => <Ionicons name="dice-outline" size={24} color={C.success} /> },
   { key: 'spy', flag: 'spy', route: 'SpyGame', title: "Who's the Spy", hint: 'Find the spy among you. 4 to 8 players.', glyph: () => <Ionicons name="eye-outline" size={24} color={C.fam.study} /> },
   { key: 'wordDuel', flag: 'wordDuel', route: 'WordDuel', title: 'Word Duel', hint: 'Daily word, endless mode or a 1v1 race.', glyph: () => <Ionicons name="text-outline" size={24} color={C.info} /> },

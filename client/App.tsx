@@ -195,8 +195,6 @@ export type RootStackParamList = {
   CoupleLeaderboard: undefined;
   CrushMatch: undefined;
   AskInbox: undefined;
-  SundayPlans: undefined;
-  PlanDetail: { id: string };
   StayFinder: undefined;
   StayDetail: { id: string };
   StayForm: { id?: string } | undefined;
@@ -420,8 +418,6 @@ function AppStack() {
       <Stack.Screen name="CoupleLeaderboard" getComponent={() => require('./components/couples/CoupleLeaderboard').default} />
       <Stack.Screen name="CrushMatch" getComponent={() => require('./components/couples/CrushMatch').default} />
       <Stack.Screen name="AskInbox" getComponent={() => require('./components/ask/AskInbox').default} />
-      <Stack.Screen name="SundayPlans" getComponent={() => require('./components/plans/SundayPlans').default} />
-      <Stack.Screen name="PlanDetail" getComponent={() => require('./components/plans/PlanDetail').default} />
       <Stack.Screen name="StayFinder" getComponent={() => require('./components/stays/StayFinder').default} />
       <Stack.Screen name="StayDetail" getComponent={() => require('./components/stays/StayDetail').default} />
       <Stack.Screen name="StayForm" getComponent={() => require('./components/stays/StayForm').default} />
