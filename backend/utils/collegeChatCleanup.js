@@ -2,9 +2,9 @@ import cron from "node-cron";
 import CollegeChat from "../models/collegeChat.model.js";
 import { deleteFromR2 } from "./r2.js";
 
-// Run at exactly 12:00 AM every night to purge the campus loop
+// Run nightly at 00:40 (staggered, see cleanup.service.js) to purge the campus loop
 export const initCollegeChatCleanup = () => {
-    cron.schedule("0 0 * * *", async () => {
+    cron.schedule("40 0 * * *", async () => {
         try {
             console.log("🌕 Midnight Strike: Purging college campus loops...");
             

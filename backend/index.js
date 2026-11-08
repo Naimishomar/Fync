@@ -122,7 +122,8 @@ const app = express();
 // per-IP rate limiter would throttle the entire user base as one client.
 app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1));
 if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
-app.use(generalLimiter);
+// A /batch envelope is counted once; its sub-requests re-enter via app.handle.
+app.use((req, res, next) => (req.isBatchSub ? next() : generalLimiter(req, res, next)));
 
 
 const server = http.createServer(app);
@@ -196,25 +197,27 @@ io.use(async (socket, next) => {
   next();
 });
 
-const pubClient = redisClient.duplicate();
-const subClient = redisClient.duplicate();
+// The adapter only matters when more than one process holds sockets. Prod is
+// one PM2 process, where it cost two extra Redis connections and a pub/sub hop
+// on every emit for nothing. PM2 cluster mode sets `instances`.
+const useRedisAdapter =
+  process.env.SOCKET_REDIS_ADAPTER === '1' || Number(process.env.instances) > 1;
 
-pubClient.on('error', (err) => console.error("Redis PubClient Error ❌", err.message));
-subClient.on('error', (err) => console.error("Redis SubClient Error ❌", err.message));
-
-// Reported by /health. In cluster mode a missing adapter means a broadcast from
-// one worker never reaches sockets held by another — chat and notifications
-// reach roughly half the users, with no error anywhere. Surfaced, not enforced:
-// see the note on /health.
-let adapterReady = false;
-
-Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
-  io.adapter(createAdapter(pubClient, subClient));
-  adapterReady = true;
-  console.log("✅ Socket.IO Redis Adapter Connected");
-}).catch(err => {
-  console.error("❌ Redis Adapter Connection Error:", err);
-});
+if (useRedisAdapter) {
+  const pubClient = redisClient.duplicate();
+  const subClient = redisClient.duplicate();
+  pubClient.on('error', (err) => console.error("Redis PubClient Error ❌", err.message));
+  subClient.on('error', (err) => console.error("Redis SubClient Error ❌", err.message));
+  // In cluster mode a missing adapter means a broadcast from one worker never
+  // reaches sockets held by another -- chat and notifications reach roughly
+  // half the users, with no error anywhere. Logged; /health reports Redis.
+  Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log("✅ Socket.IO Redis Adapter Connected");
+  }).catch(err => {
+    console.error("❌ Redis Adapter Connection Error:", err);
+  });
+}
 
 io.engine.on("connection_error", (err) => {
   console.log("❌ Engine Connection Error:", err.req ? err.req.url : "No Req", err.code, err.message, err.context);
@@ -447,10 +450,11 @@ app.get('/health', (req, res) => {
   // `host` names the instance that answered, which is what tells you a
   // replacement box is actually the one serving after an instance swap.
   const mongoUp = mongoose.connection.readyState === 1;
+  const redisUp = redisClient.isReady;
   res.status(200).json({
-    status: adapterReady && mongoUp ? 'UP' : 'DEGRADED',
+    status: redisUp && mongoUp ? 'UP' : 'DEGRADED',
     host: process.env.SERVER_LABEL || os.hostname(),
-    redis: adapterReady,
+    redis: redisUp,
     mongo: mongoUp,
     timestamp: new Date(),
   });

@@ -114,7 +114,8 @@ const Notification = () => {
   // dot until the screen was reopened.
   const markAsRead = async (loaded: NotificationItem[]) => {
     const oldest = loaded[loaded.length - 1];
-    if (!oldest) return;
+    // Nothing unread: skip the write (every open used to PUT regardless).
+    if (!oldest || !loaded.some(n => !n.isRead)) return;
     try {
       await axios.put('/notifications/read', { upTo: oldest._id });
       setNotifications(prev => prev.map(x => ({ ...x, isRead: true })));

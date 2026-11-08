@@ -4,7 +4,7 @@ import Comment from "../models/comment.model.js";
 import { deleteFromR2 } from "./r2.js";
 
 export const initFyncMediaCleanup = () => {
-    cron.schedule("0 0 * * *", async () => {
+    cron.schedule("50 0 * * *", async () => {
         try {
             console.log("🔹 Running Fync Media cleanup job...");
             const thirtyDaysAgo = new Date();

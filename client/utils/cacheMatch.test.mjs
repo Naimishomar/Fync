@@ -20,6 +20,11 @@ assert.ok(!stale("/postal", "/post/like/1"));
 assert.ok(isReadPost("/post/smart-feed?page=1&limit=10"));
 assert.ok(isReadPost("/batch"));
 assert.ok(!isReadPost("/post/create"));
+assert.ok(isReadPost("/shorts/views"));
+assert.ok(isReadPost("/story/abc123/view"));
+assert.ok(isReadPost("/user/search"));
+assert.ok(!isReadPost("/story/abc123"));
+assert.ok(!isReadPost("/story/abc/view/x"));
 
 assert.ok(isCacheBusted(`/comments/1?t=${Date.now()}`));
 assert.ok(isCacheBusted(`/x?a=1&t=${Date.now()}`));

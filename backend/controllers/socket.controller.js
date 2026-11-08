@@ -70,21 +70,30 @@ export const socketController = (io) => {
     socket.on("register", async () => {
       const userId = socket.userId;
       if (!userId) return;
-      socket.join(`user:${userId}`);
-
       try {
-        await redisClient.sAdd(`user_sockets:${userId}`, socket.id);
-        // If a worker dies, its disconnect handlers never run and the socket ids
-        // it added stay in this set forever — the user then shows as permanently
-        // online and never gets a fresh presence entry. A TTL lets it self-heal.
-        await redisClient.expire(`user_sockets:${userId}`, PRESENCE_TTL_SECONDS);
-        await redisClient.sAdd("global_online_users", userId);
+        // Chat/ChatList re-emit register on every focus and repaint from the
+        // initialOnlineList reply, so a repeat still gets the list -- but the
+        // presence writes and the online fan-out happen once per socket. A flag,
+        // not socket.rooms: the hackathon `identity` event joins the same room.
+        const first = !socket.data.registered;
+        if (first) {
+          socket.join(`user:${userId}`);
+          // If a worker dies, its disconnect handlers never run and the socket
+          // ids it added stay in this set forever -- the user then shows as
+          // permanently online. A TTL lets it self-heal.
+          await redisClient.multi()
+            .sAdd(`user_sockets:${userId}`, socket.id)
+            .expire(`user_sockets:${userId}`, PRESENCE_TTL_SECONDS)
+            .sAdd("global_online_users", userId)
+            .exec();
+          socket.data.registered = true;
+        }
 
         // Only the people this user can actually chat with, not all 10k online.
         const audience = await getPresenceAudience(userId);
         socket.emit("initialOnlineList", await filterOnline(audience));
 
-        await broadcastStatus(io, userId, "online");
+        if (first) await broadcastStatus(io, userId, "online");
       } catch (err) {
         console.error("Redis register error:", err);
       }
@@ -96,6 +105,8 @@ export const socketController = (io) => {
     // any conversation/club room. Each join now checks membership first.
     socket.on("join", async ({ conversationId } = {}) => {
       if (!socket.userId || !isObjectId(conversationId)) return;
+      // Chat screens re-join on every focus; membership was already proven.
+      if (socket.rooms.has(conversationId)) return;
       try {
         if (await Conversation.exists({ _id: conversationId, participants: socket.userId })) {
           socket.join(conversationId);

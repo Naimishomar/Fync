@@ -30,15 +30,23 @@ export const AuthProvider = ({ children }: any) => {
   }, [user?._id]);
   const [loading, setLoading] = useState(true);
 
-  const registerToken = async () => {
+  // Tokens rarely change, so only POST when they differ from what this user
+  // last saved successfully; otherwise every app open wrote to the server.
+  // Single key (not per-id) so clearSession can drop it without knowing the user.
+  const registerToken = async (userId?: string) => {
+    if (!userId) return;
     try {
+      let sent: { u?: string; expo?: string; fcm?: string } = {};
+      try { sent = JSON.parse((await AsyncStorage.getItem("pushTokenSent")) || "{}"); } catch {}
+      if (sent.u !== userId) sent = { u: userId };
+
       const token = await registerForPushNotificationsAsync();
-      if (token) {
-        await savePushTokenToBackend(token);
-      }
-      
+      if (token && token !== sent.expo && (await savePushTokenToBackend(token))) sent.expo = token;
+
       // Also register FCM token for WhatsApp-style chat push notifications
-      await syncFcmToken();
+      const fcm = await syncFcmToken(sent.fcm);
+      if (fcm) sent.fcm = fcm;
+      await AsyncStorage.setItem("pushTokenSent", JSON.stringify(sent));
     } catch (e) {
       console.log("Error in push registration flow:", e);
     }
@@ -48,7 +56,7 @@ export const AuthProvider = ({ children }: any) => {
   // rejected, so the app drops back to login instead of failing every call.
   const clearSession = async () => {
     // recentSearches is per-account too: the next login on this phone must not see it.
-    await AsyncStorage.multiRemove(["accessToken", "refreshToken", "cachedUser", "recentSearches"]);
+    await AsyncStorage.multiRemove(["accessToken", "refreshToken", "cachedUser", "recentSearches", "pushTokenSent"]);
     // The request interceptor holds the token in memory now; clearing storage
     // alone would leave the logged-out session still sending it.
     setAuthToken(null);
@@ -100,7 +108,7 @@ export const AuthProvider = ({ children }: any) => {
       setAuthToken(token);
       setUser(user);
       AsyncStorage.setItem("cachedUser", JSON.stringify(user));
-      registerToken();
+      registerToken(user?._id);
     } catch (err: any) {
       console.log("LOGIN ERROR:", err?.response?.data || err.message);
       throw err;
@@ -146,7 +154,7 @@ export const AuthProvider = ({ children }: any) => {
         setUser(res.data.user);
         AsyncStorage.setItem("cachedUser", JSON.stringify(res.data.user));
         if (!booted) prefetchFeed();
-        registerToken();
+        registerToken(res.data.user?._id);
       } catch (error: any) {
         // Only a rejected session logs out. Offline / server hiccup keeps the
         // cached session, otherwise a flaky network signs the user out.

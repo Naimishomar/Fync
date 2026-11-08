@@ -6,8 +6,8 @@ import RegisterSpeakerSession from '../models/events/registerSpeakerSession.mode
 import EventMessage from '../models/events/eventMessage.model.js';
 
 export const initEventCleanup = () => {
-    // Run every day at midnight
-    cron.schedule('0 0 * * *', async () => {
+    // Run nightly at 00:10 (staggered, see cleanup.service.js)
+    cron.schedule('10 0 * * *', async () => {
         console.log('🧹 Running Event Data Cleanup...');
         try {
             const sevenDaysAgo = new Date();

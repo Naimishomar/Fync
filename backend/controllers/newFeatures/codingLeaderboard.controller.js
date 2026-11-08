@@ -86,8 +86,12 @@ export const getLeaderboard = async (req, res) => {
     try {
         const { type, scope, search } = req.query; 
 
-        const cacheKey = `coding_leaderboard:${type || 'all'}:${scope || 'all'}:${req.user?.college || 'none'}:${search || 'none'}`;
+        // Tagged like cacheMiddleware entries: the sync cron's clearCache('coding_leaderboard')
+        // bumps fync_gen:coding_leaderboard, orphaning every old key (they expire on TTL),
+        // instead of a KEYS scan of the whole Redis keyspace.
+        let cacheKey = `coding_leaderboard:${type || 'all'}:${scope || 'all'}:${req.user?.college || 'none'}:${search || 'none'}`;
         try {
+            cacheKey += `:g${(await redisClient.get('fync_gen:coding_leaderboard')) || '0'}`;
             const cachedData = await redisClient.get(cacheKey);
             if (cachedData) {
                 return res.status(200).json({ success: true, leaderboard: JSON.parse(cachedData) });

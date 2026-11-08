@@ -67,26 +67,19 @@ export const updateStreak = async (userId) => {
 };
 
 /**
- * Resets streak to 0 if the user missed yesterday's post.
- * Should be called whenever user profile is fetched to keep data "fresh" without cron jobs.
+ * The streak to show for a user right now, without writing anything.
+ *
+ * Read paths used to zero a lapsed streak and save() the doc on every profile
+ * view. The nightly sweep below (plus its boot run) already persists that, so
+ * reads only need to hide a streak that lapsed since the last sweep.
  */
-export const checkAndResetStreak = async (user) => {
-    if (!user || !user.lastPostDate) return user;
-
-    const diffDays = istDayDiff(user.lastPostDate, new Date());
-
-    if (diffDays > 1) {
-        // Missed yesterday, reset streak to 0
-        user.streakCount = 0;
-        await user.save();
-    }
-    return user;
-};
+export const checkAndResetStreak = (lastPostDate, streakCount, now = new Date()) =>
+    lastPostDate && istDayDiff(lastPostDate, now) <= 1 ? (streakCount || 0) : 0;
 
 /**
  * Zero every streak whose owner did not post yesterday or today (IST).
  *
- * checkAndResetStreak only runs when a user opens their own profile, so anyone
+ * The old save-on-read reset only ran when a user opened their own profile, so anyone
  * who logged out or stopped opening the app kept showing a dead streak on their
  * public profile and everywhere else streakCount is read. One sweep fixes them all.
  */

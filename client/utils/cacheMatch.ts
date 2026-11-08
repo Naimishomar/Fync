@@ -2,10 +2,13 @@
 // Kept free of RN imports so utils/cacheMatch.test.mjs can run under plain node.
 
 /** POSTs that are really reads: they must not wipe the cache. */
-const READ_POSTS = ["/post/smart-feed", "/shorts/smart", "/batch", "/user/refresh-token"];
+// /shorts/views and /story/:id/view only bump counters (the 5s shorts flush
+// used to wipe /user, /post/feed and /shorts each time); /user/search is a query.
+const READ_POSTS = ["/post/smart-feed", "/shorts/smart", "/shorts/views", "/batch", "/user/refresh-token", "/user/search"];
 
 export function isReadPost(url: string): boolean {
-  return READ_POSTS.includes(url.split("?")[0]);
+  const path = url.split("?")[0];
+  return READ_POSTS.includes(path) || /^\/story\/[^/]+\/view$/.test(path);
 }
 
 /** Cache keys are `prefix + axios.getUri(config)`, i.e. they include baseURL.

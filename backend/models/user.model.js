@@ -423,6 +423,7 @@ const userSchema = new mongoose.Schema({
 
 // Performance Indexes for Industry-Grade Speed
 userSchema.index({ name: 'text', username: 'text' }); // Fast Search
+// Prefix search (^name, /i): username already has its unique index.
 userSchema.index({ fyncScore: -1 });                 // Leaderboard speed
 userSchema.index({ codingRating: -1 });              // Arena Leaderboard
 userSchema.index({ createdAt: -1 });                 // New user sorting
@@ -430,6 +431,8 @@ userSchema.index({ createdAt: -1 });                 // New user sorting
 // collection in memory, which past ~32MB of matching documents does not just
 // get slow -- Mongo aborts the query outright.
 userSchema.index({ streakCount: -1, updatedAt: 1 });
+// LeetCode sync tick: stalest linked users first (utils/leetcodeSync.js).
+userSchema.index({ 'codingStats.lastUpdated': 1 }, { partialFilterExpression: { 'codingProfiles.leetcode': { $type: 'string' } } });
 // 1v1 quiz leaderboard, same shape.
 userSchema.index({ oneVsOnePoints: -1 });
 // Campus Alumni: filter by college + role, newest first. Also serves {college}

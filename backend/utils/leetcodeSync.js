@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import { updateStreak } from "./streak.js";
 import redisClient from "./redis.js";
+import { clearCache } from "../middlewares/cache.middleware.js";
 import { fetchLeetCodeStats } from "../controllers/newFeatures/coding.controller.js";
 
 // How long a username's stats are considered fresh. Every path into a LeetCode
@@ -140,7 +141,11 @@ const SYNC_FIELDS = "codingProfiles.leetcode codingStats.lastUpdated";
  * until it overran its own schedule and ticks began to overlap.
  */
 export const syncStaleUsers = async () => {
-    const users = await User.find({ "codingProfiles.leetcode": { $nin: [null, ""] } })
+    const users = await User.find({
+        // $type mirrors the partial index's filter so the planner can use it
+        // (null fails $type: 'string', so this is the same set as $nin [null, ""]).
+        "codingProfiles.leetcode": { $type: "string", $ne: "" },
+    })
         .select(SYNC_FIELDS)
         .sort({ "codingStats.lastUpdated": 1 })   // never-synced (null) sorts first
         .limit(BATCH)
@@ -152,12 +157,8 @@ export const syncStaleUsers = async () => {
     });
 
     if (counts.synced) {
-        try {
-            const keys = await redisClient.keys('coding_leaderboard:*');
-            if (keys.length) await redisClient.del(keys);
-        } catch (err) {
-            console.error("Error clearing leaderboard cache:", err.message);
-        }
+        await clearCache('coding_leaderboard'); // logs its own errors
+
     }
     return counts;
 };

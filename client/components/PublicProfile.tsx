@@ -35,8 +35,12 @@ interface User {
     name: string;
     avatar?: string;
     user_access?: 'admin' | 'user' | 'alumni' | 'recruiter';
-    followers: string[];
-    following: string[];
+    followers?: string[];
+    following?: string[];
+    // Server-side counts; the arrays may be dropped from responses later.
+    followersCount?: number;
+    followingCount?: number;
+    isFollowing?: boolean;
     about?: string;
     college?: string;
     experience?: string;
@@ -50,6 +54,8 @@ interface User {
         gfg?: string;
     };
 }
+
+const followerCount = (u: User) => u.followersCount ?? u.followers?.length ?? 0;
 
 interface Post {
     _id: string;
@@ -105,7 +111,7 @@ const PublicProfile = () => {
     // --- 2. CHECK FOLLOW STATUS ---
     useEffect(() => {
         if (!currentUser?._id || !profileUser) return;
-        setIsFollowing(profileUser.followers?.includes(currentUser._id) || false);
+        setIsFollowing(profileUser.isFollowing ?? profileUser.followers?.includes(currentUser._id) ?? false);
     }, [currentUser, profileUser]);
 
     // The endpoint pages by cursor, not by page number — passing `page` to it
@@ -240,14 +246,18 @@ const PublicProfile = () => {
                 setIsFollowing(false);
                 setProfileUser(prev => prev ? ({
                     ...prev,
-                    followers: (prev.followers || []).filter(id => id !== currentUser._id)
+                    isFollowing: false,
+                    followersCount: Math.max(0, followerCount(prev) - 1),
+                    followers: prev.followers?.filter(id => id !== currentUser._id)
                 }) : null);
             } else {
                 await axios.post(`/user/follow/${profileUser._id}`);
                 setIsFollowing(true);
                 setProfileUser(prev => prev ? ({
                     ...prev,
-                    followers: [...(prev.followers || []), currentUser._id]
+                    isFollowing: true,
+                    followersCount: followerCount(prev) + 1,
+                    followers: prev.followers && [...prev.followers, currentUser._id]
                 }) : null);
             }
         } catch (error: any) {
@@ -530,8 +540,8 @@ const PublicProfile = () => {
                         >
                             <StatsCard items={[
                                 { label: 'Posts', value: postCount ?? posts.length },
-                                { label: 'Followers', value: profileUser?.followers?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "followers" }) },
-                                { label: 'Following', value: profileUser?.following?.length || 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "following" }) },
+                                { label: 'Followers', value: profileUser ? followerCount(profileUser) : 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "followers" }) },
+                                { label: 'Following', value: profileUser?.followingCount ?? profileUser?.following?.length ?? 0, onPress: () => navigation.navigate("FollowersAndFollowing", { userId: profileUser._id, type: "following" }) },
                             ]} />
 
                             {currentUser?._id !== profileUser._id && (

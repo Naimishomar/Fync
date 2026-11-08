@@ -9,7 +9,7 @@ const mem = await MongoMemoryServer.create();
 await mongoose.connect(mem.getUri('fync_streak'));
 
 const { default: User } = await import('../models/user.model.js');
-const { resetLapsedStreaks } = await import('./streak.js');
+const { resetLapsedStreaks, checkAndResetStreak } = await import('./streak.js');
 
 // 2026-10-18 10:00 IST
 const now = new Date('2026-10-18T04:30:00.000Z');
@@ -32,6 +32,12 @@ assert.equal(await get('today'), 5);
 assert.equal(await get('yesterday'), 3, 'posted yesterday IST: still alive');
 assert.equal(await get('lapsed'), 0, 'last post the day before yesterday IST: reset');
 assert.equal(await get('never'), 0);
+
+// Read-path display: same cut-off as the sweep, no write.
+assert.equal(checkAndResetStreak(docs.today.lastPostDate, 5, now), 5);
+assert.equal(checkAndResetStreak(docs.yesterday.lastPostDate, 3, now), 3);
+assert.equal(checkAndResetStreak(docs.lapsed.lastPostDate, 7, now), 0);
+assert.equal(checkAndResetStreak(null, 2, now), 0);
 
 await mongoose.disconnect();
 await mem.stop();

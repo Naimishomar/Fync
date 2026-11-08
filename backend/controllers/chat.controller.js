@@ -1,6 +1,7 @@
 import Message from "../models/chat.model.js";
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
+import { escapeRegExp } from "../utils/escapeRegExp.js";
 import Conversation from "../models/conversation.model.js";
 import { uploadToR2 } from "../utils/r2.js";
 import { mintSupabaseToken, isSupabaseAuthConfigured, supabaseTokenTtlSeconds } from "../utils/supabaseToken.js";
@@ -135,12 +136,13 @@ export const searchUsers = async (req, res) => {
     const { q } = req.query;
     if (!q) return res.json({ success: true, users: [] });
 
-    const safeQ = String(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Anchored prefix so the username/name indexes can serve it.
+    const esc = escapeRegExp(String(q).trim());
+    const prefix = new RegExp("^" + esc, "i");
+    // Name matches at any word start, so a surname still finds the person.
+    const word = new RegExp("(?:^|\\s)" + esc, "i");
     const users = await User.find({
-      $or: [
-        { username: { $regex: safeQ, $options: "i" } },
-        { name: { $regex: safeQ, $options: "i" } }
-      ]
+      $or: [{ username: prefix }, { name: word }]
     }).select("username name avatar").limit(20).lean();
 
     res.json({ success: true, users });

@@ -8,7 +8,7 @@ import Notification from '../models/notification.model.js';
 import Report from '../models/report.model.js';
 import { sendPushNotification } from '../utils/notification.js';
 import { deleteFromR2 } from '../utils/r2.js';
-import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool, getPoolVersion } from '../utils/feedEngine.js';
+import { getCandidatePool, getUserInterestProfile, rankFeed, invalidatePool, getPoolVersion, freshenPage } from '../utils/feedEngine.js';
 import { clearCacheTags } from '../middlewares/cache.middleware.js';
 
 import { updateStreak } from '../utils/streak.js';
@@ -298,8 +298,7 @@ export const likePost = async (req, res) => {
                     });
                 }
             }
-            clearCacheTags(['posts', `post:${req.params.id}`, `posts:user:${liked.user}`]).catch(() => { });
-            invalidatePool('posts').catch(() => { });
+            clearCacheTags([`post:${req.params.id}`, `posts:user:${liked.user}`]).catch(() => { });
             return res.status(200).json({ success: true, message: "Post liked successfully", post: liked });
         }
 
@@ -323,8 +322,7 @@ export const likePost = async (req, res) => {
         );
 
         if (unliked) {
-            clearCacheTags(['posts', `post:${req.params.id}`, `posts:user:${unliked.user}`]).catch(() => { });
-            invalidatePool('posts').catch(() => { });
+            clearCacheTags([`post:${req.params.id}`, `posts:user:${unliked.user}`]).catch(() => { });
             return res.status(200).json({ success: true, message: "Post unliked successfully", post: unliked });
         }
 
@@ -424,8 +422,8 @@ export const votePost = async (req, res) => {
         ).populate("user", "name username avatar");
 
         // Cache invalidation
-        clearCacheTags(['posts', `post:${id}`]).catch(() => {});
-        invalidatePool('posts').catch(() => {});
+        // Counts only: the pool and the global 'posts' tag stay (see invalidatePool).
+        clearCacheTags([`post:${id}`, `posts:user:${post.user}`]).catch(() => {});
 
         return res.status(200).json({ 
             success: true, 
@@ -499,7 +497,7 @@ export const addComment = async (req, res) => {
             .populate("commentor", "name avatar username")
             .populate("replyToUser", "username");
 
-        clearCacheTags([`post:${req.params.id}`, 'posts']).catch(() => { });
+        clearCacheTags([`post:${req.params.id}`, `posts:user:${post.user}`]).catch(() => { });
 
         return res.status(200).json({ success: true, message: 'Comment created successfully', comment: commenterDetails });
     } catch (error) {
@@ -770,14 +768,9 @@ export const getSmartFeed = async (req, res) => {
 
         const [candidates, interestProfile, poolVersion] = await Promise.all([
             getCandidatePool(Post, 150),
-            User.findById(req.user.id)
+            getUserInterestProfile(req.user.id, () => User.findById(req.user.id)
                 .select('interest hobbies skills major about')
-                .lean()
-                .then(userDoc => getUserInterestProfile({
-                    ...(userDoc || {}),
-                    id: req.user.id,
-                    _id: req.user.id
-                })),
+                .lean()),
             getPoolVersion('posts')
         ]);
 
@@ -798,7 +791,7 @@ export const getSmartFeed = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            posts: await attachTopComments(ranked.items),
+            posts: await attachTopComments(await freshenPage(Post, ranked.items, req.user.id)),
             hasMore: ranked.hasMore,
             mode: ranked.mode   // 'fresh' | 'recycled'
         });

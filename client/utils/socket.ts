@@ -40,6 +40,19 @@ socket.on("connect", () => {
   }
 });
 
+// Presence as last told by the server. "register" (emitted on every connect,
+// reconnects included) answers with initialOnlineList, often before any chat
+// screen is mounted, so screens seed from this instead of re-registering.
+export const onlineUsers = new Set<string>();
+socket.on("initialOnlineList", (list: string[]) => {
+  onlineUsers.clear();
+  (list || []).forEach((id) => onlineUsers.add(id));
+});
+socket.on("statusUpdate", ({ userId, status }: { userId: string; status: string }) => {
+  if (status === "online") onlineUsers.add(userId);
+  else onlineUsers.delete(userId);
+});
+
 socket.on("connect_error", (err) => {
   // A middleware rejection ("Unauthorized") is final for socket.io: it will not
   // reconnect on its own. Get a fresh token (sharing axios's refresh) and retry.

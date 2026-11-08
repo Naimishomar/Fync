@@ -25,17 +25,19 @@ export const makeMediaRewriter = (r2Base, mediaBase) => {
 export const mediaUrlMiddleware = () => {
   const rewrite = makeMediaRewriter(process.env.R2_PUBLIC_URL, process.env.MEDIA_PUBLIC_URL);
   return (req, res, next) => {
-    if (!rewrite) return next();
+    // /batch sub-requests are skipped: the outer /batch response passes through
+    // here too and rewrites every sub-body in one pass. (Their stub response
+    // must also keep receiving objects, never a string -- a string body reached
+    // the app as text and the screen saw no `success`.)
+    if (!rewrite || req.isBatchSub) return next();
     const json = res.json.bind(res);
     res.json = (body) => {
       const text = JSON.stringify(body);
       if (typeof text !== 'string') return json(body);
-      const out = rewrite(text);
-      // Back through res.json as an object, never res.send(string): /batch
-      // dispatches sub-requests with a stub response whose send() keeps the raw
-      // value, so a string body reached the app as text and the screen saw no
-      // `success` (profile posts vanished).
-      return json(out === text ? body : JSON.parse(out));
+      // Stringified once, sent as-is: no parse-back and no second stringify
+      // inside Express. Same Content-Type res.json would have set.
+      if (!res.get('Content-Type')) res.type('json');
+      return res.send(rewrite(text));
     };
     next();
   };

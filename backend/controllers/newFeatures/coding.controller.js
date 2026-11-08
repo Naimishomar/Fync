@@ -1,7 +1,10 @@
-import axios from "axios";
+import axiosBase from "axios";
 import dotenv from "dotenv";
 dotenv.config({quiet: true});
 const API_BASE = process.env.LEETCODE_API;
+// No default timeout in axios: a hung LeetCode proxy pinned a sync worker (and its
+// cron lock) indefinitely. 8s is well past a healthy response.
+const axios = axiosBase.create({ timeout: 8000 });
 
 export const fetchLeetCodeStats = async (username) => {
     if (!username) return null;

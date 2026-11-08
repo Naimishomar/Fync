@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, Pressable, ScrollView, TextInput, ActivityIndicator, Share, Platform, Animated, Easing, Switch,
+  View, Text, Pressable, ScrollView, TextInput, ActivityIndicator, Share, Platform, Animated, Easing, Switch, AppState,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -149,13 +149,22 @@ const LinkFlow = ({ pending, onLinked }: { pending: Unlinked['pendingCode']; onL
   }, [code]);
 
   // While our code is out, poll so we jump to the dashboard when the partner joins.
-  useEffect(() => {
+  // Only while this screen is focused and the app is in the foreground.
+  useFocusEffect(useCallback(() => {
     if (!code) return;
-    const t = setInterval(() => {
-      axios.get('/couple').then((r) => { if (r.data?.linked) { tapHaptic(); onLinked(); } }).catch(() => {});
-    }, 4000);
-    return () => clearInterval(t);
-  }, [code, onLinked]);
+    let t: ReturnType<typeof setInterval> | undefined;
+    const stop = () => { if (t) clearInterval(t); t = undefined; };
+    const start = () => {
+      if (t) return;
+      t = setInterval(() => {
+        // noCache: the default 2-min GET cache made this poll see a stale "unlinked".
+        axios.get('/couple', { params: { noCache: true } }).then((r) => { if (r.data?.linked) { tapHaptic(); onLinked(); } }).catch(() => {});
+      }, 4000);
+    };
+    if (AppState.currentState === 'active') start();
+    const sub = AppState.addEventListener('change', (st) => (st === 'active' ? start() : stop()));
+    return () => { stop(); sub.remove(); };
+  }, [code, onLinked]));
 
   const make = async () => {
     setBusy('make');

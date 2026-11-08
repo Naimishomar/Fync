@@ -15,7 +15,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import axios from "../context/axiosConfig";
 import { useAuth } from "../context/auth.context";
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
-import socket from "../utils/socket";
+import socket, { onlineUsers as knownOnline } from "../utils/socket";
 import { supabase, fetchUnreadCounts } from "../utils/supabase";
 import { readCache, writeCache, userKey } from "../utils/screenCache";
 import Avatar from "./Avatar";
@@ -80,7 +80,8 @@ const ChatList = () => {
     useCallback(() => {
       paintFromCache();
       loadChats();
-      socket.emit("register", user._id);
+      // utils/socket registers on every (re)connect; seed from what it heard.
+      setOnlineUsers(new Set(knownOnline));
 
       const handleStatusUpdate = ({ userId, status }: { userId: string, status: string }) => {
         setOnlineUsers(prev => {
@@ -103,13 +104,9 @@ const ChatList = () => {
         if (conversationId) setTypingStates(prev => ({ ...prev, [conversationId]: false }));
       };
 
-      const handleConnect = () => {
-        socket.emit("register", user._id);
-        // Rejoin rooms if socket reconnects
-        conversationsRef.current.forEach((c: any) => {
-          socket.emit("join", { conversationId: c._id });
-        });
-      };
+      // Rooms are per connection: rejoin on reconnect (joinRooms resets
+      // the joined set when socket.id changes).
+      const handleConnect = () => joinRooms(conversationsRef.current);
 
       socket.on("statusUpdate", handleStatusUpdate);
       socket.on("initialOnlineList", handleInitialList);
@@ -181,6 +178,19 @@ const ChatList = () => {
 
   const cacheKey = userKey(user?._id, 'chatlist');
 
+  // Each "join" costs the server a Conversation.exists query, and every focus /
+  // reload used to re-send all 40. Join each room once per socket connection.
+  const joined = useRef<{ sid?: string; ids: Set<string> }>({ ids: new Set() });
+  const joinRooms = (list: any[]) => {
+    if (!socket.connected) return; // the connect handler joins once it's up
+    if (joined.current.sid !== socket.id) joined.current = { sid: socket.id, ids: new Set() };
+    list.forEach((c: any) => {
+      if (joined.current.ids.has(c._id)) return;
+      joined.current.ids.add(c._id);
+      socket.emit("join", { conversationId: c._id });
+    });
+  };
+
   // Paint whatever we showed last time, immediately, then refresh underneath.
   const paintFromCache = async () => {
     const cached = await readCache<{ conversations: any[]; unread: Record<string, number> }>(cacheKey);
@@ -217,9 +227,7 @@ const ChatList = () => {
       // was cold again, every time.
       writeCache(cacheKey, { conversations: data, unread: unreadCountsRef.current });
       // Join all conversation rooms to listen for typing events
-      data.forEach((c: any) => {
-        socket.emit("join", { conversationId: c._id });
-      });
+      joinRooms(data);
 
       // Unread used to be awaited before the list was allowed to render, so
       // opening chat cost two serial round trips instead of one. The rows and

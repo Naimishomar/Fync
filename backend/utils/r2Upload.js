@@ -1,5 +1,14 @@
 import { uploadToR2 } from "./r2.js";
 
+// Two encodes in flight, not ten: each holds a decoded image in memory, and a
+// 10-photo post encoding at once spiked the 1 GiB box. Order is preserved.
+const UPLOAD_CONCURRENCY = 2;
+export const mapLimit = async (items, limit, fn) => {
+  let i = 0;
+  const worker = async () => { while (i < items.length) { const n = i++; await fn(items[n]); } };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+};
+
 /**
  * Creates an Express middleware that uploads multer memory-buffered files to R2
  * and patches the result back into req.file / req.files so that controllers can
@@ -23,34 +32,23 @@ export const r2UploadMiddleware = (folderMap) => async (req, _res, next) => {
       req.file.path = url;
       return next();
     }
-    // Files go up concurrently. They used to be awaited one at a time, so a
-    // four-image post paid (sharp encode + R2 round trip) four times in series
-    // -- seconds of latency for work that has no ordering requirement at all.
+    // Files go up with bounded concurrency (see UPLOAD_CONCURRENCY). They used
+    // to be awaited one at a time, then all at once; two is the middle ground.
+    const jobs = [];
     if (req.files && !Array.isArray(req.files)) {
-      const jobs = [];
       for (const fieldname of Object.keys(req.files)) {
         const folder = folderMap[fieldname] || "uploads";
         const files = req.files[fieldname];
-        if (Array.isArray(files)) {
-          for (const file of files) {
-            jobs.push(
-              uploadToR2(file.buffer, folder, file.originalname, file.mimetype)
-                .then(url => { file.path = url; })
-            );
-          }
-        }
+        if (Array.isArray(files)) for (const file of files) jobs.push([file, folder]);
       }
-      await Promise.all(jobs);
-      return next();
+    } else if (Array.isArray(req.files)) {
+      for (const file of req.files) {
+        jobs.push([file, folderMap[file.fieldname] || folderMap["__single__"] || "uploads"]);
+      }
     }
-    if (req.files && Array.isArray(req.files)) {
-      await Promise.all(req.files.map(file => {
-        const folder = folderMap[file.fieldname] || folderMap["__single__"] || "uploads";
-        return uploadToR2(file.buffer, folder, file.originalname, file.mimetype)
-          .then(url => { file.path = url; });
-      }));
-      return next();
-    }
+    await mapLimit(jobs, UPLOAD_CONCURRENCY, async ([file, folder]) => {
+      file.path = await uploadToR2(file.buffer, folder, file.originalname, file.mimetype);
+    });
     return next();
   } catch (err) {
     console.error("❌ R2 Upload Middleware Error:", err.message);

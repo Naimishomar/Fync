@@ -140,6 +140,49 @@ await check('followers list and public profile hide private fields', async () =>
   assert.equal(own.body.user.email, b.doc.email);
 });
 
+await check('follow lists ship [viewer]/[] instead of whole arrays; profiles get counts', async () => {
+  const a = await mkUser(); const b = await mkUser(); const c = await mkUser();
+  await call(ctl.followUser, { user: a.ctx, params: { id: c.ctx.id } });
+  await call(ctl.followUser, { user: b.ctx, params: { id: c.ctx.id } });
+  await call(ctl.followUser, { user: a.ctx, params: { id: b.ctx.id } });
+  const f = await call(ctl.getFollowers, { user: a.ctx, params: { id: c.ctx.id } });
+  assert.deepEqual(f.body.followers.map((r) => r.username), [a.doc.username, b.doc.username]);
+  assert.deepEqual(f.body.followers.map((r) => r.followers.map(String)), [[], [a.ctx.id]]);
+  const g = await call(ctl.getFollowing, { user: b.ctx, params: { id: a.ctx.id } });
+  assert.deepEqual(g.body.following.map((r) => r.followers.length), [1, 0], 'b follows c, not itself');
+  const p = await call(ctl.getUserProfile, { user: a.ctx, params: { id: c.ctx.id } });
+  assert.equal(p.body.user.followersCount, 2);
+  assert.equal(p.body.user.followingCount, 0);
+  assert.equal(p.body.user.isFollowing, true);
+  assert.equal(p.body.user.followers.length, 2, 'arrays kept for the current app');
+  const me = await call(ctl.getProfile, { user: a.ctx });
+  assert.equal(me.body.user.followingCount, 2);
+  assert.equal(me.body.user.isFollowing, false);
+});
+
+await check('push token write is a no-op when unchanged', async () => {
+  const a = await mkUser();
+  assert.equal((await call(ctl.savePushToken, { user: a.ctx, body: { pushToken: 'tok' } })).status, 200);
+  const before = (await User.findById(a.doc._id).lean()).updatedAt;
+  assert.equal((await call(ctl.savePushToken, { user: a.ctx, body: { pushToken: 'tok' } })).status, 200);
+  assert.equal((await User.findById(a.doc._id).lean()).updatedAt.getTime(), before.getTime());
+  const gone = { id: String(new mongoose.Types.ObjectId()) };
+  assert.equal((await call(ctl.savePushToken, { user: gone, body: { pushToken: 'tok' } })).status, 404);
+});
+
+await check('user search: username prefix, name word-start', async () => {
+  const a = await mkUser();
+  const r = await call(ctl.getUserProfileByName, { user: a.ctx, query: { q: 'AUTHTEST' }, body: {} });
+  assert.ok(r.body.users.length > 0);
+  const mid = await call(ctl.getUserProfileByName, { user: a.ctx, query: { q: 'thtest' }, body: {} });
+  assert.equal(mid.body.users.length, 0);
+  // A surname (word start inside the name) still finds the person.
+  const b = await mkUser();
+  await User.updateOne({ _id: b.doc._id }, { $set: { name: 'Zafira Quillsby' } });
+  const sur = await call(ctl.getUserProfileByName, { user: a.ctx, query: { q: 'quills' }, body: {} });
+  assert.ok(sur.body.users.some((u) => String(u._id) === b.ctx.id), 'surname search');
+});
+
 await check('DELETE /user/me needs confirm and removes the user and their data', async () => {
   const a = await mkUser(); const b = await mkUser();
   await call(ctl.followUser, { user: a.ctx, params: { id: b.ctx.id } });

@@ -29,12 +29,14 @@ export const requestUserPermission = async () => {
   return true;
 };
 
-export const syncFcmToken = async () => {
+/** Returns the token once the server has it (skips the POST when it equals
+ *  `lastSent`), or null when nothing was saved. */
+export const syncFcmToken = async (lastSent?: string): Promise<string | null> => {
   try {
     const hasPermission = await requestUserPermission();
     if (!hasPermission) {
       console.log('Push notification permission denied');
-      return;
+      return null;
     }
 
     if (!messaging().isDeviceRegisteredForRemoteMessages) {
@@ -44,9 +46,12 @@ export const syncFcmToken = async () => {
     const token = await messaging().getToken();
     console.log('FCM Token:', token);
 
-    await axios.post('/user/fcm-token', { fcmToken: token });
+    if (!token) return null;
+    if (token !== lastSent) await axios.post('/user/fcm-token', { fcmToken: token });
+    return token;
   } catch (error) {
     console.error('Error syncing FCM token:', error);
+    return null;
   }
 };
 

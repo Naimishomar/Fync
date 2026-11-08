@@ -59,11 +59,13 @@ export async function registerForPushNotificationsAsync() {
   return token;
 }
 
-export const savePushTokenToBackend = async (token: string) => {
+export const savePushTokenToBackend = async (token: string): Promise<boolean> => {
   try {
     await axios.post('/user/save-push-token', { pushToken: token });
     console.log('Push token saved to backend');
+    return true;
   } catch (error) {
     console.error('Error saving push token to backend:', error);
+    return false;
   }
 };

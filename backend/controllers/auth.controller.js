@@ -33,6 +33,34 @@ const sanitizeUser = (user) => {
 // What a followers/following row needs: the list renders avatar, username and
 // name, and `followers` drives the Follow/Following button.
 const FOLLOW_LIST_FIELDS = 'name username avatar college year user_access followers';
+const FOLLOW_ROW_FIELDS = 'name username avatar college year user_access';
+
+// Additive profile fields so the app can stop shipping the follow arrays later.
+const withFollowMeta = (obj, viewerId) => {
+  obj.followersCount = obj.followers?.length || 0;
+  obj.followingCount = obj.following?.length || 0;
+  obj.isFollowing = Boolean(viewerId) && (obj.followers || []).some((id) => String(id) === String(viewerId));
+  obj.streakCount = checkAndResetStreak(obj.lastPostDate, obj.streakCount);
+  return obj;
+};
+
+// Rows of a followers/following list. Each row used to carry that user's whole
+// followers array just so the client could check `followers.includes(me)`;
+// now `followers` is [viewerId] when the viewer follows them, else [].
+const followListRows = async (ownerId, field, viewerId) => {
+  const owner = await User.findById(ownerId).select(field).lean();
+  if (!owner) return null;
+  const ids = owner[field] || [];
+  const [rows, viewer] = await Promise.all([
+    User.find({ _id: { $in: ids } }).select(FOLLOW_ROW_FIELDS).lean(),
+    viewerId ? User.findById(viewerId).select('following').lean() : null,
+  ]);
+  const mine = new Set((viewer?.following || []).map(String));
+  const byId = new Map(rows.map((r) => [String(r._id), r]));
+  // populate() kept the stored order and dropped deleted users; so does this.
+  return ids.map((id) => byId.get(String(id))).filter(Boolean)
+    .map((r) => ({ ...r, followers: mine.has(String(r._id)) ? [viewerId] : [] }));
+};
 
 // ─── Email verification proof ────────────────────────────────────────────────
 // verify-*-otp used to answer only {success:true}, and register* never checked
@@ -672,15 +700,13 @@ import { invalidatePresenceAudience } from '../utils/presence.js';
 
 export const getProfile = async (req, res) => {
   try {
-    let user = await User.findById(req.user.id);
+    // Not lean: hydration fills schema defaults the app relies on for old docs.
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found, please login" });
     }
-    
-    // Lazy reset streak if missed
-    user = await checkAndResetStreak(user);
 
-    const userObj = sanitizeUser(user);
+    const userObj = withFollowMeta(sanitizeUser(user), req.user.id);
     return res.status(200).json({ success: true, message: "User fetched successfully", user: userObj });
   } catch (error) {
     console.error("Fetch Error:", error);
@@ -702,13 +728,15 @@ export const getUserProfileByName = async (req, res) => {
     }
 
     const escaped = escapeRegExp(name);
-    // ponytail: unanchored regex, so this is a collection scan. Fine at current
-    // size; if it shows up in profiling, switch to a text index on
-    // {username, name} or an anchored ^prefix match, both of which are indexable.
-    const searchRegex = new RegExp(escaped, "i");
+    // Anchored prefix: walks the username/name indexes instead of every document.
+    // ponytail: /i still scans index keys (no tight bounds); a lowercased
+    // search field would make it a range seek if the users collection gets big.
+    const searchRegex = new RegExp("^" + escaped, "i");
+    // Name matches at any word start, so a surname ("omar") still finds "Naimish Omar".
+    const nameRegex = new RegExp("(?:^|\\s)" + escaped, "i");
     const users = await User.find({
       _id: { $ne: req.user.id },
-      $or: [{ username: { $regex: searchRegex } }, { name: { $regex: searchRegex } }]
+      $or: [{ username: { $regex: searchRegex } }, { name: { $regex: nameRegex } }]
     })
       .select('_id name username avatar college year user_access')
       .limit(20)
@@ -797,15 +825,12 @@ export const getUserProfile = async (req, res) => {
     const isOwner = String(req.user?.id) === String(id);
     const query = User.findById(id);
     if (!isOwner) query.select(PUBLIC_PROFILE_FIELDS);
-    let user = await query;
+    const user = await query;
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    
-    // Lazily reset streak if the user missed a day, so viewers see accurate streaks
-    user = await checkAndResetStreak(user);
 
-    return res.status(200).json({ success: true, message: 'User fetched successfully', user: sanitizeUser(user) });
+    return res.status(200).json({ success: true, message: 'User fetched successfully', user: withFollowMeta(sanitizeUser(user), req.user?.id) });
   } catch (error) {
     console.log("Internal server error", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -905,10 +930,10 @@ export const unfollowUser = async (req, res) => {
 
 export const getFollowers = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate('followers', FOLLOW_LIST_FIELDS);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    const followers = await followListRows(req.params.id, 'followers', req.user?.id);
+    if (!followers) return res.status(404).json({ success: false, message: "User not found" });
 
-    return res.status(200).json({ success: true, followers: user.followers });
+    return res.status(200).json({ success: true, followers });
   } catch (error) {
     console.error("Get Followers Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -917,10 +942,10 @@ export const getFollowers = async (req, res) => {
 
 export const getFollowing = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate('following', FOLLOW_LIST_FIELDS);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    const following = await followListRows(req.params.id, 'following', req.user?.id);
+    if (!following) return res.status(404).json({ success: false, message: "User not found" });
 
-    return res.status(200).json({ success: true, following: user.following });
+    return res.status(200).json({ success: true, following });
   } catch (error) {
     console.error("Get Following Error:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
@@ -1050,12 +1075,12 @@ export const savePushToken = async (req, res) => {
     if (!pushToken) {
       return res.status(400).json({ success: false, message: "Push token is required" });
     }
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { expoPushToken: pushToken },
-      { new: true }
+    // Sent on every launch; write (and fire the auth-cache hook) only when it changed.
+    const r = await User.updateOne(
+      { _id: req.user.id, expoPushToken: { $ne: pushToken } },
+      { $set: { expoPushToken: pushToken } }
     );
-    if (!user) {
+    if (!r.matchedCount && !(await User.exists({ _id: req.user.id }))) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
     return res.status(200).json({ success: true, message: "Push token saved successfully" });
@@ -1265,9 +1290,9 @@ export const updateFcmToken = async (req, res) => {
       return res.status(400).json({ success: false, message: "FCM token is required" });
     }
     
-    // Add token if it doesn't exist in array
-    await User.findByIdAndUpdate(
-      req.user.id,
+    // Sent on every launch; skip the write when the token is already stored.
+    await User.updateOne(
+      { _id: req.user.id, fcmTokens: { $ne: fcmToken } },
       { $addToSet: { fcmTokens: fcmToken } }
     );
     

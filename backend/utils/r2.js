@@ -5,6 +5,11 @@ import path from "path";
 import dotenv from "dotenv";
 import sharp from "sharp";
 
+// 1 GiB box: libvips' operation cache holds decoded images (~50 MB default) and
+// each encode spawns a thread per core. Uploads are rare; memory is not spare.
+sharp.cache(false);
+sharp.concurrency(1);
+
 dotenv.config({ quiet: true });
 
 // ─── R2 Client ───────────────────────────────────────────────────────────────

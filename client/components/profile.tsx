@@ -36,7 +36,7 @@ type UserType = {
   banner?: string; upiId?: string; resumeUrl?: string;
   codingProfiles?: { leetcode?: string; gfg?: string; codechef?: string };
   codingStats?: { leetcodeSolved?: number; leetcodeRating?: number; gfgSolved?: number; gfgRating?: number; codechefSolved?: number; codechefRating?: number; totalSolved?: number };
-  followers?: any[]; following?: any[];
+  followers?: any[]; following?: any[]; followersCount?: number; followingCount?: number;
   fyncScore?: number; fyncBadge?: string;
   education?: EducationEntry[];
   githubUsername?: string; githubStats?: any;
@@ -464,13 +464,22 @@ function Profile() {
       return [...fresh, ...previous.filter((item) => !freshIds.has(item._id))];
     };
 
-    const results = await batchGet({
-      posts: '/post/posts?page=1&limit=12',
-      shorts: '/shorts/your?page=1&limit=12',
-      reposts: `/post/reposts/${user?._id}`,
-      subscription: '/subscription/status',
-      me: '/user/profile',
-    });
+    // Profile and subscription go through the axios read-through cache (their
+    // own 1-2 min TTLs) instead of the batch, which always hit the server.
+    // Pull-to-refresh still forces them fresh.
+    const cached = (path: string) =>
+      axios.get(path, replace ? { params: { noCache: true } } : undefined)
+        .then((r) => ({ status: r.status, body: r.data }))
+        .catch(() => undefined);
+    const [results, subResult, meResult] = await Promise.all([
+      batchGet({
+        posts: '/post/posts?page=1&limit=12',
+        shorts: '/shorts/your?page=1&limit=12',
+        reposts: `/post/reposts/${user?._id}`,
+      }),
+      cached('/subscription/status'),
+      cached('/user/profile'),
+    ]);
 
     const postsBody = bodyOf<any>(results.posts);
     if (postsBody?.success) {
@@ -496,10 +505,10 @@ function Profile() {
     const repostsBody = bodyOf<any>(results.reposts);
     if (repostsBody?.success) setReposts(repostsBody.post || []);
 
-    const subBody = bodyOf<any>(results.subscription);
+    const subBody = bodyOf<any>(subResult);
     if (subBody?.success) setSubscription(subBody);
 
-    const meBody = bodyOf<any>(results.me);
+    const meBody = bodyOf<any>(meResult);
     if (meBody?.user && setUser) setUser(meBody.user);
   }, [user?._id, setUser]);
 
@@ -590,8 +599,8 @@ function Profile() {
     <ProfileHero user={user} banner={user?.banner} bio={user?.about} college={user?.college} scrollY={scrollY}>
       <StatsCard items={[
         { label: 'Posts', value: postCount ?? posts.length },
-        { label: 'Followers', value: user?.followers?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'followers' }) },
-        { label: 'Following', value: user?.following?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'following' }) },
+        { label: 'Followers', value: user?.followersCount ?? user?.followers?.length ?? 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'followers' }) },
+        { label: 'Following', value: user?.followingCount ?? user?.following?.length ?? 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'following' }) },
       ]} />
 
       {/* Subscription Status Bar */}

@@ -156,7 +156,6 @@ class ContestManager {
     for (const c of toStart) {
       c.status = 'Ongoing';
       await c.save();
-      io.emit('contest_started', { contestId: c._id, title: c.title });
     }
 
     // Auto-end
@@ -167,7 +166,6 @@ class ContestManager {
     
     for (const c of toEnd) {
       await this.finalizeContest(c._id);
-      io.emit('contest_ended', { contestId: c._id, title: c.title });
     }
   }
 }

@@ -68,6 +68,9 @@ export const purgeStaleListings = async () => {
  * Runs daily at midnight.
  */
 const startCleanupCron = () => {
+    // The nightly sweeps are staggered across 00:00-00:50 (club 00, events 10,
+    // chat media 20, community media 25, interviews 30, college chat 40, submissions 45, fync media
+    // 50) instead of five firing at once on a 1 GiB box.
     cron.schedule('0 0 * * *', async () => {
         console.log("🧹 Starting 30-day automated cleanup...");
         try {

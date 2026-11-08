@@ -2,9 +2,9 @@ import cron from "node-cron";
 import Message from "../models/chat.model.js";
 import { deleteFromR2 } from "./r2.js";
 
-// Run at exactly 12:00 AM every night to purge media from regular chats
+// Run nightly at 00:20 (staggered, see cleanup.service.js) to purge media from regular chats
 export const initChatMediaCleanup = () => {
-    cron.schedule("0 0 * * *", async () => {
+    cron.schedule("20 0 * * *", async () => {
         try {
             console.log("🌕 Midnight Strike: Purging media from regular chats...");
             

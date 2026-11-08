@@ -7,7 +7,7 @@ const body = src
   .replace(/^import .*$/gm, '')
   .replace(/export async function [\s\S]*?\n}\n/g, '');   // drop the redis-backed halves
 const mod = await import('data:text/javascript,' + encodeURIComponent(body));
-const { rankFeed } = mod;
+const { rankFeed, mergeFresh } = mod;
 
 const now = Date.now();
 const candidates = Array.from({ length: 150 }, (_, i) => ({
@@ -58,5 +58,26 @@ assert.ok(tail.items.every(p => !skipFirst.includes(p._id)), 'served a seen post
 const all = rankFeed({ candidates, seenIds: candidates.map(p => p._id), interestProfile: profile, page: 1, limit: 10, seed });
 assert.equal(all.mode, 'recycled');
 assert.equal(all.items.length, 10);
+
+// mergeFresh: live counts + viewer membership onto slim pooled items.
+{
+  const pooled = [
+    { _id: 'a', likes: 1, commentCount: 2, user: { _id: 'u' } },
+    { _id: 'b', likes: 5 },
+    { _id: 'gone', likes: 9 },
+    { _id: 'priv', likes: 0 },
+  ];
+  const rows = [
+    { _id: 'a', likes: 3, reposts: 1, liked_by: ['me'] },          // viewer liked it
+    { _id: 'b', likes: 4 },                                         // $elemMatch miss => field absent
+    { _id: 'priv', likes: 0, isPrivate: true },
+  ];
+  const out = mergeFresh(pooled, rows);
+  assert.deepEqual(out.map(p => p._id), ['a', 'b'], 'deleted/private items must drop, order kept');
+  assert.deepEqual(out[0], { _id: 'a', likes: 3, reposts: 1, commentCount: 2, user: { _id: 'u' }, liked_by: ['me'], repostedBy: [] });
+  assert.deepEqual(out[1].liked_by, [], 'not liked => [] so client .some() still works');
+  assert.equal(out[1].likes, 4, 'fresh count wins over pooled');
+  assert.equal('isPrivate' in out[1], false);
+}
 
 console.log('feed ranking self-check passed (150 posts, 15 pages, 0 duplicates)');

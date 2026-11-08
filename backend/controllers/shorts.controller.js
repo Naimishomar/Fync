@@ -7,7 +7,7 @@ import Notification from '../models/notification.model.js';
 import User from '../models/user.model.js';
 import Report from '../models/report.model.js';
 import { deleteFromR2 } from '../utils/r2.js';
-import { getShortsPool, getUserInterestProfile, rankFeed, invalidatePool, getPoolVersion } from '../utils/feedEngine.js';
+import { getShortsPool, getUserInterestProfile, rankFeed, invalidatePool, getPoolVersion, freshenPage } from '../utils/feedEngine.js';
 import { clearCacheTags } from '../middlewares/cache.middleware.js';
 
 import { updateStreak } from '../utils/streak.js';
@@ -213,8 +213,8 @@ export const likeAndUnlikeShort = async (req, res) => {
             }
         }
 
-        clearCacheTags(['shorts', `short:${req.params.id}`, `shorts:user:${updatedShort.user}`]).catch(() => { });
-        await invalidatePool('shorts').catch(() => { });
+        // Counts only: the shorts pool and its version stay (see invalidatePool).
+        clearCacheTags([`short:${req.params.id}`, `shorts:user:${updatedShort.user}`]).catch(() => { });
 
         return res.status(200).json({
             success: true,
@@ -472,14 +472,9 @@ export const getSmartShorts = async (req, res) => {
 
         const [candidates, interestProfile, poolVersion] = await Promise.all([
             getShortsPool(Shorts, 100),
-            User.findById(req.user.id)
+            getUserInterestProfile(req.user.id, () => User.findById(req.user.id)
                 .select('interest hobbies skills major about')
-                .lean()
-                .then(userDoc => getUserInterestProfile({
-                    ...(userDoc || {}),
-                    id: req.user.id,
-                    _id: req.user.id
-                })),
+                .lean()),
             getPoolVersion('shorts')
         ]);
 
@@ -497,7 +492,7 @@ export const getSmartShorts = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            shorts: ranked.items,
+            shorts: await freshenPage(Shorts, ranked.items, req.user.id),
             hasMore: ranked.hasMore,
             mode: ranked.mode
         });

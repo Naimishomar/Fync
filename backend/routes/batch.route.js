@@ -117,6 +117,10 @@ const dispatch = (app, req, path) =>
     subReq.verifiedJwt = req.verifiedJwt;
     subReq.authUser = req.authUser;
     subReq.user = req.user;
+    // Lets app-level middleware skip per-request work already done for the
+    // envelope (generalLimiter counts the batch once; mediaUrl rewrites the
+    // outer response in one pass).
+    subReq.isBatchSub = true;
 
     const headers = {};
     let statusCode = 200;
