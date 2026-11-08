@@ -438,6 +438,9 @@ userSchema.index({ oneVsOnePoints: -1 });
 // Campus Alumni: filter by college + role, newest first. Also serves {college}
 // and {college, user_access} queries as a prefix, so those single indexes are gone.
 userSchema.index({ college: 1, user_access: 1, createdAt: -1 });
+// getGlobalNotices looks up admin ids on every request; partial, so it holds
+// only the handful of admins and costs nothing on ordinary user writes.
+userSchema.index({ user_access: 1 }, { partialFilterExpression: { user_access: 'admin' } });
 
 // The auth middleware caches a projection of this document in Redis. Invalidate
 // here rather than at each of the ~30 call sites that mutate a user, so a ban or

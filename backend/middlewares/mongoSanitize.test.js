@@ -15,7 +15,7 @@ const server = http.createServer(app).listen(0);
 await new Promise((r) => server.once('listening', r));
 const base = `http://127.0.0.1:${server.address().port}`;
 
-const res = await fetch(`${base}/echo?email[$ne]=x&name=ok&$where=evil`, {
+const res = await fetch(`${base}/echo?email[$ne]=x&name=ok&$where=evil&limit=100000`, {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
   body: JSON.stringify({
@@ -33,6 +33,7 @@ const { query, body } = await res.json();
 // which is what the old middleware skipped entirely.
 assert.equal(query.name, 'ok', 'benign query keys survive');
 assert.equal(query.$where, undefined, 'top-level query operator must be stripped');
+assert.equal(query.limit, '100', 'oversized page limit is clamped');
 
 assert.deepEqual(body.password, {}, 'operator inside a body object must be stripped');
 assert.deepEqual(body.nested, [{}], 'operators inside arrays must be stripped');

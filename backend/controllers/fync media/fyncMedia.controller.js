@@ -73,7 +73,8 @@ export const getFyncMedia = async(req,res)=>{
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
-        .populate("admin", "name username email");
+        .populate("admin", "name username email")
+        .lean();
         if (fyncMedia.length === 0) {
             return res.status(200).json({
                 message: "No Fync Media found",

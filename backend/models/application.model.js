@@ -41,6 +41,10 @@ const applicationSchema = new mongoose.Schema({
 
 // Prevent duplicate applications for the same opportunity
 applicationSchema.index({ opportunity: 1, candidate: 1 }, { unique: true });
+// Recruiter portal: applications by recruiter (optionally one opportunity), newest first.
+applicationSchema.index({ recruiter: 1, createdAt: -1 });
+// Student's shortlisted list: candidate + status, recently updated first.
+applicationSchema.index({ candidate: 1, status: 1, updatedAt: -1 });
 
 const Application = mongoose.model("Application", applicationSchema);
 export default Application;

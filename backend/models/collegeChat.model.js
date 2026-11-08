@@ -37,8 +37,9 @@ const collegeChatSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-// Covers the list query's filter AND its sort; without it the sort ran in
-// memory over every matching document.
-collegeChatSchema.index({ collegeName: 1, expiresAt: 1, createdAt: 1 });
+// Equality, then sort: the list query sorts on createdAt and only range-filters
+// expiresAt. The old { collegeName, expiresAt, createdAt } put the range before
+// the sort key, so Mongo could not use it for the sort.
+collegeChatSchema.index({ collegeName: 1, createdAt: 1 });
 
 export default mongoose.model("CollegeChat", collegeChatSchema);

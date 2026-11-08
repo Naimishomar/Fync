@@ -32,27 +32,24 @@ export const sendMessage = async (req, res) => {
         const mentionMatches = message ? message.match(/@(\w+)/g) : [];
         
         if (mentionMatches) {
-            const uniqueUsernames = [...new Set(mentionMatches.map(m => m.substring(1)))];
-            for (const username of uniqueUsernames) {
-                const mentionedUser = await User.findOne({ username });
-                if (mentionedUser && mentionedUser._id.toString() !== req.user.id.toString()) {
-                    mentions.push(mentionedUser._id);
-                    
-                    // Create Notification
-                    const notif = await Notification.create({
-                        recipient: mentionedUser._id,
-                        sender: req.user.id,
-                        type: 'tag',
-                        commentText: `mentioned you in ${college} Professional Hub: "${message.substring(0, 30)}..."`
+            // One $in lookup + one insertMany, not two queries per @mention.
+            // Capped so a message full of @s cannot fan out without bound.
+            const uniqueUsernames = [...new Set(mentionMatches.map(m => m.substring(1)))].slice(0, 20);
+            const mentioned = (await User.find({ username: { $in: uniqueUsernames } }).select("_id").lean())
+                .filter((u) => u._id.toString() !== req.user.id.toString());
+            mentions.push(...mentioned.map((u) => u._id));
+            const notifs = mentioned.length ? await Notification.insertMany(mentioned.map((u) => ({
+                recipient: u._id,
+                sender: req.user.id,
+                type: 'tag',
+                commentText: `mentioned you in ${college} Professional Hub: "${message.substring(0, 30)}..."`
+            }))) : [];
+            if (ioInstance) {
+                for (const notif of notifs) {
+                    ioInstance.to(`user:${notif.recipient}`).emit(`notification_${notif.recipient}`, {
+                        success: true,
+                        notification: notif
                     });
-
-                    // Emit to specific user if online
-                    if (ioInstance) {
-                        ioInstance.to(`user:${mentionedUser._id}`).emit(`notification_${mentionedUser._id}`, {
-                            success: true,
-                            notification: notif
-                        });
-                    }
                 }
             }
         }
@@ -109,7 +106,8 @@ export const getMessages = async (req, res) => {
             })
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
-            .limit(limit);
+            .limit(limit)
+            .lean();
 
         return res.status(200).json({ success: true, messages });
     } catch (error) {

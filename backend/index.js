@@ -9,6 +9,7 @@ import { Server } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import redisClient from './utils/redis.js';
 import cookieParser from 'cookie-parser';
+import axios from 'axios';
 import connectDB from './db/db.js';
 import authRoute from './routes/auth.route.js';
 import postRoute from './routes/post.route.js';
@@ -116,6 +117,11 @@ import { validateConfig } from './utils/validateConfig.js';
 const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
   : '*';
+
+// axios has no default timeout; several call sites (GitHub, Cloudflare TURN,
+// interview audio fetch) set none, so one hung upstream pinned its request.
+// Explicit per-call timeouts still win.
+axios.defaults.timeout = 15000;
 
 const app = express();
 // Behind ALB/nginx every request otherwise reports the proxy's IP, so the

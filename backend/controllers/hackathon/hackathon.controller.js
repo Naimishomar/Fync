@@ -158,7 +158,8 @@ export const gethackathon = async (req, res, next) => {
 
 // POST /hackathons/list  (body-based filtering — GET can't have a body reliably)
 export const gethackathons = async (req, res, next) => {
-    const { tags, status, page = 1, limit = 10 } = req.body;
+    const { tags, status, page = 1 } = req.body;
+    const limit = Math.min(Number(req.body.limit) || 10, 50); // body, so the global ?limit clamp misses it
     const now = new Date();
 
     // Drafts are the organiser's own business and never appear in discovery.

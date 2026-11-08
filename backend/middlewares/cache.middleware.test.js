@@ -53,6 +53,7 @@ payload = 'v2';
 await clearCacheTags(['thing:1']);
 assert.equal((await get('/thing/1?u=alice')).value, 'v2', 'edit must be visible immediately after invalidation');
 assert.equal(handlerCalls, 2);
+assert.ok((await redisClient.ttl('fync_gen:thing:1')) > 0, 'generation counters must expire, not pile up per post');
 
 // ── invalidation is scoped to the tag, not the whole cache ──────────────────
 await get('/thing/2?u=alice');

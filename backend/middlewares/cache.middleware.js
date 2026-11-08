@@ -11,6 +11,7 @@ const LOCK_PREFIX = 'fync_lock:';
 const STALE_GRACE_SECONDS = 30;
 const REBUILD_LOCK_MS = 5000;
 const MISS_WAIT_MS = 60;
+const GEN_TTL_SECONDS = 7 * 24 * 3600;
 
 // ── INVALIDATION ────────────────────────────────────────────────────────────
 // Previously this SCANned the whole Redis keyspace per call — every post, like
@@ -24,7 +25,10 @@ const MISS_WAIT_MS = 60;
 export const clearCache = async (tag) => {
   if (!tag) return;
   try {
-    await redisClient.incr(GEN_PREFIX + tag);
+    // TTL, or one counter per liked post/short lives forever. Safe because it
+    // outlives every cache entry (max route TTL is 6h): by the time an idle
+    // counter expires and reads as 0 again, entries keyed on it are long gone.
+    await redisClient.multi().incr(GEN_PREFIX + tag).expire(GEN_PREFIX + tag, GEN_TTL_SECONDS).exec();
   } catch (error) {
     console.error('Redis cache invalidation error:', error.message);
   }

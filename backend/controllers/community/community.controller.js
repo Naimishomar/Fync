@@ -200,7 +200,7 @@ export const deleteCommunity = async (req, res) => {
 
 export const getAllCommunities = async (req, res) => {
     try {
-        const communities = await Community.find().populate('creator', 'name username avatar');
+        const communities = await Community.find().populate('creator', 'name username avatar').lean();
         return res.status(200).json({ success: true, communities });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
@@ -490,7 +490,8 @@ export const getSubCommunityMessages = async (req, res) => {
                 populate: { path: 'sender', select: 'name' }
             })
             .sort({ createdAt: -1 })
-            .limit(100);
+            .limit(100)
+            .lean();
         
         const reversed = messages.reverse();
         

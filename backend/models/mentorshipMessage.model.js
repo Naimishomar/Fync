@@ -37,5 +37,8 @@ const mentorshipMessageSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// Hub history: college, newest first (the single college index cannot serve the sort).
+mentorshipMessageSchema.index({ college: 1, createdAt: -1 });
+
 const MentorshipMessage = mongoose.model('MentorshipMessage', mentorshipMessageSchema);
 export default MentorshipMessage;

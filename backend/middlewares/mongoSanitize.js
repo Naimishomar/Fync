@@ -34,6 +34,8 @@ function scrub(obj, depth = 0) {
   }
 }
 
+export const MAX_PAGE_LIMIT = 100;
+
 export const mongoSanitize = () => (req, res, next) => {
   try {
     scrub(req.body);
@@ -45,6 +47,9 @@ export const mongoSanitize = () => (req, res, next) => {
     const query = req.query;
     if (query && typeof query === 'object') {
       scrub(query);
+      // One clamp for every list endpoint: ?limit=100000 on a 1 GiB box loaded
+      // that many populated docs into memory. Nothing in the app asks for > 50.
+      if (Number(query.limit) > MAX_PAGE_LIMIT) query.limit = String(MAX_PAGE_LIMIT);
       Object.defineProperty(req, 'query', {
         value: query,
         writable: true,

@@ -69,7 +69,8 @@ export const getMessages = async (req, res) => {
         const messages = await AlumniMessage.find({ college, graduationYear })
             .populate("sender", "name username avatar company role")
             .sort({ createdAt: 1 })
-            .limit(100);
+            .limit(100)
+            .lean();
 
         return res.status(200).json({ success: true, messages });
     } catch (error) {

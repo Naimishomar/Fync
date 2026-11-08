@@ -39,6 +39,10 @@ try {
       secretAccessKey,
     },
     forcePathStyle: true,
+    // The SDK default is no timeout at all: a stalled R2 socket held the upload
+    // request (and its buffers) open indefinitely. Idle-based, so a large but
+    // moving upload is never cut off.
+    requestHandler: { connectionTimeout: 5000, socketTimeout: 30000 },
   });
 
   console.log("✅ Cloudflare R2 initialized successfully");

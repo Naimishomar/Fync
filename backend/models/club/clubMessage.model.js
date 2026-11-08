@@ -27,6 +27,9 @@ const clubMessageSchema = new mongoose.Schema({
 
 // Message cleanup index: delete after 365 days (1 year) for clubs
 clubMessageSchema.index({ createdAt: 1 }, { expireAfterSeconds: 365 * 24 * 60 * 60 });
+// Room history: getMessages filters subGroupId and sorts newest first. Without
+// this every room open scanned the whole year of club messages.
+clubMessageSchema.index({ subGroupId: 1, createdAt: -1 });
 
 const ClubMessage = mongoose.model('ClubMessage', clubMessageSchema);
 export default ClubMessage;

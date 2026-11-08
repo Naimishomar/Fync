@@ -10,6 +10,8 @@ const communityMessageSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 communityMessageSchema.index({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
+// Room history (getSubCommunityMessages / delete / export): subCommunityId, newest first.
+communityMessageSchema.index({ subCommunityId: 1, createdAt: -1 });
 
 const CommunityMessage = mongoose.model('CommunityMessage', communityMessageSchema);
 export default CommunityMessage;

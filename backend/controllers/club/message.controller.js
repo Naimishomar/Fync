@@ -109,7 +109,8 @@ export const getClubMessages = async (req, res) => {
             .populate('sender', 'name username avatar')
             .populate({ path: 'repliedTo', populate: { path: 'sender', select: 'name' } })
             .sort({ createdAt: -1 })
-            .limit(50);
+            .limit(50)
+            .lean();
 
         const sorted = messages.reverse();
         await redis.setEx(cacheKey, 3600, JSON.stringify(sorted));

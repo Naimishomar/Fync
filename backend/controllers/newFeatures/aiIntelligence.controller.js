@@ -9,7 +9,7 @@ dotenv.config({ quiet: true });
 
 // Initialize the Official SDK
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: GEMINI_MODEL_PRO });
+const model = genAI.getGenerativeModel({ model: GEMINI_MODEL_PRO }, { timeout: 30000 }); // SDK default: none
 
 export const uploadPDF = async (req, res) => {
     try {

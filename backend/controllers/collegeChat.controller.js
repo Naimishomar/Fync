@@ -80,7 +80,12 @@ export const getMessages = async (req, res) => {
                 path: 'replyTo',
                 populate: { path: 'senderId', select: 'username' }
             })
-            .sort({ createdAt: 1 });
+            // Newest 300, still returned oldest-first. Was the whole day's loop,
+            // hydrated, on every open (the screen bypasses the cache).
+            .sort({ createdAt: -1 })
+            .limit(300)
+            .lean();
+        messages.reverse();
 
         return res.status(200).json({ success: true, messages });
     } catch (error) {

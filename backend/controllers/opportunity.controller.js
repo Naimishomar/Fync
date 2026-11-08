@@ -73,7 +73,8 @@ export const getOpportunities = async (req, res) => {
             .populate("postedBy", "name username avatar company")
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(parseInt(limit));
+            .limit(parseInt(limit))
+            .lean();
 
         const total = await Opportunity.countDocuments(filter);
 
@@ -81,13 +82,12 @@ export const getOpportunities = async (req, res) => {
         const userId = req.user?.id;
         let enrichedData = opportunities;
         if (userId) {
-            enrichedData = await Promise.all(opportunities.map(async (opt) => {
-                const hasApplied = await Application.exists({ 
-                    opportunity: opt._id, 
-                    candidate: userId 
-                });
-                return { ...opt.toObject(), hasApplied: !!hasApplied };
-            }));
+            // One $in lookup for the page, not one exists() per card.
+            const applied = new Set((await Application.find({
+                candidate: userId,
+                opportunity: { $in: opportunities.map((o) => o._id) },
+            }).select('opportunity').lean()).map((a) => String(a.opportunity)));
+            enrichedData = opportunities.map((opt) => ({ ...opt, hasApplied: applied.has(String(opt._id)) }));
         }
 
         res.status(200).json({ 
@@ -217,10 +217,12 @@ export const getRecruiterPosts = async (req, res) => {
         const posts = await Opportunity.find({ postedBy: req.user.id }).sort({ createdAt: -1 });
         
         // Enrich posts with application counts
-        const enrichedPosts = await Promise.all(posts.map(async (post) => {
-            const count = await Application.countDocuments({ opportunity: post._id });
-            return { ...post.toObject(), applicationCount: count };
-        }));
+        // One grouped count instead of a countDocuments per post.
+        const counts = new Map((await Application.aggregate([
+            { $match: { opportunity: { $in: posts.map((p) => p._id) } } },
+            { $group: { _id: '$opportunity', n: { $sum: 1 } } },
+        ])).map((c) => [String(c._id), c.n]));
+        const enrichedPosts = posts.map((post) => ({ ...post.toObject(), applicationCount: counts.get(String(post._id)) || 0 }));
 
         res.status(200).json({ success: true, data: enrichedPosts });
     } catch (error) {
@@ -448,11 +450,8 @@ export const notifyShortlistedCandidates = async (req, res) => {
             return res.status(200).json({ success: true, message: "No shortlisted candidates to notify" });
         }
 
-        const notificationPromises = applications.map(async (app) => {
-            const candidate = app.candidate;
-            if (!candidate) return;
-
-            // Push Notification
+        const candidates = applications.map((app) => app.candidate).filter(Boolean);
+        for (const candidate of candidates) {
             if (candidate.expoPushToken) {
                 sendPushNotification(
                     candidate.expoPushToken,
@@ -460,17 +459,15 @@ export const notifyShortlistedCandidates = async (req, res) => {
                     message
                 ).catch(e => console.log("Push error", e));
             }
+        }
 
-            // In-app Notification
-            Notification.create({
-                recipient: candidate._id,
-                sender: req.user.id,
-                type: 'opportunity',
-                message: message
-            }).catch(e => console.log("DB Notification error", e));
-        });
-
-        await Promise.all(notificationPromises);
+        // One insert for the whole shortlist, not one per candidate.
+        Notification.insertMany(candidates.map((candidate) => ({
+            recipient: candidate._id,
+            sender: req.user.id,
+            type: 'opportunity',
+            message: message
+        })), { ordered: false }).catch(e => console.log("DB Notification error", e));
 
         res.status(200).json({ success: true, message: `Notifications sent to ${applications.length} candidates` });
     } catch (error) {

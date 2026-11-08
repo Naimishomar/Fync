@@ -1,6 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 import { GEMINI_MODEL } from './geminiModel.js';
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// No default timeout in the SDK; a hung call would hold the request forever
+// instead of reaching FALLBACK_QUESTIONS.
+const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, httpOptions: { timeout: 30000 } });
 
 const FALLBACK_QUESTIONS = [
   {

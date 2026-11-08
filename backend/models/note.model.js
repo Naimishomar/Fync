@@ -58,6 +58,9 @@ const noteSchema = new mongoose.Schema(
 noteSchema.index({ college: 1, hidden: 1, semester: 1, subject: 1, createdAt: -1 });
 // "Most downloaded in my college", the default sort on the browse screen.
 noteSchema.index({ college: 1, hidden: 1, downloads: -1 });
+// Newest-first browse with no semester/subject chosen: the index above needs
+// semester equality before it can serve the createdAt sort.
+noteSchema.index({ college: 1, hidden: 1, createdAt: -1 });
 // A student's own uploads.
 noteSchema.index({ uploader: 1, createdAt: -1 });
 // The nightly purge: find live files older than the retention window.
