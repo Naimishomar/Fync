@@ -873,21 +873,24 @@ export default function HomeScreen() {
     </View>
   );
 
+  // Narrower than IconBtn's 44pt box so the four header actions sit closer;
+  // hitSlop keeps the tap target full size.
+  const HEADER_ICON = { width: 34 };
   const appBarRight = (
     <>
       {/* Streak Display */}
       <TouchableOpacity
         onPress={() => setShowLeaderboard(true)}
-        className="flex-row items-center bg-brand-100 px-2 py-1 rounded-full border border-ink"
+        className="flex-row items-center bg-brand-100 px-2 py-1 rounded-full border border-ink mr-1"
       >
         <MaterialCommunityIcons name="fire" size={16} color={C.brand[500]} />
         <Text className="font-display text-xs ml-0.5 text-brand-700">
           {(user as any)?.streakCount || 0}
         </Text>
       </TouchableOpacity>
-      <IconBtn name="search-outline" onPress={() => navigation.navigate('SearchScreen')} />
-      <IconBtn name="heart-outline" badge={unreadCount} onPress={() => navigation.navigate('Notification')} />
-      <IconBtn name="chatbubble-ellipses-outline" badge={chatUnreadCount} onPress={() => navigation.navigate('ChatList')} />
+      <IconBtn style={HEADER_ICON} name="search-outline" onPress={() => navigation.navigate('SearchScreen')} />
+      <IconBtn style={HEADER_ICON} name="heart-outline" badge={unreadCount} onPress={() => navigation.navigate('Notification')} />
+      <IconBtn style={HEADER_ICON} name="chatbubble-ellipses-outline" badge={chatUnreadCount} onPress={() => navigation.navigate('ChatList')} />
     </>
   );
 
