@@ -93,6 +93,7 @@ export const FEATURES: Feature[] = [
   { id: 'alumni', art: d3('boy'), label: 'Campus Alumni', hint: 'Find seniors from your college', icon: 'school-outline', route: 'FindAlumni', tint: '#0ea5e9', category: 'social' },
   { id: 'alumniConnect', art: d3('phone-ringing'), label: 'Alumni Connect', hint: 'Alumni-only chat rooms', icon: 'chatbubbles-outline', route: 'AlumniConnect', tint: '#0ea5e9', category: 'social', access: ['alumni'] },
   { id: 'proHub', art: d3('explorer'), label: 'Professional Hub', hint: 'Global alumni network', icon: 'globe-outline', route: 'ProfessionalHub', tint: '#0ea5e9', category: 'social', access: ['user', 'alumni'] },
+  { id: 'ask', art: 'assets/Speech balloon/3D/speech_balloon_3d.png', label: 'Ask me anything', hint: 'Anonymous questions from your link', icon: 'chatbox-ellipses-outline', route: 'AskInbox', tint: '#F97316', category: 'social', keywords: ['ngl', 'anonymous', 'questions', 'ama', 'q&a', 'link', 'story'] },
   { id: 'teammate', art: 'assets/Handshake/3D/handshake_3d.png', label: 'Find Teammate', hint: 'Match for projects and hacks', icon: 'people-outline', route: 'FindTeammate', tint: '#0ea5e9', category: 'social', keywords: ['team', 'partner'] },
   { id: 'communities', art: d3('chat-bubble'), label: 'Community Hubs', hint: 'Interest-based groups', icon: 'megaphone-outline', route: 'CommunityList', tint: '#14b8a6', category: 'social' },
   { id: 'clubs', art: 'assets/Performing arts/3D/performing_arts_3d.png', label: 'College Clubs', hint: 'Official campus clubs', icon: 'people-circle-outline', route: 'ClubList', tint: '#14b8a6', category: 'social' },
@@ -103,6 +104,7 @@ export const FEATURES: Feature[] = [
   { id: 'collegeChat', art: d3('chat-text'), label: 'College Chat', hint: '24hr campus-wide room', icon: 'chatbox-ellipses-outline', route: 'CollegeChatScreen', tint: '#f97316', category: 'campus', needsCollege: true },
   { id: 'notice', art: 'assets/Pushpin/3D/pushpin_3d.png', label: 'Notice Board', hint: 'Official announcements', icon: 'reader-outline', route: 'NoticeBoard', tint: '#64748b', category: 'campus' },
   { id: 'olx', art: 'assets/Shopping bags/3D/shopping_bags_3d.png', label: 'Campus OLX', hint: 'Buy and sell on campus', icon: 'cart-outline', route: 'OLXMarketplace', tint: '#64748b', category: 'campus', keywords: ['marketplace', 'sell', 'buy'] },
+  { id: 'stays', art: 'assets/House with garden/3D/house_with_garden_3d.png', label: 'PG & Roommates', hint: 'PGs, flats and roommates near college', icon: 'home-outline', route: 'StayFinder', tint: '#64748b', category: 'campus', needsCollege: true, keywords: ['pg', 'hostel', 'room', 'flat', 'rent', 'roommate', 'flatmate', 'accommodation', 'stay'] },
   { id: 'lostFound', art: 'assets/Magnifying glass tilted left/3D/magnifying_glass_tilted_left_3d.png', label: 'Lost & Found', hint: 'Report or claim items', icon: 'search-outline', route: 'LostAndFound', tint: '#64748b', category: 'campus' },
   { id: 'rewards', art: d3('gift'), label: 'Rewards Store', hint: 'Spend your Fync points', icon: 'gift-outline', route: 'RewardsMarketplace', tint: '#f59e0b', category: 'campus', keywords: ['points', 'redeem', 'shop'] },
 

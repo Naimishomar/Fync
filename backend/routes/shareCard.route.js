@@ -13,8 +13,8 @@ import { renderPostCard, renderProfileCard, esc, truncate } from '../utils/share
 
 const router = Router();
 // Fixed, not req.host: the rendered QR is cached, a spoofed Host must not end up in it.
-const BASE = (process.env.PUBLIC_BASE_URL || 'https://fync-api.duckdns.org').replace(/\/$/, '');
-const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.naimishomar.fync';
+export const BASE = (process.env.PUBLIC_BASE_URL || 'https://fync-api.duckdns.org').replace(/\/$/, '');
+export const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.naimishomar.fync';
 const ID = /^[a-f0-9]{24}$/i;
 const FILE = /^([a-f0-9]{24})\.(png|jpg)$/i;
 
@@ -25,7 +25,7 @@ export const profileLink = (id) => `${BASE}/u/${id}`;
 // not shared across instances. Move to nginx proxy_cache if card traffic grows.
 const cache = new Map();
 const MAX = 100;
-const cached = async (key, make) => {
+export const cached = async (key, make) => {
   if (cache.has(key)) {
     const v = cache.get(key);
     cache.delete(key); cache.set(key, v); // refresh recency
