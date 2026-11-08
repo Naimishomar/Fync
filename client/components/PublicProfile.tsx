@@ -13,6 +13,7 @@ import { useRoute, useNavigation, RouteProp, useFocusEffect } from '@react-navig
 import axios from "../context/axiosConfig";
 import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
+import AvatarZoom from './ui/AvatarZoom';
 import { ProfileSkeleton } from './Skeleton';
 import { Image as ExpoImage } from 'expo-image';
 import { FlashList } from '@shopify/flash-list';
@@ -523,11 +524,11 @@ const PublicProfile = () => {
                 {/* Info Card Overlay */}
                 <View className="px-5 -mt-12 pb-6">
                     <View className="flex-row items-end justify-between">
-                        <View className="p-1.5 bg-card rounded-full shadow-hair">
+                        <AvatarZoom avatar={profileUser?.avatar} className="p-1.5 bg-card rounded-full shadow-hair">
                             <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
                                 <Avatar user={profileUser as any} size={100} />
                             </View>
-                        </View>
+                        </AvatarZoom>
                         <View className="flex-row gap-2 mb-2">
                             <TouchableOpacity onPress={startChat} className="bg-ink px-6 py-2.5 flex-row items-center gap-2 border-2 border-ink rounded-md">
                                 <Ionicons name="chatbubble-ellipses-outline" size={18} color={C.paper} />
@@ -686,11 +687,11 @@ const PublicProfile = () => {
 
                         {/* Top Profile Card */}
                         <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
-                            <View className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
+                            <AvatarZoom avatar={profileUser?.avatar} className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
                                 <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
                                     <Avatar user={profileUser as any} size={110} />
                                 </View>
-                            </View>
+                            </AvatarZoom>
 
                             {/* Name + username */}
                             <Text className="font-display text-ink mt-4 text-h1">

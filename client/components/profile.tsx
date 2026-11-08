@@ -12,6 +12,7 @@ import { prefetchPostImages } from '../utils/imageWarm';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import Avatar from './Avatar';
+import AvatarZoom from './ui/AvatarZoom';
 import { Image as ExpoImage } from 'expo-image';
 import { FlashList } from '@shopify/flash-list';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -469,7 +470,6 @@ function Profile() {
   const { user, logout, setUser } = useAuth();
   const navigation = useNavigation<any>();
 
-  const [avatarOpen, setAvatarOpen] = useState(false);
   const [posts, setPosts] = useState<any[]>([]);
   const [shorts, setShorts] = useState<any[]>([]);
   const [reposts, setReposts] = useState<any[]>([]);
@@ -707,16 +707,11 @@ function Profile() {
       </View>
 
       <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12 shadow-hair">
-        <Pressable
-          onPress={() => user?.avatar && setAvatarOpen(true)}
-          className="-mt-14 p-1.5 bg-card rounded-full shadow-hair active:opacity-80"
-          accessibilityRole="imagebutton"
-          accessibilityLabel="View profile photo"
-        >
+        <AvatarZoom avatar={user?.avatar} className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
           <View className="rounded-full overflow-hidden border-[3px] border-brand-500">
             <Avatar user={user as any} size={110} />
           </View>
-        </Pressable>
+        </AvatarZoom>
 
         {/* Name, handle, bio, college: one centred block, tight rhythm. */}
         <Text className="font-display text-ink text-h1 text-center mt-4" numberOfLines={2}>{user?.name || user?.username}</Text>
@@ -903,25 +898,6 @@ function Profile() {
     // bottom SafeAreaView counted it a second time.
     <View className="flex-1 bg-paper">
       <StatusBar style={C.statusStyle} />
-      {/* Tap the avatar: the photo opens large over a dimmed screen, Instagram-style.
-          Tap anywhere or press back to close. */}
-      <Modal visible={avatarOpen} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setAvatarOpen(false)}>
-        <Pressable
-          onPress={() => setAvatarOpen(false)}
-          className="flex-1 items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
-          accessibilityRole="button"
-          accessibilityLabel="Close photo"
-        >
-          <ExpoImage
-            source={{ uri: getFullUrl(user?.avatar) ?? undefined }}
-            style={{ width: width * 0.78, height: width * 0.78, borderRadius: width * 0.39, backgroundColor: C.paper2 }}
-            contentFit="cover"
-            cachePolicy="disk"
-            transition={150}
-          />
-        </Pressable>
-      </Modal>
       {/* No title bar: just clear the status bar. */}
       <View style={{ height: insets.top }} />
       {/* key={activeTab} forces a remount when the column count changes,
