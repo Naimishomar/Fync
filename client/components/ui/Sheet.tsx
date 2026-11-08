@@ -46,7 +46,7 @@ export function useKeyboardLift(active = true) {
  */
 export function Sheet({
   visible, onClose, title, subtitle, footer, children, height, scroll = true,
-  contentStyle, closeLabel = 'Close', dismissable = true, header,
+  contentStyle, closeLabel = 'Close', dismissable = true, header, icon,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -66,6 +66,8 @@ export function Sheet({
   dismissable?: boolean;
   /** Replaces the title row's text block (avatar + name, etc.). */
   header?: React.ReactNode;
+  /** Round icon tile left of the title (Ionicons name). */
+  icon?: React.ComponentProps<typeof Ionicons>['name'];
 }) {
   const inset = Math.max(useSafeAreaInsets().bottom, 16);
   const lift = useKeyboardLift(visible);
@@ -82,6 +84,11 @@ export function Sheet({
           <View style={s.handleWrap}><View style={s.handle} /></View>
           {title || header ? (
             <View style={s.header}>
+              {icon ? (
+                <View style={s.headerIcon} importantForAccessibility="no" accessibilityElementsHidden>
+                  <Ionicons name={icon} size={20} color={C.ink} />
+                </View>
+              ) : null}
               <View style={s.headerText}>
                 {header ?? (
                   <>
@@ -139,11 +146,16 @@ const s = themed(() => ({
     flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line,
   },
+  headerIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' },
   headerText: { flex: 1, minWidth: 0 },
   title: { fontFamily: 'Inter_600SemiBold', fontSize: 16, lineHeight: 22, color: C.ink },
   subtitle: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 18, color: C.ink3, marginTop: 2 },
   close: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' },
   body: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 56, paddingVertical: 6 },
+  actionIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.paper2, alignItems: 'center', justifyContent: 'center' },
+  actionIconDanger: { backgroundColor: C.scheme === 'dark' ? 'rgba(248,113,113,0.14)' : 'rgba(200,30,30,0.08)' },
+  actionLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 15, lineHeight: 20 },
   fill: { flex: 1 },
   shrink: { flexShrink: 1 },
   footer: {
@@ -151,5 +163,57 @@ const s = themed(() => ({
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line,
   },
 }));
+
+export type SheetAction = {
+  label: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  onPress: () => void;
+  /** Red, for block/delete/report-style actions. */
+  danger?: boolean;
+  hint?: string;
+};
+
+/**
+ * Options menu as a bottom sheet (the ⋯ menus): icon tile + label rows,
+ * danger rows in red. The sheet closes before the action runs, so an action
+ * that opens its own sheet or alert doesn't stack on top of this one.
+ */
+export function ActionSheet({
+  visible, onClose, title, subtitle, icon, header, actions,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  title?: string;
+  subtitle?: string;
+  icon?: React.ComponentProps<typeof Ionicons>['name'];
+  header?: React.ReactNode;
+  actions: SheetAction[];
+}) {
+  return (
+    <Sheet visible={visible} onClose={onClose} title={title} subtitle={subtitle} icon={icon} header={header} contentStyle={{ paddingTop: 8, gap: 4 }}>
+      {actions.map((a) => {
+        const tint = a.danger ? C.danger : C.ink;
+        return (
+          <Pressable
+            key={a.label}
+            onPress={() => { onClose(); setTimeout(a.onPress, 250); }}
+            className="active:opacity-85"
+            style={s.action}
+            accessibilityRole="button"
+            accessibilityLabel={a.hint ? `${a.label}. ${a.hint}` : a.label}
+          >
+            <View style={[s.actionIcon, a.danger && s.actionIconDanger]}>
+              <Ionicons name={a.icon} size={20} color={tint} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={[s.actionLabel, { color: tint }]} numberOfLines={1}>{a.label}</Text>
+              {a.hint ? <Text style={s.subtitle} numberOfLines={2}>{a.hint}</Text> : null}
+            </View>
+          </Pressable>
+        );
+      })}
+    </Sheet>
+  );
+}
 
 export default Sheet;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Linking, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -20,6 +20,10 @@ import { ProfileHero, GeneratedBanner, StatsCard, ProfileTabs, GridCell, Profile
 import Reanimated from 'react-native-reanimated';
 import { usePop } from './ui/motion';
 import { Alert } from './ui/AlertModal';
+import { ActionSheet } from './ui/Sheet';
+import { shareCard } from '../utils/shareCard';
+import { profileLink } from './ui/ProfileQR';
+import * as Clipboard from 'expo-clipboard';
 import { confirmBlock, report } from '../utils/safety';
 import { tapHaptic } from '../utils/haptics';
 import Toast from 'react-native-toast-message';
@@ -289,18 +293,53 @@ const PublicProfile = () => {
 
     // Block / Report. Never on our own profile (that redirects away anyway).
     const isOwnProfile = !!currentUser?._id && currentUser._id === profileUser?._id;
+    const [menuOpen, setMenuOpen] = useState(false);
     const profileMenu = profileUser?._id && !isOwnProfile ? (
         <IconBtn
             name="ellipsis-vertical"
             overlay
             accessibilityLabel="Profile options"
-            onPress={() => Alert.alert(profileUser.name || 'Options', undefined, [
-                { text: 'Report user', onPress: () => report({ targetType: 'user', targetId: profileUser._id }) },
-                { text: 'Block user', style: 'destructive', onPress: () => confirmBlock(profileUser._id, profileUser.name, () => navigation.goBack()) },
-                { text: 'Cancel', style: 'cancel' },
-            ])}
+            onPress={() => setMenuOpen(true)}
         />
     ) : undefined;
+    const menuActions = profileUser?._id ? [
+        {
+            label: 'Share profile', icon: 'share-social-outline' as const,
+            onPress: () => shareCard('u', profileUser._id, `Share ${profileUser.name || 'this'} profile`,
+                () => Share.share({ message: `${profileUser.name} on Fync: ${profileLink(profileUser._id)}` })),
+        },
+        {
+            label: 'Copy profile link', icon: 'link-outline' as const,
+            onPress: async () => {
+                await Clipboard.setStringAsync(profileLink(profileUser._id));
+                Toast.show({ type: 'success', text1: 'Link copied' });
+            },
+        },
+        {
+            label: 'Report', icon: 'flag-outline' as const, danger: true, hint: 'Tell us what is wrong. They won\'t know.',
+            onPress: () => report({ targetType: 'user', targetId: profileUser._id }),
+        },
+        {
+            label: 'Block', icon: 'ban-outline' as const, danger: true, hint: 'They can\'t message you or see your profile',
+            onPress: () => confirmBlock(profileUser._id, profileUser.name, () => navigation.goBack()),
+        },
+    ] : [];
+    const menuSheet = profileUser?._id && !isOwnProfile ? (
+        <ActionSheet
+            visible={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            header={
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Avatar user={profileUser} size={40} showBadge={false} />
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                        <Text className="text-ink font-semibold" style={{ fontSize: 16 }} numberOfLines={1}>{profileUser.name}</Text>
+                        {profileUser.username ? <Text className="text-ink-3" style={{ fontSize: 13 }} numberOfLines={1}>@{profileUser.username}</Text> : null}
+                    </View>
+                </View>
+            }
+            actions={menuActions}
+        />
+    ) : null;
 
     const [recruiterStats, setRecruiterStats] = useState({ active: 0, total: 0 });
     const isRecruiter = profileUser?.user_access === 'recruiter';
@@ -410,6 +449,7 @@ const PublicProfile = () => {
             <View className="flex-1 bg-paper">
             <View className="absolute left-0 right-0 top-0 z-20" pointerEvents="box-none">
                 <AppBar overlay onBack={() => navigation.goBack()} right={profileMenu} />
+                {menuSheet}
             </View>
             <ScrollView keyboardShouldPersistTaps="handled" className="flex-1 bg-paper" showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
@@ -516,6 +556,7 @@ const PublicProfile = () => {
             {/* Back Button Overlay */}
             <View className="absolute left-0 right-0 top-0 z-20" pointerEvents="box-none">
                 <AppBar overlay onBack={() => navigation.goBack()} right={profileMenu} />
+                {menuSheet}
             </View>
 
             <CompactProfileBar user={profileUser} y={scrollY} inset={64} />

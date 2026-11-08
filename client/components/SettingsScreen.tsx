@@ -13,6 +13,8 @@ import Constants from 'expo-constants';
 import { useAuth } from '../context/auth.context';
 import { Alert } from './ui/AlertModal';
 import { AppBar, Button, Card, Divider, ListRow, SectionHeader } from './ui/kit';
+import { Sheet } from './ui/Sheet';
+import { tick } from './ui/motion';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 import axios from '../context/axiosConfig';
@@ -37,14 +39,15 @@ export default function SettingsScreen() {
   const [themePref, setThemePrefState] = useState<ThemePref>('system');
   useEffect(() => { loadThemePref().then(setThemePrefState); }, []);
   const THEME_LABEL: Record<ThemePref, string> = { system: 'System', light: 'Light', dark: 'Dark' };
-  const pickTheme = () =>
-    Alert.alert('Appearance', 'Choose how Fync looks.', [
-      ...(['system', 'light', 'dark'] as ThemePref[]).map((p) => ({
-        text: THEME_LABEL[p] + (p === themePref ? '  ✓' : ''),
-        onPress: () => { setThemePrefState(p); setThemePref(p); },
-      })),
-      { text: 'Cancel', style: 'cancel' as const },
-    ]);
+  const [themeOpen, setThemeOpen] = useState(false);
+  const pickTheme = () => setThemeOpen(true);
+  const chooseTheme = (p: ThemePref) => {
+    if (p === themePref) return;
+    tick();
+    setThemePrefState(p);
+    // The navigator remounts on a scheme change, which also closes this sheet.
+    setThemePref(p);
+  };
 
   /**
    * Only the screen caches are measured and cleared. Wiping all of AsyncStorage
@@ -227,6 +230,35 @@ export default function SettingsScreen() {
           Fync {Constants.expoConfig?.version ?? ''}{Platform.OS === 'ios' ? ' · iOS' : ' · Android'}
         </Text>
       </ScrollView>
+
+      <Sheet visible={themeOpen} onClose={() => setThemeOpen(false)} title="Appearance" subtitle="Choose how Fync looks" icon="contrast-outline">
+        <View style={{ flexDirection: 'row', gap: 4, padding: 4, borderRadius: 999, backgroundColor: C.paper2 }} accessibilityRole="radiogroup">
+          {(['light', 'dark', 'system'] as ThemePref[]).map((p) => {
+            const on = p === themePref;
+            const fg = on ? C.onBrand : C.ink;
+            return (
+              <Pressable
+                key={p}
+                onPress={() => chooseTheme(p)}
+                className="active:opacity-85"
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={`${THEME_LABEL[p]} theme`}
+                style={{
+                  flex: 1, minHeight: 48, borderRadius: 999, flexDirection: 'row', alignItems: 'center',
+                  justifyContent: 'center', gap: 6, backgroundColor: on ? C.brand[500] : 'transparent',
+                }}
+              >
+                <Ionicons name={p === 'light' ? 'sunny-outline' : p === 'dark' ? 'moon-outline' : 'phone-portrait-outline'} size={17} color={fg} />
+                <Text style={{ fontFamily: 'Inter_600SemiBold', fontSize: 13, color: fg }}>{THEME_LABEL[p]}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <Text style={{ fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 16, color: C.ink3, marginTop: 12, textAlign: 'center' }}>
+          System follows your phone&apos;s light or dark setting.
+        </Text>
+      </Sheet>
     </View>
   );
 }
