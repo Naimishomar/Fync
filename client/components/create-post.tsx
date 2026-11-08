@@ -337,7 +337,7 @@ function CreatePost() {
 
           <Pressable
             onPress={() => setOtherOpen(true)}
-            className={`flex-1 items-center justify-center rounded-2xl border active:opacity-70 ${otherOpen ? 'bg-paper-2 border-ink' : 'bg-card border-line'}`}
+            className={`flex-1 items-center justify-center rounded-2xl border active:opacity-70 ${otherOpen ? 'bg-card border-brand-500' : 'bg-card border-line'}`}
             style={{ minHeight: 72 }}
             accessibilityRole="button"
             accessibilityState={{ expanded: otherOpen, selected: otherOpen }}

@@ -400,7 +400,7 @@ export const Chip = memo(function Chip({
   label?: string; active?: boolean; onPress?: () => void; style?: any;
   icon?: IconName; accessibilityLabel?: string;
 }) {
-  const fg = active ? C.paper : C.ink2;
+  const fg = active ? P.onBrand : C.ink2;
   return (
     <Press
       scale={0.95}
@@ -798,7 +798,7 @@ const s = themed(() => ({
     minHeight: 36, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: C.line,
     backgroundColor: C.card, flexDirection: 'row', alignItems: 'center', gap: 6,
   },
-  chipOn: { backgroundColor: C.ink, borderColor: C.ink },
+  chipOn: { backgroundColor: C.brand, borderColor: C.brand },
   chipText: { fontFamily: 'Inter_500Medium', fontSize: 13, lineHeight: 18 },
   chipRow: { paddingHorizontal: GUTTER, gap: 8 },
 
@@ -824,9 +824,9 @@ const s = themed(() => ({
 
   seg: { flexDirection: 'row', padding: 4, gap: 4, borderRadius: 999, backgroundColor: C.paper2 },
   segItem: { flex: 1, minWidth: 0, minHeight: 36, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  segItemOn: { backgroundColor: C.card, boxShadow: '0 1px 2px rgba(18,16,14,0.08)' },
+  segItemOn: { backgroundColor: C.brand },
   segText: { fontFamily: 'Inter_500Medium', fontSize: 13, lineHeight: 18, color: C.ink3 },
-  segTextOn: { fontFamily: 'Inter_600SemiBold', color: C.ink },
+  segTextOn: { fontFamily: 'Inter_600SemiBold', color: P.onBrand },
 
   tile: { alignItems: 'center', gap: 8 },
   tileLabel: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 16, textAlign: 'center', color: C.ink },

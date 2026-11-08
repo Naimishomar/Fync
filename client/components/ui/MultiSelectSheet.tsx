@@ -124,12 +124,12 @@ const Option = React.memo(function Option({
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center rounded-2xl border px-4 active:opacity-70 ${on ? 'bg-paper-2 border-ink' : 'bg-card border-line'}`}
+      className={`flex-row items-center rounded-2xl border px-4 active:opacity-70 ${on ? 'bg-card border-brand-500' : 'bg-card border-line'}`}
       style={{ minHeight: 52, gap: 12 }}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: on }}
     >
-      <Ionicons name={icon} size={20} color={on ? C.ink : C.ink3} />
+      <Ionicons name={icon} size={20} color={on ? C.brand[500] : C.ink3} />
       <Text className="text-ink font-medium flex-1" style={{ fontSize: 15 }} numberOfLines={2}>{label}</Text>
     </Pressable>
   );
