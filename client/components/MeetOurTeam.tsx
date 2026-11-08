@@ -36,22 +36,6 @@ const TEAM_MEMBERS = [
         image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80',
         linkedin: 'https://linkedin.com',
         instagram: 'https://instagram.com'
-    },
-    {
-        id: '5',
-        name: 'Pranjali Nagpal',
-        role: 'Chief Product Officer',
-        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80',
-        linkedin: 'https://linkedin.com',
-        instagram: 'https://instagram.com'
-    },
-    {
-        id: '6',
-        name: 'Meghna Chaudhary',
-        role: 'UI & UX Lead',
-        image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80',
-        linkedin: 'https://linkedin.com',
-        instagram: 'https://instagram.com'
     }
 ];
 
