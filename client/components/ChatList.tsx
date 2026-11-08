@@ -51,6 +51,7 @@ const ChatList = () => {
 
   const [conversations, setConversations] = useState<any[]>([]);
   const [search, setSearch] = useState("");
+  const searchRef = useRef<TextInput>(null);
   const [results, setResults] = useState<any[]>([]);
   // Starts false: the cached list paints on mount, so the skeleton is only for
   // a genuinely first-ever open.
@@ -355,6 +356,7 @@ const ChatList = () => {
         <AppBar title="Messages" onBack={showBack ? () => navigation.goBack() : undefined} />
         <View className="px-gutter">
           <SearchField
+            ref={searchRef}
             placeholder="Search contacts"
             value={search}
             onChangeText={handleSearchChange}
@@ -448,6 +450,7 @@ const ChatList = () => {
                   icon={search.length > 0 ? "person-remove-outline" : "chatbubbles-outline"}
                   title={search.length > 0 ? "No one found" : "No chats yet"}
                   hint={search.length > 0 ? "Try a different name or username." : "Search for someone above to start a chat."}
+                  action={search.length > 0 ? undefined : <Button variant="primary" icon="create-outline" title="Start a chat" onPress={() => searchRef.current?.focus()} />}
                 />
               </View>
             )}

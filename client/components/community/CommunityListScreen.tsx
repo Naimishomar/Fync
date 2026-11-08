@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, IconBtn, Button, Tag, Empty, SegmentedTabs, SearchField } from '../ui/kit';
+import { Pop } from '../ui-extra/usePop';
 import { FALLBACK_BANNER } from './shared';
 import { useBottomInset } from '../../constants/layout';
 
@@ -76,10 +77,14 @@ const CommunityItem = React.memo(({ item, userId, handleJoin, onOpen }: any) => 
                     <Tag icon="people-outline" label={`${item.members?.length || 0} members`} />
                     {isCreator ? (
                         <Tag icon="shield-checkmark-outline" label="Owner" />
-                    ) : isMember ? (
-                        <Tag icon="checkmark" label="Joined" />
                     ) : (
-                        <Button small variant="primary" title="Join" onPress={() => handleJoin(item._id)} />
+                        <Pop on={!!isMember}>
+                            {isMember ? (
+                                <Tag icon="checkmark" label="Joined" />
+                            ) : (
+                                <Button small variant="primary" title="Join" onPress={() => handleJoin(item._id)} />
+                            )}
+                        </Pop>
                     )}
                 </View>
             </View>

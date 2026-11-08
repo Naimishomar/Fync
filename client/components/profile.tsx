@@ -9,14 +9,14 @@ import { prefetchPostImages } from '../utils/imageWarm';
 import axios from '../context/axiosConfig';
 import Toast from 'react-native-toast-message';
 import { Image as ExpoImage } from 'expo-image';
-import { FlashList } from '@shopify/flash-list';
 import { StatusBar } from 'expo-status-bar';
 import EducationCard, { EducationEntry } from './profile/EducationCard';
 import { useTabBarClearance, useTabBarAutoHide } from '../constants/layout';
 import { Alert } from './ui/AlertModal';
 
 import { Button, Card, Empty, FormField, IconBtn, IconTile, ListRow, Sheet, Tag, TagRow } from './ui/kit';
-import { ProfileHero, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab } from './profile-shared/ProfileHeader';
+import { ProfileHero, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab, AnimatedFlashList, useProfileScroll, CompactProfileBar } from './profile-shared/ProfileHeader';
+import { GridSkeleton } from './Skeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
@@ -583,7 +583,7 @@ function Profile() {
 
   // ── Profile Header ─────────────────────────────────────────────────────
   const renderProfileInfo = () => (
-    <ProfileHero user={user} banner={user?.banner} bio={user?.about} college={user?.college}>
+    <ProfileHero user={user} banner={user?.banner} bio={user?.about} college={user?.college} scrollY={scrollY}>
       <StatsCard items={[
         { label: 'Posts', value: postCount ?? posts.length },
         { label: 'Followers', value: user?.followers?.length || 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'followers' }) },
@@ -663,6 +663,9 @@ function Profile() {
   }, [activeTab, user, openItem, confirmDelete]);
 
   const insets = useSafeAreaInsets();
+  const { y: scrollY, onScroll } = useProfileScroll(autoHideTabBar.onScroll);
+  // key={activeTab} remounts the list at the top; the bar must follow.
+  useEffect(() => { scrollY.value = 0; }, [activeTab, scrollY]);
   return (
     // Plain View: tabBarClearance already includes the bottom inset, and a
     // bottom SafeAreaView counted it a second time.
@@ -672,9 +675,11 @@ function Profile() {
       <View style={{ height: insets.top }} />
       {/* key={activeTab} forces a remount when the column count changes,
           which both list implementations require. */}
-      <FlashList keyboardShouldPersistTaps="handled"
+      <CompactProfileBar user={user} y={scrollY} />
+      <AnimatedFlashList keyboardShouldPersistTaps="handled"
         key={activeTab}
-        {...autoHideTabBar}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : activeTab === 'reposts' ? reposts : (['ABOUT'] as any)}
         keyExtractor={(item, i) => (typeof item === 'string' ? item : item._id ?? String(i))}
         numColumns={activeTab === 'about' ? 1 : 3}
@@ -684,12 +689,14 @@ function Profile() {
         ListHeaderComponent={<>{renderProfileInfo()}<ProfileTabs items={PROFILE_TABS} value={activeTab} onChange={setActiveTab} /></>}
         renderItem={renderTabItem}
         ListFooterComponent={isLoadingMore ? <View className="py-4"><ActivityIndicator size="small" color={C.ink3} /></View> : null}
-        ListEmptyComponent={!loaded ? (
-          <View className="items-center justify-center py-20">
-            <ActivityIndicator size="small" color={C.ink3} />
-          </View>
+        ListEmptyComponent={!loaded ? <GridSkeleton /> : activeTab === 'posts' ? (
+          <Empty icon="images-outline" title="No posts yet" hint="Share your first photo or update."
+            action={<Button variant="primary" title="Create post" onPress={() => navigation.navigate('CreatePost')} />} />
+        ) : activeTab === 'shorts' ? (
+          <Empty icon="videocam-outline" title="No shorts yet" hint="Post a quick video for your campus."
+            action={<Button variant="primary" title="Create short" onPress={() => navigation.navigate('CreateShorts')} />} />
         ) : (
-          <Empty icon="images-outline" title="No content here yet" />
+          <Empty icon="images-outline" title="No reposts yet" hint="Posts you repost show up here." />
         )}
         contentContainerStyle={{ paddingBottom: tabBarClearance }}
       />

@@ -500,7 +500,10 @@ const NoticeBoard = () => {
             ListEmptyComponent={loadError ? (
               <Empty icon="cloud-offline-outline" title="Couldn't load notices" action={<Button title="Try again" onPress={() => fetchNotices(1, false)} />} />
             ) : (
-              <Empty icon="clipboard-outline" title="No notices yet" hint="New notices for your campus show up here." />
+              <Empty icon="clipboard-outline" title="No notices yet" hint="New notices for your campus show up here."
+                action={(activeTab !== 'global' || isAdmin || isFeatureOn('paidDigital'))
+                  ? <Button variant="primary" title="Post a notice" onPress={() => setCreateModalVisible(true)} />
+                  : undefined} />
             )}
           />
         )}

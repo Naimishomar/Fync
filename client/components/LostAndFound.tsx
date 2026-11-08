@@ -311,7 +311,8 @@ const LostAndFound = () => {
                             <Empty
                                 icon="search-outline"
                                 title={activeTab === 'lost' ? 'Nothing lost right now' : 'Nothing found right now'}
-                                hint="Tap + to report an item."
+                                hint={activeTab === 'lost' ? 'Lost something? Let campus know.' : 'Found something? Help it get home.'}
+                                action={<Button variant="primary" title={activeTab === 'lost' ? 'Report lost item' : 'Report found item'} onPress={() => setModalVisible(true)} />}
                             />
                         )}
                     />

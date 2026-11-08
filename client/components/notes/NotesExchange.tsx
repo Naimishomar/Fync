@@ -152,6 +152,7 @@ export default function NotesExchange() {
                 icon="documents-outline"
                 title="Nothing here yet"
                 hint="Be the first to share notes for your college. Free for everyone to read."
+                action={<Button variant="primary" title="Share notes" onPress={() => setUploadOpen(true)} />}
               />
             </View>
           }

@@ -599,7 +599,7 @@ export default function FundingFeed() {
               contentContainerStyle={{ paddingTop: 8 }}
               ListEmptyComponent={
                 <View className="mt-16">
-                  <Empty icon="rocket-outline" title="No projects yet" hint="Share what you're building to find backers and teammates." />
+                  <Empty icon="rocket-outline" title="No projects yet" hint="Share what you're building to find backers and teammates." action={<Button variant="primary" title="Share a project" onPress={() => navigation.navigate("CreateFundingFeed")} />} />
                 </View>
               }
             />

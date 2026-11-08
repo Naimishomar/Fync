@@ -4,8 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import axios from '../context/axiosConfig';
 import Avatar from './Avatar';
 import { C } from '../constants/colors';
-import { tapHaptic } from '../utils/haptics';
 import { Button } from './ui/kit';
+import { Pop } from './ui-extra/usePop';
 
 interface Suggestion {
   _id: string;
@@ -49,7 +49,7 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
 
   const follow = async (id: string) => {
     setBusy(id);
-    tapHaptic();
+    // Haptic: kit Button already ticks on press.
     // Optimistic: the button is the whole interaction, and waiting on a round
     // trip to acknowledge a tap makes the row feel broken.
     setFollowed((f) => ({ ...f, [id]: true }));
@@ -114,16 +114,17 @@ export default function FollowSuggestions({ offset = 0 }: { offset?: number }) {
               </Text>
             </Pressable>
 
-            <Button
-              small
-              block
-              variant={followed[p._id] ? 'secondary' : 'primary'}
-              title={followed[p._id] ? 'Following' : 'Follow'}
-              onPress={() => follow(p._id)}
-              disabled={followed[p._id] || busy === p._id}
-              accessibilityLabel={followed[p._id] ? `Following ${p.name}` : `Follow ${p.name}`}
-              style={{ marginTop: 12 }}
-            />
+            <Pop on={!!followed[p._id]} style={{ marginTop: 12, alignSelf: 'stretch' }}>
+              <Button
+                small
+                block
+                variant={followed[p._id] ? 'secondary' : 'primary'}
+                title={followed[p._id] ? 'Following' : 'Follow'}
+                onPress={() => follow(p._id)}
+                disabled={followed[p._id] || busy === p._id}
+                accessibilityLabel={followed[p._id] ? `Following ${p.name}` : `Follow ${p.name}`}
+              />
+            </Pop>
           </View>
         ))}
       </ScrollView>

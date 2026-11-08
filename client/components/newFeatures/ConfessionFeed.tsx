@@ -402,7 +402,7 @@ const ConfessionFeed = () => {
                         </View>
                     ) : (
                         <View className="mt-20">
-                            <Empty icon="lock-closed-outline" title="No confessions yet" hint="Be the first to post anonymously." />
+                            <Empty icon="lock-closed-outline" title="No confessions yet" hint="Be the first to post anonymously." action={<Button variant="primary" title="Post a confession" onPress={() => setIsPostModalOpen(true)} />} />
                         </View>
                     )}
                 />

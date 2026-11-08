@@ -190,14 +190,22 @@ export const ProfileSkeleton = () => (
             <View className="flex-1 items-center"><Skeleton width={30} height={30} borderRadius={15} lightMode /></View>
         </View>
 
-        <View className="flex-row flex-wrap gap-1 px-1 bg-paper-2">
-            {/* px-1 (8) + two gap-1 (8): (W/3 - 3) x3 overflowed the row and wrapped to two columns. */}
-            {[1, 2, 3, 4, 5, 6].map(i => (
-                <Skeleton key={i} width={(Dimensions.get('window').width - 16) / 3} height={(Dimensions.get('window').width - 16) / 3} style={{ marginBottom: 2 }} lightMode />
-            ))}
-        </View>
+        <GridSkeleton />
     </View>
 );
+
+/** Profile grid placeholder: 3-column square tiles, the footprint of GridCell. */
+export const GridSkeleton = ({ count = 6 }: { count?: number }) => {
+    // px-1 (8) + two gap-1 (8): (W/3 - 3) x3 overflowed the row and wrapped to two columns.
+    const side = (Dimensions.get('window').width - 16) / 3;
+    return (
+        <View className="flex-row flex-wrap gap-1 px-1 bg-paper-2">
+            {Array.from({ length: count }, (_, i) => (
+                <Skeleton key={i} width={side} height={side} style={{ marginBottom: 2 }} lightMode />
+            ))}
+        </View>
+    );
+};
 
 export const CommentSkeleton = () => (
     <View className="flex-row mb-4 px-4">
@@ -358,6 +366,17 @@ export const ProjectSkeleton = () => (
                 <Skeleton width={40} height={40} borderRadius={20} lightMode />
                 <Skeleton width={40} height={40} borderRadius={20} lightMode />
             </View>
+        </View>
+    </View>
+);
+
+/** Fync Media card: 16:9 thumbnail, title, meta. */
+export const MediaCardSkeleton = () => (
+    <View className="bg-card mb-3 w-full rounded-2xl overflow-hidden border border-line">
+        <Skeleton width="100%" height={undefined} borderRadius={0} style={{ aspectRatio: 16 / 9 }} lightMode />
+        <View className="p-4">
+            <Skeleton width="85%" height={16} style={{ marginBottom: 8 }} lightMode />
+            <Skeleton width="45%" height={12} lightMode />
         </View>
     </View>
 );

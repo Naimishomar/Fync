@@ -4,7 +4,13 @@
  * cell and the titled about cards.
  */
 import React, { memo } from 'react';
-import { View, Text, Pressable, Dimensions, type TextStyle } from 'react-native';
+import { View, Text, Pressable, Dimensions, type TextStyle, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import Reanimated, {
+  Extrapolation, interpolate, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useReducedMotion, useSharedValue,
+  type SharedValue,
+} from 'react-native-reanimated';
+import { FlashList } from '@shopify/flash-list';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Video, ResizeMode } from 'expo-av';
@@ -53,25 +59,91 @@ export const GeneratedBanner = memo(function GeneratedBanner({ seed }: { seed: s
   );
 });
 
-/** Banner, zoomable avatar, name, handle, bio, college; `children` go under it (stats, actions). */
+// ─── Collapsing header ───────────────────────────────────────────────────────
+/** FlashList that takes a Reanimated scroll handler (it exposes getScrollableNode). */
+export const AnimatedFlashList = Reanimated.createAnimatedComponent(FlashList) as unknown as typeof FlashList;
+
+/** Scroll offset where the hero's name has gone under the top bar. */
+const COLLAPSE_AT = 260;
+
+/**
+ * Scroll offset on the UI thread for the hero + compact bar. `onScrollJS`
+ * (the tab bar auto-hide) still gets a nativeEvent-shaped payload.
+ */
+export function useProfileScroll(onScrollJS?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void) {
+  const y = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (e) => {
+      y.value = e.contentOffset.y;
+      if (onScrollJS) runOnJS(onScrollJS)({ nativeEvent: { contentOffset: { y: e.contentOffset.y } } } as any);
+    },
+  }, [onScrollJS]);
+  return { y, onScroll };
+}
+
+/**
+ * Small avatar + name pinned to the top once the hero scrolls out. Display
+ * only (pointerEvents none), so it never steals taps from an AppBar over it.
+ * `inset`: left padding, to clear a back button.
+ */
+export function CompactProfileBar({ user, y, inset = 20 }: { user: any; y: SharedValue<number>; inset?: number }) {
+  const insets = useSafeAreaInsets();
+  const reduce = useReducedMotion();
+  const anim = useAnimatedStyle(() => ({
+    opacity: interpolate(y.value, [COLLAPSE_AT - 40, COLLAPSE_AT], [0, 1], Extrapolation.CLAMP),
+    transform: [{ translateY: reduce ? 0 : interpolate(y.value, [COLLAPSE_AT - 40, COLLAPSE_AT], [-8, 0], Extrapolation.CLAMP) }],
+  }));
+  return (
+    <Reanimated.View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={[{
+        position: 'absolute', left: 0, right: 0, top: 0, zIndex: 10, paddingTop: insets.top,
+        backgroundColor: C.paper, borderBottomWidth: 1, borderBottomColor: C.line,
+      }, anim]}
+    >
+      <View style={{ height: 56, flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: inset, paddingRight: 72 }}>
+        <Avatar user={user} size={32} />
+        <Text className="text-ink font-semibold text-base flex-shrink" numberOfLines={1}>{user?.name || user?.username}</Text>
+      </View>
+    </Reanimated.View>
+  );
+}
+
+/** Banner, zoomable avatar, name, handle, bio, college; `children` go under it (stats, actions).
+ *  With `scrollY`, the banner drifts + fades and the avatar shrinks as the list scrolls. */
 export function ProfileHero({
-  user, banner, bio, college, children,
+  user, banner, bio, college, children, scrollY,
 }: {
   user: any; banner?: string; bio?: string; college?: string; children?: React.ReactNode;
+  scrollY?: SharedValue<number>;
 }) {
+  const fallback = useSharedValue(0);
+  const y = scrollY ?? fallback;
+  const reduce = useReducedMotion();
+  const bannerAnim = useAnimatedStyle(() => reduce ? {} : {
+    opacity: interpolate(y.value, [0, 240], [1, 0.5], Extrapolation.CLAMP),
+    transform: [{ translateY: interpolate(y.value, [0, 256], [0, 72], Extrapolation.CLAMP) }],
+  });
+  const avatarAnim = useAnimatedStyle(() => reduce ? {} : {
+    opacity: interpolate(y.value, [120, COLLAPSE_AT], [1, 0], Extrapolation.CLAMP),
+    transform: [{ scale: interpolate(y.value, [0, 220], [1, 0.82], Extrapolation.CLAMP) }],
+  });
   return (
-    <View className="bg-card">
-      <View className="h-64 w-full">
+    <View className="bg-card overflow-hidden">
+      <Reanimated.View style={[{ height: 256, width: '100%' }, bannerAnim]}>
         {banner ? (
           <ProgressiveImage path={banner} style={{ width: '100%', height: '100%' }} />
         ) : (
           <GeneratedBanner seed={user?._id || user?.username || user?.name || ''} />
         )}
         <LinearGradient colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.2)']} className="absolute inset-0" />
-      </View>
+      </Reanimated.View>
 
       <View className="items-center pb-6 px-5 bg-paper rounded-t-sheet -mt-12">
-        <AvatarZoom avatar={user?.avatar} className="-mt-14 p-1.5 bg-card rounded-full shadow-hair">
+        <Reanimated.View style={[{ marginTop: -56 }, avatarAnim]}>
+        <AvatarZoom avatar={user?.avatar} className="p-1.5 bg-card rounded-full shadow-hair">
           {typeof user?.fyncScore === 'number' ? (
             <ScoreRing score={user.fyncScore} size={128} stroke={5} level={user.fyncBadge || 'Newcomer'}>
               <View className="rounded-full overflow-hidden">
@@ -84,6 +156,7 @@ export function ProfileHero({
             </View>
           )}
         </AvatarZoom>
+        </Reanimated.View>
 
         <Text className="font-display text-ink text-h1 text-center mt-4" numberOfLines={2}>{user?.name || user?.username}</Text>
         <Text className="text-accent-text font-semibold text-sm mt-1">@{user?.username}</Text>

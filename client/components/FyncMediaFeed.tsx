@@ -33,6 +33,8 @@ import Avatar from './Avatar';
 import CommentsSheet, { CommentsApi } from './ui/CommentsSheet';
 
 import FyncRefreshControl from './ui/FyncRefreshControl';
+import { MediaCardSkeleton } from './Skeleton';
+import { tick, usePop } from './ui/motion';
 // The server returns every comment flat, newest first, each reply pointing at
 // its parent. The sheet wants threads, so fold each reply under its top-level
 // ancestor (a reply to a reply still lands in the right thread).
@@ -512,7 +514,10 @@ const MediaDetailView = React.memo(({
   const [likeCount, setLikeCount] = useState(item.likes || 0);
   const [dislikeCount, setDislikeCount] = useState(item.dislikes || 0);
 
+  const [likePopStyle, popLike] = usePop();
   const handleLike = async () => {
+    tick();
+    popLike();
     if (isLiked) {
       setIsLiked(false);
       setLikeCount(prev => Math.max(0, prev - 1));
@@ -574,7 +579,9 @@ const MediaDetailView = React.memo(({
               <View className="flex-row items-center gap-2">
                 <View className="flex-row items-center bg-card rounded-full h-12 px-1 border border-line">
                   <TouchableOpacity onPress={handleLike} className="flex-row items-center gap-2 pl-4 pr-4 h-11 border-r border-line" accessibilityRole="button" accessibilityState={{ selected: !!isLiked }} accessibilityLabel={isLiked ? "Unlike" : "Like"}>
-                    <Ionicons name={isLiked ? "heart" : "heart-outline"} size={20} color={isLiked ? C.brand[500] : C.ink3} />
+                    <Animated.View style={likePopStyle}>
+                      <Ionicons name={isLiked ? "heart" : "heart-outline"} size={20} color={isLiked ? C.brand[500] : C.ink3} />
+                    </Animated.View>
                     <Text className="font-semibold text-base text-ink">{likeCount}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handleDislike} className="flex-row items-center gap-2 pl-4 pr-4 h-11" accessibilityRole="button" accessibilityState={{ selected: !!isDisliked }} accessibilityLabel={isDisliked ? "Remove dislike" : "Dislike"}>
@@ -917,8 +924,8 @@ export default function FyncMediaFeed() {
           />
 
           {loading && media.length === 0 ? (
-            <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color={C.brand[500]} />
+            <View className="flex-1" style={{ paddingHorizontal: 20 }}>
+              {[1, 2, 3].map(i => <MediaCardSkeleton key={i} />)}
             </View>
           ) : (
             <FlatList keyboardShouldPersistTaps="handled"

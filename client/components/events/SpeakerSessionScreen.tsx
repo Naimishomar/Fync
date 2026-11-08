@@ -886,7 +886,7 @@ export default function SpeakerSessionScreen() {
                     ListEmptyComponent={loading ? (
                         <View className="items-center justify-center mt-20"><ActivityIndicator size="large" color={C.brand[500]} /></View>
                     ) : (
-                        <Empty icon="mic-outline" title="No sessions yet" hint="Tap + to host a speaker session." />
+                        <Empty icon="mic-outline" title="No sessions yet" hint="Bring a speaker to campus and host the first one." action={<Button variant="primary" title="Host a session" onPress={() => openSessionModal()} />} />
                     )}
                     ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color={C.brand[500]} className="mb-10" /> : <View className="h-20" />}
                 />

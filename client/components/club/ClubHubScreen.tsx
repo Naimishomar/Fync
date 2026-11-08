@@ -6,6 +6,7 @@ import { useAuth } from '../../context/auth.context';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, IconBtn, Empty, Button, Card, Divider, ListRow, SectionHeader, Tag, IconTile } from '../ui/kit';
+import { Pop } from '../ui-extra/usePop';
 import { HubBanner, RoomIcon } from '../community/shared';
 
 import FyncRefreshControl from '../ui/FyncRefreshControl';
@@ -192,10 +193,14 @@ const ClubHubScreen = () => {
                                                 title={sub.name}
                                                 subtitle={sub.isGeneral ? 'Official channel' : sub.description || 'Room'}
                                                 onPress={isSubMember ? () => navigation.navigate('SubGroupChat', { subGroupId: sub._id, subGroupName: sub.name, clubId: club._id }) : undefined}
-                                                right={isSubMember ? undefined : isPendingJoin ? (
-                                                    <Tag label="Pending" />
-                                                ) : (
-                                                    <Button small variant="primary" title="Join" loading={joining === sub._id} onPress={() => handleJoinSubGroup(sub._id)} />
+                                                right={isSubMember ? undefined : (
+                                                    <Pop on={!!isPendingJoin}>
+                                                        {isPendingJoin ? (
+                                                            <Tag label="Pending" />
+                                                        ) : (
+                                                            <Button small variant="primary" title="Join" loading={joining === sub._id} onPress={() => handleJoinSubGroup(sub._id)} />
+                                                        )}
+                                                    </Pop>
                                                 )}
                                             />
                                         </View>

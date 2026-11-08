@@ -18,6 +18,16 @@ import { useBottomInset } from '../constants/layout';
 import CommentsSheet from './ui/CommentsSheet';
 import { AppBar, IconBtn, Empty, Button, ListRow, IconTile, Sheet, FormField } from './ui/kit';
 import RepostModal from './ui/RepostModal';
+import Reanimated, { Easing, Keyframe } from 'react-native-reanimated';
+import { tick, usePop } from './ui/motion';
+import { PostSkeleton, ShortsSkeleton } from './Skeleton';
+
+// Photo -> detail: the image settles in with a quick zoom + fade. Reanimated
+// skips layout animations itself when the system reduce-motion setting is on.
+const IMAGE_ENTER = new Keyframe({
+    0: { opacity: 0, transform: [{ scale: 0.94 }] },
+    100: { opacity: 1, transform: [{ scale: 1 }], easing: Easing.out(Easing.cubic) },
+}).duration(250);
 import { C } from '../constants/colors';
 
 const { width, height } = Dimensions.get('window');
@@ -356,7 +366,10 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         }
     }, [id, isShort, currentUser?._id, endpoints.get, endpoints.view]);
 
+    const [likePopStyle, popLike] = usePop();
     const handleLike = useCallback(async () => {
+        tick();
+        popLike();
         const previousLiked = isLiked;
         const previousCount = likeCount;
 
@@ -369,7 +382,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             setIsLiked(previousLiked);
             setLikeCount(previousCount);
         }
-    }, [isLiked, likeCount, endpoints.like]);
+    }, [isLiked, likeCount, endpoints.like, popLike]);
 
     /**
      * Repost, one tap. Optimistic, then reconciled from the count the server
@@ -454,10 +467,12 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
 
     if (loading) {
         // Posts render on paper; a black flash before them reads as a glitch.
+        if (isShort) return <ShortsSkeleton />;
         return (
-            <View className={`flex-1 justify-center items-center ${isShort ? 'bg-night' : 'bg-paper'}`}>
-                <ActivityIndicator size="large" color={isShort ? '#fff' : C.ink} />
-            </View>
+            <SafeAreaView className="bg-paper flex-1" edges={['bottom']}>
+                <AppBar title="Post" onBack={() => navigation.goBack()} />
+                <PostSkeleton />
+            </SafeAreaView>
         );
     }
 
@@ -549,7 +564,9 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
 
                         <View className="items-center gap-4">
                             <TouchableOpacity onPress={handleLike} className="items-center" accessibilityRole="button" accessibilityState={{ selected: isLiked }} accessibilityLabel={isLiked ? "Unlike" : "Like"}>
-                                <Ionicons name={isLiked ? "heart" : "heart-outline"} size={34} color={isLiked ? "red" : "white"} />
+                                <Reanimated.View style={likePopStyle}>
+                                    <Ionicons name={isLiked ? "heart" : "heart-outline"} size={34} color={isLiked ? "red" : "white"} />
+                                </Reanimated.View>
                                 <Text className="text-white text-xs font-semibold">{likeCount}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="items-center" accessibilityRole="button" accessibilityLabel={`${commentCount} comments`}>
@@ -618,7 +635,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                     </AppBar>
 
                     <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                        <View className="relative">
+                        <Reanimated.View entering={IMAGE_ENTER} style={{ position: 'relative' }}>
                             <FlatList keyboardShouldPersistTaps="handled"
                                 data={data.image || []}
                                 horizontal pagingEnabled showsHorizontalScrollIndicator={false}
@@ -645,11 +662,13 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                                     ))}
                                 </View>
                             )}
-                        </View>
+                        </Reanimated.View>
 
                         <View className="px-gutter pt-3 flex-row items-center gap-2">
                             <TouchableOpacity onPress={handleLike} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-70" style={{ minHeight: 40 }} hitSlop={2}>
-                                <Ionicons name={isLiked ? "thumbs-up" : "thumbs-up-outline"} size={20} color={isLiked ? C.brand[500] : C.ink2} />
+                                <Reanimated.View style={likePopStyle}>
+                                    <Ionicons name={isLiked ? "thumbs-up" : "thumbs-up-outline"} size={20} color={isLiked ? C.brand[500] : C.ink2} />
+                                </Reanimated.View>
                                 <Text className={`font-semibold text-xs ml-1.5 ${isLiked ? 'text-accent-text' : 'text-ink-3'}`}>{likeCount}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setCommentModalVisible(true)} className="flex-row items-center bg-paper-2 rounded-full px-4 active:opacity-70" style={{ minHeight: 40 }} hitSlop={2}>

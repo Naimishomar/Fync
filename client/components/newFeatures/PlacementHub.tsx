@@ -14,6 +14,7 @@ import {
     AppBar, IconBtn, Button, Card, Empty, FilterChips, FormField, IconTile, Label,
     SearchField, SectionHeader, Sheet, Tag, TagRow,
 } from '../ui/kit';
+import { Pop } from '../ui-extra/usePop';
 import CommentsSheet, { CommentsApi } from '../ui/CommentsSheet';
 import { C } from '../../constants/colors';
 
@@ -136,13 +137,15 @@ const QuestionCard = memo(function QuestionCard({ item, me, onUpvote, onSave, on
                         <Ionicons name="chatbubble-outline" size={18} color={C.ink3} />
                         <Text className="ml-1 text-sm font-semibold text-ink-3">{item.comments?.length || 0}</Text>
                     </Pressable>
-                    <IconBtn
-                        name={isSaved ? "bookmark" : "bookmark-outline"}
-                        size={18}
-                        color={isSaved ? C.accentText : C.ink3}
-                        accessibilityLabel={isSaved ? 'Unsave' : 'Save'}
-                        onPress={() => onSave(item._id)}
-                    />
+                    <Pop on={!!isSaved}>
+                        <IconBtn
+                            name={isSaved ? "bookmark" : "bookmark-outline"}
+                            size={18}
+                            color={isSaved ? C.accentText : C.ink3}
+                            accessibilityLabel={isSaved ? 'Unsave' : 'Save'}
+                            onPress={() => onSave(item._id)}
+                        />
+                    </Pop>
                 </View>
             </View>
         </Card>
@@ -375,7 +378,7 @@ const PlacementHub = () => {
                     ) : null}
                     </>}
                     ListEmptyComponent={loading && !refreshing ? null : (
-                        <Empty icon="document-text-outline" title="No questions yet" hint="Share one from your last interview." />
+                        <Empty icon="document-text-outline" title="No questions yet" hint="Share one from your last interview." action={<Button variant="primary" title="Share a question" onPress={() => setPostModalVisible(true)} />} />
                     )}
                 />
 

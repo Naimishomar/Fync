@@ -15,7 +15,6 @@ import FollowSuggestions from './FollowSuggestions';
 import { HeartBurst, useDoubleTap } from './ui/HeartBurst';
 import { tapHaptic } from '../utils/haptics';
 // @ts-ignore
-import no_post from '../assets/no_post.png';
 import AdCarousel from './AdCarousel';
 import { Image as ExpoImage } from 'expo-image';
 import { memo } from 'react';
@@ -41,7 +40,7 @@ import CommentsSheet from './ui/CommentsSheet';
 import RepostModal from './ui/RepostModal';
 import { C } from '../constants/colors';
 import Reanimated from 'react-native-reanimated';
-import { PressScale, AnimatedCount, enterAt, buzz } from './ui/motion';
+import { PressScale, AnimatedCount, enterAt, buzz, usePop } from './ui/motion';
 import { ProgressiveImage } from './ui/ProgressiveImage';
 import { formatCount } from '../utils/format';
 import { GreetingCard, Flame } from './home/GreetingCard';
@@ -114,6 +113,7 @@ const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost, o
 const MAX_CHAR_LIMIT = 150;
 
   const navigation = useNavigation<any>();
+  const [likePopStyle, popLike] = usePop();
 
   const displayCommentCount = item.commentCount ?? item.comments?.length ?? 0;
   // The feed carries one populated comment per post; anything unpopulated is
@@ -132,6 +132,7 @@ const MAX_CHAR_LIMIT = 150;
     const id = item._id;
     const prevLiked = liked;
     if (!prevLiked) buzz();
+    popLike();
     const prevCount = likeCount;
     setLiked(!prevLiked);
     setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
@@ -403,11 +404,13 @@ const MAX_CHAR_LIMIT = 150;
           accessibilityState={{ selected: liked }}
           accessibilityLabel={liked ? 'Unlike this post' : 'Like this post'}
         >
-          <Ionicons
-            name={liked ? 'thumbs-up' : 'thumbs-up-outline'}
-            size={20}
-            color={liked ? C.brand[500] : C.ink}
-          />
+          <Reanimated.View style={likePopStyle}>
+            <Ionicons
+              name={liked ? 'thumbs-up' : 'thumbs-up-outline'}
+              size={20}
+              color={liked ? C.brand[500] : C.ink}
+            />
+          </Reanimated.View>
           {likeCount > 0 && (
             <View style={{ marginLeft: 6 }}>
               <AnimatedCount value={likeCount} style={{ fontFamily: 'Inter_600SemiBold', fontSize: 12, color: liked ? C.accentText : C.ink }} />
@@ -944,17 +947,13 @@ export default function HomeScreen() {
               />
             </View>
           ) : (
-            <View className="mt-20 flex-1 items-center px-4">
-              <ExpoImage
-                source={no_post}
-                // expo-image is not registered with NativeWind, so className would leave it 0x0.
-                style={{ height: 192, width: '80%' }}
-                contentFit="contain"
+            <View className="mt-16">
+              <Empty
+                icon="people-outline"
+                title="Welcome to Fync"
+                hint="Follow people to fill your feed."
+                action={<Button variant="primary" title="Find people" onPress={() => navigation.navigate('SearchScreen')} />}
               />
-              <Text className="font-display text-h1 text-ink mt-4" accessibilityRole="header">Welcome to Fync</Text>
-              <Text className="text-ink-3 text-center mt-2 px-gutter">
-                Your feed is empty. Start following people or create a post to see updates here.
-              </Text>
             </View>
           )) : null
         }

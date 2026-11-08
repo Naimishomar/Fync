@@ -18,7 +18,6 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { C } from '../../constants/colors';
 import { Image } from 'expo-image';
 import { AppBar, Button, Empty, FilterChips, SearchField, SegmentedTabs, Tag, TagRow } from '../ui/kit';
-import { ListingSwitcher } from '../opportunity/OpportunityCard';
 
 import FyncRefreshControl from '../ui/FyncRefreshControl';
 // ─── Layout constants ─────────────────────────────────────────────────────────
@@ -456,7 +455,6 @@ const HackathonHub = () => {
             <Button small variant="primary" icon="add" title="Host" onPress={openCreate} accessibilityLabel="Host a hackathon" />
           }
         />
-        <ListingSwitcher current="hackathons" />
         <FlatList
           data={filtered}
           keyExtractor={(item) => item._id}
@@ -507,7 +505,9 @@ const HackathonHub = () => {
                     ? 'Hackathons you host, join or judge will show up here.'
                     : 'Check back soon, or host the first one.'
                 }
-                action={!search && view === 'discover' ? <Button variant="primary" icon="add" title="Host a hackathon" onPress={openCreate} /> : undefined}
+                action={search ? undefined : view === 'discover'
+                  ? <Button variant="primary" icon="add" title="Host a hackathon" onPress={openCreate} />
+                  : <Button variant="primary" title="Explore hackathons" onPress={() => onView('discover')} />}
               />
             )
           }

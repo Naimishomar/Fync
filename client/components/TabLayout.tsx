@@ -213,23 +213,25 @@ const TabIcon = ({ name, focused }: { name: any; focused: boolean }) => (
 );
 
 const FAB = 60;
-/** Raises the create button clear of the bar: its centre sits 8pt above the top
- *  edge, so the notch shows a ring of space under it and it reads as floating. */
-const FAB_LIFT = -(TAB_BAR_HEIGHT / 2 + 8);
-const CORNER = 26;
+/** Create button's centre sits just under the bar's top edge: it clears the
+ *  bar by half its size, enough to read as floating without hovering high. */
+const FAB_CY = 2;
+const FAB_LIFT = FAB_CY - TAB_BAR_HEIGHT / 2;
 
 /**
- * Bar outline: fully rounded (it floats), with a round notch in the top middle
- * where the create button sits. Inset by half the stroke so the hairline is not
- * clipped at the edges.
+ * Bar outline: a full pill (it floats), with a round notch concentric with the
+ * create button so the ring of space around it is even. Inset by half the
+ * stroke so the hairline is not clipped at the edges.
  */
 const barPath = (w: number, h: number) => {
   const i = 0.75;
-  const r = CORNER;
+  const r = h / 2;
   const cx = w / 2;
-  const n = FAB / 2 + 7;
-  const notch = `L ${cx - n - 10} ${i} Q ${cx - n} ${i} ${cx - n + 2} ${i + 6} A ${n} ${n} 0 0 0 ${cx + n - 2} ${i + 6} Q ${cx + n} ${i} ${cx + n + 10} ${i}`;
-  return `M ${i} ${r} Q ${i} ${i} ${r} ${i} ${notch} L ${w - r} ${i} Q ${w - i} ${i} ${w - i} ${r} L ${w - i} ${h - r} Q ${w - i} ${h - i} ${w - r} ${h - i} L ${r} ${h - i} Q ${i} ${h - i} ${i} ${h - r} Z`;
+  const n = FAB / 2 + 6;
+  const y = i + 5;
+  const dx = Math.sqrt(n * n - (y - FAB_CY) ** 2);
+  const notch = `L ${cx - dx - 7} ${i} Q ${cx - dx} ${i} ${cx - dx} ${y} A ${n} ${n} 0 0 0 ${cx + dx} ${y} Q ${cx + dx} ${i} ${cx + dx + 7} ${i}`;
+  return `M ${r} ${i} ${notch} L ${w - r} ${i} A ${r - i} ${r - i} 0 0 1 ${w - r} ${h - i} L ${r} ${h - i} A ${r - i} ${r - i} 0 0 1 ${r} ${i} Z`;
 };
 
 const BAR_WIDTH = width * 0.9;

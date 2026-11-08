@@ -7,13 +7,13 @@ import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/nativ
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, Avatar, Button, Card, Empty, IconTile, SearchField, Sheet, Tabs } from '../ui/kit';
-import { OpportunityCard, ListingSwitcher } from './OpportunityCard';
+import { OpportunityCard } from './OpportunityCard';
 
 import FyncRefreshControl from '../ui/FyncRefreshControl';
 type Kind = 'job' | 'internship';
-const COPY: Record<Kind, { title: string; switcher: 'jobs' | 'internships'; noun: string; nouns: string }> = {
-  job: { title: 'Jobs', switcher: 'jobs', noun: 'job', nouns: 'jobs' },
-  internship: { title: 'Internships', switcher: 'internships', noun: 'internship', nouns: 'internships' },
+const COPY: Record<Kind, { title: string; noun: string; nouns: string }> = {
+  job: { title: 'Jobs', noun: 'job', nouns: 'jobs' },
+  internship: { title: 'Internships', noun: 'internship', nouns: 'internships' },
 };
 const TABS = ['All', 'Shortlisted'];
 
@@ -199,7 +199,6 @@ export default function OpportunityList({ type }: { type: Kind }) {
       <View className="flex-1">
         <AppBar title={copy.title} onBack={() => navigation.goBack()} />
 
-        {!recruiterId && <ListingSwitcher current={copy.switcher} />}
 
         <View className="px-gutter border-b border-line mb-3">
           <Tabs
@@ -256,6 +255,7 @@ export default function OpportunityList({ type }: { type: Kind }) {
                 hint={activeTab === 'all'
                   ? (searchQuery ? `No ${copy.nouns} match your search.` : `No ${copy.nouns} posted right now.`)
                   : `No shortlisted ${copy.nouns} yet. A complete profile helps recruiters find you.`}
+                action={activeTab === 'all' ? undefined : <Button variant="primary" title={`Browse ${copy.nouns}`} onPress={() => setActiveTab('all')} />}
               />
             ) : null
           }

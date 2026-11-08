@@ -8,14 +8,15 @@ import axios from "../context/axiosConfig";
 import { useAuth } from '../context/auth.context';
 import Avatar from './Avatar';
 import AvatarZoom from './ui/AvatarZoom';
-import { ProfileSkeleton } from './Skeleton';
+import { ProfileSkeleton, GridSkeleton } from './Skeleton';
 import { Image as ExpoImage } from 'expo-image';
-import { FlashList } from '@shopify/flash-list';
 import GitHubStatsCard from './profile/GitHubStatsCard';
 import { C } from '../constants/colors';
 import { AppBar, Button, Card, Empty, IconBtn, IconTile, ListRow, Tag, TagRow } from './ui/kit';
 import { ProgressiveImage } from './ui/ProgressiveImage';
-import { ProfileHero, GeneratedBanner, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab } from './profile-shared/ProfileHeader';
+import { ProfileHero, GeneratedBanner, StatsCard, ProfileTabs, GridCell, ProfileSection, type ProfileTab, AnimatedFlashList, useProfileScroll, CompactProfileBar } from './profile-shared/ProfileHeader';
+import Reanimated from 'react-native-reanimated';
+import { usePop } from './ui/motion';
 import { Alert } from './ui/AlertModal';
 import { confirmBlock, report } from '../utils/safety';
 import { tapHaptic } from '../utils/haptics';
@@ -72,6 +73,8 @@ const PublicProfile = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'PublicProfile'>>();
     const navigation = useNavigation<any>();
     const insets = useSafeAreaInsets();
+    const { y: scrollY, onScroll } = useProfileScroll();
+    const [followPopStyle, popFollow] = usePop(1.06);
 
     const targetUserId = route.params?.userId || route.params?.user?._id;
     const initialUser = route.params?.user;
@@ -228,6 +231,7 @@ const PublicProfile = () => {
         if (!profileUser?._id || !currentUser?._id || followBusy.current) return;
         followBusy.current = true;
         tapHaptic();
+        popFollow();
         try {
             if (isFollowing) {
                 await axios.post(`/user/unfollow/${profileUser._id}`);
@@ -500,8 +504,12 @@ const PublicProfile = () => {
                 <AppBar overlay onBack={() => navigation.goBack()} right={profileMenu} />
             </View>
 
-            <FlashList keyboardShouldPersistTaps="handled"
+            <CompactProfileBar user={profileUser} y={scrollY} inset={64} />
+
+            <AnimatedFlashList keyboardShouldPersistTaps="handled"
                 key={activeTab} // Reset list when tab changes
+                onScroll={onScroll}
+                scrollEventThrottle={16}
                 data={activeTab === 'tags' ? ['ABOUT'] : activeTab === 'posts' ? posts : shorts}
                 numColumns={activeTab === 'tags' ? 1 : 3}
                 keyExtractor={(item) => typeof item === 'string' ? item : item._id}
@@ -515,6 +523,7 @@ const PublicProfile = () => {
                             banner={(profileUser as any)?.banner}
                             bio={profileUser?.about || "Ready to connect and collaborate"}
                             college={profileUser?.college}
+                            scrollY={scrollY}
                         >
                             <StatsCard items={[
                                 { label: 'Posts', value: postCount ?? posts.length },
@@ -524,13 +533,15 @@ const PublicProfile = () => {
 
                             {currentUser?._id !== profileUser._id && (
                                 <View className="flex-row mt-3 w-full" style={{ gap: 12 }}>
-                                    <Button
-                                        title={isFollowing ? "Following" : "Follow"}
-                                        icon={isFollowing ? "checkmark" : "person-add-outline"}
-                                        variant={isFollowing ? 'secondary' : 'primary'}
-                                        style={{ flex: 1 }}
-                                        onPress={handleFollowToggle}
-                                    />
+                                    <Reanimated.View style={[{ flex: 1 }, followPopStyle]}>
+                                        <Button
+                                            title={isFollowing ? "Following" : "Follow"}
+                                            icon={isFollowing ? "checkmark" : "person-add-outline"}
+                                            variant={isFollowing ? 'secondary' : 'primary'}
+                                            block
+                                            onPress={handleFollowToggle}
+                                        />
+                                    </Reanimated.View>
                                     <Button title="Message" icon="chatbubble-ellipses-outline" style={{ flex: 1 }} onPress={startChat} />
                                 </View>
                             )}
@@ -547,9 +558,11 @@ const PublicProfile = () => {
                         </View>
                     ) : null
                 }
-                ListEmptyComponent={
-                    <Empty icon={activeTab === 'shorts' ? "videocam-off-outline" : "images-outline"} title="Nothing to see here" />
-                }
+                ListEmptyComponent={isFetchingMore ? <GridSkeleton /> : (
+                    <Empty icon={activeTab === 'shorts' ? "videocam-outline" : "images-outline"}
+                        title={activeTab === 'shorts' ? "No shorts yet" : "No posts yet"}
+                        hint={`${profileUser?.name?.split(' ')[0] || 'They'} hasn't shared anything here yet.`} />
+                )}
                 contentContainerStyle={{ paddingBottom: insets.bottom }}
             />
         </View>

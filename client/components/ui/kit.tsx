@@ -684,6 +684,8 @@ const EMPTY_ART: Record<string, string> = {
   videocam: F('Video camera'), film: F('Video camera'), 'mail-open': F('Envelope'), mail: F('Envelope'),
   'bag-handle': F('Shopping bags'), basket: F('Shopping bags'), storefront: F('Shopping bags'), cube: F('Package'),
   clipboard: F('Clipboard'), mic: F('Studio microphone'),
+  ban: F('Prohibited'), layers: F('Card index dividers'), leaf: F('Herb'), 'code-slash': F('Laptop'),
+  business: F('Office building'), radio: F('Radio'), pricetags: F('Label'), pricetag: F('Label'), podium: F('Sports medal'),
 };
 const SPARKLES = F('Sparkles');
 

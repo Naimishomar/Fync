@@ -569,7 +569,7 @@ const Bucket = ({ items, meId, partner, onChange }: {
         <IconBtn name="add-circle" color={ROSE()} size={28} onPress={add} accessibilityLabel="Add to bucket list" />
       </View>
       {sorted.length === 0 ? (
-        <Text className="font-sans text-ink-3 text-center p-5">Sunrise trek? Goa trip? Write your first one ✨</Text>
+        <Empty icon="rocket-outline" title="Your list is empty" hint="Sunrise trek? Goa trip? Write your first one." />
       ) : sorted.map((it) => (
         <Pressable key={it._id} onPress={() => toggle(it)} onLongPress={() => remove(it)} accessibilityRole="checkbox" accessibilityState={{ checked: !!it.doneAt }}
           className="flex-row items-center px-4 py-3 border-b border-line active:opacity-70">
@@ -647,11 +647,11 @@ const Notes = ({ partner, meId, unread, onRead }: { partner: Person; meId: strin
         </View>
       </View>
       {failed ? (
-        <Pressable onPress={load} className="p-4 items-center active:opacity-70" accessibilityRole="button"><Text className="font-sans text-ink-3">Couldn't load notes · tap to retry</Text></Pressable>
+        <Pressable onPress={load} className="p-4 items-center active:opacity-70" accessibilityRole="button"><Text className="font-sans text-ink-3">{"Couldn't load notes · tap to retry"}</Text></Pressable>
       ) : !notes ? (
         <ActivityIndicator color={ROSE()} style={{ marginTop: 16 }} />
       ) : notes.length === 0 ? (
-        <Text className="font-sans text-ink-3 text-center mt-4">No notes yet. Leave the first one 💌</Text>
+        <Empty icon="mail-outline" title="No notes yet" hint="Leave the first one for your person." />
       ) : (
         <View className="mt-3" style={{ gap: 8 }}>
           {shown.map((n) => {
@@ -701,11 +701,11 @@ const History = () => {
         <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={C.ink3} />
       </Pressable>
       {!open ? null : failed ? (
-        <Text className="font-sans text-ink-3 text-center mt-2">Couldn't load history. Pull to refresh and try again.</Text>
+        <Text className="font-sans text-ink-3 text-center mt-2">{"Couldn't load history. Pull to refresh and try again."}</Text>
       ) : !days ? (
         <ActivityIndicator color={ROSE()} style={{ marginTop: 12 }} />
       ) : days.length === 0 ? (
-        <Text className="font-sans text-ink-3 text-center mt-2">Your answers will collect here day by day.</Text>
+        <Empty icon="time-outline" title="Nothing here yet" hint="Your answers will collect here day by day." />
       ) : days.map((d) => (
         <View key={d.day} className="rounded-2xl border border-line bg-card p-4 mt-3">
           <Text className="font-sans text-ink-3" style={{ fontSize: 11 }}>{fmtDay(d.day)}</Text>

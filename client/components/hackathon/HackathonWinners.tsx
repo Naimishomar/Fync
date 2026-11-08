@@ -20,7 +20,7 @@ import Toast from 'react-native-toast-message';
 import { Alert } from '../ui/AlertModal';
 import { useBottomInset } from '../../constants/layout';
 import { C } from '../../constants/colors';
-import { AppBar, Avatar, Button, Card, Chip, FormField, IconBtn, Label, ListRow, Meta, SearchField, Sheet, TagRow } from '../ui/kit';
+import { AppBar, Avatar, Button, Card, Chip, Empty, FormField, IconBtn, Label, ListRow, Meta, SearchField, Sheet, TagRow } from '../ui/kit';
 
 /**
  * Announcing winners.
@@ -154,15 +154,11 @@ const StudentPicker = ({
           );
         }}
         ListEmptyComponent={
-          <View className="items-center pt-16 px-6">
-            <Feather name="users" size={26} color={C.ink3} />
-            <Text className="text-ink-2 text-sm font-semibold mt-3 text-center">
-              {query.trim().length < 2 ? 'Type at least two characters' : searching ? 'Searching…' : 'No students matched'}
-            </Text>
-            <Text className="text-ink-3 text-xs text-center mt-1 leading-4">
-              Winners who aren&apos;t on Fync can still be credited with the team name.
-            </Text>
-          </View>
+          <Empty
+            icon={query.trim().length < 2 ? 'search-outline' : 'people-outline'}
+            title={query.trim().length < 2 ? 'Type at least two characters' : searching ? 'Searching…' : 'No students matched'}
+            hint="Winners who aren't on Fync can still be credited with the team name."
+          />
         }
       />
     </Sheet>

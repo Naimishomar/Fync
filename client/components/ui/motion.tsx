@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
   withSpring,
   withTiming,
+  withSequence,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { formatCount } from '../../utils/format';
@@ -73,3 +74,19 @@ export const AnimatedCount = memo(function AnimatedCount({
     </Animated.View>
   );
 });
+
+/**
+ * Spring pop for a toggled icon (like, save, follow): 1 -> peak -> 1.
+ * Pass a smaller peak (~1.06) for a whole pill button.
+ * Fired from the tap handler (not on state change) so recycled rows never pop.
+ * Reanimated's default ReduceMotion.System skips it when reduce motion is on.
+ *   const [popStyle, pop] = usePop();  <Animated.View style={popStyle}><Icon/></Animated.View>
+ */
+export const usePop = (peak = 1.2) => {
+  const s = useSharedValue(1);
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: s.value }] }));
+  const pop = useCallback(() => {
+    s.value = withSequence(withTiming(peak, { duration: 100 }), withSpring(1, SPRING));
+  }, [s, peak]);
+  return [style, pop] as const;
+};

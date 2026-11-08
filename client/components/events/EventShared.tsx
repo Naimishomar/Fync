@@ -11,6 +11,7 @@ import { navigate } from '../../utils/navigation';
 import {
   Avatar, Button, Card, Chip, Empty, FormField, IconBtn, Label, ListRow, SearchField, SectionHeader, Sheet, Tag, TagRow,
 } from '../ui/kit';
+import { Pop } from '../ui-extra/usePop';
 import { FooterStat, type ListingTag } from '../opportunity/OpportunityCard';
 
 /* Shared by BootcampScreen and SpeakerSessionScreen. */
@@ -131,13 +132,15 @@ export const EventCard = memo(function EventCard({
 
         <View className="mt-4 pt-4 border-t border-line flex-row items-center" style={{ gap: 12 }}>
           <View className="flex-1"><FooterStat label="Entry" value={item.fee && item.fee > 0 ? `₹${item.fee}` : 'Free'} /></View>
-          <Button
-            small
-            variant={off ? 'tertiary' : 'primary'}
-            disabled={off}
-            title={closed ? 'Closed' : isRegistered ? 'Joined' : isLimitReached ? 'Full' : 'Join'}
-            onPress={onRegister}
-          />
+          <Pop on={!!isRegistered}>
+            <Button
+              small
+              variant={off ? 'tertiary' : 'primary'}
+              disabled={off}
+              title={closed ? 'Closed' : isRegistered ? 'Joined' : isLimitReached ? 'Full' : 'Join'}
+              onPress={onRegister}
+            />
+          </Pop>
         </View>
       </View>
     </View>
@@ -186,7 +189,7 @@ export function TicketsSheet<T extends { _id: string }>({
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
-        ListEmptyComponent={<Empty icon="ticket-outline" title="No tickets yet" hint={emptyText} />}
+        ListEmptyComponent={<Empty icon="ticket-outline" title="No tickets yet" hint={emptyText} action={<Button variant="primary" title="Explore events" onPress={onClose} />} />}
       />
     </Sheet>
   );

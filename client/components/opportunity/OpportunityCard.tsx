@@ -1,10 +1,8 @@
 import React, { memo, useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import { useNavigation } from '@react-navigation/native';
 import { C } from '../../constants/colors';
-import { FEATURES, artUrl, isFeatureOn } from '../../constants/features';
 import { daysLeftLabel } from '../../utils/deadline';
 import { Button, Tag, TagRow } from '../ui/kit';
 
@@ -185,53 +183,3 @@ export const OpportunityCard = memo(({ item, onApply, hideApply }: { item: any; 
 });
 OpportunityCard.displayName = 'OpportunityCard';
 
-const LISTINGS = [
-  { id: 'internships', route: 'InternshipList' },
-  { id: 'jobs', route: 'JobList' },
-  { id: 'hackathons', route: 'HackathonHub' },
-];
-
-/** Internships / Jobs / Hackathons hop row; replaces the current screen so Back still returns to where you came from. */
-export const ListingSwitcher = ({ current }: { current: 'internships' | 'jobs' | 'hackathons' }) => {
-  const navigation = useNavigation<any>();
-  const items = LISTINGS.filter((l) => isFeatureOn(l.id))
-    .map((l) => ({ ...l, f: FEATURES.find((f) => f.id === l.id) }))
-    .filter((l) => l.f);
-  if (items.length < 2) return null;
-  return (
-    // Equal-width cells in one row (there are at most three), each a fixed
-    // height so the label can never spill past the card's border.
-    <View className="flex-row px-gutter py-2" style={{ gap: 8 }}>
-      {items.map(({ id, route, f }) => {
-        const on = id === current;
-        return (
-          <View key={id} style={{ flex: 1, minWidth: 0 }}>
-            <Pressable
-              onPress={() => !on && navigation.replace(route)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: on }}
-              accessibilityLabel={f!.label}
-              className={`items-center justify-center rounded-2xl border active:opacity-70 ${on ? 'border-brand-500 bg-brand-50' : 'border-line bg-card'}`}
-              style={{ height: 76, paddingHorizontal: 6, gap: 4 }}
-            >
-              {artUrl(f!.art) ? (
-                <Image source={{ uri: artUrl(f!.art) }} style={{ width: 32, height: 32 }} contentFit="contain" cachePolicy="disk" />
-              ) : (
-                <Ionicons name={f!.icon} size={24} color={C.ink3} />
-              )}
-              <Text
-                className={`font-semibold text-center ${on ? 'text-ink' : 'text-ink-2'}`}
-                style={{ fontSize: 12, lineHeight: 16 }}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}
-              >
-                {f!.label}
-              </Text>
-            </Pressable>
-          </View>
-        );
-      })}
-    </View>
-  );
-};

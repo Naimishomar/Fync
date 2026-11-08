@@ -16,7 +16,7 @@ import { useAuth } from "../context/auth.context";
 import { C } from '../constants/colors';
 import { AppBar, Button, Empty, ListRow } from './ui/kit';
 import Avatar from './Avatar';
-import { tapHaptic } from '../utils/haptics';
+import { Pop } from './ui-extra/usePop';
 
 import FyncRefreshControl from './ui/FyncRefreshControl';
 type User = {
@@ -82,7 +82,7 @@ const FollowersAndFollowing = () => {
   const toggleFollow = async (targetId: string, isFollowing: boolean) => {
     if (!myId || targetId === myId || pending.current.has(targetId)) return;
     pending.current.add(targetId);
-    tapHaptic();
+    // Haptic: kit Button already ticks on press.
 
     const apply = (follow: boolean) =>
       setUsers((prev) =>
@@ -117,13 +117,15 @@ const FollowersAndFollowing = () => {
         title={item.username}
         subtitle={item.name}
         right={!isMe ? (
-          <Button
-            small
-            variant={isFollowing ? 'secondary' : 'primary'}
-            title={isFollowing ? "Following" : "Follow"}
-            accessibilityLabel={isFollowing ? `Unfollow ${item.username}` : `Follow ${item.username}`}
-            onPress={() => toggleFollow(item._id, isFollowing)}
-          />
+          <Pop on={isFollowing}>
+            <Button
+              small
+              variant={isFollowing ? 'secondary' : 'primary'}
+              title={isFollowing ? "Following" : "Follow"}
+              accessibilityLabel={isFollowing ? `Unfollow ${item.username}` : `Follow ${item.username}`}
+              onPress={() => toggleFollow(item._id, isFollowing)}
+            />
+          </Pop>
         ) : undefined}
         chevron={false}
       />
@@ -155,7 +157,10 @@ const FollowersAndFollowing = () => {
                     <Empty
                         icon={failed ? "cloud-offline-outline" : "people-outline"}
                         title={failed ? "Couldn't load this list" : type === "following" ? "Not following anyone yet" : "No followers yet"}
-                        hint={failed ? "Pull down to try again." : "There are no users in this list yet."}
+                        hint={failed ? "Pull down to try again." : "People you connect with will show up here."}
+                        action={failed
+                            ? <Button title="Try again" onPress={() => { setRefreshing(true); fetchList(); }} />
+                            : <Button variant="primary" title="Find people" onPress={() => navigation.navigate("SearchScreen")} />}
                     />
                 </View>
                 }

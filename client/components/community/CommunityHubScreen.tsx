@@ -9,6 +9,7 @@ import { RAZORPAY_KEY_ID } from '../../constants/keys';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, IconBtn, Button, Card, Divider, Empty, IconTile, Label, ListRow, SectionHeader, SegmentedTabs, Sheet, FormField } from '../ui/kit';
+import { Pop } from '../ui-extra/usePop';
 import { HubBanner, ImagePick, RoomIcon, PayWebView, PLANS, PLAN_LABELS } from './shared';
 
 type RoomType = 'chat' | 'feed' | 'announcement';
@@ -479,7 +480,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
 
                 <View className="px-gutter pt-5">
                     <View className="flex-row" style={{ gap: 12 }}>
-                        <View className="flex-1">
+                        <Pop on={!!isMember} style={{ flex: 1 }}>
                             {isCreator ? (
                                 <Button block title="You own this community" icon="shield-checkmark-outline" disabled />
                             ) : isMember ? (
@@ -487,7 +488,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                             ) : (
                                 <Button block variant="primary" title="Join" loading={isJoining} onPress={handleJoin} />
                             )}
-                        </View>
+                        </Pop>
                         <IconBtn name="share-social-outline" boxed onPress={handleShare} accessibilityLabel="Share community" />
                     </View>
 
@@ -529,7 +530,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
                         ) : undefined}
                     />
                     {subCommunities.length === 0 ? (
-                        <Card><Empty icon="radio-outline" title="No rooms yet" /></Card>
+                        <Card><Empty icon="chatbubbles-outline" title="No rooms yet" hint={isCreator ? 'Add a room to get the conversation going.' : 'Rooms will appear here once they open.'} /></Card>
                     ) : (
                         <Card style={[cardPad, isSuspended && { opacity: 0.4 }]}>
                             {subCommunities.map((sub: any, i: number) => (

@@ -19,7 +19,7 @@ import {
   type Feature,
 } from '../constants/features';
 import { C } from '../constants/colors';
-import { AppBar } from './ui/kit';
+import { AppBar, Empty } from './ui/kit';
 import FeaturedCarousel from './explore/FeaturedCarousel';
 
 const ICON = 56;
@@ -121,13 +121,7 @@ const ExploreHub = () => {
           results.length > 0 ? (
             <Group title="Results" items={results} columns={columns} onOpen={open} />
           ) : (
-            <View className="items-center py-10" style={{ gap: 8 }}>
-              <View className="items-center justify-center rounded-full bg-paper-2 border border-line" style={{ width: 60, height: 60 }}>
-                <Ionicons name="search-outline" size={26} color={C.ink3} />
-              </View>
-              <Text className="font-medium text-ink text-center" style={{ fontSize: 16 }}>No feature found</Text>
-              <Text className="font-sans text-ink-3 text-center" style={{ fontSize: 13 }}>Nothing matches “{query}”</Text>
-            </View>
+            <Empty icon="search-outline" title="No feature found" hint={`Nothing matches “${query}”. Try a shorter word.`} />
           )
         ) : (
           <>

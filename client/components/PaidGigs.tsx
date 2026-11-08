@@ -410,7 +410,7 @@ export default function PaidGigs({ navigation }: any) {
                             ) : <View className="h-10" />
                         }
                         ListEmptyComponent={
-                            <Empty icon="briefcase-outline" title="No gigs yet" hint="Tap + to post one." />
+                            <Empty icon="briefcase-outline" title="No gigs yet" hint="Got work to hand out? Post the first gig." action={<Button variant="primary" title="Post a gig" onPress={openCreateModal} />} />
                         }
                     />
                 )}

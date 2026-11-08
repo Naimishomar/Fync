@@ -576,7 +576,7 @@ export default function BootcampScreen() {
                         />
                     )}
                     refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchSessions(); }} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
-                    ListEmptyComponent={<Empty icon="rocket-outline" title="No bootcamps yet" hint="Tap + to create one for your campus." />}
+                    ListEmptyComponent={<Empty icon="rocket-outline" title="No bootcamps yet" hint="Run one for your campus and fill the room." action={<Button variant="primary" title="Create bootcamp" onPress={() => openEditor()} />} />}
                 />
 
                 <AttendeesSheet

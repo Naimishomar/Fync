@@ -170,7 +170,7 @@ const ClubListScreen = () => {
                     </View>
                 ) : (
                     <View className="mt-16">
-                        <Empty icon="people-outline" title="No clubs yet" hint="Create one, or join with a code from a club admin." />
+                        <Empty icon="people-outline" title="No clubs yet" hint="Create one, or join with a code from a club admin." action={<Button variant="primary" title="Create club" onPress={() => navigation.navigate('CreateClub')} />} />
                     </View>
                 )}
             />
