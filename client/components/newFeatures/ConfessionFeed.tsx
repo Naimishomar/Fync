@@ -10,6 +10,7 @@ import { ConfessionSkeleton } from '../Skeleton';
 import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { AppBar, IconBtn, Meta, Empty, Button, Card, IconTile, ListRow, Sheet, FormField } from '../ui/kit';
+import { ActionSheet, type SheetAction } from '../ui/Sheet';
 import CommentsSheet, { CommentsApi, CommentModel } from '../ui/CommentsSheet';
 import { report } from '../../utils/safety';
 
@@ -29,7 +30,7 @@ let globalConfessionsCache: any[] = [];
 let globalCurrentPage = 1;
 let globalHasMore = true;
 
-const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete, onReport, navigation }: any) => {
+const ConfessionItem = memo(({ item, user, onLike, onComments, onMenu, navigation }: any) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const MAX_LIMIT = 200;
     const isLongText = (item.content?.length || 0) > MAX_LIMIT;
@@ -51,22 +52,7 @@ const ConfessionItem = memo(({ item, user, onLike, onComments, onEdit, onDelete,
                     name="ellipsis-horizontal"
                     color={C.ink2}
                     accessibilityLabel="Confession options"
-                    onPress={() => {
-                        Alert.alert(
-                            "Confession",
-                            undefined,
-                            item.canManage
-                                ? [
-                                    { text: "Update / Edit", onPress: () => onEdit(item) },
-                                    { text: "Delete Post", style: "destructive", onPress: () => onDelete(item._id) },
-                                    { text: "Cancel", style: "cancel" }
-                                ]
-                                : [
-                                    { text: "Report", style: "destructive", onPress: () => onReport(item._id) },
-                                    { text: "Cancel", style: "cancel" }
-                                ]
-                        );
-                    }}
+                    onPress={() => onMenu(item)}
                 />
             </View>
 
@@ -339,18 +325,25 @@ const ConfessionFeed = () => {
         report({ targetType: 'confession', targetId: id }, () => setConfessions(prev => prev.filter((c: any) => c._id !== id)));
     }, []);
 
+    // One ⋯ sheet for the whole list: a row sets the target, the sheet builds from it.
+    const [menuTarget, setMenuTarget] = useState<any>(null);
+    const menuActions: SheetAction[] = !menuTarget ? [] : menuTarget.canManage ? [
+        { label: 'Update / Edit', icon: 'create-outline', onPress: () => openEditModal(menuTarget) },
+        { label: 'Delete Post', icon: 'trash-outline', danger: true, onPress: () => handleDelete(menuTarget._id) },
+    ] : [
+        { label: 'Report', icon: 'flag-outline', danger: true, onPress: () => handleReport(menuTarget._id) },
+    ];
+
     const renderConfession = useCallback(({ item }: any) => (
         <ConfessionItem
             item={item}
             user={user}
             onLike={handleLike}
             onComments={setActiveConfessionId}
-            onEdit={openEditModal}
-            onDelete={handleDelete}
-            onReport={handleReport}
+            onMenu={setMenuTarget}
             navigation={navigation}
         />
-    ), [user, handleLike, openEditModal, handleDelete, handleReport, navigation]);
+    ), [user, handleLike, navigation]);
 
     // `comments` is only ever read for its length.
     const onCommentCount = (id: string, count: number) => {
@@ -377,6 +370,14 @@ const ConfessionFeed = () => {
                     onBack={() => navigation.goBack()}
                     title="Confessions Feed"
                     right={<IconBtn name="add" boxed accessibilityLabel="Post a confession" onPress={() => setIsPostModalOpen(true)} />}
+                />
+
+                <ActionSheet
+                    visible={!!menuTarget}
+                    onClose={() => setMenuTarget(null)}
+                    title="Anonymous"
+                    subtitle={menuTarget ? String(menuTarget.content || '').slice(0, 60) : undefined}
+                    actions={menuActions}
                 />
 
                 <FlatList keyboardShouldPersistTaps="handled"

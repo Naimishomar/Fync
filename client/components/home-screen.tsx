@@ -40,6 +40,7 @@ import socket from '../utils/socket';
 import { Alert } from './ui/AlertModal';
 import CommentsSheet from './ui/CommentsSheet';
 import RepostModal from './ui/RepostModal';
+import { ActionSheet, type SheetAction } from './ui/Sheet';
 import { C } from '../constants/colors';
 import Reanimated from 'react-native-reanimated';
 import { PressScale, AnimatedCount, enterAt, buzz, usePop } from './ui/motion';
@@ -87,7 +88,7 @@ interface Post {
 /** Instagram/LinkedIn feed: the card is edge-to-edge, so media spans the full
  *  screen width and only the text rows carry a horizontal inset. */
 
-const PostItem = memo(({ item, index, currentUser, openComments, onDeletePost, onRequestRepost }: { item: Post, index: number, currentUser: any, openComments: (id: string) => void, onDeletePost: (id: string) => void, onRequestRepost: (item: Post, confirm: (text: string) => Promise<void>) => void }) => {
+const PostItem = memo(({ item, index, currentUser, openComments, onOpenMenu, onRequestRepost }: { item: Post, index: number, currentUser: any, openComments: (id: string) => void, onOpenMenu: (item: Post) => void, onRequestRepost: (item: Post, confirm: (text: string) => Promise<void>) => void }) => {
   const { width } = useWindowDimensions();
   const mediaWidth = width;
   // FlashList hands this same instance a different post when it recycles the
@@ -284,41 +285,7 @@ const MAX_CHAR_LIMIT = 150;
           )}
         </View>
         <Pressable
-          onPress={() => {
-            const isOwner = item.user?._id === currentUser?._id;
-
-            if (isOwner) {
-              Alert.alert('Post options', undefined, [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete post', style: 'destructive', onPress: () => onDeletePost(item._id) },
-              ]);
-              return;
-            }
-
-            // Reporting used to be two nested alerts ending in a hardcoded
-            // "Inappropriate content". Asking what is wrong in the same step is
-            // both fewer taps and the only way a moderator learns anything
-            // useful from the report.
-            const report = async (reason: string) => {
-              try {
-                await axios.post('/post/report', { postId: item._id, reason });
-                Toast.show({
-                  type: 'success',
-                  text1: 'Reported',
-                  text2: 'Thanks — we will take a look.',
-                });
-              } catch {
-                Alert.alert('Could not report', 'That did not send. Try again.', [{ text: 'Okay' }]);
-              }
-            };
-
-            Alert.alert('Report this post', 'What is wrong with it?', [
-              { text: 'Spam or scam', onPress: () => report('Spam or scam') },
-              { text: 'Harassment or abuse', onPress: () => report('Harassment or abuse') },
-              { text: 'Explicit content', style: 'destructive', onPress: () => report('Explicit content') },
-              { text: 'Cancel', style: 'cancel' },
-            ]);
-          }}
+          onPress={() => onOpenMenu(item)}
           className="items-center justify-center rounded-full active:opacity-85"
           style={{ width: 44, height: 44, marginRight: -12 }}
           accessibilityRole="button"
@@ -822,6 +789,8 @@ export default function HomeScreen() {
   // PostItem only reads the id; a fresh object per setUser would re-render every row.
   const currentUser = useMemo(() => (user?._id ? { _id: user._id } : null), [user?._id]);
 
+  // One ⋯ sheet for the whole feed: a row sets the target, the sheet builds from it.
+  const [menuPost, setMenuPost] = useState<Post | null>(null);
   const renderPostItem = useCallback(({ item, index }: { item: any, index: number }) => {
     if (item.__suggestions) return <FollowSuggestions offset={item.offset} />;
     return (
@@ -830,11 +799,33 @@ export default function HomeScreen() {
         index={index}
         currentUser={currentUser}
         openComments={handleOpenComments}
-        onDeletePost={handleDeletePost}
+        onOpenMenu={setMenuPost}
         onRequestRepost={handleRequestRepost}
       />
     );
-  }, [currentUser, handleOpenComments, handleDeletePost, handleRequestRepost]);
+  }, [currentUser, handleOpenComments, handleRequestRepost]);
+
+  // Asking what is wrong in the same step is fewer taps than a nested confirm,
+  // and the only way a moderator learns anything useful from the report.
+  const reportPost = async (postId: string, reason: string) => {
+    try {
+      await axios.post('/post/report', { postId, reason });
+      Toast.show({
+        type: 'success',
+        text1: 'Reported',
+        text2: 'Thanks — we will take a look.',
+      });
+    } catch {
+      Alert.alert('Could not report', 'That did not send. Try again.', [{ text: 'Okay' }]);
+    }
+  };
+  const menuActions: SheetAction[] = !menuPost ? [] : menuPost.user?._id === currentUser?._id ? [
+    { label: 'Delete post', icon: 'trash-outline', danger: true, onPress: () => handleDeletePost(menuPost._id) },
+  ] : [
+    { label: 'Spam or scam', icon: 'flag-outline', hint: 'Report this post', onPress: () => reportPost(menuPost._id, 'Spam or scam') },
+    { label: 'Harassment or abuse', icon: 'hand-left-outline', hint: 'Report this post', onPress: () => reportPost(menuPost._id, 'Harassment or abuse') },
+    { label: 'Explicit content', icon: 'eye-off-outline', hint: 'Report this post', danger: true, onPress: () => reportPost(menuPost._id, 'Explicit content') },
+  ];
 
 
 
@@ -988,6 +979,14 @@ export default function HomeScreen() {
           preview={repostTarget.item.description}
         />
       )}
+
+      <ActionSheet
+        visible={!!menuPost}
+        onClose={() => setMenuPost(null)}
+        title={menuPost?.user?._id === currentUser?._id ? 'Post options' : 'Report this post'}
+        subtitle={menuPost ? `${menuPost.user?.name || 'Unknown'}${menuPost.description ? ` · ${String(menuPost.description).slice(0, 60)}` : ''}` : undefined}
+        actions={menuActions}
+      />
 
       <StreakLeaderboardModal 
         isVisible={showLeaderboard} 

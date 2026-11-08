@@ -14,6 +14,7 @@ import { C } from '../../../constants/colors';
 import { tapHaptic, selectHaptic } from '../../../utils/haptics';
 import { AppBar, Button, IconBtn, Label, ListRow, Screen } from '../../ui/kit';
 import { Alert } from '../../ui/AlertModal';
+import { ActionSheet, type SheetAction } from '../../ui/Sheet';
 import Avatar from '../../Avatar';
 import LudoBoard, { LUDO_COLORS, LUDO_NAMES } from './LudoBoard';
 import { newGame, roll, move, botPick, type LudoState, type Capture } from './ludoRules';
@@ -232,12 +233,14 @@ const LudoGame = () => {
     setVotes((v) => (v.includes(myId) ? v : [...v, myId]));
   };
 
+  // Report/block options; built when opened, like the alert it replaced.
+  const [menu, setMenu] = useState<{ title: string; subtitle?: string; actions: SheetAction[] } | null>(null);
   const safety = () => {
     const others = players.filter((p) => p.userId && p.userId !== myId);
     if (!others.length) return;
-    const act = (p: Player) => Alert.alert(firstName(p), 'Something not right?', [
+    const act = (p: Player) => setMenu({ title: firstName(p), subtitle: 'Something not right?', actions: [
       {
-        text: 'Report',
+        label: 'Report', icon: 'flag-outline', danger: true,
         onPress: () => {
           axios
             .post('/safety/report', { targetType: 'user', targetId: p.userId, reason: 'Ludo match' })
@@ -246,21 +249,16 @@ const LudoGame = () => {
         },
       },
       {
-        text: 'Block and leave',
-        style: 'destructive',
+        label: 'Block and leave', icon: 'ban-outline', danger: true,
         onPress: () => {
           axios.post('/safety/block', { userId: p.userId }).catch(() => {});
           leaveOnline();
           Toast.show({ type: 'success', text1: "Blocked. You won't be matched again." });
         },
       },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    ] });
     if (others.length === 1) return act(others[0]);
-    Alert.alert('Report a player', undefined, [
-      ...others.map((p) => ({ text: firstName(p), onPress: () => act(p) })),
-      { text: 'Cancel', style: 'cancel' as const },
-    ]);
+    setMenu({ title: 'Report a player', actions: others.map((p) => ({ label: firstName(p), icon: 'person-outline' as const, onPress: () => act(p) })) });
   };
 
   const back = () => {
@@ -287,6 +285,7 @@ const LudoGame = () => {
               : undefined
         }
       />
+      <ActionSheet visible={!!menu} onClose={() => setMenu(null)} title={menu?.title} subtitle={menu?.subtitle} actions={menu?.actions ?? []} />
       {phase === 'playing' && game ? (
         <Playing
           game={game}

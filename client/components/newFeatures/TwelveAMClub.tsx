@@ -16,6 +16,7 @@ import { Alert } from '../ui/AlertModal';
 import { C } from '../../constants/colors';
 import { useBottomInset } from '../../constants/layout';
 import { AppBar, IconBtn } from '../ui/kit';
+import { ActionSheet, type SheetAction } from '../ui/Sheet';
 import { pickReportReason } from '../../utils/safety';
 
 const BG_IMAGE = "https://images.unsplash.com/photo-1531685250784-7569949d48b3?q=80&w=1000&auto=format&fit=crop";
@@ -196,13 +197,18 @@ export default function TwelveAMClub() {
       });
   }, "Report & leave");
 
-  const openMessageMenu = (item: any) => {
+  // One sheet for the whole list: a long-press sets the target, the sheet builds from it.
+  const [menuMsg, setMenuMsg] = useState<any>(null);
+  const openMessageMenu = setMenuMsg;
+  const menuActions: SheetAction[] = (() => {
+      const item = menuMsg;
+      if (!item) return [];
       const senderKey = item.sender?.id ?? item.sender?._id;
       const isMe = !!senderKey && senderKey === myNightId;
-      Alert.alert("Message", undefined, [
-          { text: "Reply", onPress: () => setReplyingTo(item) },
+      return [
+          { label: "Reply", icon: "arrow-undo-outline", onPress: () => setReplyingTo(item) },
           ...(!isMe && !item.pending ? [{
-              text: "Report", style: "destructive" as const,
+              label: "Report", icon: "flag-outline" as const, danger: true,
               onPress: () => pickReportReason((reason) => emitReport("report_night_message", { messageId: item._id, reason }, (ack) => {
                   if (ack.ok && senderKey) {
                       hiddenNightSenders.add(senderKey);
@@ -211,9 +217,8 @@ export default function TwelveAMClub() {
                   Alert.alert(ack.ok ? "Reported" : "Couldn't report", ack.message || (ack.ok ? "You won't see their messages tonight." : undefined));
               })),
           }] : []),
-          { text: "Cancel", style: "cancel" },
-      ]);
-  };
+      ];
+  })();
 
   const processAndSendMedia = async (uri: string) => {
       if (!CURRENT_USER_ID) return;
@@ -418,6 +423,14 @@ export default function TwelveAMClub() {
         <StatusBar barStyle="light-content" />
         <Image source={{ uri: BG_IMAGE }} style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0.3 }} cachePolicy="memory-disk" />
         <LinearGradient colors={['rgba(79, 70, 229, 0.1)', 'rgba(0,0,0,0.9)', '#12100E']} className="absolute w-full h-full" />
+
+        <ActionSheet
+            visible={!!menuMsg}
+            onClose={() => setMenuMsg(null)}
+            title="Message"
+            subtitle={menuMsg ? (menuMsg.messageType === 'image' || menuMsg.type === 'image' ? 'Image' : String(menuMsg.message ?? '').slice(0, 60)) : undefined}
+            actions={menuActions}
+        />
 
         <View className="flex-1">
                 <AppBar

@@ -11,6 +11,7 @@ import { C } from '../../constants/colors';
 import { tapHaptic, selectHaptic } from '../../utils/haptics';
 import { AppBar, Button, IconBtn, Screen, Empty, SectionHeader, ListRow, FormField } from '../ui/kit';
 import { Alert } from '../ui/AlertModal';
+import { ActionSheet } from '../ui/Sheet';
 import Avatar from '../Avatar';
 
 import FyncRefreshControl from '../ui/FyncRefreshControl';
@@ -86,6 +87,7 @@ const CoupleSpace = () => {
     setRefreshing(false);
   };
 
+  const [menuOpen, setMenuOpen] = useState(false);
   const unlink = () => {
     if (!data?.linked) return;
     Alert.alert(`Unlink from ${first(data.couple.partner)}?`, 'This deletes your shared answers, notes, bucket list and streak for both of you. It cannot be undone.', [
@@ -107,8 +109,17 @@ const CoupleSpace = () => {
       <AppBar
         title="Couple Space"
         onBack={() => navigation.goBack()}
-        right={data?.linked ? <IconBtn name="ellipsis-horizontal" onPress={unlink} accessibilityLabel="Unlink partner" /> : undefined}
+        right={data?.linked ? <IconBtn name="ellipsis-horizontal" onPress={() => setMenuOpen(true)} accessibilityLabel="Couple Space options" /> : undefined}
       />
+      {data?.linked ? (
+        <ActionSheet
+          visible={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          icon="heart-outline"
+          title={`You & ${first(data.couple.partner)}`}
+          actions={[{ label: 'Unlink partner', icon: 'unlink-outline', danger: true, hint: 'Deletes your shared space for both of you', onPress: unlink }]}
+        />
+      ) : null}
       {!data && !error ? (
         <View className="flex-1 items-center justify-center"><ActivityIndicator color={ROSE()} /></View>
       ) : !data ? (

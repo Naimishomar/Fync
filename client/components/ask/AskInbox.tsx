@@ -9,7 +9,7 @@ import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
 import { artUrl } from '../../constants/features';
 import { AppBar, Button, Card, Empty, IconBtn, Screen } from '../ui/kit';
-import { Sheet } from '../ui/Sheet';
+import { ActionSheet, Sheet, type SheetAction } from '../ui/Sheet';
 import { FormField } from '../ui/Field';
 import { Alert } from '../ui/AlertModal';
 import { buzz, enterAt, tick } from '../ui/motion';
@@ -184,14 +184,15 @@ export default function AskInbox() {
     }
   }, [load]);
 
-  const onMore = useCallback((m: Msg) => {
-    Alert.alert('Message options', undefined, [
-      { text: 'Report', onPress: () => act(m, 'report', 'Reported. Thanks for keeping Fync safe.') },
-      { text: 'Block sender', style: 'destructive', onPress: () => act(m, 'block', "Blocked. They can't message you for 7 days.") },
-      { text: 'Delete', style: 'destructive', onPress: () => act(m, 'delete', 'Deleted') },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  }, [act]);
+  // One sheet for the whole list: a row sets the target, the sheet builds from it.
+  const [menuTarget, setMenuTarget] = useState<Msg | null>(null);
+  const onMore = setMenuTarget;
+  const t = menuTarget;
+  const menuActions: SheetAction[] = !t ? [] : [
+    { label: 'Report', icon: 'flag-outline', onPress: () => act(t, 'report', 'Reported. Thanks for keeping Fync safe.') },
+    { label: 'Block sender', icon: 'ban-outline', danger: true, onPress: () => act(t, 'block', "Blocked. They can't message you for 7 days.") },
+    { label: 'Delete', icon: 'trash-outline', danger: true, onPress: () => act(t, 'delete', 'Deleted') },
+  ];
 
   const renderItem = useCallback(({ item, index }: { item: Msg; index: number }) => (
     <Row m={item} index={index} isNew={!seenAt || item.createdAt > seenAt} onAnswer={openAnswer} onShare={onShare} onMore={onMore} />
@@ -229,6 +230,8 @@ export default function AskInbox() {
   return (
     <Screen>
       <AppBar title="Ask me anything" onBack={() => navigation.goBack()} />
+      <ActionSheet visible={!!t} onClose={() => setMenuTarget(null)} title="Anonymous"
+        subtitle={t ? t.text.slice(0, 60) : undefined} actions={menuActions} />
       {loading && !me ? (
         <InboxSkeleton />
       ) : failed && !me ? (

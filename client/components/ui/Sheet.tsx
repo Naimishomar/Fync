@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal, View, Text, Pressable, ScrollView, Keyboard, Platform, StyleSheet,
   type DimensionValue, type StyleProp, type ViewStyle,
@@ -189,9 +189,14 @@ export function ActionSheet({
   header?: React.ReactNode;
   actions: SheetAction[];
 }) {
+  // Callers clear their target on close; keep showing the last content while
+  // the sheet fades out instead of an empty sheet.
+  const last = useRef({ title, subtitle, icon, header, actions });
+  if (visible) last.current = { title, subtitle, icon, header, actions };
+  const v = last.current;
   return (
-    <Sheet visible={visible} onClose={onClose} title={title} subtitle={subtitle} icon={icon} header={header} contentStyle={{ paddingTop: 8, gap: 4 }}>
-      {actions.map((a) => {
+    <Sheet visible={visible} onClose={onClose} title={v.title} subtitle={v.subtitle} icon={v.icon} header={v.header} contentStyle={{ paddingTop: 8, gap: 4 }}>
+      {v.actions.map((a) => {
         const tint = a.danger ? C.danger : C.ink;
         return (
           <Pressable

@@ -12,6 +12,7 @@ import { C } from '../../../constants/colors';
 import { tapHaptic } from '../../../utils/haptics';
 import { AppBar, Button, IconBtn, IconTile, Screen } from '../../ui/kit';
 import { Alert } from '../../ui/AlertModal';
+import { ActionSheet, type SheetAction } from '../../ui/Sheet';
 import Avatar from '../../Avatar';
 import { Grid, Keyboard, MiniGrid, letterStates, useTileSize, type Row } from './Board';
 import {
@@ -225,11 +226,13 @@ const WordDuel = () => {
     socket.emit('word_guess', { roomId: round.roomId, round: round.round, word: entry.current });
   };
 
+  // Report/block options; built when opened, like the alert it replaced.
+  const [menu, setMenu] = useState<{ title: string; subtitle?: string; actions: SheetAction[] } | null>(null);
   const safety = () => {
     if (!opponent) return;
-    Alert.alert(opponent.name || 'This player', 'Something not right?', [
+    setMenu({ title: opponent.name || 'This player', subtitle: 'Something not right?', actions: [
       {
-        text: 'Report',
+        label: 'Report', icon: 'flag-outline', danger: true,
         onPress: () => {
           axios
             .post('/safety/report', { targetType: 'user', targetId: opponent.userId, reason: 'Word Duel match' })
@@ -238,16 +241,14 @@ const WordDuel = () => {
         },
       },
       {
-        text: 'Block and leave',
-        style: 'destructive',
+        label: 'Block and leave', icon: 'ban-outline', danger: true,
         onPress: () => {
           axios.post('/safety/block', { userId: opponent.userId }).catch(() => {});
           cancel();
           Toast.show({ type: 'success', text1: "Blocked. You won't be matched again." });
         },
       },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    ] });
   };
 
   const onBack = () => {
@@ -271,6 +272,7 @@ const WordDuel = () => {
         onBack={onBack}
         right={phase === 'duel' && opponent ? <IconBtn name="flag-outline" accessibilityLabel="Report or block opponent" onPress={safety} /> : undefined}
       />
+      <ActionSheet visible={!!menu} onClose={() => setMenu(null)} title={menu?.title} subtitle={menu?.subtitle} actions={menu?.actions ?? []} />
       {phase === 'daily' || phase === 'endless' ? (
         <Solo daily={phase === 'daily'} />
       ) : phase === 'duel' ? (

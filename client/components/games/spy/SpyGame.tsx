@@ -11,6 +11,7 @@ import { C } from '../../../constants/colors';
 import { tapHaptic, selectHaptic } from '../../../utils/haptics';
 import { AppBar, Button, IconBtn, Label, Screen } from '../../ui/kit';
 import { Alert } from '../../ui/AlertModal';
+import { ActionSheet, type SheetAction } from '../../ui/Sheet';
 import Avatar from '../../Avatar';
 
 /**
@@ -107,11 +108,13 @@ const SpyGame = () => {
     setWord(null);
   };
 
+  // Report/block options; built when opened, like the alert it replaced.
+  const [menu, setMenu] = useState<{ title: string; subtitle?: string; actions: SheetAction[] } | null>(null);
   const playerSheet = (p: Player) => {
     if (p.userId === myId) return;
-    Alert.alert(first(p), 'Something not right?', [
+    setMenu({ title: first(p), subtitle: 'Something not right?', actions: [
       {
-        text: 'Report',
+        label: 'Report', icon: 'flag-outline', danger: true,
         onPress: () => {
           axios
             .post('/safety/report', { targetType: 'user', targetId: p.userId, reason: "Who's the Spy player" })
@@ -120,16 +123,14 @@ const SpyGame = () => {
         },
       },
       {
-        text: 'Block and leave',
-        style: 'destructive',
+        label: 'Block and leave', icon: 'ban-outline', danger: true,
         onPress: () => {
           axios.post('/safety/block', { userId: p.userId }).catch(() => {});
           leave();
           Toast.show({ type: 'success', text1: "Blocked. You won't be in a lobby with them again." });
         },
       },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    ] });
   };
 
   const secsLeft = deadline ? Math.max(0, Math.ceil((deadline - now) / 1000)) : null;
@@ -145,6 +146,7 @@ const SpyGame = () => {
         ]) : navigation.goBack())}
         right={<IconBtn name="trophy-outline" accessibilityLabel="Leaderboard" onPress={() => navigation.navigate('GameLeaderboard', { gameName: 'Spy', title: "Who's the Spy" })} />}
       />
+      <ActionSheet visible={!!menu} onClose={() => setMenu(null)} title={menu?.title} subtitle={menu?.subtitle} actions={menu?.actions ?? []} />
       {!room ? (
         <Home searching={searching} joinCode={joinCode} setJoinCode={setJoinCode} onCreate={create} onFind={find} onJoin={join}
           onCancel={() => { setSearching(false); socket.emit('spy_leave', {}); }} />
@@ -166,7 +168,7 @@ const Home = ({ searching, joinCode, setJoinCode, onCreate, onFind, onJoin, onCa
   <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
     <LinearGradient colors={['#4c1d95', VIOLET, SPY]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 20, padding: 22, marginBottom: 24 }}>
       <Text style={{ fontSize: 44 }}>🕵️</Text>
-      <Text className="font-display" style={{ color: '#fff', fontSize: 26, marginTop: 6 }}>Who's the Spy?</Text>
+      <Text className="font-display" style={{ color: '#fff', fontSize: 26, marginTop: 6 }}>{"Who's the Spy?"}</Text>
       <Text className="font-sans" style={{ color: 'rgba(255,255,255,0.9)', marginTop: 6, lineHeight: 20 }}>
         Everyone gets a secret word. One of you has a different one. Drop one-word clues, vote out the spy before they blend in. 4-8 players.
       </Text>

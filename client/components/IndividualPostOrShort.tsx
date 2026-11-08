@@ -17,8 +17,9 @@ import { shareCard } from '../utils/shareCard';
 import { Alert } from './ui/AlertModal';
 import { useBottomInset } from '../constants/layout';
 import CommentsSheet from './ui/CommentsSheet';
-import { AppBar, IconBtn, Empty, Button, ListRow, IconTile, Sheet, FormField } from './ui/kit';
+import { AppBar, IconBtn, Empty, Button, Sheet, FormField } from './ui/kit';
 import RepostModal from './ui/RepostModal';
+import { ActionSheet } from './ui/Sheet';
 import { HeartBurst, useDoubleTap } from './ui/HeartBurst';
 import ZoomableImage from './ui-extra/ZoomableImage';
 import Reanimated, { Easing, Keyframe } from 'react-native-reanimated';
@@ -142,24 +143,6 @@ const CommentItem = memo(({
 // --- 1. UNIFIED COMMENTS MODAL ---
 
 // --- 2. MAIN COMPONENT ---
-/**
- * One row in the options sheet. A hint under each label because "Make private"
- * alone does not say what happens, and the destructive actions sit next to it.
- */
-const SheetAction = ({
-  icon, label, hint, onPress, destructive = false,
-}: {
-  icon: any; label: string; hint?: string; onPress: () => void; destructive?: boolean;
-}) => (
-  <ListRow
-    leading={<IconTile icon={icon} color={destructive ? C.danger : C.ink} bg={destructive ? C.danger + '1A' : undefined} />}
-    title={label}
-    subtitle={hint}
-    subtitleLines={2}
-    onPress={onPress}
-    accessibilityLabel={hint ? `${label}. ${hint}` : label}
-  />
-);
 
 const IndividualPostOrShort = ({ route, navigation }: any) => {
     const bottomInset = useBottomInset();
@@ -240,6 +223,20 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
         } finally {
             reportingRef.current = false;
         }
+    };
+    // Post view, not the owner: confirm, then report.
+    const confirmReportPost = () => {
+        Alert.alert("Report", "Are you sure you want to report this post?", [
+            { text: "Cancel", style: "cancel" },
+            { text: "Report", style: "destructive", onPress: async () => {
+                try {
+                    await axios.post('/post/report', { postId: data._id, reason: "Inappropriate content" });
+                    Alert.alert("Success", "Post has been reported to administrators.");
+                } catch (e) {
+                    Alert.alert("Error", "Failed to report post.");
+                }
+            }}
+        ]);
     };
     const [isEditing, setIsEditing] = useState(false);
     const [editDescription, setEditDescription] = useState('');
@@ -619,33 +616,7 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
                 <SafeAreaView className="bg-paper flex-1" edges={['bottom']}>
                     <AppBar
                         onBack={() => navigation.goBack()}
-                        right={<IconBtn name="ellipsis-horizontal" size={20} color={C.ink3} accessibilityLabel="Post options" onPress={() => {
-                            const isOwner = data.user?._id === currentUser?._id;
-                            if (isOwner) {
-                                setMenuVisible(true);
-                            } else {
-                                Alert.alert("Post Options", undefined, [
-                                    { text: "Cancel", style: "cancel" },
-                                    { 
-                                        text: "Report Post", 
-                                        style: "destructive", 
-                                        onPress: () => {
-                                            Alert.alert("Report", "Are you sure you want to report this post?", [
-                                                { text: "Cancel", style: "cancel" },
-                                                { text: "Report", style: "destructive", onPress: async () => {
-                                                    try {
-                                                        await axios.post('/post/report', { postId: data._id, reason: "Inappropriate content" });
-                                                        Alert.alert("Success", "Post has been reported to administrators.");
-                                                    } catch (e) {
-                                                        Alert.alert("Error", "Failed to report post.");
-                                                    }
-                                                }}
-                                            ]);
-                                        }
-                                    }
-                                ]);
-                            }
-                        }} />}
+                        right={<IconBtn name="ellipsis-horizontal" size={20} color={C.ink3} accessibilityLabel="Post options" onPress={() => setMenuVisible(true)} />}
                     >
                             <Pressable onPress={() => navigation.navigate("PublicProfile", { user: data?.user })} className="flex-row items-center active:opacity-85" accessibilityRole="button">
                                 <Avatar user={data.user as any} size={36} />
@@ -807,99 +778,90 @@ const IndividualPostOrShort = ({ route, navigation }: any) => {
             )}
 
             {/* --- MODALS --- */}
-            <Sheet visible={menuVisible} onClose={() => setMenuVisible(false)} title={`${isShort ? 'Short' : 'Post'} options`} closeLabel="Close options">
-                        {currentUser?._id === data.user?._id ? (
-                            <>
-                                <SheetAction
-                                    icon="create-outline"
-                                    label={`Edit ${isShort ? 'short' : 'post'}`}
-                                    hint="Change the caption or replace the media"
-                                    onPress={() => {
-                                        setMenuVisible(false);
-                                        setEditDescription(isShort ? data.title : data.description || '');
-                                        setIsEditing(true);
-                                    }}
-                                />
-
-                                {!isShort && (
-                                    <SheetAction
-                                        icon={data?.isPrivate ? 'earth-outline' : 'lock-closed-outline'}
-                                        label={data?.isPrivate ? 'Make public' : 'Make private'}
-                                        hint={data?.isPrivate
-                                            ? 'Show this in feeds again'
-                                            : 'Hide from feeds — only you can see it'}
-                                        onPress={async () => {
-                                            setMenuVisible(false);
-                                            const next = !data?.isPrivate;
-                                            // Flip first so the sheet does not sit there looking
-                                            // unresponsive while the request is in flight.
-                                            setData({ ...data, isPrivate: next });
+            <ActionSheet
+                visible={menuVisible}
+                onClose={() => setMenuVisible(false)}
+                title={data.user?.username || `${isShort ? 'Short' : 'Post'} options`}
+                subtitle={String((isShort ? data.title : data.description) || '').slice(0, 60) || undefined}
+                actions={currentUser?._id === data.user?._id ? [
+                    {
+                        icon: 'create-outline',
+                        label: `Edit ${isShort ? 'short' : 'post'}`,
+                        hint: 'Change the caption or replace the media',
+                        onPress: () => {
+                            setEditDescription(isShort ? data.title : data.description || '');
+                            setIsEditing(true);
+                        },
+                    },
+                    ...(!isShort ? [{
+                        icon: (data?.isPrivate ? 'earth-outline' : 'lock-closed-outline') as 'earth-outline' | 'lock-closed-outline',
+                        label: data?.isPrivate ? 'Make public' : 'Make private',
+                        hint: data?.isPrivate
+                            ? 'Show this in feeds again'
+                            : 'Hide from feeds — only you can see it',
+                        onPress: async () => {
+                            const next = !data?.isPrivate;
+                            // Flip first so nothing sits there looking unresponsive
+                            // while the request is in flight.
+                            setData({ ...data, isPrivate: next });
+                            try {
+                                const form = new FormData();
+                                form.append('isPrivate', next ? 'true' : 'false');
+                                const res = await axios.post(`/post/${id}`, form, {
+                                    headers: { 'Content-Type': 'multipart/form-data' },
+                                });
+                                if (!res.data.success) throw new Error('rejected');
+                                Toast.show({
+                                    type: 'success',
+                                    text1: next ? 'Post is now private' : 'Post is public again',
+                                });
+                            } catch {
+                                setData({ ...data, isPrivate: !next });
+                                Toast.show({ type: 'error', text1: 'Could not change visibility' });
+                            }
+                        },
+                    }] : []),
+                    {
+                        icon: 'trash-outline',
+                        label: `Delete ${isShort ? 'short' : 'post'}`,
+                        hint: 'This cannot be undone',
+                        danger: true,
+                        onPress: () => {
+                            Alert.alert(
+                                `Delete ${isShort ? 'short' : 'post'}`,
+                                'This cannot be undone.',
+                                [
+                                    { text: 'Cancel', style: 'cancel' },
+                                    {
+                                        text: 'Delete',
+                                        style: 'destructive',
+                                        onPress: async () => {
+                                            navigation.goBack();
+                                            Toast.show({ type: 'info', text1: 'Deleting...' });
                                             try {
-                                                const form = new FormData();
-                                                form.append('isPrivate', next ? 'true' : 'false');
-                                                const res = await axios.post(`/post/${id}`, form, {
-                                                    headers: { 'Content-Type': 'multipart/form-data' },
-                                                });
-                                                if (!res.data.success) throw new Error('rejected');
-                                                Toast.show({
-                                                    type: 'success',
-                                                    text1: next ? 'Post is now private' : 'Post is public again',
-                                                });
+                                                const res = await axios.delete(isShort ? `/shorts/${id}` : `/post/${id}`);
+                                                Toast.show(res.data.success
+                                                    ? { type: 'success', text1: `${isShort ? 'Short' : 'Post'} deleted` }
+                                                    : { type: 'error', text1: 'Delete failed' });
                                             } catch {
-                                                setData({ ...data, isPrivate: !next });
-                                                Toast.show({ type: 'error', text1: 'Could not change visibility' });
+                                                Toast.show({ type: 'error', text1: 'Delete failed' });
                                             }
-                                        }}
-                                    />
-                                )}
-
-                                <SheetAction
-                                    icon="trash-outline"
-                                    label={`Delete ${isShort ? 'short' : 'post'}`}
-                                    hint="This cannot be undone"
-                                    destructive
-                                    onPress={() => {
-                                        setMenuVisible(false);
-                                        Alert.alert(
-                                            `Delete ${isShort ? 'short' : 'post'}`,
-                                            'This cannot be undone.',
-                                            [
-                                                { text: 'Cancel', style: 'cancel' },
-                                                {
-                                                    text: 'Delete',
-                                                    style: 'destructive',
-                                                    onPress: async () => {
-                                                        navigation.goBack();
-                                                        Toast.show({ type: 'info', text1: 'Deleting...' });
-                                                        try {
-                                                            const res = await axios.delete(isShort ? `/shorts/${id}` : `/post/${id}`);
-                                                            Toast.show(res.data.success
-                                                                ? { type: 'success', text1: `${isShort ? 'Short' : 'Post'} deleted` }
-                                                                : { type: 'error', text1: 'Delete failed' });
-                                                        } catch {
-                                                            Toast.show({ type: 'error', text1: 'Delete failed' });
-                                                        }
-                                                    },
-                                                },
-                                            ],
-                                        );
-                                    }}
-                                />
-                            </>
-                        ) : (
-                            <SheetAction
-                                icon="flag-outline"
-                                label="Report content"
-                                hint="Tell us this breaks the rules"
-                                destructive
-                                onPress={() => {
-                                    setMenuVisible(false);
-                                    reportContent();
-                                }}
-                            />
-                        )}
-
-            </Sheet>
+                                        },
+                                    },
+                                ],
+                            );
+                        },
+                    },
+                ] : [
+                    {
+                        icon: 'flag-outline',
+                        label: isShort ? 'Report content' : 'Report post',
+                        hint: 'Tell us this breaks the rules',
+                        danger: true,
+                        onPress: isShort ? reportContent : confirmReportPost,
+                    },
+                ]}
+            />
 
             <Sheet
                 visible={isEditing}

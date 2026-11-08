@@ -14,6 +14,7 @@ import { Video, ResizeMode } from "expo-av";
 import { Modal } from "react-native";
 import { Alert } from './ui/AlertModal';
 import { AppBar, Button, Empty, IconBtn } from './ui/kit';
+import { ActionSheet } from './ui/Sheet';
 import Avatar from './Avatar';
 import { confirmBlock, report } from '../utils/safety';
 import { C } from '../constants/colors';
@@ -532,19 +533,13 @@ const Chat = ({ route, navigation }: any) => {
   };
 
   /* ---------- MESSAGE UI ---------- */
+  // One sheet for the whole list: rows set the target, the sheet builds from it.
+  const [menuTarget, setMenuTarget] = useState<any>(null);
+  const [chatMenuOpen, setChatMenuOpen] = useState(false);
   const openActions = useCallback((item: any, isMe: boolean) => {
-    if (isMe) {
-      Alert.alert("Message", undefined, [
-        { text: "Reply", onPress: () => setReplyingTo(item) },
-        { text: "Delete", style: "destructive", onPress: () => deleteMessage(item._id) },
-        { text: "Cancel", style: "cancel" }
-      ]);
-    } else {
-      setReplyingTo(item);
-    }
-  // conversationId: deleteMessage writes lastMessage to it, and Chat -> Chat reuses this screen.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, conversationId]);
+    if (isMe) setMenuTarget(item);
+    else setReplyingTo(item);
+  }, []);
 
   // Inverted list: index - 1 is the newer neighbour (below), index + 1 the older one (above).
   const renderItem = useCallback(({ item, index }: any) => {
@@ -587,11 +582,7 @@ const Chat = ({ route, navigation }: any) => {
           <IconBtn
             name="ellipsis-vertical"
             accessibilityLabel="Chat options"
-            onPress={() => Alert.alert(otherUser.name || 'Options', undefined, [
-              { text: 'Report user', onPress: () => report({ targetType: 'user', targetId: otherUser._id }) },
-              { text: 'Block user', style: 'destructive', onPress: () => confirmBlock(otherUser._id, otherUser.name, () => navigation.goBack()) },
-              { text: 'Cancel', style: 'cancel' },
-            ])}
+            onPress={() => setChatMenuOpen(true)}
           />
         ) : undefined}
       >
@@ -631,6 +622,32 @@ const Chat = ({ route, navigation }: any) => {
               </TouchableOpacity>
             )}
         </AppBar>
+      <ActionSheet
+        visible={!!menuTarget}
+        onClose={() => setMenuTarget(null)}
+        title="You"
+        subtitle={menuTarget ? (menuTarget.messageType === 'text' ? String(menuTarget.message ?? '').slice(0, 60) : menuTarget.messageType === 'image' ? 'Image' : 'Media') : undefined}
+        actions={menuTarget ? [
+          { label: 'Reply', icon: 'arrow-undo-outline', onPress: () => setReplyingTo(menuTarget) },
+          { label: 'Delete', icon: 'trash-outline', danger: true, onPress: () => deleteMessage(menuTarget._id) },
+        ] : []}
+      />
+      {otherUser ? (
+        <ActionSheet
+          visible={chatMenuOpen}
+          onClose={() => setChatMenuOpen(false)}
+          header={
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Avatar user={otherUser} size={40} showBadge={false} />
+              <Text className="text-ink font-semibold" style={{ fontSize: 16, flex: 1 }} numberOfLines={1}>{otherUser.name || 'Options'}</Text>
+            </View>
+          }
+          actions={[
+            { label: 'Report user', icon: 'flag-outline', danger: true, onPress: () => report({ targetType: 'user', targetId: otherUser._id }) },
+            { label: 'Block user', icon: 'ban-outline', danger: true, onPress: () => confirmBlock(otherUser._id, otherUser.name, () => navigation.goBack()) },
+          ]}
+        />
+      ) : null}
 
       <KeyboardAvoidingView
         behavior="padding"

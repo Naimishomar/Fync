@@ -10,7 +10,7 @@ import { useBottomInset } from '../../constants/layout';
 import { AppBar, Button, Chip, ChipRow, Empty, FilterChips, IconBtn, Label, Screen, SegmentedTabs, Tag, TagRow } from '../ui/kit';
 import Skeleton from '../Skeleton';
 import { TYPE } from '../../constants/type';
-import { Sheet } from '../ui/Sheet';
+import { ActionSheet, Sheet, type SheetAction } from '../ui/Sheet';
 import { Alert } from '../ui/AlertModal';
 import { ProgressiveImage } from '../ui/ProgressiveImage';
 import { PressScale, enterAt, tick } from '../ui/motion';
@@ -149,20 +149,23 @@ export default function StayFinder() {
       Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Something went wrong' });
     }
   };
-  const manage = (s: StayCard) => Alert.alert(s.title, expiresText(s.expiresAt), [
-    { text: 'Edit', onPress: () => navigation.navigate('StayForm', { id: s._id }) },
-    s.status === 'active'
-      ? { text: 'Mark as filled', onPress: () => act(() => axios.patch(`/stays/${s._id}`, { status: 'filled' }), 'Marked as filled') }
-      : { text: 'Mark as available', onPress: () => act(() => axios.patch(`/stays/${s._id}`, { status: 'active' }), 'Listed again') },
-    ...(!s.renewed ? [{ text: 'Renew 30 days', onPress: () => act(() => axios.post(`/stays/${s._id}/renew`), 'Renewed for 30 more days') }] : []),
+  // One sheet for all my-listing rows: a row sets the target, the sheet builds from it.
+  const [manageTarget, setManageTarget] = useState<StayCard | null>(null);
+  const manage = setManageTarget;
+  const t = manageTarget;
+  const manageActions: SheetAction[] = !t ? [] : [
+    { label: 'Edit', icon: 'create-outline', onPress: () => navigation.navigate('StayForm', { id: t._id }) },
+    t.status === 'active'
+      ? { label: 'Mark as filled', icon: 'checkmark-done-outline', onPress: () => act(() => axios.patch(`/stays/${t._id}`, { status: 'filled' }), 'Marked as filled') }
+      : { label: 'Mark as available', icon: 'refresh-outline', onPress: () => act(() => axios.patch(`/stays/${t._id}`, { status: 'active' }), 'Listed again') },
+    ...(!t.renewed ? [{ label: 'Renew 30 days', icon: 'time-outline' as const, onPress: () => act(() => axios.post(`/stays/${t._id}/renew`), 'Renewed for 30 more days') }] : []),
     {
-      text: 'Delete', style: 'destructive' as const, onPress: () => Alert.alert('Delete this listing?', 'Photos are deleted too.', [
+      label: 'Delete', icon: 'trash-outline', danger: true, onPress: () => Alert.alert('Delete this listing?', 'Photos are deleted too.', [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => act(() => axios.delete(`/stays/${s._id}`), 'Listing deleted') },
+        { text: 'Delete', style: 'destructive', onPress: () => act(() => axios.delete(`/stays/${t._id}`), 'Listing deleted') },
       ]),
     },
-    { text: 'Cancel', style: 'cancel' as const },
-  ]);
+  ];
 
   const header = (
     <View>
@@ -233,6 +236,9 @@ export default function StayFinder() {
           <Button title="List a place" icon="add" variant="primary" onPress={create} />
         </View>
       ) : null}
+
+      <ActionSheet visible={!!t} onClose={() => setManageTarget(null)} icon="home-outline"
+        title={t?.title} subtitle={t ? expiresText(t.expiresAt) : undefined} actions={manageActions} />
 
       <Sheet visible={sheet} onClose={() => setSheet(false)} title="Filters"
         footer={<View style={{ flexDirection: 'row', gap: 12 }}>

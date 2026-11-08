@@ -7,7 +7,7 @@ import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
 import Avatar from '../Avatar';
 import { AppBar, BottomBar, Button, Card, Empty, IconBtn, Screen, Tag, TagRow } from '../ui/kit';
-import { Alert } from '../ui/AlertModal';
+import { ActionSheet, type SheetAction } from '../ui/Sheet';
 import { ProgressiveImage } from '../ui/ProgressiveImage';
 import { PressScale, tick } from '../ui/motion';
 import Skeleton from '../Skeleton';
@@ -62,18 +62,18 @@ export default function StayDetail() {
   }, [id]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const report = () => Alert.alert('Report this listing', 'Why are you reporting it?', [
-    ...REASONS.map((reason) => ({
-      text: reason,
+  const [reportOpen, setReportOpen] = useState(false);
+  const report = () => setReportOpen(true);
+  const reportActions: SheetAction[] = REASONS.map((reason) => ({
+      label: reason,
+      icon: 'flag-outline',
       onPress: async () => {
         try {
           const r = await axios.post(`/stays/${id}/report`, { reason });
           Toast.show({ type: 'success', text1: r.data?.message || 'Reported' });
         } catch (e: any) { Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Could not report' }); }
       },
-    })),
-    { text: 'Cancel', style: 'cancel' as const },
-  ]);
+    }));
 
   const toggleFilled = async () => {
     if (!stay) return;
@@ -112,6 +112,8 @@ export default function StayDetail() {
     <Screen>
       <AppBar title={KIND_LABEL[stay.kind]} onBack={() => navigation.goBack()}
         right={stay.mine ? null : <IconBtn name="flag-outline" accessibilityLabel="Report listing" onPress={report} />} />
+      <ActionSheet visible={reportOpen} onClose={() => setReportOpen(false)} icon="flag-outline"
+        title="Report this listing" subtitle="Why are you reporting it?" actions={reportActions} />
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         {stay.photos.length ? (
           <View>

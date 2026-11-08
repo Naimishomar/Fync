@@ -12,6 +12,7 @@ import { artUrl } from '../../constants/features';
 import { tapHaptic, selectHaptic } from '../../utils/haptics';
 import { AppBar, Button, Card, FormField, IconBtn, Label, ListRow, Screen } from '../ui/kit';
 import { Alert } from '../ui/AlertModal';
+import { ActionSheet, type SheetAction } from '../ui/Sheet';
 import Avatar from '../Avatar';
 import { PressScale } from '../ui/motion';
 import { TYPE } from '../../constants/type';
@@ -191,11 +192,13 @@ const CouplesCorner = () => {
     socket.emit('duo_pick', { roomId: round.roomId, round: round.round, choice });
   };
 
+  // Report/block options; built when opened, like the alert it replaced.
+  const [menu, setMenu] = useState<{ title: string; subtitle?: string; actions: SheetAction[] } | null>(null);
   const safety = () => {
     if (!partner) return;
-    Alert.alert(partner.name || 'This player', 'Something not right?', [
+    setMenu({ title: partner.name || 'This player', subtitle: 'Something not right?', actions: [
       {
-        text: 'Report',
+        label: 'Report', icon: 'flag-outline', danger: true,
         onPress: () => {
           axios
             .post('/safety/report', { targetType: 'user', targetId: partner.userId, reason: 'Couples Corner match' })
@@ -204,16 +207,14 @@ const CouplesCorner = () => {
         },
       },
       {
-        text: 'Block and leave',
-        style: 'destructive',
+        label: 'Block and leave', icon: 'ban-outline', danger: true,
         onPress: () => {
           axios.post('/safety/block', { userId: partner.userId }).catch(() => {});
           cancel();
           Toast.show({ type: 'success', text1: "Blocked. You won't be matched again." });
         },
       },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    ] });
   };
 
   const g = gameOf(game);
@@ -228,6 +229,7 @@ const CouplesCorner = () => {
         ]) : navigation.goBack())}
         right={phase === 'playing' && partner ? <IconBtn name="flag-outline" onPress={safety} accessibilityLabel="Report or block partner" /> : undefined}
       />
+      <ActionSheet visible={!!menu} onClose={() => setMenu(null)} title={menu?.title} subtitle={menu?.subtitle} actions={menu?.actions ?? []} />
 
       {phase === 'playing' ? (
         <Playing
