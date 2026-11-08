@@ -180,7 +180,7 @@ const CustomTabBarButton = ({ children, onPress }: any) => {
         }}
       >
         <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-          <Ionicons name="add" size={32} color={C.white} />
+          <Ionicons name="add" size={32} color={C.onBrand} />
         </Animated.View>
       </PressScale>
     </View>

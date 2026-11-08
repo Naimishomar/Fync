@@ -73,7 +73,7 @@ export const Alert = {
 // ── Host ────────────────────────────────────────────────────────────────────
 
 const styleFor = (style: AlertButton['style']) => {
-  if (style === 'destructive') return { bg: 'bg-danger', text: 'text-white' };
+  if (style === 'destructive') return { bg: 'bg-danger', text: 'text-paper' };
   if (style === 'cancel') return { bg: 'bg-paper-2', text: 'text-ink' };
   return { bg: 'bg-brand-500', text: 'text-on-brand' };
 };

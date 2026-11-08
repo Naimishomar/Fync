@@ -90,11 +90,11 @@ const MessageRow = memo(function MessageRow({ item, isMine, canDelete, showDate,
                 )}
                 <View className={`max-w-[75%] overflow-hidden rounded-2xl ${isMine ? 'bg-recruiter rounded-br-md' : 'bg-card border border-line rounded-bl-md'}`}>
                     {item.replyTo && (
-                        <View className={`m-2 p-2 rounded-xl border-l-4 ${isMine ? 'bg-black/10 border-white/40' : 'bg-paper-2 border-recruiter'}`}>
-                            <Text className={`text-xs font-semibold ${isMine ? 'text-white' : 'text-recruiter'}`}>
+                        <View className={`m-2 p-2 rounded-xl border-l-4 ${isMine ? 'bg-black/10 border-paper/40' : 'bg-paper-2 border-recruiter'}`}>
+                            <Text className={`text-xs font-semibold ${isMine ? 'text-paper' : 'text-recruiter'}`}>
                                 {item.replyTo.sender?.name || "User"}
                             </Text>
-                            <Text className={`text-xs ${isMine ? 'text-white/80' : 'text-ink-3'}`} numberOfLines={1}>
+                            <Text className={`text-xs ${isMine ? 'text-paper/80' : 'text-ink-3'}`} numberOfLines={1}>
                                 {item.replyTo.text}
                             </Text>
                         </View>
@@ -109,13 +109,13 @@ const MessageRow = memo(function MessageRow({ item, isMine, canDelete, showDate,
                             <Text className="text-xs font-semibold text-recruiter mb-0.5">{item.sender?.name}</Text>
                         )}
                         {item.text && item.text.trim() !== '' ? (
-                            <Text className={`text-base font-sans ${isMine ? 'text-white' : 'text-ink'}`}>{item.text}</Text>
+                            <Text className={`text-base font-sans ${isMine ? 'text-paper' : 'text-ink'}`}>{item.text}</Text>
                         ) : null}
                         <View className="flex-row items-center justify-end mt-0.5" style={{ gap: 4 }}>
-                            <Text className={`text-xs font-sans ${isMine ? 'text-white/70' : 'text-ink-3'}`}>
+                            <Text className={`text-xs font-sans ${isMine ? 'text-paper/70' : 'text-ink-3'}`}>
                                 {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Text>
-                            {isMine && <Ionicons name="checkmark-done" size={12} color="rgba(255,255,255,0.7)" />}
+                            {isMine && <Ionicons name="checkmark-done" size={12} color={C.paper} style={{ opacity: 0.7 }} />}
                         </View>
                     </View>
                 </View>
@@ -336,9 +336,9 @@ export default function EventCommunityChat({ route }: any) {
                                 className={`w-10 h-10 rounded-full items-center justify-center active:opacity-70 ${inputText.trim() ? 'bg-recruiter' : 'bg-paper-2'}`}
                             >
                                 {sending ? (
-                                    <ActivityIndicator size="small" color="white" />
+                                    <ActivityIndicator size="small" color={C.paper} />
                                 ) : (
-                                    <Ionicons name="send" size={18} color={inputText.trim() ? 'white' : C.ink3} />
+                                    <Ionicons name="send" size={18} color={inputText.trim() ? C.paper : C.ink3} />
                                 )}
                             </Pressable>
                         </View>

@@ -25,7 +25,7 @@ const MetaRow = ({ icon, text }: { icon: IconName; text: string }) => (
   </View>
 );
 
-/** 56px logo tile; falls back to initials on an always-coloured tile (white text in both themes). */
+/** 56px logo tile; falls back to initials on an always-coloured tile (paper text: light on the light-theme fill, dark on the dark-theme fill). */
 export const LogoTile = memo(function LogoTile({ uri, name, recyclingKey }: { uri?: string; name?: string; recyclingKey?: string }) {
   const [failed, setFailed] = useState(false);
   return (
@@ -41,7 +41,7 @@ export const LogoTile = memo(function LogoTile({ uri, name, recyclingKey }: { ur
         />
       ) : (
         <View className="w-full h-full items-center justify-center" style={{ backgroundColor: C.fam.career }}>
-          <Text className="font-semibold text-base" style={{ color: '#FFFFFF' }}>{initials(name)}</Text>
+          <Text className="font-semibold text-base" style={{ color: C.paper }}>{initials(name)}</Text>
         </View>
       )}
     </View>

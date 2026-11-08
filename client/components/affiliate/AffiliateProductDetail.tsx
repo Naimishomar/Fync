@@ -276,7 +276,7 @@ const styles = themed(() => ({
         borderRadius: 999,
     },
     discountText: {
-        color: '#FFFFFF',
+        color: C.paper,
         fontFamily: 'Inter_600SemiBold',
         fontSize: 13,
     },

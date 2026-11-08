@@ -481,7 +481,7 @@ export default function TwelveAMClub() {
                             accessibilityRole="button"
                             className="bg-recruiter px-gutter h-12 rounded-full mt-8 w-full items-center justify-center active:opacity-70"
                         >
-                            <Text className="text-white font-semibold text-base">Connect now</Text>
+                            <Text className="text-paper font-semibold text-base">Connect now</Text>
                         </Pressable>
                     </View>
                 ) : (
@@ -564,7 +564,7 @@ export default function TwelveAMClub() {
                               accessibilityState={{ disabled: isProcessing || !inputText.trim() }}
                               className={`w-11 h-11 rounded-full items-center justify-center active:opacity-70 ${inputText.trim() ? 'bg-recruiter' : 'bg-night'}`}
                           >
-                              <Feather name="arrow-up" size={24} color={inputText.trim() ? "white" : C.night3} />
+                              <Feather name="arrow-up" size={24} color={inputText.trim() ? C.paper : C.night3} />
                           </Pressable>
                       </View>
                       

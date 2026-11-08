@@ -470,7 +470,7 @@ const YouTubeCard = React.memo(({
               accessibilityRole="button"
               accessibilityLabel="Delete"
             >
-              <Ionicons name="trash" size={16} color="white" />
+              <Ionicons name="trash" size={16} color={C.paper} />
             </Pressable>
           </View>
         )}

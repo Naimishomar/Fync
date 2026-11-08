@@ -389,7 +389,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
             accessibilityRole="button"
             accessibilityLabel="Cancel call"
           >
-            <Ionicons name="call" size={26} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
+            <Ionicons name="call" size={26} color={C.paper} style={{ transform: [{ rotate: '135deg' }] }} />
           </Pressable>
         </View>
       </Modal>
@@ -415,7 +415,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
               accessibilityRole="button"
               accessibilityLabel="Decline call"
             >
-              <Ionicons name="call" size={26} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
+              <Ionicons name="call" size={26} color={C.paper} style={{ transform: [{ rotate: '135deg' }] }} />
             </Pressable>
             <Label className="mt-3">Decline</Label>
           </View>
@@ -427,7 +427,7 @@ export default function CallLobby({ mode, navigation, renderActiveCall }: Props)
               accessibilityRole="button"
               accessibilityLabel="Accept call"
             >
-              <Ionicons name={isVideo ? 'videocam' : 'call'} size={26} color="#fff" />
+              <Ionicons name={isVideo ? 'videocam' : 'call'} size={26} color={C.paper} />
             </Pressable>
             <Label className="mt-3">Accept</Label>
           </View>

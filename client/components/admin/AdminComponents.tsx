@@ -78,7 +78,7 @@ export const RedemptionItem = ({ item, navigation, onToggleStatus }: any) => {
                                     accessibilityState={{ checked: !!prod.isProcessed }}
                                     accessibilityLabel={`Mark ${prod.product_name} processed`}
                                 >
-                                    <Ionicons name="checkmark" size={16} color={prod.isProcessed ? "white" : C.ink3} />
+                                    <Ionicons name="checkmark" size={16} color={prod.isProcessed ? C.paper : C.ink3} />
                                 </Pressable>
                             </View>
                             <View className="flex-row items-center gap-1.5">
@@ -252,7 +252,7 @@ export const ContactMessageItem = ({ item, onDelete, onToggleRead }: any) => (
                     accessibilityState={{ checked: !!item.isRead }}
                     accessibilityLabel="Mark as read"
                 >
-                    <Ionicons name="checkmark" size={16} color={item.isRead ? "white" : C.ink3} />
+                    <Ionicons name="checkmark" size={16} color={item.isRead ? C.paper : C.ink3} />
                 </Pressable>
                 <IconBtn name="trash-outline" size={18} boxed color={C.danger} onPress={() => onDelete(item._id, 'message')} accessibilityLabel="Delete message" />
             </View>

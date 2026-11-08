@@ -55,7 +55,7 @@ const CommunityItem = React.memo(({ item, userId, handleJoin, onOpen }: any) => 
                 <LinearGradient colors={['transparent', 'rgba(0,0,0,0.7)']} className="absolute inset-0" />
                 {isSuspended && (
                     <View className="absolute top-3 right-3 bg-danger px-3 py-1 rounded-full">
-                        <Text className="text-white font-semibold" style={{ fontSize: 12 }}>Suspended</Text>
+                        <Text className="text-paper font-semibold" style={{ fontSize: 12 }}>Suspended</Text>
                     </View>
                 )}
                 <View className="absolute bottom-3 left-4 right-4 flex-row items-center" style={{ gap: 12 }}>

@@ -236,7 +236,7 @@ export default function FocusProductivity() {
                                 icon={SESSION_THEMES[type].icon as any}
                                 size={48}
                                 bg={sessionType === type ? C.success : undefined}
-                                color={sessionType === type ? '#fff' : C.ink3}
+                                color={sessionType === type ? C.paper : C.ink3}
                             />
                             {sessionType === type && <Ionicons name="checkmark-circle" size={20} color={C.success} />}
                         </View>
@@ -289,7 +289,7 @@ export default function FocusProductivity() {
                             {formatTime(seconds)}
                         </Text>
                         <Animated.Text style={{ opacity: fadeAnim }} className="font-sans text-sm text-ink-3 mt-4 text-center px-gutter">
-                            "{currentQuote}"
+                            &ldquo;{currentQuote}&rdquo;
                         </Animated.Text>
                     </View>
                 )}

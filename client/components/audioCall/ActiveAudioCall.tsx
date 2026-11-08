@@ -102,7 +102,7 @@ export default function ActiveAudioCall({
             accessibilityRole="button"
             accessibilityLabel="End call"
           >
-            <Ionicons name="call" size={30} color="#fff" style={{ transform: [{ rotate: '135deg' }] }} />
+            <Ionicons name="call" size={30} color={C.paper} style={{ transform: [{ rotate: '135deg' }] }} />
           </Pressable>
 
           <Pressable

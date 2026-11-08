@@ -464,7 +464,7 @@ export default function ActiveInterview() {
           {/* Capped and scrollable: a long streamed question used to push the card down over the mic controls. */}
           <ScrollView style={{ maxHeight: 200 }} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} showsVerticalScrollIndicator={false}>
             <Text className="text-ink text-center text-xl leading-8 font-semibold">
-              "{currentQuestion}"
+              &ldquo;{currentQuestion}&rdquo;
             </Text>
           </ScrollView>
         </View>
@@ -508,7 +508,7 @@ export default function ActiveInterview() {
             onPressOut={stopRecordingAndSend}
             className={`w-28 h-28 rounded-full items-center justify-center ${aiState === 'LISTENING' ? 'bg-danger scale-110' : aiState === 'SPEAKING' || aiState === 'PROCESSING' ? 'bg-paper-2 opacity-50' : 'bg-brand-600'}`}
           >
-            <Ionicons name={aiState === 'LISTENING' ? "mic" : "mic-outline"} size={48} color="white" />
+            <Ionicons name={aiState === 'LISTENING' ? "mic" : "mic-outline"} size={48} color={aiState === 'SPEAKING' || aiState === 'PROCESSING' ? C.ink3 : C.paper} />
           </TouchableOpacity>
 
           <View className="w-16 h-16" />

@@ -82,7 +82,7 @@ const Avatar: React.FC<AvatarProps> = ({ user, size = 36, showBadge = true }) =>
             }
           ]}
         >
-          <Ionicons name="briefcase" size={size * 0.25} color="#FFFFFF" />
+          <Ionicons name="briefcase" size={size * 0.25} color={C.paper} />
         </View>
       )}
     </View>

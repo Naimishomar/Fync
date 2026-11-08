@@ -88,9 +88,9 @@ const MovieList = () => {
               hitSlop={{ top: 4, bottom: 4 }}
               accessibilityRole="button"
               accessibilityState={{ selected: selectedGenre === genre.id }}
-              className={`mr-2 px-4 h-9 justify-center rounded-full border active:opacity-70 ${selectedGenre === genre.id ? 'bg-white border-white' : 'bg-white/10 border-white/15'}`}
+              className={`mr-2 px-4 h-9 justify-center rounded-full border active:opacity-70 ${selectedGenre === genre.id ? 'bg-brand-500 border-brand-500' : 'bg-white/10 border-white/15'}`}
             >
-              <Text className={`text-sm font-medium ${selectedGenre === genre.id ? 'text-[#12100E]' : 'text-white/80'}`}>
+              <Text className={`text-sm font-medium ${selectedGenre === genre.id ? 'text-on-brand' : 'text-white/80'}`}>
                 {genre.name}
               </Text>
             </Pressable>

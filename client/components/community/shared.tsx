@@ -130,7 +130,7 @@ export function DecideButtons({
                 className="w-11 h-11 rounded-full bg-success items-center justify-center active:opacity-70"
                 style={disabled ? { opacity: 0.5 } : undefined}
             >
-                <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                <Ionicons name="checkmark" size={20} color={C.paper} />
             </Pressable>
             <Pressable
                 onPress={onReject}

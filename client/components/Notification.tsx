@@ -179,8 +179,7 @@ const Notification = () => {
     const item = row;
     let message = '';
     let iconName: any = 'notifications';
-    let iconColor = '#fff';
-    let iconBg = C.paper2;
+    let iconColor = C.ink;
     // Anonymous: never name or picture the sender of a confession tag.
     const anonymous = item.type === 'tag' && !!item.confession;
 
@@ -189,81 +188,68 @@ const Notification = () => {
         message = 'started following you.';
         iconName = 'person-add';
         iconColor = C.fam.career;
-        iconBg = 'rgba(96, 165, 250, 0.2)';
         break;
       case 'tag':
         message = anonymous ? 'Someone confessed about you' : 'tagged you in a post.';
         iconName = 'at';
         iconColor = C.fam.study;
-        iconBg = 'rgba(168, 85, 247, 0.2)';
         break;
       case 'like':
         message = 'liked your post.';
         iconName = 'heart';
         iconColor = C.fam.fun;
-        iconBg = 'rgba(244, 63, 94, 0.2)';
         break;
       case 'comment':
         message = `commented: "${item.commentText || 'Nice!'}"`;
         iconName = 'chatbubble';
         iconColor = C.success;
-        iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
       case 'story_comment':
         message = `commented: "${item.commentText || 'Nice!'} on your shorts"`;
         iconName = 'chatbubble';
         iconColor = C.success;
-        iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
       case 'story_like':
         message = 'liked your shorts.';
         iconName = 'heart-circle';
         iconColor = C.warning;
-        iconBg = 'rgba(251, 191, 36, 0.2)';
         break;
       case 'split_request':
         message = item.commentText || 'requested a split payment.';
         iconName = 'wallet';
         iconColor = C.alumniLit;
-        iconBg = 'rgba(250, 204, 21, 0.2)';
         break;
       case 'split_paid':
         message = item.commentText || 'paid their debt.';
         iconName = 'cash';
         iconColor = C.success;
-        iconBg = 'rgba(52, 211, 153, 0.2)';
         break;
       case 'broadcast':
         message = item.message || 'sent an announcement.';
         iconName = 'megaphone';
         iconColor = C.brand[500];
-        iconBg = 'rgba(249, 115, 22, 0.15)';
         break;
       case 'hackathon_announcement':
         message = item.message || 'posted a hackathon announcement.';
         iconName = 'megaphone';
         iconColor = C.brand[500];
-        iconBg = 'rgba(249, 115, 22, 0.15)';
         break;
       case 'reply':
       case 'college_reply':
         message = item.commentText ? `replied: "${item.commentText}"` : 'replied to you.';
         iconName = 'return-down-forward';
         iconColor = C.fam.social;
-        iconBg = 'rgba(56, 189, 248, 0.2)';
         break;
       case 'opportunity':
         message = item.message || 'sent you an opportunity update.';
         iconName = 'briefcase';
         iconColor = C.brand[500];
-        iconBg = 'rgba(236, 72, 153, 0.15)';
         break;
       default:
         // Fallback: always show backend message if available
         message = item.message || item.commentText || 'sent you a notification.';
         iconName = 'notifications';
         iconColor = C.fam.study;
-        iconBg = 'rgba(168, 85, 247, 0.15)';
         break;
     }
 

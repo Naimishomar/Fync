@@ -270,7 +270,7 @@ const ReelItem = React.memo(function ReelItem({
            <View className="bg-danger/10 p-4 rounded-2xl border border-danger/20">
               <View className="flex-row items-center mb-3">
                  <View className="bg-danger w-9 h-9 rounded-full items-center justify-center mr-3">
-                    <Ionicons name="sparkles" size={18} color="white" />
+                    <Ionicons name="sparkles" size={18} color={C.paper} />
                  </View>
                  <Text className="text-white font-semibold text-sm">Fync smart recommendation</Text>
               </View>

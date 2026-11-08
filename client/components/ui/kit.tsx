@@ -206,7 +206,7 @@ export function IconBtn({
 
 export const Badge = ({ value, tone = C.danger }: { value: number | string; tone?: string }) => (
   <View style={[s.badge, { backgroundColor: tone }]}>
-    <Text style={s.badgeText} maxFontSizeMultiplier={1.2}>{typeof value === 'number' && value > 9 ? '9+' : value}</Text>
+    <Text style={[s.badgeText, tone === P.brand[500] && { color: P.onBrand }]} maxFontSizeMultiplier={1.2}>{typeof value === 'number' && value > 9 ? '9+' : value}</Text>
   </View>
 );
 
@@ -296,7 +296,7 @@ const stickerBg = (t: Tone) => ({
   rec: C.paper2, ok: C.paper2, warn: C.paper2,
 })[t];
 /** Gold is the same bright yellow in both themes, so it always takes dark ink. */
-const stickerFg = (tone: Tone) => (tone === 'live' ? '#FFFFFF' : tone === 'gold' ? P.onBrand : C.ink);
+const stickerFg = (tone: Tone) => (tone === 'live' ? C.paper : tone === 'gold' ? P.onBrand : C.ink);
 /** Small status pill. Status and identity only — never navigation.
  *  `tilt` / `flat` are accepted and ignored. */
 export function Sticker({
@@ -370,7 +370,7 @@ export function Button({
   const fg =
     v === 'primary' ? P.onBrand :
     v === 'solid' ? C.paper :
-    v === 'danger' ? '#FFFFFF' :
+    v === 'danger' ? C.paper :
     C.ink;
   const off = disabled || loading;
   return (
@@ -754,7 +754,7 @@ const s = themed(() => ({
     position: 'absolute', top: 2, right: 2, minWidth: 18, height: 18, paddingHorizontal: 4,
     borderRadius: 9, borderWidth: 2, borderColor: C.paper, alignItems: 'center', justifyContent: 'center',
   },
-  badgeText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, lineHeight: 13, color: '#fff' },
+  badgeText: { fontFamily: 'Inter_600SemiBold', fontSize: 11, lineHeight: 13, color: C.paper },
 
   iconTile: { alignItems: 'center', justifyContent: 'center', backgroundColor: C.paper2 },
 

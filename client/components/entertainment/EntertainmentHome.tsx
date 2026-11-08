@@ -135,7 +135,7 @@ const EntertainmentHome = () => {
                 </Text>
                 <View className="flex-row items-center gap-2">
                   <View className="bg-danger px-2.5 py-0.5 rounded-full">
-                    <Text className="font-semibold text-white text-xs">Trending</Text>
+                    <Text className="font-semibold text-paper text-xs">Trending</Text>
                   </View>
                   <View className="flex-row items-center">
                     <Ionicons name="star" size={14} color={C.warning} />

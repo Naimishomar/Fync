@@ -164,27 +164,27 @@ const SubscriptionScreen = ({ onSuccess }: any) => {
                     </Text>
 
                     {/* Intentionally dark: the pass is the one premium surface. */}
-                    <View className="w-full bg-ink p-5 overflow-hidden rounded-2xl">
+                    <View className="w-full bg-night border border-line p-5 overflow-hidden rounded-2xl">
                         <View className="flex-row justify-between items-start mb-4">
                             <View className="flex-1 pr-3">
-                                <Text className="text-paper font-semibold text-base">Full access pass</Text>
+                                <Text className="text-night-ink font-semibold text-base">Full access pass</Text>
                                 <Text className="text-brand-400 font-semibold text-xs mt-1">Limited time offer</Text>
                             </View>
                             <View className="items-end">
-                                <Text className="text-paper font-display" style={{ fontSize: 30, lineHeight: 34 }}>₹{subscriptionAmount}</Text>
+                                <Text className="text-night-ink font-display" style={{ fontSize: 30, lineHeight: 34 }}>₹{subscriptionAmount}</Text>
                                 <Text className="text-night-3 font-sans text-xs">/ month</Text>
                             </View>
                         </View>
 
-                        <View className="h-px bg-paper/15 mb-4" />
+                        <View className="h-px bg-night-ink/15 mb-4" />
 
                         <View className="mb-4">
                             {PERKS.map((item, index) => (
                                 <View key={index} className="flex-row items-center mb-3">
-                                    <View className="w-8 h-8 rounded-full items-center justify-center mr-3 bg-paper/10">
+                                    <View className="w-8 h-8 rounded-full items-center justify-center mr-3 bg-night-ink/10">
                                         <Ionicons name={item.icon as any} size={16} color={C.brand[500]} />
                                     </View>
-                                    <Text className="text-paper font-sans text-sm flex-1">{item.text}</Text>
+                                    <Text className="text-night-ink font-sans text-sm flex-1">{item.text}</Text>
                                 </View>
                             ))}
                         </View>

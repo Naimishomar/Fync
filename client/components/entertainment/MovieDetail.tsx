@@ -109,8 +109,8 @@ const MovieDetail = () => {
                 className="flex-1 bg-danger flex-row items-center justify-center min-h-[48px] rounded-full active:opacity-70"
                 accessibilityRole="button"
               >
-                <Ionicons name="play" size={20} color="white" />
-                <Text className="text-white font-semibold ml-2 text-base">Play trailer</Text>
+                <Ionicons name="play" size={20} color={C.paper} />
+                <Text className="text-paper font-semibold ml-2 text-base">Play trailer</Text>
               </Pressable>
             </View>
           </View>
