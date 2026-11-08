@@ -122,6 +122,18 @@ export const APPBAR_HEIGHT = 56;
  * own top SafeArea/padding), a fixed 56px row and a single-line title.
  * `inset={false}` only where the bar already sits below the status bar.
  */
+/** True when `node` is nothing but IconBtns (fragments flattened). */
+const onlyIconBtns = (node: React.ReactNode): boolean => {
+  let ok = true;
+  const walk = (n: React.ReactNode) => React.Children.forEach(n, (c) => {
+    if (!React.isValidElement(c)) return;
+    if (c.type === React.Fragment) walk((c.props as any).children);
+    else if (c.type !== IconBtn) ok = false;
+  });
+  walk(node);
+  return ok;
+};
+
 export function AppBar({
   title, onBack, right, night, overlay, children, inset = true,
 }: {
@@ -143,13 +155,19 @@ export function AppBar({
     <View style={{ paddingTop: inset ? insets.top : 0, backgroundColor: bg }} pointerEvents="box-none">
       <View style={s.appbar} pointerEvents="box-none">
         {onBack ? (
-          // -11px so the chevron's own edge lands on the 20px gutter, not the box's.
-          <IconBtn name="chevron-back" onPress={onBack} overlay={overlay} color={fg} accessibilityLabel="Go back" style={overlay ? undefined : { marginLeft: -11 }} />
+          // -11px so the chevron's own edge lands on the 20px gutter, not the box's;
+          // -8px on the right pulls the title in, since the 44pt box already leaves
+          // ~11px of air after the glyph and the row gap added 12 more.
+          <IconBtn name="chevron-back" onPress={onBack} overlay={overlay} color={fg} accessibilityLabel="Go back" style={overlay ? { marginRight: -4 } : { marginLeft: -11, marginRight: -8 }} />
         ) : null}
         <View style={{ flex: 1, minWidth: 0 }}>
           {children ?? (title ? <H2 style={{ color: fg }} numberOfLines={1} accessibilityRole="header">{title}</H2> : null)}
         </View>
-        {right ? <View style={s.appbarActions}>{right}</View> : null}
+        {right ? (
+          // The -11 offset lines an icon glyph up with the gutter; a Button (pill)
+          // has its own edge and must sit on the gutter, or it runs off screen.
+          <View style={[s.appbarActions, !onlyIconBtns(right) && { marginRight: 0 }]}>{right}</View>
+        ) : null}
       </View>
     </View>
   );

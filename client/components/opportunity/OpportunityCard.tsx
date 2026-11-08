@@ -199,27 +199,39 @@ export const ListingSwitcher = ({ current }: { current: 'internships' | 'jobs' |
     .filter((l) => l.f);
   if (items.length < 2) return null;
   return (
-    <ScrollView horizontal style={{ flexGrow: 0 }} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingVertical: 8 }}>
+    // Equal-width cells in one row (there are at most three), each a fixed
+    // height so the label can never spill past the card's border.
+    <View className="flex-row px-gutter py-2" style={{ gap: 8 }}>
       {items.map(({ id, route, f }) => {
         const on = id === current;
         return (
-          <Pressable
-            key={id}
-            onPress={() => !on && navigation.replace(route)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: on }}
-            className={`items-center rounded-2xl border px-4 py-3 active:opacity-70 ${on ? 'border-brand-500 bg-brand-50' : 'border-line bg-card'}`}
-            style={{ minWidth: 96 }}
-          >
-            {artUrl(f!.art) ? (
-              <Image source={{ uri: artUrl(f!.art) }} style={{ width: 40, height: 40 }} contentFit="contain" cachePolicy="disk" />
-            ) : (
-              <Ionicons name={f!.icon} size={28} color={C.ink3} />
-            )}
-            <Text className={`text-xs font-semibold mt-1 ${on ? 'text-ink' : 'text-ink-2'}`}>{f!.label}</Text>
-          </Pressable>
+          <View key={id} style={{ flex: 1, minWidth: 0 }}>
+            <Pressable
+              onPress={() => !on && navigation.replace(route)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: on }}
+              accessibilityLabel={f!.label}
+              className={`items-center justify-center rounded-2xl border active:opacity-70 ${on ? 'border-brand-500 bg-brand-50' : 'border-line bg-card'}`}
+              style={{ height: 76, paddingHorizontal: 6, gap: 4 }}
+            >
+              {artUrl(f!.art) ? (
+                <Image source={{ uri: artUrl(f!.art) }} style={{ width: 32, height: 32 }} contentFit="contain" cachePolicy="disk" />
+              ) : (
+                <Ionicons name={f!.icon} size={24} color={C.ink3} />
+              )}
+              <Text
+                className={`font-semibold text-center ${on ? 'text-ink' : 'text-ink-2'}`}
+                style={{ fontSize: 12, lineHeight: 16 }}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
+                {f!.label}
+              </Text>
+            </Pressable>
+          </View>
         );
       })}
-    </ScrollView>
+    </View>
   );
 };
