@@ -101,6 +101,10 @@ export const updateCodingStats = async (req, res) => {
         updateFields["codingStats.totalSolved"] =
             pick("leetcodeSolved") + pick("gfgSolved") + pick("codechefSolved") +
             (user.codingStats?.codeforcesSolved || 0) + (user.codingStats?.hackerrankSolved || 0);
+        // Typed-in counts are not solving: move the streak baseline up with them,
+        // or the next LeetCode sync reads the jump as today's solves (+1 streak).
+        updateFields["codingStats.lastStreakCount"] = Math.max(
+            updateFields["codingStats.totalSolved"], user.codingStats?.lastStreakCount ?? 0);
 
         const updated = await User.findByIdAndUpdate(req.user._id, { $set: updateFields }, { new: true });
         return res.json({ success: true, codingStats: updated.codingStats, codingProfiles: updated.codingProfiles });

@@ -58,6 +58,17 @@ const releaseEarly = async (username) => {
  * Refresh one user's LeetCode numbers, at most once per cooldown window.
  * @returns {'synced' | 'skipped' | 'failed' | 'unlinked'}
  */
+/**
+ * Did the solved count really go up since the last streak check?
+ * The baseline is a high-water mark, never lowered: a flaky fetch that dips the
+ * count and the next good one restoring it must not read as a new solve.
+ * No baseline yet (first sync): set one, no bump.
+ */
+export const streakStep = (previous, total) => {
+    if (previous === null || previous === undefined) return { bump: false, baseline: total };
+    return total > previous ? { bump: true, baseline: total } : { bump: false, baseline: previous };
+};
+
 export const syncUser = async (user) => {
     const username = user?.codingProfiles?.leetcode;
     if (!username) return 'unlinked';
@@ -106,11 +117,10 @@ export const syncUser = async (user) => {
         const total = fresh?.codingStats?.totalSolved ?? 0;
         const previous = fresh?.codingStats?.lastStreakCount;
 
-        if (previous !== null && previous !== undefined && total > previous) {
-            await updateStreak(user._id);
-        }
-        if (previous !== total) {
-            await User.updateOne({ _id: user._id }, { $set: { "codingStats.lastStreakCount": total } });
+        const { bump, baseline } = streakStep(previous, total);
+        if (bump) await updateStreak(user._id);
+        if (baseline !== previous) {
+            await User.updateOne({ _id: user._id }, { $set: { "codingStats.lastStreakCount": baseline } });
         }
     } catch (err) {
         // Stats are the primary result here; a missed streak tick self-corrects

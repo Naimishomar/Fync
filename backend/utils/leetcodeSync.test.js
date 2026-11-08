@@ -5,7 +5,7 @@
 // pin the two pieces that guarantee it: the worker pool never exceeds its size,
 // and freshness is decided from a timestamp, not from hope.
 import assert from 'node:assert/strict';
-import { runPool, isFresh, COOLDOWN_SECONDS } from './leetcodeSync.js';
+import { runPool, isFresh, COOLDOWN_SECONDS, streakStep } from './leetcodeSync.js';
 
 // ── the pool never runs more than `size` tasks at once ──────────────────────
 let inFlight = 0, peak = 0;
@@ -42,8 +42,17 @@ assert.equal(
   'exactly one window old counts as stale, so the queue can never stall'
 );
 
+// ── streak only moves on a real increase ────────────────────────────────────
+assert.deepEqual(streakStep(undefined, 120), { bump: false, baseline: 120 }, 'first sync sets a baseline, no streak');
+assert.deepEqual(streakStep(120, 120), { bump: false, baseline: 120 }, 'no change, no streak');
+assert.deepEqual(streakStep(120, 0), { bump: false, baseline: 120 }, 'a flaky dip must not lower the baseline');
+assert.deepEqual(streakStep(120, 120), { bump: false, baseline: 120 }, '...so the recovery after it is not a solve');
+assert.deepEqual(streakStep(120, 122), { bump: true, baseline: 122 }, 'a real solve bumps');
+console.log('leetcodeSync streakStep: ok');
+
 console.log('✅ leetcodeSync: all checks passed');
 
 // The module pulls in the shared Redis client, which retries forever and keeps
 // the event loop alive. Nothing here needs a graceful shutdown.
 process.exit(0);
+

@@ -74,6 +74,21 @@ export const syncGfgUser = async (user) => {
           { $ifNull: ["$codingStats.hackerrankSolved", 0] },
         ]
       },
+      // First sync after linking GFG: the whole history lands at once. That is
+      // not today's solving, so lift the streak baseline (leetcodeSync) by it.
+      // Expressions here see the pre-update document, so gfgSolved is the old value.
+      "codingStats.lastStreakCount": {
+        $cond: [
+          {
+            $and: [
+              { $eq: [{ $ifNull: ["$codingStats.gfgSolved", 0] }, 0] },
+              { $ne: [{ $ifNull: ["$codingStats.lastStreakCount", null] }, null] },
+            ]
+          },
+          { $add: ["$codingStats.lastStreakCount", stats.solved] },
+          "$codingStats.lastStreakCount",
+        ]
+      },
     }
   }]);
 
