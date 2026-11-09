@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useState } from 'react';
-import { FlatList, Share, Switch, Text, View } from 'react-native';
+import { DeviceEventEmitter, FlatList, Share, Switch, Text, View } from 'react-native';
+import { STORIES_REFRESH } from '../stories/Stories';
 import Animated from 'react-native-reanimated';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Image } from 'expo-image';
@@ -149,22 +150,34 @@ export default function AskInbox() {
     }
   };
 
-  const openAnswer = useCallback((m: Msg) => { setDraft(m.answer || ''); setAnswering(m); }, []);
+  // First answer goes to the story by default; editing an answer doesn't re-post unless asked.
+  const [toStory, setToStory] = useState(true);
+  const openAnswer = useCallback((m: Msg) => { setDraft(m.answer || ''); setToStory(!m.answer); setAnswering(m); }, []);
   const onShare = useCallback((m: Msg) => shareAnswer(m, link), [link]);
 
   const saveAnswer = async () => {
     if (!answering || !draft.trim()) return;
     setSaving(true);
     try {
-      const res = await axios.post(`/ask/${answering._id}/answer`, { answer: draft.trim() });
+      const res = await axios.post(`/ask/${answering._id}/answer`, { answer: draft.trim(), toStory });
       const saved: Msg = res.data.message;
       setMsgs((cur) => cur.map((x) => (x._id === saved._id ? saved : x)));
       setAnswering(null);
       buzz();
-      Alert.alert('Answered ✨', 'Share it to your story so more people ask you things.', [
-        { text: 'Later', style: 'cancel' },
-        { text: 'Share card', onPress: () => shareAnswer(saved, link) },
-      ]);
+      if (res.data.story) {
+        DeviceEventEmitter.emit(STORIES_REFRESH);
+        Alert.alert('Added to your story ✨', 'Want it on Instagram or WhatsApp too?', [
+          { text: 'Done', style: 'cancel' },
+          { text: 'Share card', onPress: () => shareAnswer(saved, link) },
+        ]);
+      } else {
+        Alert.alert('Answered ✨', toStory
+          ? "Saved, but it couldn't go on your story right now (you may have 20 already). Share the card instead?"
+          : 'Share it to your story so more people ask you things.', [
+          { text: 'Later', style: 'cancel' },
+          { text: 'Share card', onPress: () => shareAnswer(saved, link) },
+        ]);
+      }
     } catch (e: any) {
       Toast.show({ type: 'error', text1: e?.response?.data?.message || 'Could not save answer' });
     } finally {
@@ -258,6 +271,14 @@ export default function AskInbox() {
         footer={<Button title="Save answer" variant="primary" block loading={saving} disabled={!draft.trim()} onPress={saveAnswer} />}>
         <FormField value={draft} onChangeText={setDraft} placeholder="Your answer..." multiline maxLength={MAX} autoFocus
           label="Your answer" hint={`${draft.length}/${MAX} · shows on your share card`} />
+        <View className="flex-row items-center justify-between mt-4" style={{ minHeight: 48 }}>
+          <View className="flex-1 pr-3">
+            <Text className="text-ink font-semibold text-sm">Add to my story</Text>
+            <Text className="text-ink-3 text-xs mt-0.5">Posts the Q&amp;A card on your Fync story for 24 hours</Text>
+          </View>
+          <Switch value={toStory} onValueChange={setToStory} trackColor={{ true: C.brand[500], false: C.line }} thumbColor="#FFFFFF"
+            accessibilityLabel="Add to my story" />
+        </View>
       </Sheet>
     </Screen>
   );

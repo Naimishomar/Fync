@@ -7,6 +7,8 @@ import { isObjectId, takeReportSlot } from "./safety.controller.js";
 import { BASE, PLAY_URL, cached } from "../routes/shareCard.route.js";
 import { esc, truncate } from "../utils/shareCard.js";
 import { renderAskCard } from "../utils/askCard.js";
+import Story from "../models/story.model.js";
+import { uploadToR2 } from "../utils/r2.js";
 import {
     USERNAME, LIMITS, MAX_LEN, DAY, TTL_DAYS, checkMessage, cleanText, senderHash, recentHashes,
     isBlockedSender, cardSig, sigOk, expiresAt,
@@ -210,7 +212,25 @@ export const answerAsk = async (req, res) => {
         const m = await AskMessage.findOneAndUpdate(liveFilter(req.user._id, { _id: req.params.id }),
             { $set: { answer, answeredAt: new Date() } }, { new: true, projection: "text answer answeredAt createdAt expiresAt" }).lean();
         if (!m) return fail(res, 404, "This message has expired");
-        res.json({ success: true, message: shape(m) });
+
+        // "Add to my story" (on by default for a first answer): the same card
+        // the Share button makes, posted as a 24h Fync story. The answer is
+        // already saved; a story failure only means no story.
+        let story = false;
+        if (req.body?.toStory === true || req.body?.toStory === "true") {
+            try {
+                const live = { user: req.user._id, expiresAt: { $gt: new Date() } };
+                if (await Story.countDocuments(live) < 20) {
+                    const png = await renderAskCard({ question: m.text, answer: m.answer, link: askLink(req.user.username) });
+                    const image = await uploadToR2(png, "stories", "ask-answer.png", "image/png");
+                    await Story.create({ user: req.user._id, college: req.user.college || null, image });
+                    story = true;
+                }
+            } catch (err) {
+                console.error("answerAsk story:", err.message);
+            }
+        }
+        res.json({ success: true, message: shape(m), story });
     } catch (err) {
         console.error("answerAsk:", err.message);
         fail(res, 500, "Could not save answer");
