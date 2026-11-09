@@ -144,9 +144,12 @@ export default function EditProfile() {
       });
 
       if (res.data.success) {
-        if (setUser) setUser(res.data.user);
         Toast.show({ type: 'success', text1: 'Profile updated successfully!' });
         navigation.goBack();
+        // A new colour remounts the navigator (App.tsx AccentScope); let the back
+        // transition land first so the restored stack no longer has this screen.
+        if (accentColor !== savedAccent) setTimeout(() => setUser?.(res.data.user), 400);
+        else setUser?.(res.data.user);
       } else {
         Toast.show({ type: 'error', text1: 'Update failed', text2: res.data.message || 'Please try again.' });
       }
@@ -236,7 +239,7 @@ export default function EditProfile() {
                 );
               })}
             </View>
-            <Text className="text-ink-3 text-xs mt-2">Used on your profile ring, tabs and buttons.</Text>
+            <Text className="text-ink-3 text-xs mt-2">Changes Fync&apos;s colour everywhere for you. Orange is the default.</Text>
           </View>
 
           {isFeatureOn('creatorTips') && (

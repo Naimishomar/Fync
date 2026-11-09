@@ -19,8 +19,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AlertHost } from './components/ui/AlertModal';
 //@ts-ignore
 import "./global.css";
-import { cssInterop, colorScheme as nwColorScheme, useColorScheme } from "nativewind";
-import { C, setPalette } from "./constants/colors";
+import { cssInterop, colorScheme as nwColorScheme, useColorScheme, vars } from "nativewind";
+import { C, accentVars, setAccent, setPalette } from "./constants/colors";
 import { loadThemePref } from "./utils/theme";
 import { Image as ExpoImage } from "expo-image";
 
@@ -634,6 +634,20 @@ const InfoToast = toast("information", "brand");
 const ErrorToast = toast("alert", "danger", warn);
 const toastConfig = { success: SuccessToast, info: InfoToast, error: ErrorToast };
 
+/**
+ * The signed-in user's colour (Edit Profile > Profile colour) recolours every
+ * brand token: C.* for props, CSS variables for brand-* classes. Orange (the
+ * default) sets no variables, so it renders exactly as before.
+ */
+function AccentScope({ scheme, children }: { scheme?: string; children: (accent: string, navTheme: any) => React.ReactNode }) {
+  const { user } = useAuth();
+  const accent = user?.accentColor || 'orange';
+  setAccent(accent);
+  const v = accentVars();
+  const navTheme = React.useMemo(() => makeNavTheme(scheme === 'dark'), [scheme, accent]); // eslint-disable-line react-hooks/exhaustive-deps
+  return <View style={[{ flex: 1 }, v ? vars(v) : null]}>{children(accent, navTheme)}</View>;
+}
+
 export default function App() {
   const [isConnected, setIsConnected] = React.useState(true);
 
@@ -644,9 +658,8 @@ export default function App() {
   React.useEffect(() => {
     loadThemePref().then((pref) => nwColorScheme.set(pref)).catch(() => {});
   }, []);
-  const navTheme = React.useMemo(() => makeNavTheme(scheme === 'dark'), [scheme]);
-  // Screens read C.* during render, so a scheme change remounts the navigator
-  // (keyed by scheme) and restores where the user was from this snapshot.
+  // Screens read C.* during render, so a scheme or accent change remounts the
+  // navigator (keyed by both) and restores where the user was from this snapshot.
   const navState = React.useRef<any>(undefined);
 
   const [fontsLoaded, fontError] = useFonts({
@@ -687,8 +700,9 @@ export default function App() {
     <ErrorBoundary>
       <AuthProvider>
         <SafeAreaProvider>
+          <AccentScope scheme={scheme}>{(accent, navTheme) => (<>
           <NavigationContainer
-            key={scheme ?? 'light'}
+            key={`${scheme ?? 'light'}:${accent}`}
             ref={navigationRef}
             linking={linking}
             theme={navTheme}
@@ -699,8 +713,10 @@ export default function App() {
             <StatusBar style={C.statusStyle} backgroundColor="transparent" translucent={true} />
             <RootNavigator />
             <AlertHost />
-            <Toast config={toastConfig} position="top" visibilityTime={4000} topOffset={60} />
           </NavigationContainer>
+          {/* Outside the navigator: a toast survives its remount on an accent change. */}
+          <Toast config={toastConfig} position="top" visibilityTime={4000} topOffset={60} />
+          </>)}</AccentScope>
           {/* Overlay, not a replacement: unmounting the tree on a network blip would
               throw away the whole navigation stack and re-run the auth bootstrap. */}
           {!isConnected && (
