@@ -1,4 +1,5 @@
 import { Linking } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import messaging from '@react-native-firebase/messaging';
 import { navigationRef } from './navigation';
@@ -41,6 +42,11 @@ export const resolveTarget = (data: Data): Target => {
 
 let pending: Target | null = null;
 let lastHandled = '';
+// The cold-start reads (Expo's last response, FCM's initial notification) keep
+// returning the same old tap on every launch and after an OTA reload. Without
+// this, every app open jumped to that notification's screen.
+const HANDLED_KEY = 'notif:lastHandledTap';
+let startedAt = 0;
 
 export const flushNotificationRoute = () => {
   if (!pending || !navigationRef.isReady()) return;
@@ -59,23 +65,48 @@ export const flushNotificationRoute = () => {
 };
 
 const open = (id: string, data: Data) => {
-  if (id && id === lastHandled) return; // same tap reported twice (listener + cold-start read)
+  if (!id || id === lastHandled) return; // same tap reported twice (listener + cold-start read)
+  // A push with no routing data just opens the app where it was.
+  if (!data || !Object.keys(data).length) { lastHandled = id; AsyncStorage.setItem(HANDLED_KEY, id).catch(() => {}); return; }
   lastHandled = id;
+  AsyncStorage.setItem(HANDLED_KEY, id).catch(() => {});
   pending = resolveTarget(data);
   flushNotificationRoute();
 };
 
+/** Cold-start read: only a tap we have never handled, in any earlier launch. */
+const openIfNew = async (id: string, data: Data) => {
+  if (!id) return;
+  const seen = await AsyncStorage.getItem(HANDLED_KEY).catch(() => null);
+  if (seen === id) return;
+  // First run of this code: whatever tap is lying around predates it (the
+  // build that kept reopening Notifications). Record it, don't follow it.
+  if (seen === null && !lastHandled && Date.now() - startedAt < 5000) {
+    lastHandled = id;
+    AsyncStorage.setItem(HANDLED_KEY, id).catch(() => {});
+    return;
+  }
+  open(id, data);
+};
+
 /** Call once at app start. Returns an unsubscribe. */
 export const listenForNotificationTaps = () => {
-  const expoSub = Notifications.addNotificationResponseReceivedListener((r) =>
-    open(r.notification.request.identifier, r.notification.request.content.data as Data));
+  startedAt = Date.now();
+  // On Android the listener can also be handed the old launch tap at startup.
+  const expoSub = Notifications.addNotificationResponseReceivedListener((r) => {
+    openIfNew(r.notification.request.identifier, r.notification.request.content.data as Data);
+  });
   Notifications.getLastNotificationResponseAsync()
-    .then((r) => r && open(r.notification.request.identifier, r.notification.request.content.data as Data))
+    .then((r) => {
+      if (!r) return;
+      Notifications.clearLastNotificationResponse();
+      return openIfNew(r.notification.request.identifier, r.notification.request.content.data as Data);
+    })
     .catch(() => {});
 
-  const fcmUnsub = messaging().onNotificationOpenedApp((m) => open(m.messageId || '', m.data as Data));
+  const fcmUnsub = messaging().onNotificationOpenedApp((m) => { openIfNew(m.messageId || '', m.data as Data); });
   messaging().getInitialNotification()
-    .then((m) => m && open(m.messageId || '', m.data as Data))
+    .then((m) => m && openIfNew(m.messageId || '', m.data as Data))
     .catch(() => {});
 
   return () => { expoSub.remove(); fcmUnsub(); };
