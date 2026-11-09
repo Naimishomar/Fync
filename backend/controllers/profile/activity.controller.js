@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import Post from "../../models/post.model.js";
 import Shorts from "../../models/shorts.model.js";
+import User from "../../models/user.model.js";
+import { getCodingCalendar, computeStreaks } from "../../utils/codingCalendar.js";
 import { istDateKey, istDayStart } from "../../utils/eventTime.js";
 
 export const ACTIVITY_DAYS = 112; // 16 weeks
@@ -27,7 +29,9 @@ const dailyCounts = (Model, match) =>
     { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: "Asia/Kolkata" } }, n: { $sum: 1 } } },
   ]);
 
-// GET /profile/activity/:userId → { success, days: [{ date, count }] }
+// GET /profile/activity/:userId → { success, source, days: [{ date, count }], streak?, best? }
+// Linked LeetCode/GFG/Codeforces/CodeChef: combined daily submissions and their streak.
+// Nothing linked: posts + shorts, as before.
 export const getActivity = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -35,6 +39,19 @@ export const getActivity = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid user id" });
     }
     const endKey = istDateKey();
+    const owner = await User.findById(userId).select("codingProfiles").lean();
+    const coding = await getCodingCalendar(owner?.codingProfiles);
+    if (coding) {
+      const { current, best } = computeStreaks(coding, endKey);
+      return res.status(200).json({
+        success: true,
+        source: "coding",
+        days: buildActivitySeries(coding, endKey),
+        streak: current,
+        best,
+      });
+    }
+
     const user = new mongoose.Types.ObjectId(userId);
     const createdAt = { $gte: new Date(istDayStart(endKey).getTime() - (ACTIVITY_DAYS - 1) * 86400000) };
 
@@ -51,6 +68,7 @@ export const getActivity = async (req, res) => {
 
     return res.status(200).json({
       success: true,
+      source: "posts",
       days: buildActivitySeries(counts, endKey),
     });
   } catch (error) {

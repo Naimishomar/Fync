@@ -839,7 +839,8 @@ export const getReports = async (req, res) => {
                 path: "short",
                 populate: { path: "user", select: "name username avatar" }
             })
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .limit(200);
 
         return res.status(200).json({ success: true, reports });
     } catch (error) {

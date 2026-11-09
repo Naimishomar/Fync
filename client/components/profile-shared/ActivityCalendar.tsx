@@ -1,5 +1,8 @@
 /**
- * GitHub-style contribution grid: the last 16 weeks of posts + shorts, one
+ * GitHub-style contribution grid for the last 16 weeks. With any coding
+ * profile linked, the server sends combined LeetCode/GFG/Codeforces/CodeChef
+ * submissions and their streak; otherwise posts + shorts and the post streak.
+ * One column per week, one
  * column per week (Sun..Sat top to bottom), newest at the right. Renders
  * nothing until /profile/activity answers, and nothing if it fails.
  */
@@ -22,7 +25,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const parts = (key: string) => key.split('-').map(Number) as [number, number, number];
 const weekday = (key: string) => { const [y, m, d] = parts(key); return new Date(Date.UTC(y, m - 1, d)).getUTCDay(); };
 const label = (key: string) => { const [, m, d] = parts(key); return `${d} ${MONTHS[m - 1]}`; };
-const postsText = (n: number) => (n === 0 ? 'No uploads' : `${n} upload${n === 1 ? '' : 's'}`);
+const countText = (n: number, noun: string) => (n === 0 ? `No ${noun}s` : `${n} ${noun}${n === 1 ? '' : 's'}`);
 
 // Read at render: C is theme-aware. Alpha steps of the accent climb on light and dark paper alike.
 const levelColors = (fill: string) => [C.paper2, `${fill}40`, `${fill}73`, `${fill}A6`, fill];
@@ -34,6 +37,7 @@ export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak 
   accent?: string;
 }) {
   const [days, setDays] = useState<Day[] | null>(null);
+  const [coding, setCoding] = useState<{ streak: number; best: number } | null>(null);
   const [picked, setPicked] = useState<Day | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
@@ -41,7 +45,11 @@ export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak 
     if (!userId) return;
     let live = true;
     axios.get(`/profile/activity/${userId}`)
-      .then((res) => { if (live && Array.isArray(res.data?.days)) setDays(res.data.days); })
+      .then((res) => {
+        if (!live || !Array.isArray(res.data?.days)) return;
+        setDays(res.data.days);
+        setCoding(res.data.source === 'coding' ? { streak: res.data.streak ?? 0, best: res.data.best ?? 0 } : null);
+      })
       .catch(() => {}); // Endpoint missing or down: stay hidden.
     return () => { live = false; };
   }, [userId, refreshKey]);
@@ -66,17 +74,21 @@ export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak 
   }, [days]);
 
   if (!grid) return null;
+  const noun = coding ? 'submission' : 'upload';
+  const postsText = (n: number) => countText(n, noun);
+  const shownStreak = coding ? coding.streak : streak;
+  const shownBest = coding ? coding.best : highest;
   const fill = profileAccent(accent).fill;
   const colors = levelColors(fill);
 
   return (
     <Card style={{ marginTop: 12, width: '100%' }}>
       <View className="flex-row items-center justify-between">
-        <Text className="text-ink font-semibold text-base" accessibilityRole="header">Activity</Text>
+        <Text className="text-ink font-semibold text-base" accessibilityRole="header">{coding ? 'Coding activity' : 'Activity'}</Text>
         <View className="flex-row items-center" style={{ gap: 4 }}>
           <Ionicons name="flame" size={14} color={fill} />
           <Text className="text-ink-2 text-xs" numberOfLines={1}>
-            {streak} day streak · Best {highest}
+            {shownStreak} day streak · Best {shownBest}
           </Text>
         </View>
       </View>

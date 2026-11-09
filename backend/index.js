@@ -1,4 +1,5 @@
 import 'dotenv/config.js';
+import Sentry from './instrument.js';
 import { EventEmitter } from 'events';
 EventEmitter.defaultMaxListeners = 50;
 import cors from 'cors';
@@ -547,6 +548,9 @@ const classify = (err) => {
   }
   return null;
 };
+
+// Reports 5xx to Sentry, then passes to the handler below.
+Sentry.setupExpressErrorHandler(app);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

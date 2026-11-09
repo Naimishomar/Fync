@@ -66,6 +66,7 @@ export const AnimatedFlashList = Reanimated.createAnimatedComponent(FlashList) a
 
 /** Scroll offset where the hero's name has gone under the top bar. */
 const COLLAPSE_AT = 260;
+const BANNER_H = 168;
 
 /**
  * Scroll offset on the UI thread for the hero + compact bar. `onScrollJS`
@@ -121,6 +122,8 @@ export function ProfileHero({
   scrollY?: SharedValue<number>;
 }) {
   const accent = profileAccent(user?.accentColor);
+  // Banner runs up under the status bar; only BANNER_H shows below it.
+  const bannerH = BANNER_H + useSafeAreaInsets().top;
   const fallback = useSharedValue(0);
   const y = scrollY ?? fallback;
   const reduce = useReducedMotion();
@@ -134,7 +137,7 @@ export function ProfileHero({
   });
   return (
     <View className="bg-card overflow-hidden">
-      <Reanimated.View style={[{ height: 256, width: '100%' }, bannerAnim]}>
+      <Reanimated.View style={[{ height: bannerH, width: '100%' }, bannerAnim]}>
         {banner ? (
           <ProgressiveImage path={banner} style={{ width: '100%', height: '100%' }} />
         ) : (

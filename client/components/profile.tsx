@@ -19,7 +19,7 @@ import { ProfileHero, StatsCard, ProfileTabs, GridCell, ProfileSection, type Pro
 import { ActivityCalendar } from './profile-shared/ActivityCalendar';
 import { profileAccent } from '../constants/profileAccents';
 import { GridSkeleton } from './Skeleton';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAnimatedReaction, runOnJS } from 'react-native-reanimated';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 import { AnimatedCount } from './ui/motion';
@@ -677,17 +677,18 @@ function Profile() {
     return <GridCell item={item} isShort={activeTab === 'shorts'} onOpen={openItem} onLongPress={confirmDelete} />;
   }, [activeTab, user, openItem, confirmDelete]);
 
-  const insets = useSafeAreaInsets();
   const { y: scrollY, onScroll } = useProfileScroll(autoHideTabBar.onScroll);
   // key={activeTab} remounts the list at the top; the bar must follow.
   useEffect(() => { scrollY.value = 0; }, [activeTab, scrollY]);
+  const [pastBanner, setPastBanner] = useState(false);
+  useAnimatedReaction(() => scrollY.value > 220, (now, prev) => { if (now !== prev) runOnJS(setPastBanner)(now); });
   return (
     // Plain View: tabBarClearance already includes the bottom inset, and a
     // bottom SafeAreaView counted it a second time.
     <View className="flex-1 bg-paper">
-      <StatusBar style={C.statusStyle} />
-      {/* No title bar: just clear the status bar. */}
-      <View style={{ height: insets.top }} />
+      {/* Banner draws under a transparent status bar: light icons over it,
+          theme icons once the compact bar covers it. */}
+      <StatusBar style={pastBanner ? C.statusStyle : 'light'} />
       {/* key={activeTab} forces a remount when the column count changes,
           which both list implementations require. */}
       <CompactProfileBar user={user} y={scrollY} />
