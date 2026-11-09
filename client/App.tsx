@@ -196,6 +196,7 @@ export type RootStackParamList = {
   CoupleLeaderboard: undefined;
   CrushMatch: undefined;
   AskInbox: undefined;
+  ListenTogether: { code?: string } | undefined;
   StayFinder: undefined;
   StayDetail: { id: string };
   StayForm: { id?: string } | undefined;
@@ -419,6 +420,7 @@ function AppStack() {
       <Stack.Screen name="CoupleLeaderboard" getComponent={() => require('./components/couples/CoupleLeaderboard').default} />
       <Stack.Screen name="CrushMatch" getComponent={() => require('./components/couples/CrushMatch').default} />
       <Stack.Screen name="AskInbox" getComponent={() => require('./components/ask/AskInbox').default} />
+      <Stack.Screen name="ListenTogether" getComponent={() => require('./components/listen/ListenTogether').default} />
       <Stack.Screen name="StayFinder" getComponent={() => require('./components/stays/StayFinder').default} />
       <Stack.Screen name="StayDetail" getComponent={() => require('./components/stays/StayDetail').default} />
       <Stack.Screen name="StayForm" getComponent={() => require('./components/stays/StayForm').default} />
@@ -592,6 +594,10 @@ const linking = {
       // Profile QR codes (components/ui/ProfileQR.tsx) encode /u/<userId>.
       PublicProfile: {
         path: 'u/:userId',
+      },
+      // Listen Together invites: fync://listen/ABC123
+      ListenTogether: {
+        path: 'listen/:code',
       },
     },
   },

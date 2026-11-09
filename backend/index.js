@@ -80,6 +80,7 @@ import { setClubIo } from './controllers/club/message.controller.js';
 import { setChatIo } from './controllers/chat.controller.js';
 import { setChessIo } from './controllers/chess.socket.js';
 import { setDuoIo } from './controllers/duo.socket.js';
+import { setListenIo } from './controllers/listen.socket.js';
 import { setSpyIo } from './controllers/spy.socket.js';
 import { setLudoIo } from './controllers/ludo.socket.js';
 import { setWordDuelIo } from './controllers/wordDuel.socket.js';
@@ -346,6 +347,7 @@ const startServer = async (retries = 5) => {
     setChatIo(io);
     setChessIo(io);
     setDuoIo(io);
+    setListenIo(io);
     setSpyIo(io);
     setLudoIo(io);
     setWordDuelIo(io);
