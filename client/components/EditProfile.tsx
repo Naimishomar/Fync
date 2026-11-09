@@ -73,7 +73,10 @@ export default function EditProfile() {
   const pickImage = async (type: 'avatar' | 'banner') => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images',
-      allowsEditing: true,
+      // Android's native crop screen came up blank white with no confirm
+      // button, so a picked banner could never be applied. Both images are
+      // shown with cover (centre crop) everywhere, so skip it there.
+      allowsEditing: Platform.OS === 'ios',
       aspect: type === 'avatar' ? [1, 1] : [16, 9],
       quality: 0.5,
     });

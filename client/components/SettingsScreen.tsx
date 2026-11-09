@@ -3,7 +3,9 @@
  * cached content, notification permission, the legal pages, and signing out.
  */
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, Pressable, Linking, StatusBar, Platform } from 'react-native';
+import { View, Text, ScrollView, Pressable, Linking, StatusBar, Platform, Share } from 'react-native';
+import { shareRecap, shareCard } from '../utils/shareCard';
+import { profileLink } from './ui/ProfileQR';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -154,6 +156,21 @@ export default function SettingsScreen() {
         { icon: 'ban-outline', label: 'Blocked users', onPress: () => navigation.navigate('BlockedUsersScreen') },
       ],
     },
+    // Moved off the profile header: sharing is occasional, not a primary action.
+    ...(user?._id ? [{
+      title: 'Share',
+      rows: [
+        {
+          icon: 'stats-chart-outline', label: 'Share my week', hint: 'Story card: problems solved, streak, posts',
+          onPress: () => shareRecap(user._id, () => Share.share({ message: `My week on Fync: ${profileLink(user._id)}` })),
+        },
+        {
+          icon: 'person-circle-outline', label: 'Share profile', hint: 'Card with your QR code',
+          onPress: () => shareCard('u', user._id, 'Share your profile', () => Share.share({ message: `${user.name} on Fync: ${profileLink(user._id)}` })),
+        },
+        ...(isFeatureOn('ask') ? [{ icon: 'chatbubbles-outline', label: 'Ask me anything', hint: 'Get anonymous questions from your link', onPress: () => navigation.navigate('AskInbox') } as Row] : []),
+      ] as Row[],
+    }] : []),
     {
       title: 'App',
       rows: [

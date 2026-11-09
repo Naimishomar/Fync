@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Text, View, Pressable, Linking, ActivityIndicator, DeviceEventEmitter, Share } from 'react-native';
-import { shareRecap, shareCard } from '../utils/shareCard';
-import { ActionSheet } from './ui/Sheet';
+import { Text, View, Pressable, Linking, ActivityIndicator, DeviceEventEmitter } from 'react-native';
 import CodingProfilesModal from './profile/CodingProfilesModal';
 import GitHubStatsCard from './profile/GitHubStatsCard';
-import FyncProfileBuilder from './profile/FyncProfileBuilder';
-import { profileLink } from './ui/ProfileQR';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -408,14 +404,12 @@ function AboutSection({ user, isOwner, onRefresh, onLinkCoding }: { user: UserTy
   );
 }
 
-type ProfileTabKey = 'posts' | 'shorts' | 'reposts' | 'about' | 'portfolio';
+type ProfileTabKey = 'posts' | 'shorts' | 'reposts' | 'about';
 const PROFILE_TABS: ProfileTab<ProfileTabKey>[] = [
   { key: 'posts', icon: 'grid-outline', activeIcon: 'grid', label: 'Posts' },
   { key: 'shorts', icon: 'play-circle-outline', activeIcon: 'play-circle', label: 'Shorts' },
   { key: 'reposts', icon: 'repeat-outline', activeIcon: 'repeat', label: 'Reposts' },
   { key: 'about', icon: 'person-outline', activeIcon: 'person', label: 'About' },
-  // Was a separate screen behind a button; one identity, one place.
-  { key: 'portfolio', icon: 'briefcase-outline', activeIcon: 'briefcase', label: 'Portfolio' },
 ];
 
 // ─── MAIN PROFILE COMPONENT ───────────────────────────────────────────────────
@@ -429,7 +423,6 @@ function Profile() {
   const [shorts, setShorts] = useState<any[]>([]);
   const [reposts, setReposts] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<ProfileTabKey>('posts');
-  const [portfolioKey, setPortfolioKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [postsPage, setPostsPage] = useState(1);
   const [shortsPage, setShortsPage] = useState(1);
@@ -437,7 +430,6 @@ function Profile() {
   // into the grid — the first page is 12, which read as a cap.
   const [postCount, setPostCount] = useState<number | null>(null);
   const [linkCoding, setLinkCoding] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
   const [codingKey, setCodingKey] = useState(0);
   const openLinkCoding = useCallback(() => setLinkCoding(true), []);
   const [hasMorePosts, setHasMorePosts] = useState(true);
@@ -610,7 +602,6 @@ function Profile() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    setPortfolioKey((k) => k + 1);
     lastLoadedAt.current = Date.now();
     await loadProfileScreen({ replace: true }).catch(() => {});
     setRefreshing(false);
@@ -668,7 +659,7 @@ function Profile() {
   // ── Profile Header ─────────────────────────────────────────────────────
   const accentFill = profileAccent((user as any)?.accentColor).fill;
   const renderProfileInfo = () => (
-    <ProfileHero user={user} banner={user?.banner} bio={user?.about} college={user?.college} scrollY={scrollY}>
+    <ProfileHero user={user} banner={user?.banner} bio={user?.about} college={user?.college} scrollY={scrollY} onEdit={() => navigation.navigate('EditProfile')}>
       <StatsCard items={[
         { label: 'Posts', value: postCount ?? posts.length },
         { label: 'Followers', value: user?.followersCount ?? user?.followers?.length ?? 0, onPress: () => navigation.navigate('FollowersAndFollowing', { userId: user?._id, type: 'followers' }) },
@@ -711,11 +702,11 @@ function Profile() {
         </Pressable>
       )}
 
-      {/* One primary action; everything shareable lives behind Share. Portfolio is a tab now. */}
-      <View className="flex-row mt-3 w-full" style={{ gap: 12 }}>
-        <Button title="Edit profile" icon="create-outline" variant="primary" style={{ flex: 1, backgroundColor: accentFill, borderColor: accentFill }} onPress={() => navigation.navigate('EditProfile')} />
-        <Button title="Share" icon="share-social-outline" style={{ flex: 1 }} onPress={() => setShareOpen(true)} />
-      </View>
+      {/* Edit is the pencil on the photo, Share lives in Settings; the one
+          button left is the Portfolio, which was easy to miss. */}
+      <Button title="Portfolio" icon="briefcase-outline" variant="primary" block
+        style={{ marginTop: 12, backgroundColor: accentFill, borderColor: accentFill }}
+        onPress={() => navigation.navigate('FyncProfileBuilder')} />
 
       <ProfileStrength user={user} onLinkCoding={openLinkCoding} />
       <ActivityCalendar userId={user?._id} streak={(user as any)?.streakCount} highest={(user as any)?.highestStreak} refreshKey={`${postCount}:${codingKey}`} accent={(user as any)?.accentColor} onLinkCoding={openLinkCoding} />
@@ -741,10 +732,9 @@ function Profile() {
    *  with it. */
   const renderTabItem = useCallback(({ item }: { item: any }) => {
     if (activeTab === 'about') return <AboutSection user={user} isOwner onRefresh={onRefresh} onLinkCoding={openLinkCoding} />;
-    if (activeTab === 'portfolio') return <FyncProfileBuilder embedded refreshKey={portfolioKey} />;
     if (activeTab === 'reposts') return <GridCell item={item} onOpen={openItem} />;
     return <GridCell item={item} isShort={activeTab === 'shorts'} onOpen={openItem} onLongPress={confirmDelete} />;
-  }, [activeTab, user, openItem, confirmDelete, openLinkCoding, portfolioKey]);
+  }, [activeTab, user, openItem, confirmDelete, openLinkCoding]);
 
   const insets = useSafeAreaInsets();
   const { y: scrollY, onScroll } = useProfileScroll(autoHideTabBar.onScroll);
@@ -770,9 +760,9 @@ function Profile() {
         key={activeTab}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : activeTab === 'reposts' ? reposts : activeTab === 'portfolio' ? (['PORTFOLIO'] as any) : (['ABOUT'] as any)}
+        data={activeTab === 'posts' ? posts : activeTab === 'shorts' ? shorts : activeTab === 'reposts' ? reposts : (['ABOUT'] as any)}
         keyExtractor={(item, i) => (typeof item === 'string' ? item : item._id ?? String(i))}
-        numColumns={activeTab === 'about' || activeTab === 'portfolio' ? 1 : 3}
+        numColumns={activeTab === 'about' ? 1 : 3}
         refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} />}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
@@ -791,26 +781,6 @@ function Profile() {
         contentContainerStyle={{ paddingBottom: tabBarClearance }}
       />
       <LevelUpCelebration userId={user?._id} level={user?.fyncBadge} />
-      <ActionSheet
-        visible={shareOpen}
-        onClose={() => setShareOpen(false)}
-        title="Share"
-        actions={user?._id ? [
-          {
-            label: 'Share my week', icon: 'stats-chart-outline' as const, hint: 'Story card: problems solved, streak, posts',
-            onPress: () => shareRecap(user._id, () => Share.share({ message: `My week on Fync: ${profileLink(user._id)}` })),
-          },
-          {
-            label: 'Share profile', icon: 'person-circle-outline' as const, hint: 'Card with your QR code',
-            onPress: () => shareCard('u', user._id, 'Share your profile', () => Share.share({ message: `${user.name} on Fync: ${profileLink(user._id)}` })),
-          },
-          // AMA was only reachable from Explore; the inbox has the link + share.
-          ...(isFeatureOn('ask') ? [{
-            label: 'Ask me anything', icon: 'chatbubbles-outline' as const, hint: 'Get anonymous questions from your link',
-            onPress: () => navigation.navigate('AskInbox'),
-          }] : []),
-        ] : []}
-      />
       <CodingProfilesModal
         visible={linkCoding}
         initialData={(user as any)?.codingProfiles}

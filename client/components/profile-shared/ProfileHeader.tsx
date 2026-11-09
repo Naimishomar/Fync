@@ -116,10 +116,12 @@ export function CompactProfileBar({ user, y, inset = 20 }: { user: any; y: Share
 /** Banner, zoomable avatar, name, handle, bio, college; `children` go under it (stats, actions).
  *  With `scrollY`, the banner drifts + fades and the avatar shrinks as the list scrolls. */
 export function ProfileHero({
-  user, banner, bio, college, children, scrollY,
+  user, banner, bio, college, children, scrollY, onEdit,
 }: {
   user: any; banner?: string; bio?: string; college?: string; children?: React.ReactNode;
   scrollY?: SharedValue<number>;
+  /** Own profile: pencil badge on the photo opens Edit profile (Instagram-style). */
+  onEdit?: () => void;
 }) {
   const accent = profileAccent(user?.accentColor);
   // Banner runs up under the status bar; only BANNER_H shows below it.
@@ -161,6 +163,18 @@ export function ProfileHero({
             </View>
           )}
         </AvatarZoom>
+        {onEdit ? (
+          <Pressable
+            onPress={onEdit}
+            hitSlop={8}
+            className="absolute items-center justify-center rounded-full active:opacity-85"
+            style={{ right: 4, bottom: 22, width: 34, height: 34, backgroundColor: accent.fill, borderWidth: 3, borderColor: C.paper }}
+            accessibilityRole="button"
+            accessibilityLabel="Edit profile"
+          >
+            <Ionicons name="pencil" size={15} color="#FFFFFF" />
+          </Pressable>
+        ) : null}
         </Reanimated.View>
 
         <Text className="font-display text-ink text-h1 text-center mt-4" numberOfLines={2}>{user?.name || user?.username}</Text>
