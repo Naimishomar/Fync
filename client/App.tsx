@@ -54,6 +54,7 @@ setupBackgroundHandler();
 // Context
 import { AuthProvider, useAuth } from "./context/auth.context";
 import { navigationRef } from "./utils/navigation";
+import { listenForNotificationTaps, flushNotificationRoute } from "./utils/notificationRouting";
 
 // Auth Components
 import LoginScreen from "./components/login-screen";
@@ -655,6 +656,9 @@ export default function App() {
     Inter_700Bold,
   });
 
+  // Push taps open their screen (utils/notificationRouting.ts).
+  React.useEffect(() => listenForNotificationTaps(), []);
+
   React.useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
       setIsConnected(state.isConnected !== false);
@@ -687,7 +691,8 @@ export default function App() {
             linking={linking}
             theme={navTheme}
             initialState={navState.current}
-            onStateChange={(state) => { navState.current = state; }}
+            onReady={flushNotificationRoute}
+            onStateChange={(state) => { navState.current = state; flushNotificationRoute(); }}
           >
             <StatusBar style={C.statusStyle} backgroundColor="transparent" translucent={true} />
             <RootNavigator />

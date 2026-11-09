@@ -21,7 +21,7 @@ import EducationCard, { EducationEntry } from './EducationCard';
 import AddEducationModal from './AddEducationModal';
 import { Alert } from '../ui/AlertModal';
 
-import { AppBar, Card, SectionHeader, Button, SegmentedTabs, Empty, IconTile } from '../ui/kit';
+import { AppBar, Card, SectionHeader, Button, SegmentedTabs, Empty, IconTile, IconBtn } from '../ui/kit';
 import { AnimatedCount } from '../ui/motion';
 import { LevelUpCelebration } from '../ui-extra/Confetti';
 import { useBottomInset } from '../../constants/layout';
@@ -63,7 +63,12 @@ const TABS = ['overview', 'projects', 'experience', 'certs'] as const;
 const TAB_LABELS = { overview: 'Overview', projects: 'Projects', experience: 'Work', certs: 'Certs' };
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
-export default function FyncProfileBuilder() {
+/**
+ * The portfolio editor. As a screen (route FyncProfileBuilder: deep links,
+ * GitHub connect callback) it has its own app bar and scroll; `embedded` renders
+ * just the tabs + content so the Profile screen can show it as its Portfolio tab.
+ */
+export default function FyncProfileBuilder({ embedded = false, refreshKey }: { embedded?: boolean; refreshKey?: unknown } = {}) {
   const { user, setUser } = useAuth();
   const navigation = useNavigation<any>();
   const bottomInset = useBottomInset();
@@ -160,7 +165,8 @@ export default function FyncProfileBuilder() {
     });
     fetchProfile();
     return () => { cancelled = true; };
-  }, [user?._id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?._id, refreshKey]);
 
   useEffect(() => {
     if (route.params?.username) {
@@ -343,7 +349,9 @@ export default function FyncProfileBuilder() {
     }
   };
 
-  if (loading) return (
+  if (loading) return embedded ? (
+    <View className="py-10 items-center"><ActivityIndicator color={C.brand[500]} /></View>
+  ) : (
     <View className="flex-1 bg-paper items-center justify-center">
       <ActivityIndicator size="large" color={C.brand[500]} />
     </View>
@@ -521,28 +529,8 @@ export default function FyncProfileBuilder() {
     }
   };
 
-  return (
-    <View className="flex-1 bg-paper">
-      <StatusBar barStyle={C.barStyle} />
-
-      <View className="flex-1">
-        <AppBar
-          title="Fync portfolio"
-          onBack={() => navigation.goBack()}
-          right={<Button small variant="tertiary" icon="document-text-outline" title="Resume" onPress={downloadResume}/>}
-        />
-        <View className="px-gutter pb-2">
-          <SegmentedTabs items={TABS} labels={TAB_LABELS} value={activeTab} onChange={setActiveTab} />
-        </View>
-
-        <ScrollView keyboardShouldPersistTaps="handled"
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
-          contentContainerStyle={{ paddingBottom: 44 + bottomInset, paddingTop: 12 }}
-        >
-          {renderContent()}
-        </ScrollView>
+  const modals = (
+    <>
         {/* Modals */}
         <AddProjectModal
           visible={showAddProject}
@@ -574,6 +562,45 @@ export default function FyncProfileBuilder() {
           onClose={() => setShowCodingModal(false)}
           onSuccess={() => { setShowCodingModal(false); fetchProfile(); }}
         />
+    </>
+  );
+
+  if (embedded) return (
+    <View className="bg-paper pt-3 pb-6">
+      <View className="px-gutter pb-2 flex-row items-center" style={{ gap: 8 }}>
+        <View style={{ flex: 1 }}>
+          <SegmentedTabs items={TABS} labels={TAB_LABELS} value={activeTab} onChange={setActiveTab} />
+        </View>
+        <IconBtn name="document-text-outline" boxed onPress={downloadResume} accessibilityLabel="Download resume" />
+      </View>
+      <View style={{ paddingTop: 12 }}>{renderContent()}</View>
+      {modals}
+    </View>
+  );
+
+  return (
+    <View className="flex-1 bg-paper">
+      <StatusBar barStyle={C.barStyle} />
+
+      <View className="flex-1">
+        <AppBar
+          title="Fync portfolio"
+          onBack={() => navigation.goBack()}
+          right={<Button small variant="tertiary" icon="document-text-outline" title="Resume" onPress={downloadResume}/>}
+        />
+        <View className="px-gutter pb-2">
+          <SegmentedTabs items={TABS} labels={TAB_LABELS} value={activeTab} onChange={setActiveTab} />
+        </View>
+
+        <ScrollView keyboardShouldPersistTaps="handled"
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          refreshControl={<FyncRefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.brand[500]} colors={[C.brand[500]]} />}
+          contentContainerStyle={{ paddingBottom: 44 + bottomInset, paddingTop: 12 }}
+        >
+          {renderContent()}
+        </ScrollView>
+        {modals}
       </View>
       <LevelUpCelebration userId={user?._id} level={badge} />
     </View>
