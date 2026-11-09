@@ -1,3 +1,4 @@
+import './cardFonts.js';
 import cron from 'node-cron';
 import sharp from 'sharp';
 import mongoose from 'mongoose';

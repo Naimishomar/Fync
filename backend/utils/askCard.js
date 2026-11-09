@@ -1,3 +1,4 @@
+import './cardFonts.js';
 /**
  * "Ask me anything" story card, 1080x1920: the anonymous question in a white card
  * on the brand gradient, the answer under it, and the sender's own link.

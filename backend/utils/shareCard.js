@@ -1,3 +1,4 @@
+import './cardFonts.js';
 /**
  * Share cards: the image a user shares for a post or their profile, and the
  * og:image WhatsApp/Instagram show for the link. SVG built here, rasterised by
