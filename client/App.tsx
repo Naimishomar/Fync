@@ -276,8 +276,6 @@ export type RootStackParamList = {
   MovieList: { title: string; type?: 'trending' | 'popular' | 'upcoming' | 'bollywood'; genre?: number };
   PartyPool: undefined;
   SubscriptionScreen: undefined;
-  AudioCallLobby: undefined;
-  VideoCallLobby: undefined;
   UtilityHubScreen: undefined;
   ImageToPdfScreen: undefined;
   ImageCompressorScreen: undefined;
@@ -460,8 +458,6 @@ function AppStack() {
       <Stack.Screen name="PlacementPredictor" getComponent={() => require('./components/newFeatures/PlacementPredictor').default} />
       <Stack.Screen name="SpeakerSessionScreen" getComponent={() => require('./components/events/SpeakerSessionScreen').default} />
       <Stack.Screen name="BootcampScreen" getComponent={() => require('./components/events/BootcampScreen').default} />
-      <Stack.Screen name="AudioCallLobby" getComponent={() => require('./components/audioCall/AudioCallLobby').default} />
-      <Stack.Screen name="VideoCallLobby" getComponent={() => require('./components/videoCall/VideoCallLobby').default} />
       
       {/* Utility Hub */}
       <Stack.Screen name="UtilityHubScreen" getComponent={() => require('./components/utility/UtilityHubScreen').default} />

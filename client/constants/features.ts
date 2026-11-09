@@ -113,8 +113,6 @@ export const FEATURES: Feature[] = [
   { id: 'confessions', art: 'assets/Shushing face/3D/shushing_face_3d.png', label: 'Confessions', hint: 'Post anonymously', icon: 'chatbubble-ellipses-outline', route: 'ConfessionFeed', tint: '#14b8a6', category: 'fun', keywords: ['anonymous', 'secret'] },
   { id: 'ask', art: 'assets/Speech balloon/3D/speech_balloon_3d.png', label: 'Ask me anything', hint: 'Anonymous questions from your link', icon: 'chatbox-ellipses-outline', route: 'AskInbox', tint: '#F97316', category: 'fun', keywords: ['ngl', 'anonymous', 'questions', 'ama', 'q&a', 'link', 'story'] },
   { id: 'listenTogether', art: 'assets/Headphone/3D/headphone_3d.png', label: 'Listen Together', hint: 'Same song, same moment, with friends', icon: 'headset-outline', route: 'ListenTogether', tint: '#8b5cf6', category: 'fun', keywords: ['music', 'songs', 'listen', 'party', 'spotify', 'jam', 'together', 'sync'] },
-  { id: 'audioCall', art: d3('headphone'), label: 'Audio Rooms', hint: 'Live voice calls', icon: 'call-outline', route: 'AudioCallLobby', tint: '#db2777', category: 'fun', keywords: ['voice', 'call'] },
-  { id: 'videoCall', art: d3('video-camera'), label: 'Video Rooms', hint: 'Live video calls', icon: 'videocam-outline', route: 'VideoCallLobby', tint: '#db2777', category: 'fun', keywords: ['call', 'face'] },
   { id: 'movies', art: d3('play'), label: 'Entertainment', hint: 'Movies and trailers', icon: 'film-outline', route: 'EntertainmentHome', tint: '#e11d48', category: 'fun', keywords: ['movie', 'trailer', 'cinema'] },
 
   { id: 'store', art: d3('card'), label: 'Fync Store', hint: 'Student deals, curated', icon: 'pricetags-outline', route: 'AffiliateStore', tint: '#EA580C', category: 'campus', keywords: ['shop', 'deals', 'buy', 'discount', 'affiliate'] },
@@ -132,8 +130,8 @@ export const LAUNCH_HIDDEN = new Set<string>([
   // registry ids
   'studyAssistant', 'focus', 'notesExchange', 'workshops', 'placement', 'contests',
   'battle1v1', 'createRoom', 'joinRoom', 'shadowRival', 'alumni', 'alumniConnect',
-  'proHub', 'communities', 'startups', 'fyncMedia', 'rewards', 'audioCall',
-  'videoCall', 'movies', 'store', 'myShares', 'storeAdmin',
+  'proHub', 'communities', 'startups', 'fyncMedia', 'rewards',
+  'movies', 'store', 'myShares', 'storeAdmin',
   // not in the registry, gated at their entry points
   'aiInterview', 'placementPredictor', 'coinToss', 'flappyBird', 'drawGuess',
   'alumniSignup',
