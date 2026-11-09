@@ -796,7 +796,7 @@ export default function FyncMediaFeed() {
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
+      allowsEditing: Platform.OS === 'ios',
       aspect: [16, 9],
       quality: 0.8,
     });
@@ -806,7 +806,7 @@ export default function FyncMediaFeed() {
   const pickVideo = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-      allowsEditing: true,
+      allowsEditing: Platform.OS === 'ios',
       aspect: [16, 9],
       quality: 0.8,
     });

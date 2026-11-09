@@ -566,7 +566,7 @@ const AdminPortal = ({ navigation }: any) => {
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             quality: 0.8,
             aspect: [16, 9],
-            allowsEditing: true
+            allowsEditing: Platform.OS === 'ios'
         });
         if (!result.canceled) {
             setImageUri(result.assets[0].uri);

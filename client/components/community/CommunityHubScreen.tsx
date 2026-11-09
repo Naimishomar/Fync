@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, ScrollView, Linking, Share, StatusBar, Animated } from 'react-native';
+import { View, Text, Pressable, ScrollView, Linking, Share, StatusBar, Animated, Platform } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
@@ -375,7 +375,7 @@ const CommunityHubScreen = ({ navigation, route }: any) => {
     const pickImage = async (setter: (uri: string) => void, isBanner: boolean = false) => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
-            allowsEditing: true,
+            allowsEditing: Platform.OS === 'ios',
             aspect: isBanner ? [16, 9] : [1, 1],
             quality: 0.8,
         });

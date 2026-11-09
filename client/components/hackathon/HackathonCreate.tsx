@@ -190,7 +190,7 @@ const HackathonCreate = () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
-        allowsEditing: true,
+        allowsEditing: Platform.OS === 'ios',
         aspect: type === 'banner' ? [16, 9] : [1, 1],
         quality: 0.8,
       });
@@ -315,7 +315,7 @@ const HackathonCreate = () => {
 
   const pickSponsorLogo = async (i: number) => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.8 });
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: Platform.OS === 'ios', aspect: [1, 1], quality: 0.8 });
       if (!result.canceled) updateSponsor(i, 'logo', result.assets[0].uri);
     } catch { Alert.alert('Error', 'Failed to pick logo'); }
   };

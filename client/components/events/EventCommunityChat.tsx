@@ -259,7 +259,7 @@ export default function EventCommunityChat({ route }: any) {
         try {
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ['images'],
-                allowsEditing: true,
+                allowsEditing: Platform.OS === 'ios',
                 quality: 0.6,
             });
             if (!result.canceled && result.assets?.[0]) {

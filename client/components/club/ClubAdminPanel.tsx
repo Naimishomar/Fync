@@ -73,7 +73,7 @@ const ClubAdminPanel = () => {
     const pickImage = async (type: 'logo' | 'banner') => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
+            allowsEditing: Platform.OS === 'ios',
             aspect: type === 'logo' ? [1, 1] : [16, 9],
             quality: 0.8,
         });

@@ -52,7 +52,7 @@ export default function RecruiterEditProfile() {
   const pickImage = async (type: 'avatar' | 'banner') => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
+      allowsEditing: Platform.OS === 'ios',
       aspect: type === 'avatar' ? [1, 1] : [16, 9],
       quality: 0.5,
     });

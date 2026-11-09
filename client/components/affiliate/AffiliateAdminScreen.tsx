@@ -5,7 +5,7 @@
  * POST /affiliate/add-product, which had no way to be called.
  */
 import React, { useState, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -50,7 +50,7 @@ export default function AffiliateAdminScreen() {
       quality: 0.8,
       // Product tiles are square, so cropping here is what stops the store
       // grid from showing letterboxed photos.
-      allowsEditing: true,
+      allowsEditing: Platform.OS === 'ios',
       aspect: [1, 1],
     });
     if (!res.canceled && res.assets?.[0]) setPhoto(res.assets[0]);

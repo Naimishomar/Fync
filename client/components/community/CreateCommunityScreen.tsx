@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StatusBar } from 'react-native';
+import { View, StatusBar, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../../context/axiosConfig';
@@ -35,7 +35,7 @@ const CreateCommunityScreen = () => {
     const pickImage = async (setter: (uri: string) => void, isBanner: boolean = false) => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
-            allowsEditing: true,
+            allowsEditing: Platform.OS === 'ios',
             aspect: isBanner ? [16, 9] : [1, 1],
             quality: 0.8,
         });

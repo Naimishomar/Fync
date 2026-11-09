@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
-import { View, Text, FlatList, Pressable, Modal, Switch, Linking, ActivityIndicator, type ListRenderItem } from 'react-native';
+import { View, Text, FlatList, Pressable, Modal, Switch, Linking, ActivityIndicator, type ListRenderItem, Platform } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -23,7 +23,7 @@ export interface ContactDetail { name: string; mobile: string; email: string }
 export const pickImage = async (setter: (uri: string) => void) => {
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
+    allowsEditing: Platform.OS === 'ios',
     quality: 0.8,
   });
   if (!result.canceled) setter(result.assets[0].uri);

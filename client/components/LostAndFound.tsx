@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Pressable, Animated, StatusBar } from 'react-native'
+import { View, Text, FlatList, ActivityIndicator, Pressable, Animated, StatusBar, Platform } from 'react-native'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import axios from '../context/axiosConfig';
@@ -166,7 +166,7 @@ const LostAndFound = () => {
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
+            allowsEditing: Platform.OS === 'ios',
             quality: 0.7,
         });
         if (!result.canceled) setNewItemImage(result.assets[0]);

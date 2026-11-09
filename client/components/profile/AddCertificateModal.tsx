@@ -59,7 +59,7 @@ export default function AddCertificateModal({ visible, initial, onClose, onSucce
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
+      allowsEditing: Platform.OS === 'ios',
       quality: 0.5,
     });
 
