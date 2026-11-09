@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Text, View, Pressable, Linking, ActivityIndicator, DeviceEventEmitter, Share } from 'react-native';
 import { shareRecap } from '../utils/shareCard';
 import CodingProfilesModal from './profile/CodingProfilesModal';
+import GitHubStatsCard from './profile/GitHubStatsCard';
 import { profileLink } from './ui/ProfileQR';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
@@ -198,6 +199,22 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
 }
 
 // ─── ABOUT TAB ────────────────────────────────────────────────────────────────
+/** Owner-only placeholder for an empty About section: one tap to the editor. */
+const AddRow = ({ label, hint, onPress }: { label: string; hint: string; onPress: () => void }) => (
+  <Pressable
+    onPress={onPress}
+    className="flex-row items-center p-3 rounded-xl border border-dashed border-line active:opacity-85"
+    style={{ gap: 10, minHeight: 48 }}
+    accessibilityRole="button"
+    accessibilityLabel={label}
+  >
+    <Ionicons name="add-circle-outline" size={20} color={C.accentText} />
+    <View className="flex-1">
+      <Text className="text-accent-text font-semibold text-sm">{label}</Text>
+      <Text className="text-ink-3 text-xs mt-0.5">{hint}</Text>
+    </View>
+  </Pressable>
+);
 const asList = (v?: string | string[]) => (Array.isArray(v) ? v : [v]).filter(Boolean) as string[];
 
 function AboutSection({ user, isOwner, onRefresh, onLinkCoding }: { user: UserType; isOwner: boolean; onRefresh: () => void; onLinkCoding?: () => void }) {
@@ -249,26 +266,35 @@ function AboutSection({ user, isOwner, onRefresh, onLinkCoding }: { user: UserTy
       )}
 
       {/* ── About ──────────────────────────────────────────────────────── */}
-      {!!user?.about && (
+      {/* Owners see an empty section with an add row instead of it vanishing. */}
+      {!!(user?.about || isOwner) && (
         <ProfileSection title="About me">
-          <Text className="text-ink-2 text-sm leading-[22px]">{user.about}</Text>
+          {user?.about
+            ? <Text className="text-ink-2 text-sm leading-[22px]">{user.about}</Text>
+            : <AddRow label="Add a bio" hint="A line about you, so people know who they're talking to" onPress={() => navigation.navigate('EditProfile')} />}
         </ProfileSection>
       )}
 
       {/* ── Skills ─────────────────────────────────────────────────────── */}
-      {skills.length > 0 && (
+      {(skills.length > 0 || isOwner) && (
         <ProfileSection title="Skills and stack">
-          <TagRow>{skills.map((s, i) => <Tag key={i} label={s} />)}</TagRow>
+          {skills.length
+            ? <TagRow>{skills.map((s, i) => <Tag key={i} label={s} />)}</TagRow>
+            : <AddRow label="Add skills" hint="Recruiters and teammates search by these" onPress={() => navigation.navigate('FyncProfileBuilder')} />}
         </ProfileSection>
       )}
 
       {/* ── Interests & Hobbies ────────────────────────────────────────── */}
-      {(interests.length > 0 || hobbies.length > 0) && (
+      {(interests.length > 0 || hobbies.length > 0 || isOwner) && (
         <ProfileSection title="Interests">
-          <TagRow>
-            {interests.map((t, i) => <Tag key={`i${i}`} label={t} icon="sparkles-outline" />)}
-            {hobbies.map((h, i) => <Tag key={`h${i}`} label={h} icon="heart-outline" />)}
-          </TagRow>
+          {interests.length || hobbies.length ? (
+            <TagRow>
+              {interests.map((t, i) => <Tag key={`i${i}`} label={t} icon="sparkles-outline" />)}
+              {hobbies.map((h, i) => <Tag key={`h${i}`} label={h} icon="heart-outline" />)}
+            </TagRow>
+          ) : (
+            <AddRow label="Add interests" hint="Shows people what you're into" onPress={() => navigation.navigate('EditProfile')} />
+          )}
         </ProfileSection>
       )}
 
@@ -332,6 +358,25 @@ function AboutSection({ user, isOwner, onRefresh, onLinkCoding }: { user: UserTy
             <Button variant="ghost" small title="Enter solved counts manually" onPress={() => setShowCodingModal(true)} style={{ marginTop: 8, alignSelf: 'center' }} />
           ) : null}
         </ProfileSection>
+      )}
+
+      {/* ── GitHub ─────────────────────────────────────────────────────── */}
+      {/* Was only on other people's profiles and inside Portfolio. Sync and
+          disconnect stay in Portfolio; here it's view + connect. */}
+      {isOwner && (
+        <View className="mt-6">
+          <GitHubStatsCard
+            username={(user as any)?.githubUsername}
+            stats={(user as any)?.githubStats}
+            isOwner={!(user as any)?.githubUsername}
+            onConnect={async () => {
+              try {
+                const res = await axios.get('/profile/github/connect');
+                if (res.data.url) await Linking.openURL(res.data.url);
+              } catch { Toast.show({ type: 'error', text1: 'Could not start GitHub connect' }); }
+            }}
+          />
+        </View>
       )}
 
       {/* ── Social Links ───────────────────────────────────────────────── */}
@@ -670,8 +715,14 @@ function Profile() {
       <ProfileStrength user={user} onLinkCoding={openLinkCoding} />
       <ActivityCalendar userId={user?._id} streak={(user as any)?.streakCount} highest={(user as any)?.highestStreak} refreshKey={`${postCount}:${codingKey}`} accent={(user as any)?.accentColor} onLinkCoding={openLinkCoding} />
       {!!user?._id && (
-        <Button title="Share my week" icon="share-social-outline" block style={{ marginTop: 12 }}
-          onPress={() => shareRecap(user._id, () => Share.share({ message: `My week on Fync: ${profileLink(user._id)}` }))} />
+        <View className="flex-row mt-3 w-full" style={{ gap: 12 }}>
+          <Button title="Share my week" icon="share-social-outline" style={{ flex: 1 }}
+            onPress={() => shareRecap(user._id, () => Share.share({ message: `My week on Fync: ${profileLink(user._id)}` }))} />
+          {/* AMA was only reachable from Explore; the inbox has the link + share. */}
+          {isFeatureOn('ask') && (
+            <Button title="Ask me anything" icon="chatbubbles-outline" style={{ flex: 1 }} onPress={() => navigation.navigate('AskInbox')} />
+          )}
+        </View>
       )}
     </ProfileHero>
   );

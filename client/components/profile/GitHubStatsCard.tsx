@@ -1,13 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, Pressable, Linking, ActivityIndicator, Animated, Easing } from 'react-native';
+import { View, Text, Pressable, Linking, Animated, Easing } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { C } from '../../constants/colors';
-import { Card, Button, IconBtn, IconTile, Num, H2 } from '../ui/kit';
-
-// The stat cards are transparent SVGs: their text must follow the theme or it
-// vanishes on the dark card.
-const hx = (c: string) => c.replace('#', '');
+import { Card, Button, IconBtn, IconTile, Num, H2, Tag, TagRow } from '../ui/kit';
 
 interface Props {
   username?: string;
@@ -35,46 +31,9 @@ const StatItem = ({ label, value, icon, color }: any) => (
   </View>
 );
 
-/** Titled panel holding one remote stats image with a spinner until it loads. */
-const Widget = ({ title, uri, height, loading, onLoading, transition, flex }: {
-  title: string; uri: string; height: number; loading: boolean; onLoading: (v: boolean) => void; transition: number; flex?: boolean;
-}) => (
-  <View className="rounded-2xl border border-line overflow-hidden" style={flex ? { flex: 1 } : undefined}>
-    <Text className="text-ink-2 text-sm font-semibold px-4 py-3 border-b border-line">{title}</Text>
-    <View className="p-3 bg-paper-2 justify-center items-center" style={{ minHeight: height }}>
-      {loading ? <View className="absolute z-10"><ActivityIndicator color={C.brand[500]} /></View> : null}
-      <ExpoImage
-        source={{ uri }}
-        style={{ width: '100%', height }}
-        contentFit="contain"
-        transition={transition}
-        onLoadStart={() => onLoading(true)}
-        onLoad={() => onLoading(false)}
-        onError={() => onLoading(false)}
-        accessibilityLabel={`${title} chart`}
-      />
-    </View>
-  </View>
-);
-
 export default function GitHubStatsCard({
   username, stats, isOwner, onConnect, onSync, onDisconnect
 }: Props) {
-  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({
-    general: true,
-    langs: true,
-    streak: true,
-  });
-
-  const updateLoading = (key: string, isLoading: boolean) => {
-    setLoadingStates(prev => ({ ...prev, [key]: isLoading }));
-  };
-
-  // Cache-buster for the stat images. Falling back to Date.now() inline gave a
-  // new URL on every render, so each parent re-render reloaded all three.
-  const [mountedAt] = useState(() => Date.now());
-  const bust = stats?.lastFetched ? new Date(stats.lastFetched).getTime() || mountedAt : mountedAt;
-
   const spinValue = useRef(new Animated.Value(0)).current;
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -121,8 +80,6 @@ export default function GitHubStatsCard({
     );
   }
 
-  const u = encodeURIComponent(username || '');
-
   return (
     <Card style={{ marginHorizontal: 16, marginBottom: 12 }}>
       <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
@@ -156,44 +113,25 @@ export default function GitHubStatsCard({
 
       <View className="flex-row mb-4" style={{ gap: 8 }}>
         <StatItem label="Commits" value={stats?.totalCommits || 0} icon="git-commit-outline" color={C.ink2} />
+        <StatItem label="Repos" value={stats?.totalRepos || 0} icon="folder-outline" color={C.ink2} />
         <StatItem label="Stars" value={stats?.totalStars || 0} icon="star-outline" color={C.warning} />
         <StatItem label="Streak" value={`${stats?.contributionStreak || 0}d`} icon="flame-outline" color={C.danger} />
       </View>
 
       {!!stats?.bio && (
-        <Text className="text-ink-2 text-sm leading-5 font-sans italic bg-paper-2 p-3 rounded-2xl mb-4">"{stats.bio}"</Text>
+        <Text className="text-ink-2 text-sm leading-5 font-sans italic bg-paper-2 p-3 rounded-2xl mb-4">&ldquo;{stats.bio}&rdquo;</Text>
       )}
 
-      <View style={{ gap: 12 }}>
-        <Widget
-          title="Overview"
-          height={180}
-          transition={500}
-          loading={loadingStates.general}
-          onLoading={(v) => updateLoading('general', v)}
-          uri={`https://github-readme-stats-sigma-five.vercel.app/api?username=${u}&show_icons=true&theme=transparent&hide_border=true&title_color=${hx(C.ink)}&text_color=${hx(C.ink3)}&icon_color=f97316&cache_seconds=1800&t=${bust}`}
-        />
-        <View className="flex-row" style={{ gap: 12 }}>
-          <Widget
-            flex
-            title="Languages"
-            height={150}
-            transition={600}
-            loading={loadingStates.langs}
-            onLoading={(v) => updateLoading('langs', v)}
-            uri={`https://github-readme-stats-sigma-five.vercel.app/api/top-langs/?username=${u}&layout=compact&theme=transparent&hide_border=true&title_color=${hx(C.ink)}&text_color=${hx(C.ink3)}&cache_seconds=1800&t=${bust}`}
-          />
-          <Widget
-            flex
-            title="Streak"
-            height={150}
-            transition={700}
-            loading={loadingStates.streak}
-            onLoading={(v) => updateLoading('streak', v)}
-            uri={`https://streak-stats.demolab.com/?user=${u}&theme=transparent&hide_border=true&stroke=00000000&background=00000000&ring=f97316&fire=f97316&currStreakLabel=f97316&currStreakNum=${hx(C.ink)}&sideNums=${hx(C.ink3)}&sideLabels=${hx(C.ink3)}&dates=${hx(C.ink3)}&t=${bust}`}
-          />
+      {/* Native, from our own synced stats. The third-party readme-stats images
+          kept hitting their shared rate limit and showed raw error text. */}
+      {stats?.topLanguages?.length ? (
+        <View>
+          <Text className="text-ink-2 text-sm font-semibold mb-2">Top languages</Text>
+          <TagRow>
+            {stats.topLanguages.slice(0, 8).map((l) => <Tag key={l} label={l} icon="code-slash-outline" />)}
+          </TagRow>
         </View>
-      </View>
+      ) : null}
 
       <View className="mt-4 flex-row items-center justify-between">
         <Text className="text-xs text-ink-3 font-sans">

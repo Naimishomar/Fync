@@ -10,6 +10,24 @@ import Animated, {
 } from 'react-native-reanimated';
 import { checkClubStatus } from '../../utils/nightClub';
 import { AppBar, Button } from '../ui/kit';
+import * as Notifications from 'expo-notifications';
+import Toast from 'react-native-toast-message';
+
+/** One local reminder for the next opening; the fixed identifier replaces any earlier one. */
+const remindAtOpen = async (secondsLeft: number) => {
+  const perm = await Notifications.requestPermissionsAsync();
+  if (!perm.granted) {
+    Toast.show({ type: 'error', text1: 'Notifications are off', text2: 'Turn them on in phone settings to get the reminder.' });
+    return false;
+  }
+  await Notifications.scheduleNotificationAsync({
+    identifier: 'nightclub-open',
+    content: { title: 'The 12 AM Club is open 🌙', body: 'Anonymous campus chat, live till 6 AM.' },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: Math.max(60, secondsLeft), channelId: 'default' },
+  });
+  Toast.show({ type: 'success', text1: "We'll remind you at 12 AM" });
+  return true;
+};
 
 // A fixed night palette: this screen is a night sky in both app themes.
 const SKY = ['#1E1236', '#120B22', '#07060B'] as const;
@@ -76,6 +94,12 @@ export default function TwelveAMLockScreen() {
   const { width, height } = useWindowDimensions();
   const stars = useStars(width, height);
   const [status, setStatus] = useState(checkClubStatus);
+  const [reminded, setReminded] = useState(false);
+  useEffect(() => {
+    Notifications.getAllScheduledNotificationsAsync()
+      .then((list) => setReminded(list.some((n) => n.identifier === 'nightclub-open')))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     // IST, not the device clock: the server gates on IST.
@@ -141,12 +165,15 @@ export default function TwelveAMLockScreen() {
           </View>
           {isOpen ? (
             <Button title="Enter club" icon="arrow-forward" variant="primary" block onPress={() => navigation.navigate('TwelveAMClub')} />
-          ) : (
+          ) : reminded ? (
             <View style={{ height: 52, borderRadius: 26, backgroundColor: GLASS, borderWidth: 1, borderColor: GLASS_LINE, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-              accessibilityRole="text" accessibilityLabel={`Club closed. Opens in ${h} hours ${m} minutes`}>
-              <Ionicons name="lock-closed" size={16} color={MUTED} />
-              <Text style={{ color: MUTED, fontFamily: 'Inter_600SemiBold', fontSize: 15 }}>Opens at 12:00 AM</Text>
+              accessibilityRole="text" accessibilityLabel="Reminder set for 12 AM">
+              <Ionicons name="notifications" size={16} color={MOON} />
+              <Text style={{ color: INK, fontFamily: 'Inter_600SemiBold', fontSize: 15 }}>Reminder set for 12:00 AM</Text>
             </View>
+          ) : (
+            <Button title="Remind me at 12 AM" icon="notifications-outline" variant="primary" block
+              onPress={() => remindAtOpen(left).then((ok) => ok && setReminded(true)).catch(() => {})} />
           )}
         </View>
       </ScrollView>
