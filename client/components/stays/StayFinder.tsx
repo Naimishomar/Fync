@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated from 'react-native-reanimated';
@@ -7,7 +8,7 @@ import axios from '../../context/axiosConfig';
 import { useAuth } from '../../context/auth.context';
 import { C } from '../../constants/colors';
 import { useBottomInset } from '../../constants/layout';
-import { AppBar, Button, Chip, ChipRow, Empty, FilterChips, IconBtn, Label, Screen, SegmentedTabs, Tag, TagRow } from '../ui/kit';
+import { AppBar, Badge, Button, Chip, Empty, FilterChips, IconBtn, Label, Screen, SegmentedTabs, Tag, TagRow } from '../ui/kit';
 import Skeleton from '../Skeleton';
 import { TYPE } from '../../constants/type';
 import { ActionSheet, Sheet, type SheetAction } from '../ui/Sheet';
@@ -29,6 +30,9 @@ export const HABIT_LABEL: Record<string, string> = {
 };
 export const rupees = (n?: number | null) => (n == null ? '' : `₹${n.toLocaleString('en-IN')}`);
 export const daysLeft = (iso: string) => Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000));
+/** " · 1.2 km<suffix>", " · near college" under 0.5 km ("0 km" read like a bug), "" when unknown. */
+export const distanceText = (km: number | null | undefined, suffix = '') =>
+  km == null ? '' : km < 0.5 ? ' · near college' : ` · ${km} km${suffix}`;
 export const expiresText = (iso: string) => { const d = daysLeft(iso); return d <= 1 ? 'Expires today' : `Expires in ${d}d`; };
 
 export type StayCard = {
@@ -59,9 +63,10 @@ export const StayRow = memo(function StayRow({ stay, index, onOpen }: { stay: St
             {KIND_LABEL[stay.kind]} · {GENDER_LABEL[stay.forGender]}{stay.status === 'filled' ? ' · Filled' : ''}
           </Text>
           <Text className="text-ink" style={TYPE.heading} numberOfLines={1}>{stay.title}</Text>
-          <Text className="text-ink-2" style={TYPE.sm} numberOfLines={1}>
-            📍 {stay.area}{stay.distanceKm != null ? ` · ${stay.distanceKm} km` : ''}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+            <Ionicons name="location-outline" size={13} color={C.ink3} />
+            <Text className="text-ink-2" style={[TYPE.sm, { flexShrink: 1 }]} numberOfLines={1}>{stay.area}{distanceText(stay.distanceKm)}</Text>
+          </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 'auto' }}>
             <Text className="text-ink font-display" style={{ fontSize: 17 }} numberOfLines={1}>{rupees(stay.rent)}<Text className="text-ink-3" style={TYPE.caption}>/mo</Text></Text>
             <View style={{ flex: 1, minWidth: 8 }} />
@@ -90,7 +95,7 @@ export default function StayFinder() {
   const { user } = useAuth() as any;
   const bottom = useBottomInset();
   const [kind, setKind] = useState<KindTab>('all');
-  const [sort, setSort] = useState<'newest' | 'cheapest'>('newest');
+  const sort = 'newest';
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [draft, setDraft] = useState<Filters>(NO_FILTERS);
   const [sheet, setSheet] = useState(false);
@@ -187,13 +192,18 @@ export default function StayFinder() {
           ))}
         </View>
       ) : null}
-      <SegmentedTabs items={KINDS} value={kind} onChange={(v) => { tick(); setKind(v); }} labels={KIND_TABS} style={{ marginBottom: 12 }} />
-      <ChipRow style={{ marginBottom: 12 }}>
-        <Chip icon="options-outline" label={activeFilters ? `Filters · ${activeFilters}` : 'Filters'} active={activeFilters > 0}
-          onPress={() => { setDraft(filters); setSheet(true); }} />
-        <Chip label="Newest" active={sort === 'newest'} onPress={() => { tick(); setSort('newest'); }} />
-        <Chip label="Cheapest" active={sort === 'cheapest'} onPress={() => { tick(); setSort('cheapest'); }} />
-      </ChipRow>
+      {/* Type tabs + filters on one row; listings are always newest first. */}
+      <View className="flex-row items-center" style={{ gap: 8, marginBottom: 12 }}>
+        <SegmentedTabs items={KINDS} value={kind} onChange={(v) => { tick(); setKind(v); }} labels={KIND_TABS} style={{ flex: 1 }} />
+        <View>
+          <IconBtn name="options-outline" boxed color={activeFilters ? C.accentText : C.ink2}
+            onPress={() => { setDraft(filters); setSheet(true); }}
+            accessibilityLabel={activeFilters ? `Filters, ${activeFilters} on` : 'Filters'} />
+          {activeFilters ? (
+            <View pointerEvents="none" style={{ position: 'absolute', top: -2, right: -2 }}><Badge value={activeFilters} tone={C.brand[500]} /></View>
+          ) : null}
+        </View>
+      </View>
     </View>
   );
 

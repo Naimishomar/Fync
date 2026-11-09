@@ -12,7 +12,7 @@ import { ProgressiveImage } from '../ui/ProgressiveImage';
 import { PressScale, tick } from '../ui/motion';
 import Skeleton from '../Skeleton';
 import { TYPE } from '../../constants/type';
-import { AmenityTags, FOOD_LABEL, GENDER_LABEL, HABIT_LABEL, KIND_LABEL, StayCard, expiresText, rupees } from './StayFinder';
+import { AmenityTags, FOOD_LABEL, GENDER_LABEL, HABIT_LABEL, KIND_LABEL, StayCard, distanceText, expiresText, rupees } from './StayFinder';
 
 type Stay = Omit<StayCard, 'photo'> & {
   photos: string[]; deposit?: number | null; description?: string; moveIn?: string | null; budget?: number | null;
@@ -130,6 +130,11 @@ export default function StayDetail() {
               )}
             />
             {stay.photos.length > 1 ? (
+              <View pointerEvents="none" style={{ position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 }}>
+                <Text style={{ color: '#fff', fontSize: 12, fontFamily: 'Inter_600SemiBold' }}>{page + 1}/{stay.photos.length}</Text>
+              </View>
+            ) : null}
+            {stay.photos.length > 1 ? (
               <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 }}>
                 {stay.photos.map((p, i) => (
                   <View key={p} accessible={false} style={{ width: i === page ? 16 : 6, height: 6, borderRadius: 3, backgroundColor: i === page ? C.brand[500] : C.line }} />
@@ -144,11 +149,15 @@ export default function StayDetail() {
             {KIND_LABEL[stay.kind]} · {expiresText(stay.expiresAt)}{stay.status === 'filled' ? ' · Filled' : ''}
           </Text>
           <Text className="text-ink" style={[TYPE.subtitle, { marginTop: 4 }]} accessibilityRole="header" numberOfLines={3}>{stay.title}</Text>
-          <Text className="text-ink-2" style={[TYPE.body, { marginTop: 4 }]} numberOfLines={2}>
-            📍 {stay.area}{stay.distanceKm != null ? ` · ${stay.distanceKm} km from college` : ''}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+            <Ionicons name="location-outline" size={16} color={C.ink3} />
+            <Text className="text-ink-2" style={[TYPE.body, { flexShrink: 1 }]} numberOfLines={2}>
+              {stay.area}{distanceText(stay.distanceKm, ' from college')}
+            </Text>
+          </View>
 
-          <Card style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', paddingVertical: 8 }}>
+          {/* Own horizontal padding: a vertical-only padding made Card skip its default, so labels sat on the border. */}
+          <Card style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', paddingVertical: 8, paddingHorizontal: 16 }}>
             <Fact label={stay.kind === 'roommate' ? 'Rent share' : 'Rent'} value={`${rupees(stay.rent)}/mo`} />
             {stay.deposit != null ? <Fact label="Deposit" value={rupees(stay.deposit)} /> : null}
             <Fact label="For" value={GENDER_LABEL[stay.forGender]} />
