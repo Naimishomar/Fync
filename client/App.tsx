@@ -265,7 +265,7 @@ export type RootStackParamList = {
   HackathonDetail: { hackathonId: string };
   HackathonWinners: { hackathonId: string; hackathonTitle?: string };
   // Profile Builder
-  FyncProfileBuilder: undefined;
+  FyncProfileBuilder: { tab?: 'overview' | 'projects' | 'experience' | 'certs'; username?: string } | undefined;
   // Entertainment Module
   EntertainmentHome: undefined;
   MovieDetail: { movieId: number };

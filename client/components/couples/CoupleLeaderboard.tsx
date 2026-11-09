@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from '../../context/axiosConfig';
 import { C } from '../../constants/colors';
@@ -61,7 +61,9 @@ const CoupleLeaderboard = () => {
         </View>
       ) : null}
       {me && !me.listed && me.score > 0 ? (
-        <Text className="font-sans text-ink-3 text-xs mx-5 mb-3">Both of you switch on "Show us on the leaderboard" in Couple Space to appear here.</Text>
+        <Pressable onPress={() => navigation.navigate('CoupleSpace')} className="mx-5 mb-3 active:opacity-85" accessibilityRole="button">
+          <Text className="font-sans text-ink-3 text-xs">Both of you switch on &quot;Show us on the leaderboard&quot; in Couple Space to appear here. <Text className="font-semibold text-accent-text">Open Couple Space</Text></Text>
+        </Pressable>
       ) : null}
 
       {data === null && !error ? (

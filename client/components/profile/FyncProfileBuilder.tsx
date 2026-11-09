@@ -116,7 +116,8 @@ export default function FyncProfileBuilder() {
   const [badge, setBadge] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'experience' | 'certs'>('overview');
+  // ?tab= lets a "Add education" chip land on the right tab instead of Overview.
+  const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'experience' | 'certs'>(route.params?.tab ?? 'overview');
 
   // Modals
   const [showAddProject, setShowAddProject] = useState(false);

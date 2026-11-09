@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Text, View, Pressable, Linking, ActivityIndicator, DeviceEventEmitter, Share } from 'react-native';
 import { shareRecap } from '../utils/shareCard';
+import CodingProfilesModal from './profile/CodingProfilesModal';
 import { profileLink } from './ui/ProfileQR';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
@@ -22,6 +23,7 @@ import { ActivityCalendar } from './profile-shared/ActivityCalendar';
 import { profileAccent } from '../constants/profileAccents';
 import { GridSkeleton } from './Skeleton';
 import { useAnimatedReaction, runOnJS } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../constants/colors';
 import { isFeatureOn } from '../constants/features';
 import { AnimatedCount } from './ui/motion';
@@ -47,16 +49,18 @@ type UserType = {
 // ─── PROFILE STRENGTH ────────────────────────────────────────────────────────
 // Only fields /user/profile already returns; projects live behind another API,
 // so they are not counted here.
-const STRENGTH_ITEMS: { label: string; route: 'EditProfile' | 'FyncProfileBuilder'; done: (u: UserType) => boolean }[] = [
+// 'coding' opens the handle sheet in place instead of navigating away.
+const STRENGTH_ITEMS: { label: string; route: 'EditProfile' | 'FyncProfileBuilder' | 'coding'; tab?: string; done: (u: UserType) => boolean }[] = [
   { label: 'Add profile photo', route: 'EditProfile', done: u => !!u?.avatar },
   { label: 'Add a bio', route: 'EditProfile', done: u => !!u?.about?.trim() },
+  { label: 'Link coding profiles', route: 'coding', done: u => Object.values((u as any)?.codingProfiles || {}).some(Boolean) },
   { label: 'Add skills', route: 'FyncProfileBuilder', done: u => !!u?.skills?.length },
-  { label: 'Add education', route: 'FyncProfileBuilder', done: u => !!u?.education?.length },
+  { label: 'Add education', route: 'FyncProfileBuilder', tab: 'experience', done: u => !!u?.education?.length },
   { label: 'Link GitHub', route: 'FyncProfileBuilder', done: u => !!(u?.githubUsername || u?.github_id) },
   { label: 'Upload resume', route: 'FyncProfileBuilder', done: u => !!u?.resumeUrl },
 ];
 
-function ProfileStrength({ user }: { user: UserType }) {
+function ProfileStrength({ user, onLinkCoding }: { user: UserType; onLinkCoding: () => void }) {
   const navigation = useNavigation<any>();
   if (!user?._id) return null;
   const missing = STRENGTH_ITEMS.filter(i => !i.done(user));
@@ -80,7 +84,7 @@ function ProfileStrength({ user }: { user: UserType }) {
         {missing.slice(0, 2).map(i => (
           <Pressable
             key={i.label}
-            onPress={() => navigation.navigate(i.route)}
+            onPress={() => (i.route === 'coding' ? onLinkCoding() : navigation.navigate(i.route, i.tab ? { tab: i.tab } : undefined))}
             className="flex-row items-center bg-brand-50 border border-line px-3 rounded-full active:opacity-85"
             hitSlop={6}
             style={{ minHeight: 32 }}
@@ -196,7 +200,7 @@ function CodingStatsModal({ visible, user, onClose, onSuccess }: {
 // ─── ABOUT TAB ────────────────────────────────────────────────────────────────
 const asList = (v?: string | string[]) => (Array.isArray(v) ? v : [v]).filter(Boolean) as string[];
 
-function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: boolean; onRefresh: () => void }) {
+function AboutSection({ user, isOwner, onRefresh, onLinkCoding }: { user: UserType; isOwner: boolean; onRefresh: () => void; onLinkCoding?: () => void }) {
   const navigation = useNavigation<any>();
   const [showCodingModal, setShowCodingModal] = useState(false);
 
@@ -273,7 +277,8 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
         <Text className="font-semibold text-base text-ink mb-3" accessibilityRole="header">Education</Text>
         {education.length === 0 ? (
           <Card>
-            <Empty icon="school-outline" title="No education yet" hint="Highlight your academic journey here" />
+            <Empty icon="school-outline" title="No education yet" hint="Highlight your academic journey here"
+              action={isOwner ? <Button variant="primary" small title="Add education" onPress={() => navigation.navigate('FyncProfileBuilder', { tab: 'experience' })} /> : undefined} />
           </Card>
         ) : education.map(e => (
           <EducationCard key={e._id} item={e} isOwner={false} />
@@ -285,9 +290,14 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
         <ProfileSection
           title="Coding stats"
           right={isOwner ? (
-            <IconBtn name="pencil-outline" size={18} boxed onPress={() => setShowCodingModal(true)} accessibilityLabel="Edit coding stats" />
+            <IconBtn name="pencil-outline" size={18} boxed onPress={onLinkCoding} accessibilityLabel="Edit coding profiles" />
           ) : undefined}
         >
+          {isOwner && !hasCoding ? (
+            <Empty icon="code-slash-outline" title="No coding profiles linked"
+              hint="Add your LeetCode, GFG, Codeforces or CodeChef username. Stats and your coding streak fill in on their own."
+              action={<Button variant="primary" small title="Link coding profiles" onPress={onLinkCoding} />} />
+          ) : null}
           {cs.totalSolved ? (
             <View className="bg-paper-2 rounded-2xl px-4 py-3 mb-3 flex-row items-center justify-between">
               <View>
@@ -318,6 +328,9 @@ function AboutSection({ user, isOwner, onRefresh }: { user: UserType; isOwner: b
               profileUrl={`https://www.codechef.com/users/${cp.codechef}`}
             />
           </View>
+          {isOwner && hasCoding ? (
+            <Button variant="ghost" small title="Enter solved counts manually" onPress={() => setShowCodingModal(true)} style={{ marginTop: 8, alignSelf: 'center' }} />
+          ) : null}
         </ProfileSection>
       )}
 
@@ -372,6 +385,9 @@ function Profile() {
   // The header shows how many posts exist, not how many have been scrolled
   // into the grid — the first page is 12, which read as a cap.
   const [postCount, setPostCount] = useState<number | null>(null);
+  const [linkCoding, setLinkCoding] = useState(false);
+  const [codingKey, setCodingKey] = useState(0);
+  const openLinkCoding = useCallback(() => setLinkCoding(true), []);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const [hasMoreShorts, setHasMoreShorts] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -651,8 +667,8 @@ function Profile() {
         <Button title="Portfolio" icon="briefcase-outline" variant="primary" style={{ flex: 1, backgroundColor: accentFill, borderColor: accentFill }} onPress={() => navigation.navigate('FyncProfileBuilder')} />
       </View>
 
-      <ProfileStrength user={user} />
-      <ActivityCalendar userId={user?._id} streak={(user as any)?.streakCount} highest={(user as any)?.highestStreak} refreshKey={postCount} accent={(user as any)?.accentColor} />
+      <ProfileStrength user={user} onLinkCoding={openLinkCoding} />
+      <ActivityCalendar userId={user?._id} streak={(user as any)?.streakCount} highest={(user as any)?.highestStreak} refreshKey={`${postCount}:${codingKey}`} accent={(user as any)?.accentColor} onLinkCoding={openLinkCoding} />
       {!!user?._id && (
         <Button title="Share my week" icon="share-social-outline" block style={{ marginTop: 12 }}
           onPress={() => shareRecap(user._id, () => Share.share({ message: `My week on Fync: ${profileLink(user._id)}` }))} />
@@ -678,11 +694,12 @@ function Profile() {
   /** Inline, this was rebuilt on every parent render and took the whole grid
    *  with it. */
   const renderTabItem = useCallback(({ item }: { item: any }) => {
-    if (activeTab === 'about') return <AboutSection user={user} isOwner onRefresh={onRefresh} />;
+    if (activeTab === 'about') return <AboutSection user={user} isOwner onRefresh={onRefresh} onLinkCoding={openLinkCoding} />;
     if (activeTab === 'reposts') return <GridCell item={item} onOpen={openItem} />;
     return <GridCell item={item} isShort={activeTab === 'shorts'} onOpen={openItem} onLongPress={confirmDelete} />;
-  }, [activeTab, user, openItem, confirmDelete]);
+  }, [activeTab, user, openItem, confirmDelete, openLinkCoding]);
 
+  const insets = useSafeAreaInsets();
   const { y: scrollY, onScroll } = useProfileScroll(autoHideTabBar.onScroll);
   // key={activeTab} remounts the list at the top; the bar must follow.
   useEffect(() => { scrollY.value = 0; }, [activeTab, scrollY]);
@@ -698,6 +715,10 @@ function Profile() {
       {/* key={activeTab} forces a remount when the column count changes,
           which both list implementations require. */}
       <CompactProfileBar user={user} y={scrollY} />
+      {/* Settings lived only in the Home drawer; the profile is where people look for it. */}
+      <View style={{ position: 'absolute', top: insets.top + 8, right: 12, zIndex: 20 }}>
+        <IconBtn name="settings-outline" boxed onPress={() => navigation.navigate('SettingsScreen')} accessibilityLabel="Settings" />
+      </View>
       <AnimatedFlashList keyboardShouldPersistTaps="handled"
         key={activeTab}
         onScroll={onScroll}
@@ -723,6 +744,12 @@ function Profile() {
         contentContainerStyle={{ paddingBottom: tabBarClearance }}
       />
       <LevelUpCelebration userId={user?._id} level={user?.fyncBadge} />
+      <CodingProfilesModal
+        visible={linkCoding}
+        initialData={(user as any)?.codingProfiles}
+        onClose={() => setLinkCoding(false)}
+        onSuccess={() => { setLinkCoding(false); setCodingKey((k) => k + 1); onRefresh(); }}
+      />
     </View>
   );
 }

@@ -6,8 +6,10 @@ import {
   ActivityIndicator,
   Pressable,
   Platform,
-  StatusBar
+  StatusBar,
+  Linking
 } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image as ExpoImage } from 'expo-image';
@@ -54,6 +56,11 @@ interface NotificationItem {
 
 const Notification = () => {
   const navigation = useNavigation<any>();
+  // Denied OS permission is why "nothing arrives"; say so instead of "all caught up".
+  const [pushOff, setPushOff] = useState(false);
+  useEffect(() => {
+    Notifications.getPermissionsAsync().then((p) => setPushOff(p.status === 'denied')).catch(() => {});
+  }, []);
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -229,7 +236,13 @@ const Notification = () => {
               </View>
             ) : (
               <View className="mt-16">
-                <Empty icon="notifications-off-outline" title="You're all caught up" hint="Likes, follows and replies will show up here." />
+                {pushOff ? (
+                  <Empty icon="notifications-off-outline" title="Notifications are off"
+                    hint="Turn them on to hear about matches, replies and streak reminders."
+                    action={<Button variant="primary" title="Turn on notifications" onPress={() => Linking.openSettings()} />} />
+                ) : (
+                  <Empty icon="notifications-off-outline" title="You're all caught up" hint="Likes, follows and replies will show up here." />
+                )}
               </View>
             )}
             contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10 }}

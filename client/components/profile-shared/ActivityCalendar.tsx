@@ -31,8 +31,10 @@ const countText = (n: number, noun: string) => (n === 0 ? `No ${noun}s` : `${n} 
 const levelColors = (fill: string) => [C.paper2, `${fill}40`, `${fill}73`, `${fill}A6`, fill];
 const levelOf = (count: number, max: number) => (count <= 0 ? 0 : Math.max(1, Math.ceil((count * 4) / max)));
 
-export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak = 0, highest = 0, refreshKey, accent }: {
+export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak = 0, highest = 0, refreshKey, accent, onLinkCoding }: {
   userId?: string; streak?: number; highest?: number; refreshKey?: unknown;
+  /** Owner only: opens the coding-handle sheet, right where the graph needs it. */
+  onLinkCoding?: () => void;
   /** user.accentColor key; orange when absent. */
   accent?: string;
 }) {
@@ -84,7 +86,14 @@ export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak 
   return (
     <Card style={{ marginTop: 12, width: '100%' }}>
       <View className="flex-row items-center justify-between">
-        <Text className="text-ink font-semibold text-base" accessibilityRole="header">{coding ? 'Coding activity' : 'Activity'}</Text>
+        <View className="flex-row items-center" style={{ gap: 2 }}>
+          <Text className="text-ink font-semibold text-base" accessibilityRole="header">{coding ? 'Coding activity' : 'Activity'}</Text>
+          {coding && onLinkCoding ? (
+            <Pressable onPress={onLinkCoding} hitSlop={12} className="active:opacity-85 p-1" accessibilityRole="button" accessibilityLabel="Edit coding profiles">
+              <Ionicons name="pencil-outline" size={14} color={C.ink3} />
+            </Pressable>
+          ) : null}
+        </View>
         <View className="flex-row items-center" style={{ gap: 4 }}>
           <Ionicons name="flame" size={14} color={fill} />
           <Text className="text-ink-2 text-xs" numberOfLines={1}>
@@ -132,6 +141,20 @@ export const ActivityCalendar = memo(function ActivityCalendar({ userId, streak 
           </View>
         </View>
       </ScrollView>
+
+      {!coding && onLinkCoding ? (
+        <Pressable
+          onPress={onLinkCoding}
+          className="flex-row items-center mt-3 p-3 rounded-xl bg-paper-2 active:opacity-85"
+          style={{ gap: 10, minHeight: 48 }}
+          accessibilityRole="button"
+          accessibilityLabel="Link coding profiles to see your coding streak"
+        >
+          <Ionicons name="code-slash-outline" size={18} color={fill} />
+          <Text className="text-ink-2 text-xs flex-1">Link LeetCode, GFG, Codeforces or CodeChef to see your coding streak here</Text>
+          <Text className="text-xs font-semibold" style={{ color: fill }}>Link</Text>
+        </Pressable>
+      ) : null}
 
       <View className="flex-row items-center justify-between mt-3">
         <Text className="text-ink-2 text-xs" accessibilityLiveRegion="polite" numberOfLines={1} style={{ flexShrink: 1, marginRight: 8 }}>

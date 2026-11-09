@@ -193,7 +193,10 @@ export default function ProfileSetup1() {
             keyExtractor={keyOf}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 8 }}
-            ListEmptyComponent={isCollege ? <Empty icon="school-outline" title={`No college matches "${search}"`} /> : null}
+            ListEmptyComponent={isCollege ? (
+              <Empty icon="school-outline" title={`No college matches "${search}"`} hint="Not on the list? Use the name as you typed it."
+                action={search.trim().length >= 3 ? <Button variant="primary" small title={`Use "${search.trim()}"`} onPress={() => pick(search.trim())} /> : undefined} />
+            ) : null}
             renderItem={({ item }) => (
               <ListRow
                 title={item}

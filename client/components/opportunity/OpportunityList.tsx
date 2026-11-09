@@ -297,6 +297,8 @@ export default function OpportunityList({ type }: { type: Kind }) {
             <View className="mt-4 p-4 bg-paper-2 rounded-2xl flex-row items-center" style={{ gap: 12 }}>
               <Ionicons name="alert-circle-outline" size={20} color={C.accentText} />
               <Text className="text-ink-2 text-sm flex-1">This role needs a resume. Add one to your profile to apply.</Text>
+              <Button title="Add resume" small variant="primary"
+                onPress={() => { setApplyModalVisible(false); navigation.navigate('FyncProfileBuilder'); }} />
             </View>
           ) : null}
         </Sheet>
