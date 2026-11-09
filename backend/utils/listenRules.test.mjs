@@ -82,5 +82,23 @@ const late = applyAction(r, { type: 'next', trackKey: aKey }, 10500, opts);
 assert.equal(late.changed, true); assert.equal(r.track.id, 'b', 'settled to b, stale Next did not skip b');
 assert.equal(Math.round(positionAt(r, 10500)), 500);
 
+// autonext: every phone races to fill silence; exactly one random song wins.
+r = room();
+const first = applyAction(r, { type: 'autonext', trackKey: '', track: T('x', 30) }, 0, opts);
+assert.equal(first.changed, true); assert.equal(r.track.id, 'x');
+assert.equal(applyAction(r, { type: 'autonext', trackKey: '', track: T('y', 30) }, 10, opts).changed, false, 'second phone loses');
+const xKey = r.track.key;
+assert.equal(applyAction(r, { type: 'autonext', trackKey: xKey, track: T('y', 30) }, 5000, opts).changed, false, 'not ended yet');
+assert.equal(applyAction(r, { type: 'autonext', trackKey: xKey, track: T('y', 30) }, 29000, opts).changed, true, 'within 2s of the end');
+assert.equal(r.track.id, 'y');
+// Skip works any time but still only once per track.
+const yKey = r.track.key;
+applyAction(r, { type: 'autonext', trackKey: yKey, skip: true, track: T('z', 30) }, 30000, opts);
+assert.equal(applyAction(r, { type: 'autonext', trackKey: yKey, skip: true, track: T('w', 30) }, 30001, opts).changed, false);
+assert.equal(r.track.id, 'z');
+// After the end (settled to paused-at-end), autonext still fires.
+settle(r, 999999);
+assert.equal(applyAction(r, { type: 'autonext', trackKey: r.track.key, track: T('q', 30) }, 999999, opts).changed, true);
+
 console.log('listen rules tests passed');
 process.exit(0);

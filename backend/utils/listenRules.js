@@ -145,6 +145,25 @@ export const applyAction = (room, action, now, { newKey, userId } = {}) => {
       else { room.position = room.track.duration * 1000; room.playing = false; room.anchorAt = now; }
       break;
     }
+    case 'autonext': {
+      // A phone picked a random song because the current one ended (or none
+      // was playing), or someone tapped skip (`skip: true`). Every phone may
+      // send this at the same moment; only the first one for this track wins,
+      // because it must name the track it saw (trackKey, '' for none).
+      const cur = room.track;
+      if (cur) {
+        if (action.trackKey !== cur.key) return { room, changed: settled };
+        const left = cur.duration * 1000 - positionAt(room, now);
+        if (!action.skip && left > 2000) return { room, changed: settled }; // not over yet: early phone, ignore
+      } else if (action.trackKey) {
+        return { room, changed: settled };
+      }
+      const t = cleanTrack(action.track, newKey?.(), userId);
+      if (!t) return fail('That song can\'t be played.');
+      room.queue = [];
+      startTrack(room, t, now);
+      break;
+    }
     default:
       return fail('Unknown action.');
   }

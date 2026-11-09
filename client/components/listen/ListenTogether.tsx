@@ -9,11 +9,11 @@ import socket from '../../utils/socket';
 import { useAuth } from '../../context/auth.context';
 import { C } from '../../constants/colors';
 import { TYPE } from '../../constants/type';
-import { AppBar, Button, Card, FormField, IconBtn, Empty } from '../ui/kit';
+import { AppBar, Button, Card, FormField, IconBtn, Empty, SearchField } from '../ui/kit';
 import { Alert } from '../ui/AlertModal';
 import Avatar from '../Avatar';
-import MusicPicker from '../music/MusicPicker';
-import type { Track } from '../../utils/audius';
+import { useTrackSearch } from '../music/MusicPicker';
+import { trendingTracks, type Track } from '../../utils/audius';
 import { useSyncedPlayer, expectedPosition, type LtState } from '../../utils/listenPlayer';
 
 /**
@@ -39,7 +39,10 @@ export default function ListenTogether() {
   const [phase, setPhase] = useState<'connecting' | 'lobby' | 'room'>('connecting');
   const [code, setCode] = useState(String(route.params?.code || '').toUpperCase());
   const [busy, setBusy] = useState(false);
-  const [picking, setPicking] = useState(false);
+  const [q, setQ] = useState('');
+  const { tracks, failed } = useTrackSearch(q);
+  const trending = useRef<Track[]>([]);
+  const recent = useRef<string[]>([]);
   const [, setTick] = useState(0);
   const roomRef = useRef<LtState | null>(null);
   roomRef.current = room;
@@ -69,7 +72,42 @@ export default function ListenTogether() {
     if (!res.ok && res.error) Toast.show({ type: 'error', text1: res.error });
   }, [call]);
 
-  const { status, offset, retry } = useSyncedPlayer(room, (trackKey) => send('next', { trackKey }));
+  /**
+   * Fill silence with a random trending song. Every phone may call this at the
+   * same moment (song ended / empty room); the server takes only the first per
+   * track (autonext names the track it replaces). `skip`: user tapped next.
+   */
+  const playRandom = useCallback(async (trackKey: string, skip = false) => {
+    if (!trending.current.length) trending.current = await trendingTracks().catch(() => []);
+    const cur = roomRef.current?.track?.id;
+    const pool = trending.current.filter((t) => t.id !== cur && !recent.current.includes(t.id));
+    const list = pool.length ? pool : trending.current.filter((t) => t.id !== cur);
+    const t = list[Math.floor(Math.random() * list.length)];
+    if (!t) return;
+    send('autonext', { trackKey, skip, track: { id: t.id, title: t.title, artist: t.artist, artwork: t.artwork, duration: t.duration } });
+  }, [send]);
+
+  const { status, offset, retry } = useSyncedPlayer(room, (trackKey) => playRandom(trackKey));
+
+  // Remember what played, so random picks don't repeat the last few.
+  const playingId = room?.track?.id;
+  useEffect(() => {
+    if (playingId) recent.current = [playingId, ...recent.current.filter((x) => x !== playingId)].slice(0, 15);
+  }, [playingId]);
+
+  // Nothing playing (new session), or the last song ended while nobody was
+  // around to pick: start something. Once per (room, track) per phone.
+  const filled = useRef('');
+  useEffect(() => {
+    if (!room) return;
+    const t = room.track;
+    const over = t && !room.playing && room.position >= t.duration * 1000 - 1;
+    const tag = `${room.id}:${t?.key ?? ''}`;
+    if ((!t || over) && filled.current !== tag) {
+      filled.current = tag;
+      playRandom(t?.key ?? '');
+    }
+  }, [room, playRandom]);
 
   // Join from an invite link, else resume my session if I have one.
   const enterRef = useRef(false);
@@ -152,11 +190,9 @@ export default function ListenTogether() {
     }).catch(() => {});
   };
 
+  /** Tap a song: it plays now, for everyone. */
   const pick = (t: Track) => {
-    setPicking(false);
-    const track = { id: t.id, title: t.title, artist: t.artist, artwork: t.artwork, duration: t.duration };
-    send('queue', { track });
-    if (room?.track && room.playing) Toast.show({ type: 'success', text1: 'Added to queue', text2: t.title });
+    send('play', { track: { id: t.id, title: t.title, artist: t.artist, artwork: t.artwork, duration: t.duration } });
   };
 
   // ── Lobby ────────────────────────────────────────────────────────────────
@@ -268,7 +304,7 @@ export default function ListenTogether() {
                   <Ionicons name={room.playing ? 'pause' : 'play'} size={28} color={C.onBrand} />
                 </Pressable>
                 <IconBtn name="play-forward" onPress={() => send('seek', { ms: pos + 10000 })} accessibilityLabel="Forward 10 seconds" />
-                <IconBtn name="play-skip-forward" onPress={() => send('next', { trackKey: t.key })} accessibilityLabel="Next song" />
+                <IconBtn name="play-skip-forward" onPress={() => playRandom(t.key, true)} accessibilityLabel="Play a random song" />
               </View>
 
               {status === 'loading' || status === 'buffering' ? (
@@ -280,35 +316,43 @@ export default function ListenTogether() {
               ) : null}
             </>
           ) : (
-            <Empty icon="musical-notes-outline" title="Nothing playing" hint="Add a song and it starts for everyone."
-              action={<Button variant="primary" small icon="add" title="Add a song" onPress={() => setPicking(true)} />} />
+            <View className="items-center py-10" style={{ gap: 10 }}>
+              <ActivityIndicator color={C.accentText} />
+              <Text className="text-ink-3" style={TYPE.sm}>Picking a song…</Text>
+            </View>
           )}
         </Card>
 
-        {/* Queue */}
+        {/* Songs: tap one and it plays for everyone. */}
         <View>
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-ink font-semibold">Up next{room.queue.length ? ` · ${room.queue.length}` : ''}</Text>
-            <Button small icon="add" title="Add song" onPress={() => setPicking(true)} />
-          </View>
-          {room.queue.length ? (
+          <Text className="text-ink font-semibold mb-2">{q.trim() ? 'Results' : 'Trending'}</Text>
+          <SearchField value={q} onChangeText={setQ} placeholder="Search songs" containerStyle={{ marginBottom: 8 }} />
+          {tracks === null ? (
+            <ActivityIndicator color={C.accentText} style={{ marginVertical: 24 }} />
+          ) : tracks.length ? (
             <Card style={{ paddingVertical: 4 }}>
-              {room.queue.map((q, i) => (
-                <View key={q.key} className="flex-row items-center py-2" style={{ gap: 10, borderTopWidth: i ? 1 : 0, borderColor: C.line }}>
-                  {q.artwork
-                    ? <Image source={{ uri: q.artwork }} style={{ width: 40, height: 40, borderRadius: 8 }} cachePolicy="memory-disk" />
-                    : <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: C.paper2 }} />}
-                  <View className="flex-1 min-w-0">
-                    <Text className="text-ink font-semibold text-sm" numberOfLines={1}>{q.title}</Text>
-                    <Text className="text-ink-3 text-xs" numberOfLines={1}>{q.artist}{nameOf(q.addedBy) ? ` · ${nameOf(q.addedBy)}` : ''}</Text>
-                  </View>
-                  <IconBtn name="play-circle-outline" size={22} onPress={() => send('jump', { key: q.key })} accessibilityLabel={`Play ${q.title} now`} />
-                  <IconBtn name="close" size={20} onPress={() => send('unqueue', { key: q.key })} accessibilityLabel={`Remove ${q.title}`} />
-                </View>
-              ))}
+              {tracks.map((s2, i) => {
+                const on = room.track?.id === s2.id;
+                return (
+                  <Pressable key={s2.id} onPress={() => !on && pick(s2)} className="flex-row items-center py-2 active:opacity-85"
+                    style={{ gap: 10, borderTopWidth: i ? 1 : 0, borderColor: C.line, minHeight: 56 }}
+                    accessibilityRole="button" accessibilityLabel={on ? `${s2.title}, playing` : `Play ${s2.title} by ${s2.artist} for everyone`}
+                    accessibilityState={{ selected: on }}>
+                    {s2.artwork
+                      ? <Image source={{ uri: s2.artwork }} style={{ width: 44, height: 44, borderRadius: 8 }} cachePolicy="memory-disk" />
+                      : <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: C.paper2 }} />}
+                    <View className="flex-1 min-w-0">
+                      <Text className="font-semibold text-sm" style={{ color: on ? C.accentText : C.ink }} numberOfLines={1}>{s2.title}</Text>
+                      <Text className="text-ink-3 text-xs" numberOfLines={1}>{s2.artist}</Text>
+                    </View>
+                    <Ionicons name={on ? 'volume-high' : 'play-circle-outline'} size={22} color={on ? C.accentText : C.ink3} />
+                  </Pressable>
+                );
+              })}
             </Card>
           ) : (
-            <Text className="text-ink-3" style={TYPE.sm}>Nothing queued. Songs you add play after this one.</Text>
+            <Empty icon="musical-notes-outline" title={failed ? 'Could not load songs' : 'No songs found'}
+              hint={failed ? 'Check your connection and try again.' : 'Try another name.'} />
           )}
         </View>
 
@@ -316,7 +360,6 @@ export default function ListenTogether() {
         <Text className="text-ink-3 text-center" style={TYPE.caption}>Music from Audius</Text>
       </ScrollView>
 
-      {picking ? <MusicPicker onPick={pick} onClose={() => setPicking(false)} /> : null}
     </View>
   );
 }

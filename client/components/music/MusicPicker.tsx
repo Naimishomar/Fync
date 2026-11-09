@@ -5,13 +5,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { trendingTracks, searchTracks, type Track } from '../../utils/audius';
 
-/** Full-screen Audius picker overlay (stories, Listen Together): trending first, then search. Tap a row to pick. */
-export default function MusicPicker({ onPick, onClose }: { onPick: (t: Track) => void; onClose: () => void }) {
-  const insets = useSafeAreaInsets();
-  const [q, setQ] = useState('');
+/** Trending when `q` is empty, else search (debounced). Stale responses are dropped. */
+export function useTrackSearch(q: string) {
   const [tracks, setTracks] = useState<Track[] | null>(null);
   const [failed, setFailed] = useState(false);
-
   useEffect(() => {
     let live = true;
     setFailed(false);
@@ -22,6 +19,14 @@ export default function MusicPicker({ onPick, onClose }: { onPick: (t: Track) =>
     }, q.trim() ? 400 : 0);
     return () => { live = false; clearTimeout(t); };
   }, [q]);
+  return { tracks, failed };
+}
+
+/** Full-screen Audius picker overlay (stories, Listen Together): trending first, then search. Tap a row to pick. */
+export default function MusicPicker({ onPick, onClose }: { onPick: (t: Track) => void; onClose: () => void }) {
+  const insets = useSafeAreaInsets();
+  const [q, setQ] = useState('');
+  const { tracks, failed } = useTrackSearch(q);
 
   return (
     <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(18,16,14,0.96)', paddingTop: insets.top + 10 }}>
