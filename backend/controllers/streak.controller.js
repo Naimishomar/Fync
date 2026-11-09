@@ -5,19 +5,22 @@ import { istDateKey, istDayStart } from '../utils/eventTime.js';
 /**
  * GET /user/streak/leaderboard
  * Returns top 10 users by streak and current user's rank.
+ * ?scope=college limits both to the caller's college.
  */
 export const getStreakLeaderboard = async (req, res) => {
     try {
         const currentUser = await User.findById(req.user.id)
-            .select('streakCount lastPostDate updatedAt')
+            .select('streakCount lastPostDate updatedAt college')
             .lean();
         if (!currentUser) return res.status(404).json({ success: false, message: "User not found" });
 
         // A streak is only alive if the last post was today or yesterday (IST);
         // streakCount is not reset until the next post, so a lapsed streak
         // used to sit on the board forever.
-        const alive = { lastPostDate: { $gte: istDayStart(istDateKey(new Date(Date.now() - 86400000))) } };
-        const myStreak = currentUser.lastPostDate && new Date(currentUser.lastPostDate) >= alive.lastPostDate.$gte
+        const since = istDayStart(istDateKey(new Date(Date.now() - 86400000)));
+        const alive = { lastPostDate: { $gte: since } };
+        if (req.query.scope === 'college' && currentUser.college) alive.college = currentUser.college;
+        const myStreak = currentUser.lastPostDate && new Date(currentUser.lastPostDate) >= since
             ? (currentUser.streakCount || 0) : 0;
 
         // The three queries below have no dependency on each other; they used to

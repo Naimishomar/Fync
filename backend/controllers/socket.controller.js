@@ -13,6 +13,7 @@ import { getPresenceAudience, filterOnline, broadcastStatus } from "../utils/pre
 import { checkClubStatus, nightPseudonym } from "../utils/nightClub.js";
 import { claimCall, confirmCall, endCall as endCallState, releaseIfPeer, getPeer } from "../utils/callState.js";
 import { removeFromQueue } from "../utils/quizQueue.js";
+import { GHOST_WAIT_MS, recordGhost, pickGhost } from "../utils/quizGhost.js";
 import SubGroup from "../models/club/subGroup.model.js";
 import SubCommunity from "../models/community/subCommunity.model.js";
 import { notifyChatPeer } from "./chat.controller.js";
@@ -40,6 +41,44 @@ const publicQuestions = (questions = []) =>
 
 const RESULT_MESSAGE = { WIN: "Victory! +1 Point awarded. 🎉", LOSE: "Defeat 😢", DRAW: "It's a Tie! 🤝" };
 const outcome = (mine, theirs) => (mine > theirs ? "WIN" : mine < theirs ? "LOSE" : "DRAW");
+
+/**
+ * Still alone in the 1v1 queue: take ourselves out and play a recorded real
+ * attempt (utils/quizGhost.js). removeFromQueue is the claim: 0 means someone
+ * matched us, or we cancelled or left, in the meantime.
+ */
+const startGhostMatch = async (socket, queueKey, domain, user, userData) => {
+  if (!socket.connected || socket.data.quizQueue !== queueKey) return;
+  if (!(await removeFromQueue(redisClient, queueKey, socket.id))) return;
+  const ghost = await pickGhost(redisClient, domain, user._id);
+  if (!ghost) {
+    // Nobody recorded yet in this domain: keep waiting for a human.
+    await redisClient.lPush(queueKey, userData);
+    return;
+  }
+  socket.data.quizQueue = null;
+
+  const matchRoomId = `match:${nanoid(6)}`;
+  const ghostId = `ghost:${ghost.userId}`;
+  await redisClient.set(matchRoomId, JSON.stringify({
+    questions: ghost.questions,
+    domain,
+    participants: {
+      [user._id]: { score: null, socketId: socket.id, name: user.name, username: user.username, avatar: user.avatar },
+      [ghostId]: { score: ghost.score, socketId: null, name: ghost.name, ghost: true },
+    },
+  }), { EX: 900 });
+  // The ghost has already "submitted": its recorded score.
+  await redisClient.set(`${matchRoomId}:score:${ghostId}`, String(ghost.score), { EX: 900 });
+
+  socket.join(matchRoomId);
+  socket.emit("match_found", {
+    matchRoomId,
+    questions: publicQuestions(ghost.questions),
+    endTime: new Date(Date.now() + 5 * 60000).toISOString(),
+    opponent: { username: ghost.username, name: ghost.name, avatar: ghost.avatar, ghost: true },
+  });
+};
 
 // Presence keys are refreshed on every (re)connect; anything older than this
 // belongs to a socket whose worker died without cleaning up.
@@ -408,6 +447,12 @@ export const socketController = (io) => {
           await redisClient.lPush(queueKey, userData);
           // Remember where we queued so cancel/disconnect can take us out.
           socket.data.quizQueue = queueKey;
+          // Nobody came in GHOST_WAIT_MS: play a recorded real attempt instead.
+          clearTimeout(socket.data.ghostTimer);
+          socket.data.ghostTimer = setTimeout(() => {
+            startGhostMatch(socket, queueKey, domain, user, userData)
+              .catch((err) => console.error("Ghost match error:", err.message));
+          }, GHOST_WAIT_MS);
           return;
         }
 
@@ -438,9 +483,10 @@ export const socketController = (io) => {
 
         const matchData = {
           questions,
+          domain,
           participants: {
-            [userId]: { score: null, socketId: socket.id, name: user.name },
-            [opponent.userId]: { score: null, socketId: opponent.socketId, name: opponent.name }
+            [userId]: { score: null, socketId: socket.id, name: user.name, username: user.username, avatar: user.avatar },
+            [opponent.userId]: { score: null, socketId: opponent.socketId, name: opponent.name, username: opponent.username, avatar: opponent.avatar }
           }
         };
         await redisClient.set(matchRoomId, JSON.stringify(matchData), { EX: 900 });
@@ -472,6 +518,7 @@ export const socketController = (io) => {
     // Leave the 1v1 queue. Uses the queue this socket actually joined (not the
     // payload's domain), so it can only remove its own entry. Safe if not queued.
     socket.on("cancel_1v1_match", async () => {
+      clearTimeout(socket.data.ghostTimer);
       const queueKey = socket.data.quizQueue;
       socket.data.quizQueue = null;
       try {
@@ -497,7 +544,15 @@ export const socketController = (io) => {
         // shared match blob, so simultaneous submits lost each other's score,
         // and a resubmit after the opponent finished awarded the point again.
         const scoreKey = (id) => `${matchRoomId}:score:${id}`;
-        await redisClient.set(scoreKey(userId), String(calculateScore(answers, match.questions)), { NX: true, EX: 900 });
+        const myAttempt = calculateScore(answers, match.questions);
+        const fresh = await redisClient.set(scoreKey(userId), String(myAttempt), { NX: true, EX: 900 });
+        if (fresh && match.domain) {
+          const me = match.participants[userId];
+          recordGhost(redisClient, match.domain, {
+            userId, name: me.name, username: me.username, avatar: me.avatar,
+            questions: match.questions, answers: Array.isArray(answers) ? answers.slice(0, match.questions.length).map(Number) : [], score: myAttempt,
+          });
+        }
         const [mine, theirs] = await redisClient.mGet([scoreKey(userId), scoreKey(opponentId)]);
         if (theirs === null) {
           socket.emit("waiting_for_opponent");
@@ -512,10 +567,15 @@ export const socketController = (io) => {
         const opScore = Number(theirs);
         const result = outcome(myScore, opScore);
         const opResult = outcome(opScore, myScore);
-        if (result === "WIN") await User.findByIdAndUpdate(userId, { $inc: { oneVsOnePoints: 1 } });
-        if (opResult === "WIN") await User.findByIdAndUpdate(opponentId, { $inc: { oneVsOnePoints: 1 } });
+        // A ghost is a replay: no ranked points either way.
+        const vsGhost = opponentId.startsWith("ghost:");
+        if (result === "WIN" && !vsGhost) await User.findByIdAndUpdate(userId, { $inc: { oneVsOnePoints: 1 } });
+        if (opResult === "WIN" && !vsGhost) await User.findByIdAndUpdate(opponentId, { $inc: { oneVsOnePoints: 1 } });
 
-        socket.emit("1v1_result", { result, myScore, opScore, message: RESULT_MESSAGE[result] });
+        const message = vsGhost
+          ? { WIN: "You beat their recorded score! 🎉", LOSE: "Their recorded score holds 😢", DRAW: "Exactly their score! 🤝" }[result]
+          : RESULT_MESSAGE[result];
+        socket.emit("1v1_result", { result, myScore, opScore, message, ghost: vsGhost });
         const opponentSocketId = match.participants[opponentId].socketId;
         if (opponentSocketId) {
           io.to(opponentSocketId).emit("1v1_result", {
@@ -988,6 +1048,7 @@ export const socketController = (io) => {
     });
 
     socket.on("disconnect", async () => {
+      clearTimeout(socket.data.ghostTimer);
       if (process.env.NODE_ENV !== "production") {
         console.log("Socket disconnected:", socket.id);
       }

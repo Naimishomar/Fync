@@ -154,7 +154,7 @@ const OneVsOneSetup = () => {
 
                     <H1 style={{ textAlign: 'center' }}>Finding a rival</H1>
                     <Text className="font-sans text-sm text-ink-3 mt-2 text-center px-4">
-                        Searching the {domain} arena…
+                        Searching the {domain} arena… If nobody shows up, you&apos;ll face a real player&apos;s recorded attempt.
                     </Text>
 
                     <Button title="Cancel search" block onPress={() => setSearching(false)} style={{ marginTop: 48 }} />

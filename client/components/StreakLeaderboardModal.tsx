@@ -5,7 +5,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import axios from '../context/axiosConfig';
 import { Alert } from './ui/AlertModal';
 import { C } from '../constants/colors';
-import { Sheet, IconBtn, ListRow, Empty } from './ui/kit';
+import { Sheet, IconBtn, ListRow, Empty, SegmentedTabs } from './ui/kit';
 import Avatar from './Avatar';
 
 interface LeaderboardUser {
@@ -23,18 +23,20 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
   const [userRank, setUserRank] = useState(-1);
   const [userStreak, setUserStreak] = useState(0);
   const [completedToday, setCompletedToday] = useState(false);
+  const [scope, setScope] = useState<'college' | 'india'>('college');
   const bottomInset = useBottomInset();
 
   useEffect(() => {
     if (isVisible) {
       fetchLeaderboard();
     }
-  }, [isVisible]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, scope]);
 
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/user/streak-leaderboard');
+      const res = await axios.get('/user/streak-leaderboard', { params: scope === 'college' ? { scope: 'college' } : {} });
       if (res.data.success) {
         setData(res.data.leaderboard ?? []);
         setUserRank(res.data.userRank ?? -1);
@@ -70,7 +72,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
             onPress={() => {
               Alert.alert(
                 "Streak rules",
-                "Keep the flame alive and climb the ranks!\n\n1. Post a Daily Post or Short to increase your streak.\n2. Consistency is key: You must post every single day.\n3. If you miss a day, your streak resets to 0 by the end of the day.\n\nTop 10 users with the highest streaks get featured as Campus Legends!",
+                "Keep the flame alive and climb the ranks!\n\n1. Post a Daily Post or Short, or solve a LeetCode problem (linked in your profile), to increase your streak.\n2. Consistency is key: You must post every single day.\n3. If you miss a day, your streak resets to 0 by the end of the day.\n\nTop 10 users with the highest streaks get featured as Campus Legends!",
                 [{ text: "Got it" }]
               );
             }}
@@ -78,8 +80,11 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
         </View>
       }
     >
+      <View className="px-gutter pt-4">
+        <SegmentedTabs items={['college', 'india'] as const} value={scope} onChange={setScope} labels={{ college: 'My college', india: 'All India' }} />
+      </View>
       {/* Your rank */}
-      <View className="px-gutter pt-4 pb-2">
+      <View className="px-gutter pt-3 pb-2">
         <View className="bg-paper-2 p-4 rounded-2xl flex-row items-center justify-between">
           <View className="flex-row items-center">
             <View className="bg-card w-12 h-12 rounded-full items-center justify-center mr-3">
@@ -87,7 +92,7 @@ const StreakLeaderboardModal = ({ isVisible, onClose }: { isVisible: boolean; on
             </View>
             <View>
               <Text className="text-ink-3 text-xs font-semibold">Your position</Text>
-              <Text className="text-ink text-base font-semibold">Global ranking</Text>
+              <Text className="text-ink text-base font-semibold">{scope === 'college' ? 'In your college' : 'All India'}</Text>
             </View>
           </View>
           <View className="items-end">

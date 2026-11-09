@@ -96,6 +96,8 @@ import { initStoryCleanup } from './utils/storyCleanup.js';
 import { initStayCleanup } from './utils/stayCleanup.js';
 import { initSundayMatchCron } from './utils/sundayMatchCron.js';
 import { initStreakReset } from './utils/streak.js';
+import { initStreakNudge } from './utils/streakNudge.js';
+import { initWeeklyRecap } from './utils/weeklyRecap.js';
 import startCleanupCron from './services/cleanup.service.js';
 import { initShortViewsFlush, flushShortViews } from './utils/shortViews.js';
 import initShadowRival from './utils/shadowRival.js';
@@ -366,6 +368,8 @@ const startServer = async (retries = 5) => {
       initStayCleanup();
       initSundayMatchCron();
       initStreakReset();
+      initStreakNudge();
+      initWeeklyRecap();
       initEventCleanup();
       startCleanupCron();
       initShortViewsFlush();

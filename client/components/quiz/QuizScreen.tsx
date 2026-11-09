@@ -167,12 +167,12 @@ const QuizScreen: React.FC<Props> = ({ route, navigation }) => {
                   )}
                 </View>
                 <View className="flex-1">
-                  <Label>Opponent</Label>
+                  <Label>{opponent.ghost ? 'Recorded attempt' : 'Opponent'}</Label>
                   <Text className="font-semibold text-ink" numberOfLines={1}>{opponent.name || opponent.username}</Text>
                 </View>
               </View>
               <View className="bg-brand-500 px-2.5 py-1 rounded-full">
-                <Text className="text-on-brand font-semibold text-xs">1v1 match</Text>
+                <Text className="text-on-brand font-semibold text-xs">{opponent.ghost ? 'Replay' : '1v1 match'}</Text>
               </View>
             </View>
           )}

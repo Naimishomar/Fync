@@ -22,3 +22,7 @@ export async function shareImageUrl(url: string, file: string, dialogTitle: stri
  */
 export const shareCard = (kind: 'post' | 'u', id: string, dialogTitle: string, fallback: () => Promise<unknown>) =>
   shareImageUrl(`${BACKEND_URL}/card/${kind}/${id}.png`, `fync-${kind}-${id}.png`, dialogTitle, fallback);
+
+/** "Your week on Fync" story card (backend utils/weeklyRecap.js). */
+export const shareRecap = (userId: string, fallback: () => Promise<unknown>) =>
+  shareImageUrl(`${BACKEND_URL}/card/recap/${userId}.png`, `fync-week-${userId}-${Date.now()}.png`, 'Share your week', fallback);

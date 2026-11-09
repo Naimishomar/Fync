@@ -23,7 +23,7 @@ export const getSunday = async (req, res) => {
         let card = null;
         if (match) {
             const other = await User.findById(String(match.a) === String(me) ? match.b : match.a)
-                .select("name username avatar year").lean();
+                .select("name username avatar year college").lean();
             if (other) {
                 card = { user: other, sharedInterests: match.sharedInterests, intent: profile?.intent, expiresAt: match.expiresAt };
             }

@@ -18,7 +18,7 @@ import { buzz, tick } from '../ui/motion';
 
 type Intent = 'friendship' | 'dating';
 type Profile = { optedIn: boolean; intent: Intent; interestedIn: string | null; interests: string[]; vibes: number[]; priority: boolean };
-type MatchCard = { user: { _id: string; name?: string; username?: string; avatar?: string; year?: number }; sharedInterests: string[]; intent?: Intent; expiresAt: string };
+type MatchCard = { user: { _id: string; name?: string; username?: string; avatar?: string; year?: number; college?: string }; sharedInterests: string[]; intent?: Intent; expiresAt: string };
 type Options = { interests: string[]; maxInterests: number; vibes: { q: string; options: string[] }[]; reasons: string[] };
 type State = { profile: Profile | null; match: MatchCard | null; nextAt: string; options: Options };
 
@@ -231,7 +231,7 @@ export default function SundayMatch() {
               <View style={{ flex: 1, paddingRight: 12 }}>
                 <Text style={[TYPE.title, { color: '#fff' }]} accessibilityRole="header">Sunday Match 💞</Text>
                 <Text style={[TYPE.sm, { color: 'rgba(255,255,255,0.92)', marginTop: 4 }]}>
-                  One new person from your college, every Sunday at 7 PM. Friendship or dating, your call.
+                  One new person every Sunday at 7 PM, from your college first. Friendship or dating, your call.
                 </Text>
               </View>
               <Image source={{ uri: HEARTS }} style={{ width: 72, height: 72 }} contentFit="contain" cachePolicy="disk" accessible={false} />
@@ -247,6 +247,9 @@ export default function SundayMatch() {
                 <Text className="text-ink-3" style={[TYPE.sm, { marginTop: 4 }]}>
                   {m.user.year ? `Year ${m.user.year} · ` : ''}{m.intent === 'dating' ? 'Dating 💘' : 'Friendship 🤝'}
                 </Text>
+                {!!m.user.college && (
+                  <Text className="text-ink-3" style={[TYPE.sm, { marginTop: 2, textAlign: 'center' }]} numberOfLines={1}>{m.user.college}</Text>
+                )}
                 {m.sharedInterests.length ? (
                   <>
                     <Text className="text-ink-2 font-semibold" style={[TYPE.sm, { marginTop: 16, marginBottom: 8 }]}>You both like</Text>

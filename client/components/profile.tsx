@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Text, View, Pressable, Linking, ActivityIndicator, DeviceEventEmitter } from 'react-native';
+import { Text, View, Pressable, Linking, ActivityIndicator, DeviceEventEmitter, Share } from 'react-native';
+import { shareRecap } from '../utils/shareCard';
+import { profileLink } from './ui/ProfileQR';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '../context/auth.context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -651,6 +653,10 @@ function Profile() {
 
       <ProfileStrength user={user} />
       <ActivityCalendar userId={user?._id} streak={(user as any)?.streakCount} highest={(user as any)?.highestStreak} refreshKey={postCount} accent={(user as any)?.accentColor} />
+      {!!user?._id && (
+        <Button title="Share my week" icon="share-social-outline" block style={{ marginTop: 12 }}
+          onPress={() => shareRecap(user._id, () => Share.share({ message: `My week on Fync: ${profileLink(user._id)}` }))} />
+      )}
     </ProfileHero>
   );
 

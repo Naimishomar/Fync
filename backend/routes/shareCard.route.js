@@ -1,6 +1,7 @@
 /**
  * Public share surfaces, no auth (link-preview crawlers can't log in):
  *   GET /card/post/<id>.png|.jpg   GET /card/u/<id>.png|.jpg   share-card images
+ *   GET /card/recap/<userId>.png                                weekly recap story card
  *   GET /u/<id>   GET /view?postId=|shortId=                   app-open bridges + og tags
  * Only what is already public: private posts and banned users 404.
  * .png is what the app shares; .jpg is the og:image (WhatsApp drops previews over ~600KB).
@@ -10,6 +11,7 @@ import mongoose from 'mongoose';
 import Post from '../models/post.model.js';
 import User from '../models/user.model.js';
 import { renderPostCard, renderProfileCard, esc, truncate } from '../utils/shareCard.js';
+import { buildRecap, renderRecapCard } from '../utils/weeklyRecap.js';
 
 const router = Router();
 // Fixed, not req.host: the rendered QR is cached, a spoofed Host must not end up in it.
@@ -103,6 +105,19 @@ router.get('/card/u/:file', async (req, res, next) => {
       return renderProfileCard({ ...user, posts, avatar }, profileLink(user._id), fmt);
     });
     sendCard(res, fmt, buf);
+  } catch (e) { next(e); }
+});
+
+// Same numbers the public profile already shows, for the last 7 days.
+router.get('/card/recap/:file', async (req, res, next) => {
+  try {
+    const m = FILE.exec(req.params.file);
+    const user = m && await loadUser(m[1]);
+    if (!user) return res.status(404).end();
+    // 10-minute buckets: fresh enough after a solve, cheap on repeat shares.
+    const buf = await cached(`r:${user._id}:${Math.floor(Date.now() / 600000)}`, async () =>
+      renderRecapCard(await buildRecap(user._id), profileLink(user._id)));
+    sendCard(res, 'png', buf);
   } catch (e) { next(e); }
 });
 

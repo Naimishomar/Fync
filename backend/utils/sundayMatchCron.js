@@ -8,22 +8,32 @@ import { COOLDOWN_WEEKS, MATCH_DAYS, pairKey, pairUp } from "./sundayMatchRules.
 
 const DAY = 86400000;
 
-/** Pair one college for this week. Safe to re-run: people already matched this week are skipped. */
+export const ALL_INDIA = "All India";
+
+/**
+ * Pair one college for this week, or (college = ALL_INDIA) everyone any college
+ * left unmatched, across colleges. A small college then still gets matches.
+ * Safe to re-run: people already matched this week are skipped.
+ */
 const runCollege = async (college, weekKey, now) => {
-    const profiles = await SundayMatchProfile.find({ college, optedIn: true })
+    const national = college === ALL_INDIA;
+    const profiles = await SundayMatchProfile.find(national ? { optedIn: true, priority: true } : { college, optedIn: true })
         .select("user intent interestedIn interests vibes priority").lean();
     if (profiles.length < 2) {
-        if (profiles.length) await SundayMatchProfile.updateOne({ _id: profiles[0]._id }, { $set: { priority: true } });
+        if (profiles.length && !national) await SundayMatchProfile.updateOne({ _id: profiles[0]._id }, { $set: { priority: true } });
         return 0;
     }
     const ids = profiles.map((p) => p.user);
     const [users, history] = await Promise.all([
         // Still a student at this college (they may have changed college since opting in).
-        User.find({ _id: { $in: ids }, college, user_access: "user" })
+        User.find({ _id: { $in: ids }, ...(national ? {} : { college }), user_access: "user" })
             .select("gender blockedUsers expoPushToken").lean(),
+        // By person, not college: a cross-college pair or a changed college still counts.
         SundayMatch.find({
-            college,
-            $or: [{ createdAt: { $gte: new Date(now - COOLDOWN_WEEKS * 7 * DAY) } }, { reported: true }],
+            $and: [
+                { $or: [{ a: { $in: ids } }, { b: { $in: ids } }] },
+                { $or: [{ createdAt: { $gte: new Date(now - COOLDOWN_WEEKS * 7 * DAY) } }, { reported: true }] },
+            ],
         }).select("a b weekKey").lean(),
     ]);
     const byId = new Map(users.map((u) => [String(u._id), u]));
@@ -68,7 +78,7 @@ const runCollege = async (college, weekKey, now) => {
     return inserted.size;
 };
 
-/** Pair every college. Colleges run one at a time to keep memory bounded. */
+/** Pair every college, then the cross-college leftovers. One at a time to keep memory bounded. */
 export const runSundayMatch = async (now = Date.now()) => {
     const weekKey = istDateKey(new Date(now));
     const colleges = await SundayMatchProfile.distinct("college", { optedIn: true });
@@ -79,6 +89,12 @@ export const runSundayMatch = async (now = Date.now()) => {
         } catch (err) {
             console.error(`❌ Sunday Match failed for ${college}:`, err.message);
         }
+    }
+    // Leftovers from every college (priority = unmatched) get one cross-college pass.
+    try {
+        total += await runCollege(ALL_INDIA, weekKey, now);
+    } catch (err) {
+        console.error("❌ Sunday Match All India pass failed:", err.message);
     }
     return total;
 };
