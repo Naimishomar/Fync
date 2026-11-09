@@ -3,7 +3,7 @@ import {
   ActivityIndicator, DeviceEventEmitter, FlatList, Modal, Pressable, StatusBar, Text, TextInput, View, useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Video, ResizeMode } from 'expo-av';
+import { Video, ResizeMode, Audio } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -21,11 +21,70 @@ import { Alert } from '../ui/AlertModal';
 import { tick } from '../ui/motion';
 import Skeleton from '../Skeleton';
 import { TYPE } from '../../constants/type';
+import { isFeatureOn } from '../../constants/features';
+import { trendingTracks, searchTracks, streamUrl, type Track } from '../../utils/audius';
 
 type Story = {
   _id: string; image?: string | null; video?: string | null; text?: string; bg?: string;
+  ask?: boolean; music?: { id: string; title?: string; artist?: string } | null;
   createdAt: string; seen: boolean; viewCount?: number;
 };
+
+/** Photo/text stories with music run longer than the default 5s. */
+const MUSIC_DURATION = 15000;
+
+/** Loops an Audius track while `playing`; unloads when the id changes or on unmount. */
+function useTrackSound(id: string | null | undefined, playing: boolean) {
+  const sound = useRef<Audio.Sound | null>(null);
+  const playingRef = useRef(playing);
+  playingRef.current = playing;
+  useEffect(() => {
+    if (!id) return;
+    let alive = true;
+    Audio.setAudioModeAsync({ playsInSilentModeIOS: true }).catch(() => {});
+    Audio.Sound.createAsync({ uri: streamUrl(id) }, { shouldPlay: false, isLooping: true, volume: 0.8 })
+      .then(({ sound: s }) => {
+        if (!alive) { s.unloadAsync().catch(() => {}); return; }
+        sound.current = s;
+        if (playingRef.current) s.playAsync().catch(() => {});
+      })
+      .catch(() => {}); // Audius unreachable: the story still shows, silently.
+    return () => {
+      alive = false;
+      sound.current?.unloadAsync().catch(() => {});
+      sound.current = null;
+    };
+  }, [id]);
+  useEffect(() => {
+    const s = sound.current;
+    if (s) (playing ? s.playAsync() : s.pauseAsync()).catch(() => {});
+  }, [playing]);
+}
+
+/** "♪ Title · Artist" pill, credited to Audius. */
+const MusicPill = ({ title, artist, onRemove }: { title?: string; artist?: string; onRemove?: () => void }) => (
+  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: 300, backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 16, paddingLeft: 10, paddingRight: onRemove ? 4 : 12, height: 32 }}>
+    <Ionicons name="musical-notes" size={14} color="#fff" />
+    <Text style={{ color: '#fff', fontSize: 13, fontFamily: 'Inter_600SemiBold', flexShrink: 1 }} numberOfLines={1}>
+      {title}{artist ? ` · ${artist}` : ''}
+    </Text>
+    {onRemove ? (
+      <Pressable onPress={onRemove} hitSlop={8} accessibilityRole="button" accessibilityLabel="Remove music" style={{ padding: 4 }}>
+        <Ionicons name="close" size={16} color="#fff" />
+      </Pressable>
+    ) : null}
+  </View>
+);
+
+/** "Ask me anything" sticker: same look in the composer and the viewer. */
+const AskSticker = ({ name }: { name?: string }) => (
+  <View style={{ backgroundColor: '#fff', borderRadius: 20, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center', width: 260, boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
+    <Text style={{ color: '#12100E', fontFamily: 'Inter_700Bold', fontSize: 18 }}>Ask me anything</Text>
+    <View style={{ marginTop: 10, backgroundColor: '#F5F2EC', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14, alignSelf: 'stretch' }}>
+      <Text style={{ color: '#8A847C', fontSize: 14, textAlign: 'center' }} numberOfLines={1}>Send {name || 'me'} an anonymous question</Text>
+    </View>
+  </View>
+);
 type Group = {
   user: { _id: string; name?: string; username?: string; avatar?: string };
   isMine: boolean; allSeen: boolean; stories: Story[];
@@ -204,6 +263,9 @@ function StoryViewer({
   const [holding, setHolding] = useState(false);
   const [viewers, setViewers] = useState<any[] | null>(null);
   const [viewersLoading, setViewersLoading] = useState(false);
+  // AMA sticker reply: null = closed, else the draft.
+  const [askDraft, setAskDraft] = useState<string | null>(null);
+  const [askState, setAskState] = useState<'idle' | 'sending' | 'sent' | string>('idle');
   const progress = useSharedValue(0);
   const paused = useRef(false);
 
@@ -234,7 +296,7 @@ function StoryViewer({
     cancelAnimation(progress);
     progress.value = 0;
     setReady(!story.image && !story.video);
-    setDur(DURATION);
+    setDur(story.music && !story.video ? MUSIC_DURATION : DURATION);
     if (!story.seen && !group.isMine) {
       onSeen(story._id);
       axios.post(`/story/${story._id}/view`).catch(() => {});
@@ -246,6 +308,8 @@ function StoryViewer({
     if (story && ready && !paused.current && viewers == null) run(dur * (1 - progress.value));
     return () => cancelAnimation(progress);
   }, [story, ready, run, progress, viewers, dur]);
+
+  useTrackSound(story?.video ? null : story?.music?.id, ready && !holding && viewers == null && askDraft === null);
 
   const hold = (on: boolean) => {
     paused.current = on;
@@ -340,6 +404,79 @@ function StoryViewer({
           <Pressable style={{ flex: 1 }} onPress={next} onLongPress={() => hold(true)} onPressOut={() => paused.current && hold(false)} delayLongPress={200} accessibilityLabel="Next story" />
         </View>
 
+        {/* AMA sticker: tap to send the author an anonymous question. Same
+            backend as their public /ask link, so same inbox and limits. */}
+        {story.music && !story.video ? (
+          <View pointerEvents="none" style={{ position: 'absolute', top: insets.top + 66, left: 12 }}>
+            <MusicPill title={story.music.title} artist={story.music.artist} />
+          </View>
+        ) : null}
+        {story.ask ? (
+          <View pointerEvents="box-none" style={{ position: 'absolute', top: insets.top + (story.music ? 112 : 72), left: 0, right: 0, alignItems: 'center' }}>
+            <Pressable
+              disabled={group.isMine}
+              onPress={() => { hold(true); setAskState('idle'); setAskDraft(''); }}
+              className="active:opacity-85"
+              accessibilityRole="button"
+              accessibilityLabel={`Ask ${group.user.name || 'them'} an anonymous question`}
+            >
+              <AskSticker name={group.isMine ? 'you' : group.user.name?.split(' ')[0]} />
+            </Pressable>
+          </View>
+        ) : null}
+
+        {askDraft !== null ? (
+          <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.6)', paddingTop: insets.top + 72, alignItems: 'center' }}>
+            <View style={{ width: 300, backgroundColor: '#fff', borderRadius: 20, padding: 16 }}>
+              <Text style={{ color: '#12100E', fontFamily: 'Inter_700Bold', fontSize: 17, textAlign: 'center' }}>
+                {askState === 'sent' ? 'Sent anonymously' : `Ask ${group.user.name?.split(' ')[0] || 'them'} anything`}
+              </Text>
+              {askState === 'sent' ? (
+                <Text style={{ color: '#57534E', fontSize: 14, textAlign: 'center', marginTop: 8 }}>They won&apos;t know it was you.</Text>
+              ) : (
+                <>
+                  <TextInput
+                    value={askDraft}
+                    onChangeText={setAskDraft}
+                    placeholder="Type your question…"
+                    placeholderTextColor="#8A847C"
+                    multiline
+                    maxLength={300}
+                    autoFocus
+                    style={{ marginTop: 12, minHeight: 80, maxHeight: 160, backgroundColor: '#F5F2EC', borderRadius: 12, padding: 12, color: '#12100E', fontSize: 15, textAlignVertical: 'top' }}
+                  />
+                  {askState !== 'idle' && askState !== 'sending' ? (
+                    <Text style={{ color: '#DC2626', fontSize: 13, marginTop: 8 }}>{askState}</Text>
+                  ) : null}
+                </>
+              )}
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+                <Pressable onPress={() => { setAskDraft(null); hold(false); }} className="active:opacity-85" accessibilityRole="button"
+                  style={{ flex: 1, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F2EC' }}>
+                  <Text style={{ color: '#12100E', fontFamily: 'Inter_600SemiBold' }}>{askState === 'sent' ? 'Done' : 'Cancel'}</Text>
+                </Pressable>
+                {askState !== 'sent' ? (
+                  <Pressable
+                    disabled={!askDraft?.trim() || askState === 'sending'}
+                    onPress={async () => {
+                      setAskState('sending');
+                      try {
+                        await axios.post(`/ask/${encodeURIComponent(group.user.username || '')}`, { text: askDraft?.trim() });
+                        setAskState('sent');
+                      } catch (e: any) {
+                        setAskState(e?.response?.data?.message || 'Could not send. Try again.');
+                      }
+                    }}
+                    className="active:opacity-85" accessibilityRole="button" accessibilityLabel="Send anonymously"
+                    style={{ flex: 1, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F97316', opacity: askDraft?.trim() ? 1 : 0.5 }}>
+                    {askState === 'sending' ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>Send</Text>}
+                  </Pressable>
+                ) : null}
+              </View>
+            </View>
+          </View>
+        ) : null}
+
         {/* Header: progress bars, author, close. */}
         <LinearGradient colors={['rgba(0,0,0,0.55)', 'transparent']} pointerEvents="box-none"
           style={{ position: 'absolute', top: 0, left: 0, right: 0, paddingTop: insets.top + 8, paddingHorizontal: 10, paddingBottom: 24 }}>
@@ -395,16 +532,90 @@ function StoryViewer({
 
 /* ------------------------------------------------------------- composer */
 
+/** Full-screen Audius picker over the composer: trending first, then search. Tap a row to pick. */
+function MusicPicker({ onPick, onClose }: { onPick: (t: Track) => void; onClose: () => void }) {
+  const insets = useSafeAreaInsets();
+  const [q, setQ] = useState('');
+  const [tracks, setTracks] = useState<Track[] | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    setFailed(false);
+    const t = setTimeout(() => {
+      (q.trim() ? searchTracks(q.trim()) : trendingTracks())
+        .then((list) => { if (live) setTracks(list); })
+        .catch(() => { if (live) { setTracks([]); setFailed(true); } });
+    }, q.trim() ? 400 : 0);
+    return () => { live = false; clearTimeout(t); };
+  }, [q]);
+
+  return (
+    <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(18,16,14,0.96)', paddingTop: insets.top + 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14 }}>
+        <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close music" className="active:opacity-85"
+          style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name="close" size={24} color="#fff" />
+        </Pressable>
+        <TextInput
+          value={q}
+          onChangeText={setQ}
+          placeholder="Search songs"
+          placeholderTextColor="rgba(255,255,255,0.5)"
+          autoCorrect={false}
+          style={{ flex: 1, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.12)', color: '#fff', paddingHorizontal: 16, fontSize: 15 }}
+        />
+      </View>
+      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, paddingHorizontal: 20, marginTop: 12, marginBottom: 4 }}>
+        {q.trim() ? 'Results' : 'Trending'} · music from Audius
+      </Text>
+      {tracks === null ? (
+        <ActivityIndicator color="#fff" style={{ marginTop: 32 }} />
+      ) : (
+        <FlatList
+          data={tracks}
+          keyExtractor={(t) => t.id}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingHorizontal: 14, paddingBottom: insets.bottom + 24 }}
+          ListEmptyComponent={
+            <Text style={{ color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginTop: 32 }}>
+              {failed ? 'Could not load music. Check your connection.' : 'No songs found'}
+            </Text>
+          }
+          renderItem={({ item }) => (
+            <Pressable onPress={() => onPick(item)} className="active:opacity-85" accessibilityRole="button"
+              accessibilityLabel={`${item.title} by ${item.artist}`}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, minHeight: 56 }}>
+              {item.artwork
+                ? <Image source={{ uri: item.artwork }} style={{ width: 44, height: 44, borderRadius: 8 }} cachePolicy="memory-disk" />
+                : <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="musical-notes" size={18} color="#fff" /></View>}
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold', fontSize: 15 }} numberOfLines={1}>{item.title}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }} numberOfLines={1}>{item.artist}</Text>
+              </View>
+            </Pressable>
+          )}
+        />
+      )}
+    </View>
+  );
+}
+
 function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClose: () => void; onPosted: () => void }) {
   const insets = useSafeAreaInsets();
   const [media, setMedia] = useState<{ uri: string; video: boolean } | null>(null);
   const image = media?.uri ?? null;
   const [text, setText] = useState('');
   const [bg, setBg] = useState(BGS[0]);
+  const [ask, setAsk] = useState(false);
+  const [music, setMusic] = useState<Track | null>(null);
+  const [picking, setPicking] = useState(false);
   const [posting, setPosting] = useState(false);
   const lift = useKeyboardLift(visible);
 
-  const reset = () => { setMedia(null); setText(''); setBg(BGS[0]); };
+  const reset = () => { setMedia(null); setText(''); setBg(BGS[0]); setAsk(false); setMusic(null); setPicking(false); };
+  // Preview the picked song while composing (not over a video: it has its own sound).
+  useTrackSound(visible && !media?.video ? music?.id : null, !picking);
   const close = () => { if (!posting) { reset(); onClose(); } };
 
   const pick = async () => {
@@ -423,12 +634,14 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
   };
 
   const share = async () => {
-    if (!image && !text.trim()) return;
+    if (!image && !text.trim() && !ask) return;
     setPosting(true);
     try {
       const form = new FormData();
       form.append('text', text.trim());
       form.append('bg', bg);
+      if (ask) form.append('ask', 'true');
+      if (music && !media?.video) form.append('music', JSON.stringify({ id: music.id, title: music.title, artist: music.artist }));
       if (media?.video) {
         const uri = await compressVideo(media.uri);
         form.append('video', { uri, name: 'story.mp4', type: 'video/mp4' } as any);
@@ -450,7 +663,7 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
     }
   };
 
-  const canShare = !!image || !!text.trim();
+  const canShare = !!image || !!text.trim() || ask;
 
   return (
     <Modal visible={visible} animationType="slide" statusBarTranslucent onRequestClose={close}>
@@ -477,12 +690,31 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
           />
         </View>
 
+        {music && !media?.video ? (
+          <View style={{ position: 'absolute', top: insets.top + 62, left: 0, right: 0, alignItems: 'center' }}>
+            <MusicPill title={music.title} artist={music.artist} onRemove={() => setMusic(null)} />
+          </View>
+        ) : null}
+        {ask ? (
+          <View pointerEvents="none" style={{ position: 'absolute', top: insets.top + (music ? 108 : 72), left: 0, right: 0, alignItems: 'center' }}>
+            <AskSticker />
+          </View>
+        ) : null}
+
         {/* Top: close, and (text mode) colour swatches. */}
         <View style={{ position: 'absolute', top: insets.top + 10, left: 14, right: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Pressable onPress={close} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close" className="active:opacity-85"
             style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name="close" size={24} color="#fff" />
           </Pressable>
+          {isFeatureOn('ask') && (
+            <Pressable onPress={() => { tick(); setAsk((v) => !v); }} hitSlop={6} accessibilityRole="switch" accessibilityLabel="Ask me anything sticker"
+              accessibilityState={{ checked: ask }} className="active:opacity-85"
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: 20, backgroundColor: ask ? '#fff' : 'rgba(0,0,0,0.35)' }}>
+              <Ionicons name="chatbubbles-outline" size={18} color={ask ? '#12100E' : '#fff'} />
+              <Text style={{ color: ask ? '#12100E' : '#fff', fontFamily: 'Inter_600SemiBold', fontSize: 13 }}>AMA</Text>
+            </Pressable>
+          )}
           <View style={{ flex: 1 }} />
           {image ? (
             <Pressable onPress={() => setMedia(null)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Remove photo or video" className="active:opacity-85"
@@ -503,6 +735,12 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
             <Ionicons name="images-outline" size={20} color="#fff" />
             <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>{image ? 'Change' : 'Photo / video'}</Text>
           </Pressable>
+          {!media?.video ? (
+            <Pressable onPress={() => setPicking(true)} className="active:opacity-85" accessibilityRole="button" accessibilityLabel="Add music"
+              style={{ marginLeft: 10, width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="musical-notes-outline" size={20} color="#fff" />
+            </Pressable>
+          ) : null}
           <View style={{ flex: 1 }} />
           <Pressable onPress={share} disabled={!canShare || posting} className="active:opacity-85" accessibilityRole="button"
             accessibilityLabel="Share to your story" accessibilityState={{ disabled: !canShare || posting, busy: posting }}
@@ -515,6 +753,7 @@ function StoryComposer({ visible, onClose, onPosted }: { visible: boolean; onClo
             )}
           </Pressable>
         </View>
+        {picking ? <MusicPicker onPick={(t) => { tick(); setMusic(t); setPicking(false); }} onClose={() => setPicking(false)} /> : null}
       </View>
     </Modal>
   );

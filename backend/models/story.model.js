@@ -13,6 +13,20 @@ const storySchema = new mongoose.Schema({
     video: { type: String, default: null },
     text: { type: String, trim: true, maxlength: 300, default: "" },
     bg: { type: String, default: "#F97316" },
+    // "Ask me anything" sticker: viewers can send the author an anonymous
+    // question (same inbox and rate limits as the public /ask/:username link).
+    ask: { type: Boolean, default: false },
+    // Background music from Audius (streamed from Audius by the app, never
+    // stored here). Only the track id + display text; the app builds the
+    // stream URL from the id, so no client-supplied URL is ever played.
+    music: {
+        type: new mongoose.Schema({
+            id: { type: String, match: /^[A-Za-z0-9]{1,20}$/ },
+            title: { type: String, maxlength: 120 },
+            artist: { type: String, maxlength: 80 },
+        }, { _id: false }),
+        default: null,
+    },
     viewers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     expiresAt: { type: Date, required: true, default: () => new Date(Date.now() + STORY_TTL_MS) },
 }, { timestamps: true });

@@ -13,7 +13,16 @@ export const createStory = async (req, res) => {
     const dropUploads = () => { if (image) deleteFromR2(image); if (video) deleteFromR2(video); };
     try {
         const text = String(req.body.text || "").trim().slice(0, 300);
-        if (!image && !video && !text) {
+        const ask = req.body.ask === true || req.body.ask === "true";
+        // Multipart sends it as a JSON string.
+        let music = null;
+        try {
+            const m = typeof req.body.music === "string" ? JSON.parse(req.body.music) : req.body.music;
+            if (m && /^[A-Za-z0-9]{1,20}$/.test(String(m.id))) {
+                music = { id: String(m.id), title: String(m.title || "").slice(0, 120), artist: String(m.artist || "").slice(0, 80) };
+            }
+        } catch { /* bad music field: post without it */ }
+        if (!image && !video && !text && !ask) {
             return res.status(400).json({ success: false, message: "Add a photo, a video or some text" });
         }
         const active = await Story.countDocuments({ user: req.user._id, ...live() });
@@ -28,6 +37,8 @@ export const createStory = async (req, res) => {
             video,
             text,
             bg: HEX.test(req.body.bg) ? req.body.bg : undefined,
+            ask,
+            music: video ? null : music, // a video has its own sound
         });
         res.status(201).json({ success: true, story });
     } catch (error) {
@@ -75,6 +86,8 @@ export const getStoryFeed = async (req, res) => {
                 video: s.video,
                 text: s.text,
                 bg: s.bg,
+                ask: !!s.ask,
+                music: s.music || null,
                 createdAt: s.createdAt,
                 expiresAt: s.expiresAt,
                 seen: aid === me || viewers.includes(me),
