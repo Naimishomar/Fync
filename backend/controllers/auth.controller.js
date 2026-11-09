@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import User, { PUBLIC_PROFILE_FIELDS, PROFILE_ACCENTS } from '../models/user.model.js';
+import User, { PUBLIC_PROFILE_FIELDS, isProfileAccent } from '../models/user.model.js';
 import redisClient, { cacheGet, cacheSet } from '../utils/redis.js';
 import { filterBusy } from '../utils/callState.js';
 import jwt from 'jsonwebtoken';
@@ -608,7 +608,7 @@ export const updateUser = async (req, res) => {
       github_id, linkedIn_id, leetcode, gfg, codechef, codeforces, hackerrank, upiId,
       company, role, industry, companySize, companyWebsite, college, accentColor
     } = req.body;
-    if (accentColor !== undefined && !PROFILE_ACCENTS.includes(accentColor)) {
+    if (accentColor !== undefined && !isProfileAccent(accentColor)) {
       return res.status(400).json({ success: false, message: "Invalid profile colour" });
     }
     const user = await User.findById(req.user.id);

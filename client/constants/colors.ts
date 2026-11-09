@@ -163,14 +163,48 @@ const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900] as const;
 
 const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 /** `a` over the dark paper at `t` opacity, as #rrggbb. */
-const tint = (a: string, t: number) => {
-  const [r, g, b] = hex(a), [pr, pg, pb] = hex(dark.paper);
-  return '#' + [r * t + pr * (1 - t), g * t + pg * (1 - t), b * t + pb * (1 - t)]
-    .map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+const tint = (a: string, t: number) => mixHex(dark.paper, a, t);
+
+const toHex = (rgb: number[]) => '#' + rgb.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+/** `a` moved toward `b` by `t` (0..1). */
+export const mixHex = (a: string, b: string, t: number) => {
+  const x = hex(a), y = hex(b);
+  return toHex(x.map((v, i) => v + (y[i] - v) * t));
+};
+/** Fully saturated colour for a hue in degrees. */
+export const hueHex = (h: number) => {
+  const f = (n: number) => { const k = (n + h / 60) % 6; return 255 * (1 - Math.max(0, Math.min(k, 4 - k, 1))); };
+  return toHex([f(5), f(3), f(1)]);
+};
+const lum = (h: string) => {
+  const c = hex(h).map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+};
+const contrast = (a: string, b: string) => {
+  const x = lum(a), y = lum(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 };
 
+export const HEX_ACCENT = /^#[0-9a-fA-F]{6}$/;
+/**
+ * Light scale for any picked #rrggbb (Edit Profile palette). The pick is nudged
+ * only as far as it must be: the fill lighter until near-black text reads on it,
+ * the text shade darker until it reads on paper (both 4.5:1).
+ */
+const customScale = (h: string) => {
+  let fill = h, text = h;
+  for (let i = 0; i < 25 && contrast(light.onBrand, fill) < 4.5; i++) fill = mixHex(fill, '#ffffff', 0.08);
+  for (let i = 0; i < 25 && contrast(text, light.paper) < 4.5; i++) text = mixHex(text, '#000000', 0.08);
+  const W = '#ffffff', B = '#000000';
+  return [mixHex(fill, W, 0.92), mixHex(fill, W, 0.84), mixHex(fill, W, 0.68), mixHex(fill, W, 0.45), mixHex(fill, W, 0.2),
+    fill, text, mixHex(text, B, 0.15), mixHex(text, B, 0.3), mixHex(text, B, 0.45)];
+};
+const customScales: Record<string, string[]> = {};
+const lightScale = (key?: string | null) => !key ? undefined
+  : ACCENT_SCALES[key] ?? (HEX_ACCENT.test(key) ? (customScales[key.toLowerCase()] ??= customScale(key.toLowerCase())) : undefined);
+
 const scaleFor = (key: string, s: 'light' | 'dark'): Palette['brand'] | null => {
-  const l = ACCENT_SCALES[key];
+  const l = lightScale(key);
   if (!l) return null;
   const c = s === 'dark'
     ? [tint(l[5], 0.12), tint(l[5], 0.16), tint(l[5], 0.28), l[3], l[4], l[5], l[4], l[3], l[2], l[1]]
@@ -178,12 +212,19 @@ const scaleFor = (key: string, s: 'light' | 'dark'): Palette['brand'] | null => 
   return Object.fromEntries(STEPS.map((k, i) => [k, c[i]])) as Palette['brand'];
 };
 
+/** Fill and text shade of an accent key for the current scheme; null = orange/unknown. */
+export const accentRoles = (key?: string | null) => {
+  const b = key ? scaleFor(key, scheme) : null;
+  return b ? { fill: b[500], text: b[600] } : null;
+};
+
 const palettes: Record<string, Palette> = {};
 const rebuild = () => {
   const base = scheme === 'dark' ? dark : light;
   const brand = scaleFor(accentKey, scheme);
+  // student: the avatar ring of most users, so it wears the accent too.
   current = !brand ? base : (palettes[`${scheme}:${accentKey}`] ??= {
-    ...base, brand, accent: brand[500], accentText: brand[600],
+    ...base, brand, accent: brand[500], accentText: brand[600], student: brand[500],
   });
 };
 
@@ -193,15 +234,15 @@ export const setPalette = (s: 'light' | 'dark' | null | undefined) => {
   rebuild();
 };
 
-/** Switch the accent (unknown key = orange). App.tsx calls this from the signed-in user. */
+/** Switch the accent: a preset key or #rrggbb (unknown = orange). App.tsx calls this from the signed-in user. */
 export const setAccent = (key?: string | null) => {
-  accentKey = key && ACCENT_SCALES[key] ? key : 'orange';
+  accentKey = key && lightScale(key) ? key.toLowerCase() : 'orange';
   rebuild();
 };
 
 /** CSS variables for NativeWind's vars(), so brand-* classes follow the accent. null for orange. */
 export const accentVars = (): Record<string, string> | null => {
-  if (!ACCENT_SCALES[accentKey]) return null;
+  if (!lightScale(accentKey)) return null;
   const rgb = (h: string) => hex(h).join(' ');
   const v: Record<string, string> = { '--accent-text': rgb(current.accentText) };
   STEPS.forEach((k) => { v[`--brand-${k}`] = rgb(current.brand[k]); });

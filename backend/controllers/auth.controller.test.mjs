@@ -226,6 +226,14 @@ await check('updateUser saves a preset accent, refuses others; public profile sh
   assert.equal(ok.body.user.accentColor, 'teal');
   const pub = await call(ctl.getUserProfile, { user: b.ctx, params: { id: String(a.doc._id) } });
   assert.equal(pub.body.user?.accentColor, 'teal', JSON.stringify(pub));
+  // Custom palette colour: exactly #rrggbb.
+  const hex = await call(ctl.updateUser, { user: a.ctx, body: { accentColor: '#1E90FF' } });
+  assert.equal(hex.status, 200, JSON.stringify(hex));
+  assert.equal(hex.body.user.accentColor, '#1E90FF');
+  for (const v of ['#12345', '#1234567', 'url(#x)', '#GGGGGG']) {
+    const r = await call(ctl.updateUser, { user: a.ctx, body: { accentColor: v } });
+    assert.equal(r.status, 400, v);
+  }
 });
 
 await mongoose.disconnect();

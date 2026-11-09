@@ -7,6 +7,7 @@ import {
   ScrollView,
   Platform,
   KeyboardAvoidingView,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -21,6 +22,8 @@ import { isFeatureOn } from '../constants/features';
 import { AppBar, Button, FormField } from './ui/kit';
 import { getFullUrl } from '../utils/imageUtils';
 import { ACCENT_KEYS, PROFILE_ACCENTS, profileAccent } from '../constants/profileAccents';
+import { LinearGradient } from 'expo-linear-gradient';
+import ColorPalette from './ui/ColorPalette';
 
 export default function EditProfile() {
   const { user, setUser } = useAuth();
@@ -45,6 +48,9 @@ export default function EditProfile() {
   const [upiId, setUpiId] = useState(user?.upiId || '');
   const savedAccent = user?.accentColor || 'orange';
   const [accentColor, setAccentColor] = useState<string>(savedAccent);
+  const customOn = accentColor.startsWith('#');
+  const [paletteOpen, setPaletteOpen] = useState(customOn);
+  const [scrollOn, setScrollOn] = useState(true);
 
   // --- Images ---
   const [avatar, setAvatar] = useState(getFullUrl(user?.avatar));
@@ -172,7 +178,7 @@ export default function EditProfile() {
       />
 
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView className="px-gutter pt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView className="px-gutter pt-4" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" scrollEnabled={scrollOn}>
 
         {/* --- Banner Image --- */}
         <Pressable onPress={() => pickImage('banner')} className="mb-6 active:opacity-85" accessibilityRole="button" accessibilityLabel="Change banner">
@@ -238,7 +244,24 @@ export default function EditProfile() {
                   </Pressable>
                 );
               })}
+              {/* Any colour: opens the palette. */}
+              <Pressable
+                onPress={() => setPaletteOpen((o) => !o)}
+                className="w-11 h-11 rounded-full items-center justify-center overflow-hidden active:opacity-85"
+                style={{ borderWidth: customOn ? 2 : 0, borderColor: C.ink }}
+                accessibilityRole="radio"
+                accessibilityLabel="Custom colour"
+                accessibilityState={{ selected: customOn, expanded: paletteOpen }}
+              >
+                <LinearGradient colors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+                <Ionicons name={customOn ? 'checkmark' : 'color-palette'} size={20} color="#ffffff" />
+              </Pressable>
             </View>
+            {paletteOpen && (
+              <View className="mt-3">
+                <ColorPalette value={customOn ? accentColor : null} onChange={setAccentColor} onDragging={(d) => setScrollOn(!d)} />
+              </View>
+            )}
             <Text className="text-ink-3 text-xs mt-2">Changes Fync&apos;s colour everywhere for you. Orange is the default.</Text>
           </View>
 

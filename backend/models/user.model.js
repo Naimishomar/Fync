@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 
 export const PROFILE_ACCENTS = ['orange', 'pink', 'purple', 'indigo', 'blue', 'teal', 'green', 'gold'];
+/** A preset key, or a custom #rrggbb from the Edit Profile palette. */
+export const isProfileAccent = (v) => PROFILE_ACCENTS.includes(v) || /^#[0-9a-fA-F]{6}$/.test(String(v));
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -117,10 +119,10 @@ const userSchema = new mongoose.Schema({
     about: {
         type: String,
     },
-    // Profile accent preset key; the client maps it to colours.
+    // Profile/app colour: preset key or custom #rrggbb; the client builds the shades.
     accentColor: {
         type: String,
-        enum: PROFILE_ACCENTS,
+        validate: { validator: isProfileAccent, message: 'Invalid profile colour' },
         default: 'orange'
     },
     // Alumni specific fields

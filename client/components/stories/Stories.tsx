@@ -469,7 +469,7 @@ function StoryViewer({
                       }
                     }}
                     className="active:opacity-85" accessibilityRole="button" accessibilityLabel="Send anonymously"
-                    style={{ flex: 1, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F97316', opacity: askDraft?.trim() ? 1 : 0.5 }}>
+                    style={{ flex: 1, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: C.accent, opacity: askDraft?.trim() ? 1 : 0.5 }}>
                     {askState === 'sending' ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontFamily: 'Inter_600SemiBold' }}>Send</Text>}
                   </Pressable>
                 ) : null}

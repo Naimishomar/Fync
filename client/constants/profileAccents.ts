@@ -1,12 +1,13 @@
 /**
- * Profile accent presets (user.accentColor). Only a profile (own + public)
- * wears it; the rest of the app stays brand orange. Keys match the backend enum.
+ * Profile accent presets (user.accentColor): a key here or a custom #rrggbb from
+ * the Edit Profile palette. The signed-in user's choice recolours the whole app
+ * (constants/colors.ts setAccent); a profile wears its owner's choice. Keys match the backend.
  *
  * fill: rings, underline, calendar, primary buttons. All are light enough that
  *   C.onBrand (near-black) reads on them at 4.5:1+, in both themes.
  * text: small accent text on paper/card; a deeper shade in light mode.
  */
-import { C } from './colors';
+import { C, accentRoles } from './colors';
 
 export const PROFILE_ACCENTS = {
   orange: { label: 'Orange', fill: '#F97316', light: '#EA580C', dark: '#FB923C' },
@@ -22,8 +23,11 @@ export const PROFILE_ACCENTS = {
 export type AccentKey = keyof typeof PROFILE_ACCENTS;
 export const ACCENT_KEYS = Object.keys(PROFILE_ACCENTS) as AccentKey[];
 
-/** Read at render (theme-aware). Unknown/missing key → orange. */
+/**
+ * Read at render (theme-aware). A profile that never picked a colour (missing or
+ * the default orange) wears the viewer's app colour, so it never looks off-theme.
+ */
 export function profileAccent(key?: string | null) {
-  const a = PROFILE_ACCENTS[key && Object.prototype.hasOwnProperty.call(PROFILE_ACCENTS, key) ? (key as AccentKey) : 'orange'];
-  return { fill: a.fill, text: C.scheme === 'dark' ? a.dark : a.light, on: C.onBrand };
+  const own = key && key !== 'orange' ? accentRoles(key) : null;
+  return own ? { ...own, on: C.onBrand } : { fill: C.accent, text: C.accentText, on: C.onBrand };
 }
