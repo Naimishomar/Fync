@@ -29,7 +29,8 @@ const ResultRow = React.memo(function ResultRow({ item, onOpen }: { item: any; o
   );
 });
 
-export default function MasterStudyHub() {
+/** Fync Academy. `embedded`: rendered inside Study Material's toggle (no app bar of its own). */
+export default function MasterStudyHub({ embedded = false }: { embedded?: boolean } = {}) {
   const navigation = useNavigation<any>();
   const [searchQuery, setSearchQuery] = useState('');
   const [resultsOpen, setResultsOpen] = useState(false);
@@ -102,8 +103,8 @@ export default function MasterStudyHub() {
 
   return (
     <View className="flex-1 bg-paper">
-      <StatusBar barStyle={C.barStyle} />
-      <AppBar title="Fync Academy" onBack={() => navigation.goBack()} />
+      {!embedded && <StatusBar barStyle={C.barStyle} />}
+      {!embedded && <AppBar title="Fync Academy" onBack={() => navigation.goBack()} />}
 
       <ScrollView keyboardShouldPersistTaps="handled"
         className="flex-1"
@@ -147,7 +148,7 @@ export default function MasterStudyHub() {
             <Text className="font-display text-lg" style={{ color: C.nightInk }}>Mission: Expert</Text>
           </View>
           <Text className="text-sm leading-relaxed" style={{ color: C.nightInk, opacity: 0.75 }}>
-            Unlock the world's most comprehensive technical library. From the fundamentals of DSA to elite FAANG preparation, your journey to mastery begins here.
+            Unlock the world&apos;s most comprehensive technical library. From the fundamentals of DSA to elite FAANG preparation, your journey to mastery begins here.
           </Text>
           <Button title="Start learning" variant="primary" onPress={() => navigation.navigate('DSAPrep')} style={{ alignSelf: 'flex-start', marginTop: 16 }} />
         </View>

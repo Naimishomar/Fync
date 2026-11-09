@@ -3,10 +3,13 @@ import { View, FlatList, ActivityIndicator, Animated, StatusBar } from 'react-na
 import { fetchDriveData } from '../../utils/handleDrive';
 import { C } from '../../constants/colors';
 import { AppBar, IconBtn, ListRow, SearchField, SegmentedTabs, Empty, Meta } from '../ui/kit';
+import MasterStudyHub from './MasterStudyHub';
 
 const FOLDER_MIME = 'application/vnd.google-apps.folder';
-const FILTERS = ['all', 'folders', 'files'] as const;
-const FILTER_LABELS = { all: 'All', folders: 'Folders', files: 'PDFs' };
+// Top level of Study Material: Fync Academy lives here too (it used to be a
+// separate Explore tile). Subfolders show just the files.
+const SECTIONS = ['academy', 'material'] as const;
+const SECTION_LABELS = { academy: 'Fync Academy', material: 'Study Material' };
 
 const DriveRow = React.memo(function DriveRow({ item, onOpen }: { item: any; onOpen: (item: any) => void }) {
     const isFolder = item.mimeType === FOLDER_MIME;
@@ -53,11 +56,11 @@ const SkeletonItem = () => {
 };
 
 const DriveFolderScreen = ({ route, navigation }: any) => {
-    const { folderId, title } = route?.params ?? {};
+    const { folderId, title, nested } = route?.params ?? {};
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
-    const [activeFilter, setActiveFilter] = useState<typeof FILTERS[number]>('all');
+    const [section, setSection] = useState<typeof SECTIONS[number]>(route?.params?.section === 'academy' ? 'academy' : 'material');
 
     useEffect(() => {
         navigation.setOptions({ title: title || "Resources" });
@@ -81,19 +84,12 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
             result = result.filter(i => (i.name || '').toLowerCase().includes(q));
         }
 
-        // Type Filter
-        if (activeFilter === 'folders') {
-            result = result.filter(i => i.mimeType === 'application/vnd.google-apps.folder');
-        } else if (activeFilter === 'files') {
-            result = result.filter(i => i.mimeType !== 'application/vnd.google-apps.folder');
-        }
-
         return result;
-    }, [search, items, activeFilter]);
+    }, [search, items]);
 
     const handlePress = useCallback((item: any) => {
         if (item.mimeType === FOLDER_MIME) {
-            navigation.push('DriveFolderScreen', { folderId: item.id, title: item.name });
+            navigation.push('DriveFolderScreen', { folderId: item.id, title: item.name, nested: true });
         } else {
             navigation.navigate('PDFViewerScreen', { fileId: item.id, title: item.name });
         }
@@ -108,12 +104,19 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
             <StatusBar barStyle={C.barStyle} />
 
             <View className="flex-1">
-                <AppBar title="Fync Drive" onBack={() => navigation.goBack()}
-                    right={loading
+                <AppBar title={nested ? (title || 'Study Material') : 'Study'} onBack={() => navigation.goBack()}
+                    right={!nested && section === 'academy' ? undefined : loading
                         ? <ActivityIndicator size="small" color={C.brand[500]} style={{ marginRight: 11 }} />
                         : <IconBtn name="refresh" onPress={loadData} accessibilityLabel="Refresh" />} />
+                {!nested && (
+                    <View className="px-gutter pt-2 pb-1">
+                        <SegmentedTabs items={SECTIONS} value={section} onChange={setSection} labels={SECTION_LABELS} />
+                    </View>
+                )}
                 {/* Skeleton only on first load; a refresh keeps the list and spins the button. */}
-                {loading && items.length === 0 ? (
+                {!nested && section === 'academy' ? (
+                    <MasterStudyHub embedded />
+                ) : loading && items.length === 0 ? (
                     <View>
                         <View className="mt-4">
                             {[1, 2, 3, 4, 5, 6].map((i) => <SkeletonItem key={i} />)}
@@ -128,9 +131,8 @@ const DriveFolderScreen = ({ route, navigation }: any) => {
                         renderItem={renderItem}
                         ListHeaderComponent={
                             <View className="px-gutter pt-2 pb-2" style={{ gap: 12 }}>
-                                <SearchField value={search} onChangeText={setSearch} placeholder="Search resources" />
-                                <SegmentedTabs items={FILTERS} value={activeFilter} onChange={setActiveFilter} labels={FILTER_LABELS} />
-                                <Meta numberOfLines={1}>{title || 'Root'}</Meta>
+                                <SearchField value={search} onChangeText={setSearch} placeholder="Search notes and papers" />
+                                {nested ? <Meta numberOfLines={1}>{title}</Meta> : null}
                             </View>
                         }
                         ListEmptyComponent={<Empty icon="document-text-outline" title="No resources found" />}
